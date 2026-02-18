@@ -52,22 +52,36 @@ e-psa/
 
 ## 🌐 Deployment
 
-### GitHub Pages
+### Option 1: GitHub Actions (Recommended - Automatic)
 
-1. Update `homepage` in `frontend/package.json`:
-   ```json
-   "homepage": "https://YOUR_USERNAME.github.io/e-psa"
-   ```
+The project includes a GitHub Actions workflow that automatically builds and deploys on push:
 
-2. Deploy:
+1. Push your code:
    ```bash
-   cd frontend
-   npm run deploy
+   git push origin main
    ```
 
-3. Enable GitHub Pages in repository settings (gh-pages branch)
+2. Enable GitHub Pages:
+   - Go to: https://github.com/Urology-AI/e-psa-calculator/settings/pages
+   - Source: **GitHub Actions**
+   - Click **Save**
 
-See `frontend/DEPLOYMENT.md` for detailed instructions.
+The workflow uses Node v18 and yarn, so it will build successfully even if you're on Node v23 locally.
+
+### Option 2: Manual Deploy (Requires Node v18/v20)
+
+If building locally, use Node v18 or v20:
+
+```bash
+nvm install 18
+nvm use 18
+cd frontend
+yarn install
+yarn build
+yarn deploy
+```
+
+See `DEPLOY_INSTRUCTIONS.md` for detailed instructions.
 
 ## 🔮 Future Enhancements
 
