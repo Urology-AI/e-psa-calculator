@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './WelcomeScreen.css';
+import PrintableForm from './PrintableForm';
 
 const WelcomeScreen = ({ onBegin }) => {
+  const [showForm, setShowForm] = useState(false);
+
+  const handleViewForm = () => {
+    setShowForm(true);
+  };
+
+  const handleBack = () => {
+    setShowForm(false);
+  };
+
+  if (showForm) {
+    return <PrintableForm onBack={handleBack} />;
+  }
+
   return (
     <div className="welcome-screen">
+      <button className="btn-view-form" onClick={handleViewForm} title="View Offline Form">
+        📄 View Form
+      </button>
       <div className="welcome-container">
         <div className="welcome-header">
           <div className="welcome-logo-container">

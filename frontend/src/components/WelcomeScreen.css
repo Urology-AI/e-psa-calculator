@@ -5,6 +5,50 @@
   justify-content: center;
   padding: 20px;
   background: #F8FAFB;
+  position: relative;
+}
+
+.btn-view-form {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  background: white;
+  color: #00578B;
+  border: 2px solid #00578B;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.btn-view-form:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-view-form:active {
+  transform: translateY(0);
+}
+
+@media print {
+  .btn-view-form {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-view-form {
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
 }
 
 .welcome-container {
