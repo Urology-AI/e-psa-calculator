@@ -69,6 +69,44 @@ body {
   margin: 0.5rem 0 0;
 }
 
+.stage-indicator {
+  margin-top: 1rem;
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stage-pre {
+  background: linear-gradient(135deg, #D4AF37 0%, #f4d03f 100%);
+  color: #003A5D;
+}
+
+.stage-post {
+  background: linear-gradient(135deg, #003A5D 0%, #005A8F 100%);
+  color: white;
+}
+
+.stage-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f0f0f0;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.pre-results-step,
+.post-results-step {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
 .height-inputs {
   display: flex;
   align-items: center;
