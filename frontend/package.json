@@ -5,11 +5,13 @@
   "private": true,
   "homepage": "https://urology-ai.github.io/e-psa-calculator",
   "dependencies": {
+    "crypto-js": "^4.2.0",
+    "firebase": "^12.9.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "firebase": "^12.9.0",
-    "crypto-js": "^4.2.0"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
