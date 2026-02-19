@@ -2,22 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
 import './App.css';
+import WelcomeScreen from './components/WelcomeScreen';
 import PhoneAuth from './components/PhoneAuth';
 import ConsentScreen from './components/ConsentScreen';
+// StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import StepNavigation from './components/StepNavigation';
 import StepForm from './components/StepForm';
 import FormField from './components/FormField';
-import PreResults from './components/PreResults';
 import Results from './components/Results';
-import { calculateEPsaPre } from './utils/epsaPreCalculator';
+import Part1Form from './components/Part1Form';
+import Part1Results from './components/Part1Results';
+import Part2Form from './components/Part2Form';
+import Part2Results from './components/Part2Results';
 import { calculateEPsaPost } from './utils/epsaPostCalculator';
+import { calculateEPsa } from './utils/epsaCalculator';
 import { createOrUpdateUser, createSession, updateSession, deleteSession, clearUserSession, getSession, getUser } from './services/firestoreService';
-
-const PRE_STEPS = [
-  { id: 1, label: 'Basic Info', title: 'Non-Modifiable Risk Factors', description: 'Tell us about factors you cannot change' },
-  { id: 2, label: 'History', title: 'Prior Screening History', description: 'Share your screening and medical history' },
-  { id: 3, label: 'Priority', title: 'Screening Priority', description: 'View your screening priority recommendation' }
-];
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
@@ -28,22 +27,31 @@ const POST_STEPS = [
 function App() {
   const [user, setUser] = useState(null);
   const [userPhone, setUserPhone] = useState(null);
-  const [authStep, setAuthStep] = useState('login'); // 'login', 'consent', 'app'
-  const [consentData, setConsentData] = useState(null);
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'login', 'consent', 'app'
+  const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId, setSessionId] = useState(null);
   
-  // ePSA-Pre form data
+  // ePSA-Pre form data (new Part 1 with 18 questions)
   const [preData, setPreData] = useState({
     age: '',
-    familyHistory: '',
-    geneticRisk: '',
-    race: '',
-    priorPsa: '',
-    priorBiopsy: '',
-    finasteride: ''
+    race: null,
+    heightFt: '',
+    heightIn: '',
+    weight: '',
+    bmi: 0,
+    familyHistory: null,
+    ipss: Array(7).fill(null),
+    shim: Array(5).fill(null),
+    exercise: null,
+    smoking: null,
+    diabetes: null,
+    conditions: [],
+    medications: [],
   });
+  
+  const [part1Step, setPart1Step] = useState(0); // 0-3 for the 4 steps in Part 1
 
   // ePSA-Post form data
   const [postData, setPostData] = useState({
@@ -64,18 +72,46 @@ function App() {
         const phone = currentUser.phoneNumber;
         setUserPhone(phone);
         
-        // Check if user has completed consent
+        // Check if user has completed consent (check both localStorage and Firestore)
         const hasConsented = localStorage.getItem(`consent_${currentUser.uid}`);
         const storedConsentData = localStorage.getItem(`consentData_${currentUser.uid}`);
         
-        if (hasConsented && storedConsentData) {
+        // Also check Firestore for consent
+        let userData = null;
+        try {
+          userData = await getUser(currentUser.uid);
+        } catch (error) {
+          console.warn('Could not fetch user data:', error);
+        }
+        
+        // If consent exists in localStorage OR Firestore, skip consent screen
+        const consentExists = (hasConsented && storedConsentData) || (userData && userData.consentToContact !== undefined);
+        
+        if (consentExists) {
           try {
-            const consent = JSON.parse(storedConsentData);
-            setConsentData(consent);
+            let consent;
+            if (storedConsentData) {
+              consent = JSON.parse(storedConsentData);
+            } else if (userData) {
+              // Reconstruct consent from Firestore data
+              consent = {
+                consentToContact: userData.consentToContact || false,
+                consentTimestamp: userData.consentTimestamp || new Date().toISOString()
+              };
+              // Save to localStorage for future use
+              localStorage.setItem(`consent_${currentUser.uid}`, consent.consentToContact ? 'true' : 'false');
+              localStorage.setItem(`consentData_${currentUser.uid}`, JSON.stringify(consent));
+            }
             
-            // Restore session state from Firestore
+            if (consent) {
+              setConsentData(consent);
+            }
+            
+            // Restore session state from Firestore (userData already fetched above)
             try {
-              const userData = await getUser(currentUser.uid);
+              if (!userData) {
+                userData = await getUser(currentUser.uid);
+              }
               
               if (userData && userData.currentSessionId) {
                 const sessionId = userData.currentSessionId;
@@ -95,17 +131,25 @@ function App() {
                       setStage('post');
                       if (session.step1) {
                         setPreData(session.step1);
-                        // Recalculate pre result
-                        const preResult = calculateEPsaPre(session.step1);
-                        setPreResult(preResult);
+                        // Recalculate pre result using new calculator
+                        try {
+                          const preResult = calculateEPsa(session.step1);
+                          setPreResult(preResult);
+                        } catch (error) {
+                          console.error('Error calculating preResult:', error);
+                        }
                       }
                       if (session.step2) {
                         setPostData(session.step2);
                         // Recalculate post result if we have pre result
                         if (session.step1) {
-                          const preResult = calculateEPsaPre(session.step1);
-                          const postResult = calculateEPsaPost(preResult, session.step2);
-                          setPostResult(postResult);
+                          try {
+                            const preResult = calculateEPsa(session.step1);
+                            const postResult = calculateEPsaPost(preResult, session.step2);
+                            setPostResult(postResult);
+                          } catch (error) {
+                            console.error('Error calculating postResult:', error);
+                          }
                         }
                       }
                       // Set step to 3 AFTER results are calculated
@@ -116,12 +160,9 @@ function App() {
                       if (session.step1) {
                         // Calculate result FIRST before setting preData
                         try {
-                          const preResult = calculateEPsaPre(session.step1);
+                          const preResult = calculateEPsa(session.step1);
                           console.log('Restored preResult:', preResult);
                           console.log('Session step1 data:', session.step1);
-                          console.log('preResult.category:', preResult?.category);
-                          console.log('preResult.priority:', preResult?.priority);
-                          console.log('preResult.message:', preResult?.message);
                           
                           // Set result FIRST, then data, then step
                           if (preResult) {
@@ -136,16 +177,16 @@ function App() {
                             setTimeout(() => {
                               setCurrentStep(3);
                               console.log('Set currentStep to 3, preResult should be:', preResult);
-                              // Verify preResult is still set
-                              console.log('Verifying preResult after timeout...');
                             }, 150);
                           } else {
                             console.warn('Invalid preResult calculated, starting fresh');
                             setCurrentStep(1);
+                            setPart1Step(0);
                           }
                         } catch (error) {
                           console.error('Error calculating preResult from session:', error);
                           setCurrentStep(1);
+                          setPart1Step(0);
                         }
                       } else {
                         // No step1 data - start fresh
@@ -179,15 +220,23 @@ function App() {
                         setCurrentStep(3);
                         if (session.step1) {
                           setPreData(session.step1);
-                          const preResult = calculateEPsaPre(session.step1);
-                          setPreResult(preResult);
+                          try {
+                            const preResult = calculateEPsa(session.step1);
+                            setPreResult(preResult);
+                          } catch (error) {
+                            console.error('Error calculating preResult:', error);
+                          }
                         }
                         if (session.step2) {
                           setPostData(session.step2);
                           if (session.step1) {
-                            const preResult = calculateEPsaPre(session.step1);
-                            const postResult = calculateEPsaPost(preResult, session.step2);
-                            setPostResult(postResult);
+                            try {
+                              const preResult = calculateEPsa(session.step1);
+                              const postResult = calculateEPsaPost(preResult, session.step2);
+                              setPostResult(postResult);
+                            } catch (error) {
+                              console.error('Error calculating postResult:', error);
+                            }
                           }
                         }
                       } else if (session.status === 'STEP1_COMPLETE') {
@@ -195,8 +244,12 @@ function App() {
                         setCurrentStep(3);
                         if (session.step1) {
                           setPreData(session.step1);
-                          const preResult = calculateEPsaPre(session.step1);
-                          setPreResult(preResult);
+                          try {
+                            const preResult = calculateEPsa(session.step1);
+                            setPreResult(preResult);
+                          } catch (error) {
+                            console.error('Error calculating preResult:', error);
+                          }
                         }
                       }
                     }
@@ -207,6 +260,7 @@ function App() {
                   // No session at all - start fresh
                   setStage('pre');
                   setCurrentStep(1);
+                  setPart1Step(0);
                 }
               }
             } catch (error) {
@@ -214,6 +268,7 @@ function App() {
               // Start fresh on error
               setStage('pre');
               setCurrentStep(1);
+              setPart1Step(0);
             }
             
             setAuthStep('app');
@@ -222,14 +277,16 @@ function App() {
             setAuthStep('consent');
           }
         } else {
+          // No consent found - show consent screen
           setAuthStep('consent');
         }
       } else {
+        // User logged out - go back to welcome screen
         setUser(null);
         setUserPhone(null);
         setConsentData(null);
         setSessionId(null);
-        setAuthStep('login');
+        setAuthStep('welcome');
       }
     });
 
@@ -239,7 +296,42 @@ function App() {
   const handleAuthSuccess = async (user, phone) => {
     setUser(user);
     setUserPhone(phone);
-    setAuthStep('consent');
+    
+    // Check if user already has consent (don't ask again)
+    const hasConsented = localStorage.getItem(`consent_${user.uid}`);
+    const storedConsentData = localStorage.getItem(`consentData_${user.uid}`);
+    
+    // Also check Firestore
+    let userData = null;
+    try {
+      userData = await getUser(user.uid);
+    } catch (error) {
+      console.warn('Could not fetch user data:', error);
+    }
+    
+    const consentExists = (hasConsented && storedConsentData) || (userData && userData.consentToContact !== undefined);
+    
+    if (consentExists) {
+      // User already consented - skip consent screen
+      let consent;
+      if (storedConsentData) {
+        consent = JSON.parse(storedConsentData);
+      } else if (userData) {
+        consent = {
+          consentToContact: userData.consentToContact || false,
+          consentTimestamp: userData.consentTimestamp || new Date().toISOString()
+        };
+        localStorage.setItem(`consent_${user.uid}`, consent.consentToContact ? 'true' : 'false');
+        localStorage.setItem(`consentData_${user.uid}`, JSON.stringify(consent));
+      }
+      if (consent) {
+        setConsentData(consent);
+      }
+      setAuthStep('app');
+    } else {
+      // No consent found - show consent screen
+      setAuthStep('consent');
+    }
   };
 
   const handleConsentComplete = async (consent) => {
@@ -300,14 +392,22 @@ function App() {
     // Clear all form data and results
     setStage('pre');
     setCurrentStep(1);
+    setPart1Step(0);
     setPreData({
       age: '',
-      familyHistory: '',
-      geneticRisk: '',
-      race: '',
-      priorPsa: '',
-      priorBiopsy: '',
-      finasteride: ''
+      race: null,
+      heightFt: '',
+      heightIn: '',
+      weight: '',
+      bmi: 0,
+      familyHistory: null,
+      ipss: Array(7).fill(null),
+      shim: Array(5).fill(null),
+      exercise: null,
+      smoking: null,
+      diabetes: null,
+      conditions: [],
+      medications: [],
     });
     setPostData({
       psa: '',
@@ -335,18 +435,26 @@ function App() {
       await signOut(auth);
       setUser(null);
       setUserPhone(null);
-      setAuthStep('login');
+      setAuthStep('welcome');
       setConsentData(null);
       setStage('pre');
       setCurrentStep(1);
+      setPart1Step(0);
       setPreData({
         age: '',
-        familyHistory: '',
-        geneticRisk: '',
-        race: '',
-        priorPsa: '',
-        priorBiopsy: '',
-        finasteride: ''
+        race: null,
+        heightFt: '',
+        heightIn: '',
+        weight: '',
+        bmi: 0,
+        familyHistory: null,
+        ipss: Array(7).fill(null),
+        shim: Array(5).fill(null),
+        exercise: null,
+        smoking: null,
+        diabetes: null,
+        conditions: [],
+        medications: [],
       });
       setPostData({
         psa: '',
@@ -368,12 +476,6 @@ function App() {
     }
   };
 
-  const handlePreChange = (field, value) => {
-    setPreData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handlePostChange = (field, value) => {
     setPostData(prev => ({
@@ -382,13 +484,23 @@ function App() {
     }));
   };
 
-  const handlePreNext = async () => {
-    if (currentStep < 2) {
-      setCurrentStep(currentStep + 1);
+  const handlePart1Next = async () => {
+    if (part1Step < 3) {
+      setPart1Step(part1Step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 2) {
-      // Calculate Pre results
-      const result = calculateEPsaPre(preData);
+    } else if (part1Step === 3) {
+      // Calculate Part 1 results using new calculator
+      console.log('Calculating with preData:', preData);
+      const result = calculateEPsa(preData);
+      console.log('Calculation result:', result);
+      
+      if (!result) {
+        console.error('Calculation failed - missing required fields');
+        console.error('preData state:', preData);
+        alert('Please complete all required fields before calculating your score. Make sure you have entered your age, race, height/weight (for BMI), family history, all IPSS questions, all SHIM questions, exercise frequency, and smoking history.');
+        return;
+      }
+      
       setPreResult(result);
       
       // Save to Firestore
@@ -399,7 +511,8 @@ function App() {
             await updateSession(sessionId, {
               status: 'STEP1_COMPLETE',
               step1: preData,
-              finalCategory: result.category
+              finalScore: result.score,
+              finalRisk: result.risk
             });
             console.log('Updated session:', sessionId);
           } else {
@@ -407,7 +520,8 @@ function App() {
             const newSessionId = await createSession(user.uid, {
               status: 'STEP1_COMPLETE',
               step1: preData,
-              finalCategory: result.category
+              finalScore: result.score,
+              finalRisk: result.risk
             });
             setSessionId(newSessionId);
             localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
@@ -422,21 +536,33 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const handlePrePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+  
+  const handlePart1Back = () => {
+    if (part1Step > 0) {
+      setPart1Step(part1Step - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+  
 
   const handlePostNext = async () => {
+    // Ensure Part 1 is complete before calculating Part 2
+    if (!preResult) {
+      alert('Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment.');
+      setStage('pre');
+      setCurrentStep(3);
+      return;
+    }
+    
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 2) {
-      // Calculate Post results
+      // Calculate Post results using Part 1 data
+      console.log('Calculating Part 2 with Part 1 result:', preResult);
+      console.log('Part 2 form data:', postData);
       const result = calculateEPsaPost(preResult, postData);
+      console.log('Part 2 calculation result:', result);
       setPostResult(result);
       
       // Save to Firestore
@@ -480,33 +606,17 @@ function App() {
     }
   };
 
-  const canProceedPre = () => {
-    switch (currentStep) {
-      case 1:
-        return preData.age && preData.familyHistory && preData.geneticRisk && preData.race;
-      case 2:
-        return preData.priorPsa && preData.priorBiopsy && preData.finasteride;
-      default:
-        return true;
-    }
-  };
 
   const canProceedPost = () => {
-    switch (currentStep) {
-      case 1:
-        // Can proceed if user doesn't know PSA OR if they entered a valid PSA value
-        if (!postData.knowPsa) {
-          return false; // Must know PSA to proceed
-        }
-        return postData.psa && parseFloat(postData.psa) > 0;
-      case 2:
-        return true; // PIRADS is optional
-      default:
-        return true;
-    }
+    // Part2Form handles its own validation
+    return true;
   };
 
   // Render authentication screens
+  if (authStep === 'welcome') {
+    return <WelcomeScreen onBegin={() => setAuthStep('login')} />;
+  }
+
   if (authStep === 'login') {
     return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
   }
@@ -519,146 +629,17 @@ function App() {
   const renderPreStage = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <StepForm
-            step={1}
-            title={PRE_STEPS[0].title}
-            description={PRE_STEPS[0].description}
-            onNext={handlePreNext}
-            onPrevious={handlePrePrevious}
-            canProceed={canProceedPre()}
-          >
-            <FormField
-              label="Age Group"
-              tooltipText="SEER Database, cancer.gov&#10;Godtman RA, et al., Eur Urol. 2022&#10;Nemesure B, et al., Res Rep Urol. 2022"
-              id="age"
-            >
-              <select
-                id="age"
-                value={preData.age}
-                onChange={(e) => handlePreChange('age', e.target.value)}
-              >
-                <option value="">Select age group...</option>
-                <option value="40-49">40-49</option>
-                <option value="50-59">50-59</option>
-                <option value="60-69">60-69</option>
-                <option value="70+">70+</option>
-              </select>
-            </FormField>
-
-            <FormField
-              label="Family History of Prostate Cancer"
-              tooltipText="Hemminki H, et al., Eur Urol Open Sci 2024&#10;Madersbacher S, et al., BJU Int. 2010"
-              id="familyHistory"
-            >
-              <select
-                id="familyHistory"
-                value={preData.familyHistory}
-                onChange={(e) => handlePreChange('familyHistory', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="none">None</option>
-                <option value="1-relative">1 first-degree relative</option>
-                <option value="2+relatives">2+ first-degree relatives</option>
-              </select>
-            </FormField>
-
-            <FormField
-              label="Known Genetic Mutation"
-              tooltipText="Hemminki H, et al., Eur Urol Open Sci 2024&#10;Giri VN, et al., J Clin Oncol. 2018"
-              id="geneticRisk"
-            >
-              <select
-                id="geneticRisk"
-                value={preData.geneticRisk}
-                onChange={(e) => handlePreChange('geneticRisk', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="none">None / Unknown</option>
-                <option value="known-mutation">Known high-risk mutation (BRCA2, HOXB13, Lynch, etc.)</option>
-              </select>
-            </FormField>
-
-            <FormField
-              label="Race (Optional, self-identified)"
-              tooltipText="Tewari A., et al. Urol Onc 2005&#10;Loeb S, et al., Urology 2006&#10;Brawley O, World J Urol. 2012"
-              id="race"
-            >
-              <select
-                id="race"
-                value={preData.race}
-                onChange={(e) => handlePreChange('race', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="white-asian">White / Asian</option>
-                <option value="hispanic">Hispanic</option>
-                <option value="black">Black or African American</option>
-              </select>
-            </FormField>
-          </StepForm>
-        );
-
       case 2:
+        // Use new Part1Form component for steps 1-2 (which internally handles 4 sub-steps)
         return (
-          <StepForm
-            step={2}
-            title={PRE_STEPS[1].title}
-            description={PRE_STEPS[1].description}
-            onNext={handlePreNext}
-            onPrevious={handlePrePrevious}
-            canProceed={canProceedPre()}
-          >
-            <FormField
-              label="Prior PSA test?"
-              tooltipText="Have you had a PSA test before?"
-              id="priorPsa"
-            >
-              <select
-                id="priorPsa"
-                value={preData.priorPsa}
-                onChange={(e) => handlePreChange('priorPsa', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="never">Never</option>
-                <option value="normal">Yes – normal</option>
-                <option value="elevated">Yes – previously elevated</option>
-                <option value="not-sure">Not sure</option>
-              </select>
-            </FormField>
-
-            <FormField
-              label="Prior prostate biopsy?"
-              tooltipText="Have you had a prostate biopsy?"
-              id="priorBiopsy"
-            >
-              <select
-                id="priorBiopsy"
-                value={preData.priorBiopsy}
-                onChange={(e) => handlePreChange('priorBiopsy', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="no">No</option>
-                <option value="negative">Yes – negative</option>
-                <option value="cancer">Yes – cancer diagnosed</option>
-              </select>
-            </FormField>
-
-            <FormField
-              label="Taking finasteride or dutasteride?"
-              tooltipText="These medications can affect PSA levels"
-              id="finasteride"
-            >
-              <select
-                id="finasteride"
-                value={preData.finasteride}
-                onChange={(e) => handlePreChange('finasteride', e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </FormField>
-          </StepForm>
+          <Part1Form
+            formData={preData}
+            setFormData={setPreData}
+            onNext={handlePart1Next}
+            onBack={handlePart1Back}
+            currentStep={part1Step}
+            totalSteps={4}
+          />
         );
 
       case 3:
@@ -666,7 +647,20 @@ function App() {
         return (
           <div className="pre-results-step">
             {preResult ? (
-              <PreResults result={preResult} />
+              <Part1Results
+                result={preResult}
+                onEditAnswers={() => {
+                  setPart1Step(0);
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onStartOver={async () => {
+                  if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
+                    await handleClearData();
+                  }
+                }}
+                onPrint={() => window.print()}
+              />
             ) : (
               <div className="loading-results">
                 <p>Loading your results...</p>
@@ -676,19 +670,9 @@ function App() {
             <div className="stage-actions">
               <button
                 onClick={() => {
-                  // Don't allow continuing if prior cancer
-                  const isPriorCancer = preResult && (
-                    preResult.category === 'prior-cancer' || 
-                    (preResult.priority === null && preResult.message)
-                  );
-                  
-                  if (isPriorCancer) {
-                    console.log('Cannot continue - prior cancer case');
-                    return;
-                  }
-                  
-                  if (!preResult || !preResult.priority) {
-                    console.warn('Cannot continue - invalid result');
+                  // Allow continuing to Stage 2 (post) after Part 1 is complete
+                  if (!preResult) {
+                    console.warn('Cannot continue - no result');
                     return;
                   }
                   
@@ -701,35 +685,10 @@ function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="btn btn-primary"
-                disabled={!preResult || !preResult.priority || preResult.category === 'prior-cancer' || (preResult.priority === null && preResult.message)}
+                disabled={!preResult}
               >
                 Continue to Risk Assessment →
               </button>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => {
-                    // Go back to step 1 but keep the data pre-filled
-                    setCurrentStep(1);
-                    // Don't clear preData - keep it filled so user can edit
-                    // Don't clear preResult - will be recalculated when they submit
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Edit Answers
-                </button>
-                <button
-                  onClick={async () => {
-                    if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
-                      await handleClearData();
-                    }
-                  }}
-                  className="btn btn-secondary"
-                  style={{ backgroundColor: '#f5f5f5', color: '#666', borderColor: '#ccc' }}
-                >
-                  Clear All Data
-                </button>
-              </div>
             </div>
           </div>
         );
@@ -742,140 +701,42 @@ function App() {
   const renderPostStage = () => {
     switch (currentStep) {
       case 1:
+      case 2:
+        // Use new Part2Form component with consistent styling
         return (
-          <StepForm
-            step={1}
-            title={POST_STEPS[0].title}
-            description={POST_STEPS[0].description}
+          <Part2Form
+            formData={postData}
+            setFormData={setPostData}
+            preResult={preResult}
             onNext={handlePostNext}
-            onPrevious={() => {
+            onBack={currentStep === 1 ? () => {
               setStage('pre');
               setCurrentStep(3);
-            }}
-            canProceed={canProceedPost()}
-          >
-            <FormField
-              label="Do you know your PSA level?"
-              tooltipText="PSA (Prostate-Specific Antigen) is a blood test"
-              id="knowPsa"
-            >
-              <select
-                id="knowPsa"
-                value={postData.knowPsa ? 'yes' : 'no'}
-                onChange={(e) => {
-                  const knowsPsa = e.target.value === 'yes';
-                  handlePostChange('knowPsa', knowsPsa);
-                  if (!knowsPsa) {
-                    handlePostChange('psa', '');
-                  }
-                }}
-              >
-                <option value="no">No, I don't know my PSA</option>
-                <option value="yes">Yes, I know my PSA level</option>
-              </select>
-            </FormField>
-
-            {postData.knowPsa && (
-              <FormField
-                label="Enter PSA Level (ng/mL)"
-                id="psa"
-              >
-                <input
-                  type="number"
-                  id="psa"
-                  step="0.1"
-                  min="0"
-                  value={postData.psa || ''}
-                  onChange={(e) => handlePostChange('psa', e.target.value)}
-                  placeholder="e.g., 2.5"
-                  required
-                />
-                <small>Please enter your PSA level to continue</small>
-              </FormField>
-            )}
-          </StepForm>
-        );
-
-      case 2:
-        return (
-          <StepForm
-            step={2}
-            title={POST_STEPS[1].title}
-            description={POST_STEPS[1].description}
-            onNext={handlePostNext}
-            onPrevious={handlePostPrevious}
-            canProceed={canProceedPost()}
-            isLastStep={true}
-          >
-            <FormField
-              label="Do you know your MRI PIRADS score?"
-              tooltipText="Park KJ, et al., J Urol. 2020&#10;Oerther B, et al., Prostate Cancer 2021"
-              id="knowPirads"
-            >
-              <select
-                id="knowPirads"
-                value={postData.knowPirads ? 'yes' : 'no'}
-                onChange={(e) => handlePostChange('knowPirads', e.target.value === 'yes')}
-              >
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </FormField>
-
-            {postData.knowPirads && (
-              <FormField
-                label="PIRADS Score on MRI"
-                id="pirads"
-              >
-                <select
-                  id="pirads"
-                  value={postData.pirads}
-                  onChange={(e) => handlePostChange('pirads', e.target.value)}
-                >
-                  <option value="0">Select...</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
-              </FormField>
-            )}
-          </StepForm>
+            } : handlePostPrevious}
+            currentStep={currentStep}
+            totalSteps={2}
+          />
         );
 
       case 3:
         return (
           <div className="post-results-step">
-            {postResult && <Results result={postResult} />}
-            <div className="stage-actions">
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => {
-                    // Go back to Stage 1 but keep all data pre-filled so user can edit
-                    setStage('pre');
-                    setCurrentStep(1);
-                    // Keep preData and postData filled - user can edit their answers
-                    // Results will be recalculated when they submit again
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Edit Answers
-                </button>
-                <button
-                  onClick={async () => {
-                    if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
-                      await handleClearData();
-                    }
-                  }}
-                  className="btn btn-secondary"
-                  style={{ backgroundColor: '#f5f5f5', color: '#666', borderColor: '#ccc' }}
-                >
-                  Clear All Data
-                </button>
-              </div>
-            </div>
+            {postResult && (
+              <Part2Results
+                result={postResult}
+                preResult={preResult}
+                onEditAnswers={() => {
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onStartOver={async () => {
+                  if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
+                    await handleClearData();
+                  }
+                }}
+                onPrint={() => window.print()}
+              />
+            )}
           </div>
         );
 
@@ -888,10 +749,31 @@ function App() {
     <div className="App">
       <div className="container">
         <header className="app-header">
+          <div className="header-logo-container">
+            <img 
+              src={(process.env.PUBLIC_URL || '') + '/logo.png'}
+              alt="ePSA Logo" 
+              className="logo"
+              onError={(e) => {
+                console.error('Logo.png failed to load:', e.target.src);
+                // Fallback: try logo.jpg if logo.png doesn't exist
+                const currentSrc = e.target.src;
+                if (currentSrc.includes('logo.png')) {
+                  e.target.src = (process.env.PUBLIC_URL || '') + '/logo.jpg';
+                } else {
+                  console.warn('Both logo files failed to load');
+                  e.target.style.display = 'none';
+                }
+              }} 
+              onLoad={() => {
+                console.log('Logo loaded successfully from:', (process.env.PUBLIC_URL || '') + '/logo.png');
+              }}
+            />
+          </div>
           <div className="header-text">
-            <h1>ePSA</h1>
-            <h2>Prostate‑Specific Awareness</h2>
-            <p className="subtitle">A Non‑Validated Educational Risk Tool</p>
+            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>Prostate‑Specific Awareness</h2>
+            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>A Non‑Validated Educational Risk Tool</p>
           </div>
           <div className="header-actions">
             <div className="stage-indicator">
@@ -909,31 +791,9 @@ function App() {
           </div>
         </header>
 
-        {stage === 'pre' && currentStep < 3 && (
-          <StepNavigation
-            currentStep={currentStep}
-            totalSteps={2}
-            onStepClick={(step) => {
-              if (step <= currentStep) {
-                setCurrentStep(step);
-              }
-            }}
-            stepLabels={PRE_STEPS.slice(0, 2).map(s => s.label)}
-          />
-        )}
+        {/* Part1Form handles its own navigation */}
 
-        {stage === 'post' && currentStep < 3 && (
-          <StepNavigation
-            currentStep={currentStep}
-            totalSteps={2}
-            onStepClick={(step) => {
-              if (step <= currentStep) {
-                setCurrentStep(step);
-              }
-            }}
-            stepLabels={POST_STEPS.slice(0, 2).map(s => s.label)}
-          />
-        )}
+        {/* Part2Form handles its own navigation */}
 
         {stage === 'pre' && renderPreStage()}
         {stage === 'post' && renderPostStage()}
