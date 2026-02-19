@@ -1,0 +1,126 @@
+.pre-results-container {
+  margin-top: 2.5rem;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease-in-out;
+}
+
+.pre-results-container.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pre-results-header h3 {
+  margin: 0 0 1.5rem 0;
+  color: #003A5D;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.pre-results-content {
+  text-align: center;
+}
+
+.priority-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.priority-emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.priority-category {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #003A5D;
+}
+
+.priority-points {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(0, 58, 93, 0.05);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.points-label {
+  font-weight: 600;
+  color: #666;
+}
+
+.points-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003A5D;
+}
+
+.finasteride-notice {
+  background: #fff3cd;
+  border-left: 4px solid #D4AF37;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  color: #856404;
+}
+
+.pre-disclaimer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  color: #666;
+  text-align: left;
+}
+
+.prior-cancer {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border-left: 6px solid #c62828;
+}
+
+.prior-cancer-message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #c62828;
+  text-align: center;
+  margin: 0;
+}
+
+/* Priority colors */
+.pre-green {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 6px solid #2e7d32;
+}
+
+.pre-yellow {
+  background: linear-gradient(135deg, #fff9c4 0%, #fffde7 100%);
+  border-left: 6px solid #D4AF37;
+}
+
+.pre-red {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border-left: 6px solid #c62828;
+}
