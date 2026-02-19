@@ -1,0 +1,178 @@
+.part1-results-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.results-header {
+  background: #00578B;
+  color: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.results-logo {
+  font-size: 28px;
+  font-weight: 800;
+  color: #A8E6A0;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.results-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.score-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid #E8ECF0;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.score-label {
+  font-size: 13px;
+  color: #7F8C8D;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.score-big {
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.risk-badge {
+  display: inline-block;
+  color: white;
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.recommendation-box {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.rec-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rec-text {
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.risk-bar {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+.risk-bar-item {
+  flex: 1;
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.rlabel {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.rrange {
+  font-size: 8px;
+}
+
+.summary-box {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.summary-box div {
+  color: #1C2833;
+}
+
+.summary-box strong {
+  color: #00578B;
+}
+
+.result-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-edit,
+.btn-start-over,
+.btn-print {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-edit {
+  background: white;
+  color: #00578B;
+  border: 2px solid #00578B;
+}
+
+.btn-start-over {
+  background: white;
+  color: #E74C3C;
+  border: 2px solid #E74C3C;
+}
+
+.btn-print {
+  background: #00578B;
+  color: white;
+}
+
+.results-footer {
+  color: #7F8C8D;
+  font-size: 10px;
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .result-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-edit,
+  .btn-start-over,
+  .btn-print {
+    width: 100%;
+  }
+}

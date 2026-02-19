@@ -1,0 +1,152 @@
+.welcome-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #F8FAFB;
+}
+
+.welcome-container {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+}
+
+.welcome-header {
+  background: #00578B;
+  border-radius: 16px;
+  padding: 32px 28px 24px;
+  margin-bottom: 24px;
+}
+
+.welcome-logo-container {
+  margin-bottom: 16px;
+}
+
+.welcome-logo {
+  max-width: 150px;
+  max-height: 90px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
+}
+
+.welcome-title {
+  font-size: 13px;
+  color: #00A3E0;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.welcome-heading {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+.welcome-subtitle {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.welcome-tagline {
+  color: #B0C4D8;
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+}
+
+.welcome-body {
+  background: white;
+  border-radius: 12px;
+  padding: 24px 20px;
+  border: 1px solid #E8ECF0;
+  margin-bottom: 16px;
+}
+
+.welcome-description {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: #1C2833;
+}
+
+.welcome-features {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.feature-icon {
+  font-size: 24px;
+}
+
+.feature-text {
+  font-size: 13px;
+  color: #7F8C8D;
+  font-weight: 500;
+}
+
+.btn-begin-assessment {
+  width: 100%;
+  padding: 14px 0;
+  background: #00578B;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-begin-assessment:hover {
+  background: #004068;
+}
+
+.btn-begin-assessment:active {
+  transform: scale(0.98);
+}
+
+.welcome-footer {
+  color: #7F8C8D;
+  font-size: 11px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .welcome-container {
+    max-width: 100%;
+  }
+  
+  .welcome-header {
+    padding: 24px 20px 20px;
+  }
+  
+  .welcome-body {
+    padding: 20px 16px;
+  }
+  
+  .welcome-features {
+    gap: 12px;
+  }
+}

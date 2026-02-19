@@ -2,6 +2,7 @@
  * ePSA-Post Calculator
  * PSA ± MRI Integrated Risk Tool
  * Shows cancer risk percentages
+ * Uses Part 1 (ePSA) score as baseline
  */
 
 export const calculateEPsaPost = (preResult, postData) => {
@@ -11,8 +12,25 @@ export const calculateEPsaPost = (preResult, postData) => {
     knowPirads
   } = postData;
 
-  // Start with ePSA-Pre total points
-  const prePoints = preResult?.points || 0;
+  // Start with ePSA-Pre score (percentage 0-100)
+  // Part 1 uses logistic regression and returns a score percentage
+  // For Part 2, we need to convert this to a points-based system
+  // The original Part 2 logic used points, so we'll derive points from Part 1 score
+  const preScore = preResult?.score || 0; // 0-100 percentage from Part 1
+  
+  // Convert Part 1 percentage to points scale (0-120 range)
+  // This mapping approximates the original point-based system
+  // Lower scores (<21%) = 0-40 pts, Higher scores (>52%) = >120 pts
+  let prePoints = 0;
+  if (preScore < 21) {
+    prePoints = Math.round((preScore / 21) * 40); // 0-40 pts
+  } else if (preScore < 31) {
+    prePoints = 40 + Math.round(((preScore - 21) / 10) * 40); // 41-80 pts
+  } else if (preScore < 41) {
+    prePoints = 80 + Math.round(((preScore - 31) / 10) * 40); // 81-120 pts
+  } else {
+    prePoints = 120 + Math.round(((preScore - 41) / 59) * 80); // >120 pts
+  }
 
   // PSA points
   const psaValue = parseFloat(psa) || 0;
