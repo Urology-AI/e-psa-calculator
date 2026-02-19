@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      // Users can create/update their own document
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Admins can read all user data (for follow-up dashboard)
+      allow read: if isAdmin();
+      
+      // Admins can update follow-up status
+      allow update: if isAdmin() && 
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['followUpStatus', 'updatedAt']);
+    }
+    
+    // Sessions collection - users can read/write their own sessions
+    match /sessions/{sessionId} {
+      // Users can create sessions with their own uid
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      
+      // Users can read/update/delete their own sessions
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || !resource.exists);
+      allow update: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      
+      // Admins can read all sessions
+      allow read: if isAdmin();
+    }
+    
+    // Admins collection - only admins can read
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only set via Firebase Admin SDK
+    }
+  }
+}
