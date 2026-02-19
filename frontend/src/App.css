@@ -69,8 +69,53 @@ body {
   margin: 0.5rem 0 0;
 }
 
-.stage-indicator {
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stage-indicator {
+  margin-top: 0;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-clear,
+.btn-logout {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 2px solid #003A5D;
+  color: #003A5D;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-clear:hover,
+.btn-logout:hover {
+  background: #003A5D;
+  color: white;
+}
+
+.btn-clear {
+  border-color: #666;
+  color: #666;
+}
+
+.btn-clear:hover {
+  background: #666;
+  color: white;
+  border-color: #666;
 }
 
 .stage-badge {

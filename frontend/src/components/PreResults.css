@@ -10,7 +10,13 @@
 }
 
 .pre-results-container.show {
-  opacity: 1;
+  opacity: 1 !important;
+  transform: translateY(0);
+}
+
+/* Ensure prior-cancer container is always visible */
+.pre-results-container.prior-cancer {
+  opacity: 1 !important;
   transform: translateY(0);
 }
 

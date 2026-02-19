@@ -1,0 +1,153 @@
+.consent-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+.consent-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 58, 93, 0.15);
+  border: 2px solid #D4AF37;
+}
+
+.consent-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.consent-header h2 {
+  margin: 0 0 1rem 0;
+  color: #003A5D;
+  font-size: 1.8rem;
+}
+
+.consent-intro {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.consent-intro strong {
+  color: #003A5D;
+}
+
+.consent-reasons {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.consent-reasons ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style: none;
+}
+
+.consent-reasons li {
+  padding: 0.5rem 0;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.consent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.consent-question {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.question-text {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0;
+}
+
+.consent-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.consent-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.consent-option:hover {
+  border-color: #003A5D;
+  background: #f8f9fa;
+}
+
+.consent-option.selected {
+  border-color: #003A5D;
+  background: #e3f2fd;
+}
+
+.consent-option input[type="radio"] {
+  margin-right: 0.75rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.consent-option span {
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.consent-disclaimer {
+  background: #fff3cd;
+  border-left: 4px solid #D4AF37;
+  padding: 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #856404;
+}
+
+.consent-disclaimer p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 4px solid #c62828;
+  font-size: 0.9rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .consent-card {
+    padding: 1.5rem;
+  }
+  
+  .consent-header h2 {
+    font-size: 1.5rem;
+  }
+}
