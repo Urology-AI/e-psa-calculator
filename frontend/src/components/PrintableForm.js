@@ -160,9 +160,6 @@ const PrintableForm = ({ onBack }) => {
               <label className="checkbox-inline"><input type="radio" name="brca" value="no" /> No</label>
               <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" /> Unknown</label>
             </label>
-            <div className="question-note" style={{ marginTop: '6px', fontSize: '11px', color: '#5a5f82' }}>
-              Collected for prospective validation — not included in current model calculation.
-            </div>
           </div>
         </div>
 
@@ -219,9 +216,6 @@ const PrintableForm = ({ onBack }) => {
               <label className="checkbox-inline"><input type="radio" name="smoking" value="former" /> Former</label>
               <label className="checkbox-inline"><input type="radio" name="smoking" value="never" /> Never</label>
             </label>
-            <div className="question-note" style={{ marginTop: '6px', fontSize: '11px', color: '#5a5f82' }}>
-              Collected for prospective validation — not included in current model calculation.
-            </div>
           </div>
         </div>
 
@@ -232,9 +226,6 @@ const PrintableForm = ({ onBack }) => {
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" /> Yes</label>
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" /> No</label>
             </label>
-            <div className="question-note" style={{ marginTop: '6px', fontSize: '11px', color: '#5a5f82' }}>
-              Collected for prospective validation — not included in current model calculation.
-            </div>
           </div>
         </div>
 
@@ -244,18 +235,12 @@ const PrintableForm = ({ onBack }) => {
               Diet pattern:
               <input type="text" className="field-input-inline" placeholder="________________" />
             </label>
-            <div className="question-note" style={{ marginTop: '6px', fontSize: '11px', color: '#5a5f82' }}>
-              Collected for prospective validation — not included in current model calculation.
-            </div>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
               Geographic origin:
               <input type="text" className="field-input-inline" placeholder="________________" />
             </label>
-            <div className="question-note" style={{ marginTop: '6px', fontSize: '11px', color: '#5a5f82' }}>
-              Collected for prospective validation — not included in current model calculation.
-            </div>
           </div>
         </div>
 
