@@ -1,16 +1,15 @@
 /**
- * ePSA Calculator - New Part 1
- * Based on the HTML calculator with 18 questions
- * Uses logistic regression model
+ * ePSA Calculator - Part 1
+ * 7-variable logistic regression model
  */
 
 const RISK_COLORS = {
-  LOW: "#27AE60",
-  "LOW-MOD": "#F39C12",
-  MOD: "#E67E22",
-  "MOD-HIGH": "#E74C3C",
-  HIGH: "#C0392B"
+  LOWER: '#27AE60',
+  MODERATE: '#D4AF37',
+  HIGHER: '#C0392B'
 };
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 export const calculateEPsa = (formData) => {
   const {
@@ -20,130 +19,109 @@ export const calculateEPsa = (formData) => {
     ipss, // Array of 7 values (0-5)
     shim, // Array of 5 values
     exercise,
-    smoking,
-    familyHistory, // 0, 1, or 2
+    familyHistory // 0 = none, 1+ = yes
   } = formData;
 
   // Validate required fields
-  // Check if age is provided and valid
   if (!age || age === '') {
-    console.warn('Missing age for calculation:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('Missing age for calculation:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Convert age to number
   const ageNum = parseInt(age, 10);
   if (isNaN(ageNum) || ageNum < 30 || ageNum > 95) {
     console.warn('Invalid age:', age);
     return null;
   }
 
-  // Check if BMI is calculated (must be > 0)
   if (!bmi || bmi === 0 || bmi === null || bmi === undefined || isNaN(parseFloat(bmi))) {
-    console.warn('BMI not calculated or invalid:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('BMI not calculated or invalid:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Check if race is selected
   if (race === null || race === undefined || race === '') {
-    console.warn('Race not selected:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('Race not selected:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Check if all IPSS questions are answered
   if (!Array.isArray(ipss) || ipss.some(v => v === null || v === undefined)) {
-    console.warn('IPSS questions incomplete:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('IPSS questions incomplete:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Check if all SHIM questions are answered
   if (!Array.isArray(shim) || shim.some(v => v === null || v === undefined)) {
-    console.warn('SHIM questions incomplete:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('SHIM questions incomplete:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Check if exercise, smoking are answered
   if (exercise === null || exercise === undefined) {
-    console.warn('Exercise not answered:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('Exercise not answered:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  if (smoking === null || smoking === undefined) {
-    console.warn('Smoking not answered:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
-    return null;
-  }
-
-  // Family history is required
   if (familyHistory === null || familyHistory === undefined) {
-    console.warn('Family history not answered:', { age, bmi, race, ipss, shim, exercise, smoking, familyHistory });
+    console.warn('Family history not answered:', { age, bmi, race, ipss, shim, exercise, familyHistory });
     return null;
   }
 
-  // Note: diabetes is not used in the calculation formula, but conditions/medications are optional
+  // Encoding
+  const raceBlack = race === 'black' ? 1 : 0;
+  const ipssTotal = ipss.reduce((a, b) => a + (b ?? 0), 0);
+  const shimTotal = shim.reduce((a, b) => a + (b ?? 0), 0);
+  const fhBinary = familyHistory > 0 ? 1 : 0;
+  const exerciseCode = Number(exercise);
 
-  // Convert race to black indicator
-  const black = race === "black" ? 1 : 0;
-  
-  // Calculate IPSS total (sum of 7 questions, each 0-5)
-  const ipssTotal = Array.isArray(ipss) ? ipss.reduce((a, b) => a + (b !== null && b !== undefined ? b : 0), 0) : 0;
-  
-  // Calculate SHIM total (sum of 5 questions)
-  const shimTotal = Array.isArray(shim) ? shim.reduce((a, b) => a + (b !== null && b !== undefined ? b : 0), 0) : 0;
-  
-  // Family history: convert to binary (0 or 1)
-  const fh = (familyHistory !== null && familyHistory !== undefined && familyHistory > 0) ? 1 : 0;
-  
-  // Ensure exercise, smoking are numbers (default to 0 if null)
-  const exerciseVal = exercise !== null && exercise !== undefined ? exercise : 0;
-  const smokingVal = smoking !== null && smoking !== undefined ? smoking : 0;
-  
-  // Logistic regression formula from HTML
-  const logit = -1.14 
-    + 0.017 * ageNum 
-    - 0.009 * black 
-    + 0.012 * bmi 
-    - 0.0267 * ipssTotal 
-    + 0.512 * exerciseVal 
-    - 0.769 * smokingVal 
-    - 0.993 * fh 
-    - 0.0344 * shimTotal;
-  
-  const score = 1 / (1 + Math.exp(-logit));
-  const scorePercent = Math.round(score * 100);
+  // New 7-variable formula
+  const logit = -3.8347
+    + (0.0454 * ageNum)
+    - (0.0253 * raceBlack)
+    + (0.0195 * Number(bmi))
+    - (0.0292 * ipssTotal)
+    - (0.5947 * exerciseCode)
+    - (0.8911 * fhBinary)
+    - (0.0358 * shimTotal);
 
-  // Determine risk level
-  let risk, color, action;
-  if (score < 0.21) {
-    risk = "LOW";
-    color = RISK_COLORS.LOW;
-    action = "Reassure. Repeat ePSA in 12 months. No PSA needed at this time.";
-  } else if (score < 0.31) {
-    risk = "LOW-MOD";
-    color = RISK_COLORS["LOW-MOD"];
-    action = "Discuss risk factors. Consider PSA testing if patient prefers.";
-  } else if (score < 0.41) {
-    risk = "MOD";
-    color = RISK_COLORS.MOD;
-    action = "Recommend PSA testing. If elevated, proceed to MRI.";
-  } else if (score < 0.52) {
-    risk = "MOD-HIGH";
-    color = RISK_COLORS["MOD-HIGH"];
-    action = "Strongly recommend PSA + MRI. Expedited urological evaluation.";
+  const probability = 1 / (1 + Math.exp(-logit));
+  const scorePercent = Math.round(probability * 100);
+
+  const rangeLow = clamp(scorePercent - 10, 0, 100);
+  const rangeHigh = clamp(scorePercent + 10, 0, 100);
+
+  let risk;
+  let color;
+  let action;
+  let scoreRange;
+
+  if (probability < 0.08) {
+    risk = 'LOWER';
+    color = RISK_COLORS.LOWER;
+    scoreRange = 'Below 8%';
+    action = 'Routine screening. Follow standard age-based screening guidance.';
+  } else if (probability < 0.20) {
+    risk = 'MODERATE';
+    color = RISK_COLORS.MODERATE;
+    scoreRange = '8% – 20%';
+    action = 'PSA blood testing recommended. Discuss PSA testing with your doctor.';
   } else {
-    risk = "HIGH";
-    color = RISK_COLORS.HIGH;
-    action = "Urgent PSA + MRI + biopsy pathway. Consider genetic counseling if FH+.";
+    risk = 'HIGHER';
+    color = RISK_COLORS.HIGHER;
+    scoreRange = 'Above 20%';
+    action = 'PSA testing and urological evaluation are recommended.';
   }
 
   return {
     score: scorePercent,
+    scoreRange,
     risk,
     color,
     action,
+    confidenceRange: `${rangeLow}%–${rangeHigh}%`,
+    confidenceLow: rangeLow,
+    confidenceHigh: rangeHigh,
     ipssTotal,
     shimTotal,
-    bmi: bmi.toFixed(1),
-    age
+    bmi: Number(bmi).toFixed(1),
+    age: ageNum
   };
 };
 
