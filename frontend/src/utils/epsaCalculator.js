@@ -29,7 +29,7 @@ export const calculateEPsa = (formData) => {
   }
 
   const ageNum = parseInt(age, 10);
-  if (isNaN(ageNum) || ageNum < 30 || ageNum > 95) {
+  if (isNaN(ageNum) || ageNum < 18 || ageNum > 120) {
     console.warn('Invalid age:', age);
     return null;
   }

@@ -271,7 +271,6 @@ const PhoneAuth = ({ onAuthSuccess }) => {
   return (
     <div className="phone-auth-container">
       <div className="phone-auth-card">
-        <h2>Welcome to ePSA</h2>
         <p className="auth-subtitle">Enter your phone number to get started</p>
 
         {step === 'phone' ? (

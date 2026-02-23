@@ -23,27 +23,6 @@ const WelcomeScreen = ({ onBegin }) => {
         📄 View Form
       </button>
       <div className="welcome-container">
-        <div className="welcome-header">
-          <div className="welcome-logo-container">
-            <img 
-              src={(process.env.PUBLIC_URL || '') + '/logo.png'}
-              alt="ePSA Logo" 
-              className="welcome-logo"
-              onError={(e) => {
-                if (e.target.src.includes('logo.png')) {
-                  e.target.src = (process.env.PUBLIC_URL || '') + '/logo.jpg';
-                } else {
-                  e.target.style.display = 'none';
-                }
-              }}
-            />
-          </div>
-          <div className="welcome-title">Million Strong Men — ePSA</div>
-          <h1 className="welcome-heading">ePSA</h1>
-          <h2 className="welcome-subtitle">Prostate-Specific Awareness</h2>
-          <p className="welcome-tagline">A Non-Validated Educational Risk Tool</p>
-        </div>
-
         <div className="welcome-body">
           <p className="welcome-description">
             This 5-minute questionnaire calculates your personalized risk assessment using validated clinical instruments.

@@ -443,13 +443,21 @@ const PrintableForm = ({ onBack }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">Part 1 Scoring Reference (7-variable model):</span>
+          <span className="section-label">Part 2: Clinical Data</span>
         </div>
 
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              ePSA probability tiers: <strong>Lower &lt;8%</strong> | <strong>Moderate 8%–20%</strong> | <strong>Higher ≥20%</strong>
+              <span className="field-number">12.</span> PSA Level (ng/mL):
+              <input type="text" className="field-input-small" placeholder="____" />
+            </label>
+          </div>
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              On hormonal therapy affecting PSA:
+              <label className="checkbox-inline"><input type="checkbox" /> Yes</label>
+              <label className="checkbox-inline"><input type="checkbox" /> No</label>
             </label>
           </div>
         </div>
@@ -457,13 +465,31 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              Displayed patient range: <strong>Score ±10%</strong>
+              Medication:
+              <label className="checkbox-inline"><input type="checkbox" /> Finasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" /> Dutasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" /> Other</label>
             </label>
           </div>
         </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">13.</span> MRI PIRADS Score:
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="na" /> Not applicable</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="1" /> 1</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="2" /> 2</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="3" /> 3</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="4" /> 4</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="5" /> 5</label>
+            </label>
+          </div>
+        </div>
+
         <div className="printable-footer">
           <p className="footer-text">
-            For educational and research purposes. Not for clinical decision-making without physician review. Part 1 uses 7 variables (Age, Race, Family History, BMI, IPSS, SHIM, Exercise). | Ashutosh K. Tewari, MD — Department of Urology — Mount Sinai Health System
+            For educational and research purposes. Not for clinical decision-making without physician review. | Ashutosh K. Tewari, MD — Department of Urology — Mount Sinai Health System
           </p>
         </div>
       </div>
