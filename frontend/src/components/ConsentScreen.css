@@ -1,10 +1,6 @@
 .consent-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  padding: 20px 0;
+  width: 100%;
 }
 
 .consent-card {
@@ -13,8 +9,8 @@
   padding: 2.5rem;
   max-width: 600px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 58, 93, 0.15);
-  border: 2px solid #D4AF37;
+  margin: 0 auto;
+  border: 1px solid #E8ECF0;
 }
 
 .consent-header {
@@ -24,18 +20,18 @@
 
 .consent-header h2 {
   margin: 0 0 1rem 0;
-  color: #003A5D;
+  color: #00578B;
   font-size: 1.8rem;
 }
 
 .consent-intro {
-  color: #666;
+  color: #7F8C8D;
   font-size: 1rem;
   margin: 0;
 }
 
 .consent-intro strong {
-  color: #003A5D;
+  color: #00578B;
 }
 
 .consent-reasons {
@@ -93,12 +89,12 @@
 }
 
 .consent-option:hover {
-  border-color: #003A5D;
+  border-color: #00578B;
   background: #f8f9fa;
 }
 
 .consent-option.selected {
-  border-color: #003A5D;
+  border-color: #00578B;
   background: #e3f2fd;
 }
 
@@ -117,7 +113,7 @@
 
 .consent-disclaimer {
   background: #fff3cd;
-  border-left: 4px solid #D4AF37;
+  border-left: 4px solid #00578B;
   padding: 1rem;
   border-radius: 6px;
   font-size: 0.9rem;

@@ -1,15 +1,12 @@
 .welcome-screen {
-  min-height: 100vh;
+  padding: 40px 0;
+  width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: #F8FAFB;
-  position: relative;
 }
 
 .btn-view-form {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
   padding: 10px 16px;
@@ -192,5 +189,51 @@
   
   .welcome-features {
     gap: 12px;
+  }
+}
+
+/* Model Documentation Footer */
+.app-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-text {
+  margin: 0;
+  color: #B0C4D8;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.btn-model-docs {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 2px solid #00A3E0;
+  color: #00A3E0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-model-docs:hover {
+  background: #00A3E0;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
   }
 }

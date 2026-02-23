@@ -1,10 +1,6 @@
 .phone-auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  padding: 20px 0;
+  width: 100%;
 }
 
 .phone-auth-card {
@@ -13,20 +9,20 @@
   padding: 2.5rem;
   max-width: 400px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 58, 93, 0.15);
-  border: 2px solid #D4AF37;
+  margin: 0 auto;
+  border: 1px solid #E8ECF0;
 }
 
 .phone-auth-card h2 {
   margin: 0 0 0.5rem 0;
-  color: #003A5D;
+  color: #00578B;
   font-size: 1.8rem;
   text-align: center;
 }
 
 .auth-subtitle {
   text-align: center;
-  color: #666;
+  color: #7F8C8D;
   margin: 0 0 2rem 0;
   font-size: 0.95rem;
 }
@@ -45,7 +41,7 @@
 
 .form-group label {
   font-weight: 600;
-  color: #003A5D;
+  color: #00578B;
   font-size: 0.95rem;
 }
 
@@ -61,9 +57,9 @@
 
 .phone-input:focus,
 .code-input:focus {
-  border-color: #003A5D;
+  border-color: #00578B;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 58, 93, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 87, 139, 0.1);
 }
 
 .form-group small {
@@ -93,7 +89,7 @@
 .btn-link {
   background: none;
   border: none;
-  color: #003A5D;
+  color: #00578B;
   text-decoration: underline;
   cursor: pointer;
   font-size: 0.9rem;
@@ -101,7 +97,7 @@
 }
 
 .btn-link:hover {
-  color: #005A8F;
+  color: #00A3E0;
 }
 
 #recaptcha-container {

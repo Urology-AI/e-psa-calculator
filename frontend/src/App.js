@@ -14,6 +14,7 @@ import Part1Form from './components/Part1Form';
 import Part1Results from './components/Part1Results';
 import Part2Form from './components/Part2Form';
 import Part2Results from './components/Part2Results';
+import ModelDocs from './components/ModelDocs';
 import { calculateEPsaPost } from './utils/epsaPostCalculator';
 import { calculateEPsa } from './utils/epsaCalculator';
 import { createOrUpdateUser, createSession, updateSession, deleteSession, clearUserSession, getSession, getUser } from './services/firestoreService';
@@ -29,6 +30,7 @@ function App() {
   const [userPhone, setUserPhone] = useState(null);
   const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'login', 'consent', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
+  const [showModelDocs, setShowModelDocs] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId, setSessionId] = useState(null);
@@ -628,17 +630,35 @@ function App() {
   };
 
   // Render authentication screens
-  if (authStep === 'welcome') {
-    return <WelcomeScreen onBegin={() => setAuthStep('login')} />;
-  }
-
-  if (authStep === 'login') {
-    return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
-  }
-
-  if (authStep === 'consent') {
-    return <ConsentScreen phone={userPhone} onConsentComplete={handleConsentComplete} />;
-  }
+  const renderAuthScreen = () => {
+    switch (authStep) {
+      case 'welcome':
+        return (
+          <>
+            <WelcomeScreen onBegin={() => setAuthStep('login')} />
+            <footer className="app-footer">
+              <div className="footer-content">
+                <p className="footer-text">
+                  ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool
+                </p>
+                <button 
+                  className="btn-model-docs" 
+                  onClick={() => setShowModelDocs(true)}
+                >
+                  📖 Model Documentation
+                </button>
+              </div>
+            </footer>
+          </>
+        );
+      case 'login':
+        return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
+      case 'consent':
+        return <ConsentScreen phone={userPhone} onConsentComplete={handleConsentComplete} />;
+      default:
+        return null;
+    }
+  };
 
   // Main app (after login and consent)
   const renderPreStage = () => {
@@ -810,9 +830,15 @@ function App() {
 
         {/* Part2Form handles its own navigation */}
 
-        {stage === 'pre' && renderPreStage()}
-        {stage === 'post' && renderPostStage()}
+        {authStep !== 'app' ? renderAuthScreen() : (
+          <>
+            {stage === 'pre' && renderPreStage()}
+            {stage === 'post' && renderPostStage()}
+          </>
+        )}
       </div>
+      
+      {showModelDocs && <ModelDocs onClose={() => setShowModelDocs(false)} />}
     </div>
   );
 }
