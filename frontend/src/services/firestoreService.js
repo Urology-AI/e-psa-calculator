@@ -53,11 +53,9 @@ export const createOrUpdateUser = async (uid, phone, consentData) => {
       followUpStatus: consentToContact ? 'PENDING' : 'DECLINED',
       updatedAt: serverTimestamp()
     });
-    console.log('User updated with consent:', consentToContact);
   } else {
     // Create new user
     await setDoc(userRef, userData);
-    console.log('User created with consent:', consentToContact);
   }
 
   return userData;

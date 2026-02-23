@@ -33,7 +33,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Analytics (only in browser, not SSR)
 let analytics = null;
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
   analytics = getAnalytics(app);
 }
 
