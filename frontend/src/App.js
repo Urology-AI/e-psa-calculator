@@ -65,6 +65,8 @@ function App() {
   const [postData, setPostData] = useState({
     psa: '',
     knowPsa: false, // Track if user knows their PSA
+    onHormonalTherapy: false,
+    hormonalTherapyType: '',
     knowPirads: false,
     pirads: '0'
   });
@@ -425,6 +427,8 @@ function App() {
     setPostData({
       psa: '',
       knowPsa: false,
+      onHormonalTherapy: false,
+      hormonalTherapyType: '',
       knowPirads: false,
       pirads: '0'
     });
