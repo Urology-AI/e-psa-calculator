@@ -6,6 +6,33 @@ import {
 import { auth, firebaseConfig } from '../config/firebase';
 import './PhoneAuth.css';
 
+// Check if using Auth Emulator (reCAPTCHA not needed)
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const usingEmulator = isLocalhost && process.env.REACT_APP_USE_AUTH_EMULATOR === 'true';
+
+// Mock RecaptchaVerifier for Auth Emulator - always resolves successfully
+class MockRecaptchaVerifier {
+  constructor() {
+    this.type = 'recaptcha';
+    this._reset = () => Promise.resolve();
+    this.clear = () => {};
+    this.render = () => Promise.resolve(0);
+    this.verify = () => Promise.resolve('mock-token');
+  }
+  async _reset() {
+    return Promise.resolve();
+  }
+  async verify() {
+    return Promise.resolve('mock-token');
+  }
+  render() {
+    return Promise.resolve(0);
+  }
+  clear() {
+    // No-op
+  }
+}
+
 const PhoneAuth = ({ onAuthSuccess }) => {
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -62,84 +89,88 @@ const PhoneAuth = ({ onAuthSuccess }) => {
         throw new Error('Please enter a valid 10-digit phone number');
       }
 
-      // Initialize reCAPTCHA
-      // Clean up any existing verifier first
-      if (window.recaptchaVerifier) {
-        try {
-          if (typeof window.recaptchaVerifier.clear === 'function') {
-            window.recaptchaVerifier.clear();
-          }
-        } catch (e) {
-          // Ignore errors - verifier may already be destroyed
-          console.warn('Error clearing old reCAPTCHA (may already be destroyed):', e.message);
-        } finally {
-          window.recaptchaVerifier = null;
-        }
-      }
-
-      // Create new reCAPTCHA verifier
-      // Firebase automatically handles reCAPTCHA Enterprise
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {
-          console.log('reCAPTCHA verified successfully');
-        },
-        'expired-callback': () => {
-          console.error('reCAPTCHA expired');
-          setError('reCAPTCHA expired. Please try again.');
-          if (window.recaptchaVerifier) {
-            try {
-              if (typeof window.recaptchaVerifier.clear === 'function') {
-                window.recaptchaVerifier.clear();
-              }
-            } catch (e) {
-              console.warn('Error clearing expired reCAPTCHA:', e.message);
-            } finally {
-              window.recaptchaVerifier = null;
-            }
-          }
-        }
-      });
-
-      // Render reCAPTCHA (this initializes it)
-      // Ensure container exists in DOM
-      const container = document.getElementById('recaptcha-container');
-      if (!container) {
-        throw new Error('reCAPTCHA container not found. Please refresh the page.');
-      }
-
-      try {
-        // Add timeout for reCAPTCHA rendering (30 seconds)
-        const renderPromise = window.recaptchaVerifier.render();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('reCAPTCHA initialization timed out. Please try again.')), 30000)
-        );
-        
-        await Promise.race([renderPromise, timeoutPromise]);
-        console.log('reCAPTCHA rendered successfully');
-      } catch (renderError) {
-        console.error('reCAPTCHA render error:', renderError);
-        // Clean up on render failure
+      // Initialize reCAPTCHA (skip on localhost when using emulator)
+      if (!usingEmulator) {
+        // Clean up any existing verifier first
         if (window.recaptchaVerifier) {
           try {
             if (typeof window.recaptchaVerifier.clear === 'function') {
               window.recaptchaVerifier.clear();
             }
           } catch (e) {
-            // Ignore cleanup errors
+            // Ignore errors - verifier may already be destroyed
+            console.warn('Error clearing old reCAPTCHA (may already be destroyed):', e.message);
+          } finally {
+            window.recaptchaVerifier = null;
           }
-          window.recaptchaVerifier = null;
         }
-        
-        // Provide helpful error message
-        if (renderError.message && renderError.message.includes('timeout')) {
-          throw new Error('reCAPTCHA took too long to load. Please refresh the page and try again, or use a test phone number.');
+
+        // Create new reCAPTCHA verifier
+        // Firebase automatically handles reCAPTCHA Enterprise
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible',
+          callback: () => {
+            console.log('reCAPTCHA verified successfully');
+          },
+          'expired-callback': () => {
+            console.error('reCAPTCHA expired');
+            setError('reCAPTCHA expired. Please try again.');
+            if (window.recaptchaVerifier) {
+              try {
+                if (typeof window.recaptchaVerifier.clear === 'function') {
+                  window.recaptchaVerifier.clear();
+                }
+              } catch (e) {
+                console.warn('Error clearing expired reCAPTCHA:', e.message);
+              } finally {
+                window.recaptchaVerifier = null;
+              }
+            }
+          }
+        });
+
+        // Render reCAPTCHA (this initializes it)
+        // Ensure container exists in DOM
+        const container = document.getElementById('recaptcha-container');
+        if (!container) {
+          throw new Error('reCAPTCHA container not found. Please refresh the page.');
         }
-        throw new Error('Failed to initialize reCAPTCHA. Please refresh the page and try again.');
+
+        try {
+          // Add timeout for reCAPTCHA rendering (30 seconds)
+          const renderPromise = window.recaptchaVerifier.render();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('reCAPTCHA initialization timed out. Please try again.')), 30000)
+          );
+          
+          await Promise.race([renderPromise, timeoutPromise]);
+          console.log('reCAPTCHA rendered successfully');
+        } catch (renderError) {
+          console.error('reCAPTCHA render error:', renderError);
+          // Clean up on render failure
+          if (window.recaptchaVerifier) {
+            try {
+              if (typeof window.recaptchaVerifier.clear === 'function') {
+                window.recaptchaVerifier.clear();
+              }
+            } catch (e) {
+              // Ignore cleanup errors
+            }
+            window.recaptchaVerifier = null;
+          }
+          
+          // Provide helpful error message
+          if (renderError.message && renderError.message.includes('timeout')) {
+            throw new Error('reCAPTCHA took too long to load. Please refresh the page and try again, or use a test phone number.');
+          }
+          throw new Error('Failed to initialize reCAPTCHA. Please refresh the page and try again.');
+        }
       }
 
       // Send OTP with timeout
-      const signInPromise = signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      // On localhost with emulator, use MockRecaptchaVerifier (reCAPTCHA not needed)
+      const appVerifier = usingEmulator ? new MockRecaptchaVerifier() : window.recaptchaVerifier;
+      const signInPromise = signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       const signInTimeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out. Please try again.')), 60000)
       );

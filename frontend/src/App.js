@@ -33,7 +33,7 @@ function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId, setSessionId] = useState(null);
   
-  // ePSA-Pre form data (new Part 1 with 18 questions)
+  // ePSA-Pre form data (Part 1: 7-variable model inputs)
   const [preData, setPreData] = useState({
     age: '',
     race: null,
@@ -45,10 +45,6 @@ function App() {
     ipss: Array(7).fill(null),
     shim: Array(5).fill(null),
     exercise: null,
-    smoking: null,
-    diabetes: null,
-    conditions: [],
-    medications: [],
   });
   
   const [part1Step, setPart1Step] = useState(0); // 0-3 for the 4 steps in Part 1
@@ -404,10 +400,6 @@ function App() {
       ipss: Array(7).fill(null),
       shim: Array(5).fill(null),
       exercise: null,
-      smoking: null,
-      diabetes: null,
-      conditions: [],
-      medications: [],
     });
     setPostData({
       psa: '',
@@ -451,10 +443,6 @@ function App() {
         ipss: Array(7).fill(null),
         shim: Array(5).fill(null),
         exercise: null,
-        smoking: null,
-        diabetes: null,
-        conditions: [],
-        medications: [],
       });
       setPostData({
         psa: '',
@@ -497,7 +485,7 @@ function App() {
       if (!result) {
         console.error('Calculation failed - missing required fields');
         console.error('preData state:', preData);
-        alert('Please complete all required fields before calculating your score. Make sure you have entered your age, race, height/weight (for BMI), family history, all IPSS questions, all SHIM questions, exercise frequency, and smoking history.');
+        alert('Please complete all required fields before calculating your score. Make sure you have entered your age, race, height/weight (for BMI), family history, all IPSS questions, all SHIM questions, and exercise frequency.');
         return;
       }
       

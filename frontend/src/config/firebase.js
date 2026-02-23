@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
@@ -39,6 +39,15 @@ if (typeof window !== 'undefined') {
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// Use Firebase Auth Emulator for local development (bypasses reCAPTCHA)
+// Run: firebase emulators:start --only auth
+// Or use test phone numbers with production auth
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+if (isLocalhost && process.env.REACT_APP_USE_AUTH_EMULATOR === 'true') {
+  connectAuthEmulator(auth, 'http://localhost:9099');
+  console.log('Using Firebase Auth Emulator');
+}
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
