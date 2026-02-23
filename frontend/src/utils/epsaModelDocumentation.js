@@ -13,14 +13,13 @@
  *     - 0.0292 × IPSS (0-35)
  *     - 0.5947 × Exercise (0=regular, 1=some, 2=none)
  *     - 0.8911 × FH (1=yes, 0=no)
- *     - 0.0358 × SHIM (5-25)
+ *     - 0.0358 × SHIM (1-25)
  *   
  *   probability = 1 / (1 + e^(-logit))
  *   score = round(probability × 100)
  * 
  * Performance Metrics:
- *   - ePSA AUC: 0.610 (95% CI: 0.481–0.737)
- *   - PSA AUC: 0.511 (95% CI: 0.374–0.651)
+ *   - ePSA AUC: 0.673
  *   - Derivation cohort: n=100
  *   - Recalibrated to ~15% screening prevalence
  * 
@@ -56,7 +55,7 @@
  *    ⚠️ Note: Negative coefficient seems counterintuitive; verify with literature
  *    Impact: +10 IPSS points ≈ -2.0% probability change
  * 
- * 5. SHIM: Sum of 5 questions (1-5 each), Range: 5-25
+ * 5. SHIM: Sum of 5 questions, Range: 1-25
  *    Higher scores = better sexual function
  *    Coefficient: -0.0358 (higher SHIM = lower risk)
  *    Impact: -10 SHIM points ≈ +3.2% probability change
@@ -185,8 +184,7 @@
 module.exports = {
   modelInfo: {
     type: '7-Variable Logistic Regression',
-    auc: 0.610,
-    ci: [0.481, 0.737],
+    auc: 0.673,
     derivation: 'n=100',
     recalibration: '~15% screening prevalence'
   },
@@ -200,7 +198,7 @@ module.exports = {
     { name: 'Race_Black', type: 'binary', encoding: '1=Black, 0=other', coefficient: -0.0253 },
     { name: 'BMI', type: 'continuous', unit: 'kg/m²', coefficient: 0.0195 },
     { name: 'IPSS', type: 'sum', range: [0, 35], coefficient: -0.0292 },
-    { name: 'SHIM', type: 'sum', range: [5, 25], coefficient: -0.0358 },
+    { name: 'SHIM', type: 'sum', range: [1, 25], coefficient: -0.0358 },
     { name: 'Exercise', type: 'ordinal', encoding: '0=regular, 1=some, 2=none', coefficient: -0.5947 },
     { name: 'Family_History', type: 'binary', encoding: '1=yes, 0=no', coefficient: -0.8911 }
   ]
