@@ -48,10 +48,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
     exercise: formData.exercise || null,
-    smoking: formData.smoking || null,
-    diabetes: formData.diabetes || null,
-    conditions: formData.conditions || [],
-    medications: formData.medications || [],
   });
 
   useEffect(() => {
@@ -150,17 +146,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     setLocalData(prev => ({ ...prev, shim: newSHIM }));
   };
 
-  const toggleCheckbox = (field, value) => {
-    const current = localData[field] || [];
-    const index = current.indexOf(value);
-    if (index > -1) {
-      const updated = current.filter(item => item !== value);
-      setLocalData(prev => ({ ...prev, [field]: updated }));
-    } else {
-      setLocalData(prev => ({ ...prev, [field]: [...current, value] }));
-    }
-  };
-
   const countAnswered = () => {
     let count = 0;
     // Demographics (4 questions)
@@ -183,16 +168,14 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
     // SHIM (5 questions)
     localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
-    // Lifestyle (2 required questions - exercise and smoking)
-    // Diabetes is NOT counted in the 18 required questions
+    // Lifestyle (exercise only)
     if (localData.exercise !== null && localData.exercise !== undefined) count++;
-    if (localData.smoking !== null && localData.smoking !== undefined) count++;
-    // Total: 4 + 7 + 5 + 2 = 18
+    // Total: 4 + 7 + 5 + 1 = 17
     return count;
   };
 
   const canProceed = () => {
-    // Check all required fields (18 questions total, excluding diabetes)
+    // Check all required fields (17 required inputs)
     const ageNum = parseInt(localData.age, 10);
     const hasAge = localData.age && localData.age !== '' && !isNaN(ageNum) && ageNum >= 30 && ageNum <= 95;
     
@@ -211,14 +194,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
     const hasExercise = localData.exercise !== null && localData.exercise !== undefined;
-    const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
     
-    const canProceedResult = hasAge && hasRace && hasBMI && hasFamilyHistory && ipssComplete && shimComplete && hasExercise && hasSmoking;
+    const canProceedResult = hasAge && hasRace && hasBMI && hasFamilyHistory && ipssComplete && shimComplete && hasExercise;
     
     // Debug logging to help identify missing fields
     const currentCount = countAnswered();
-    if (!canProceedResult && currentCount >= 17) {
-      console.log('Validation check (18/18 shown but button disabled):', {
+    if (!canProceedResult && currentCount >= 16) {
+      console.log('Validation check (17/17 shown but button disabled):', {
         hasAge,
         hasRace,
         hasBMI,
@@ -228,7 +210,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         ipssComplete,
         shimComplete,
         hasExercise,
-        hasSmoking,
         age: localData.age,
         ageNum,
         race: localData.race,
@@ -242,7 +223,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         shim: localData.shim,
         shimLength: localData.shim?.length,
         exercise: localData.exercise,
-        smoking: localData.smoking,
         answeredCount: currentCount
       });
     }
@@ -493,7 +473,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const renderStep3 = () => (
     <div className="part1-step">
-      <div className="section-header">🏃 Lifestyle & Medical History</div>
+      <div className="section-header">🏃 Lifestyle</div>
       
       <div className="question-card">
         <div className="question-header">
@@ -518,91 +498,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">18</div>
-          <div className="question-text">Smoking History</div>
-        </div>
-        <div className="question-body">
-          <div className="option-grid c3">
-            {[
-              { value: 0, label: "Never smoked" },
-              { value: 1, label: "Former smoker" },
-              { value: 2, label: "Current smoker" },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                className={`option-btn ${localData.smoking === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('smoking', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">19</div>
-          <div className="question-text">Diabetes</div>
-        </div>
-        <div className="question-body">
-          <div className="option-grid c2">
-            {[
-              { value: 0, label: "No" },
-              { value: 1, label: "Yes" },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                className={`option-btn ${localData.diabetes === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('diabetes', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">20</div>
-          <div className="question-text">Medical Conditions</div>
-        </div>
-        <div className="question-body">
-          {["High blood pressure", "High cholesterol", "Heart disease", "None"].map(item => (
-            <label key={item} className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={localData.conditions.includes(item)}
-                onChange={() => toggleCheckbox('conditions', item)}
-              />
-              <span>{item}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">21</div>
-          <div className="question-text">Medications</div>
-        </div>
-        <div className="question-body">
-          {["Finasteride / Dutasteride", "Testosterone therapy", "Statin", "None"].map(item => (
-            <label key={item} className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={localData.medications.includes(item)}
-                onChange={() => toggleCheckbox('medications', item)}
-              />
-              <span>{item}</span>
-            </label>
-          ))}
-        </div>
-      </div>
     </div>
   );
 
@@ -619,12 +514,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   return (
     <div className="part1-form-container">
       <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${(answeredCount / 18) * 100}%` }}></div>
+        <div className="progress-fill" style={{ width: `${(answeredCount / 17) * 100}%` }}></div>
       </div>
       
       <div className="answer-counter">
-        {answeredCount}/18 answered
-        {answeredCount === 18 && !canProceedResult && (
+        {answeredCount}/17 answered
+        {answeredCount === 17 && !canProceedResult && (
           <span style={{ color: '#E74C3C', fontSize: '12px', marginLeft: '8px' }}>
             (Please check all fields are valid)
           </span>
@@ -651,7 +546,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               disabled={!canProceedResult}
               title={!canProceedResult ? "Please complete all required fields" : "Click to calculate your score"}
             >
-              {canProceedResult ? "Calculate My Score ✓" : `Complete all questions (${answeredCount}/18)`}
+              {canProceedResult ? "Calculate My Score ✓" : `Complete all questions (${answeredCount}/17)`}
             </button>
           )}
         </div>
