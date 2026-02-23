@@ -5,6 +5,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
   const [localData, setLocalData] = useState({
     knowPsa: formData.knowPsa || false,
     psa: formData.psa || '',
+    onHormonalTherapy: formData.onHormonalTherapy || false,
+    hormonalTherapyType: formData.hormonalTherapyType || '',
     knowPirads: formData.knowPirads || false,
     pirads: formData.pirads || '0',
   });
@@ -82,40 +84,101 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       </div>
 
       {localData.knowPsa && (
-        <div className="question-card">
-          <div className="question-header">
-            <div className="question-number">2</div>
-            <div className="question-text">Enter PSA Level (ng/mL)</div>
-          </div>
-          <div className="question-body">
-            <input
-              type="number"
-              className="input-field"
-              placeholder="PSA level (0.1-100)"
-              step="0.1"
-              min="0.1"
-              max="100"
-              value={localData.psa}
-              onChange={(e) => updateField('psa', e.target.value)}
-              onBlur={(e) => {
-                const psaNum = parseFloat(e.target.value);
-                if (e.target.value && (isNaN(psaNum) || psaNum < 0.1 || psaNum > 100)) {
-                  e.target.setCustomValidity('PSA level must be between 0.1 and 100 ng/mL');
-                } else {
-                  e.target.setCustomValidity('');
-                }
-              }}
-            />
-            {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
-              <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-                PSA level must be between 0.1 and 100 ng/mL
+        <>
+          <div className="question-card">
+            <div className="question-header">
+              <div className="question-number">2</div>
+              <div className="question-text">Enter PSA Level (ng/mL)</div>
+            </div>
+            <div className="question-body">
+              <input
+                type="number"
+                className="input-field"
+                placeholder="PSA level (0.1-100)"
+                step="0.1"
+                min="0.1"
+                max="100"
+                value={localData.psa}
+                onChange={(e) => updateField('psa', e.target.value)}
+                onBlur={(e) => {
+                  const psaNum = parseFloat(e.target.value);
+                  if (e.target.value && (isNaN(psaNum) || psaNum < 0.1 || psaNum > 100)) {
+                    e.target.setCustomValidity('PSA level must be between 0.1 and 100 ng/mL');
+                  } else {
+                    e.target.setCustomValidity('');
+                  }
+                }}
+              />
+              {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
+                <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+                  PSA level must be between 0.1 and 100 ng/mL
+                </div>
+              )}
+              <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
+                PSA (Prostate-Specific Antigen) is a blood test used to screen for prostate cancer.
               </div>
-            )}
-            <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-              PSA (Prostate-Specific Antigen) is a blood test used to screen for prostate cancer.
             </div>
           </div>
-        </div>
+
+          <div className="question-card">
+            <div className="question-header">
+              <div className="question-number">3</div>
+              <div className="question-text">Are you taking any hormonal medications that may affect PSA?</div>
+              <span 
+                className="info-icon" 
+                title="Medications like finasteride (Propecia/Proscar), dutasteride (Avodart), or other 5-alpha reductase inhibitors can lower PSA levels by approximately 50%. This is important for accurate risk assessment."
+              >
+                ⓘ
+              </span>
+            </div>
+            <div className="question-body">
+              <div className="option-grid c2">
+                {[
+                  { value: false, label: "No / Not sure" },
+                  { value: true, label: "Yes, I'm taking hormonal therapy" },
+                ].map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    className={`option-btn ${localData.onHormonalTherapy === opt.value ? 'selected' : ''}`}
+                    onClick={() => {
+                      updateField('onHormonalTherapy', opt.value);
+                      if (!opt.value) {
+                        updateField('hormonalTherapyType', '');
+                      }
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {localData.onHormonalTherapy && (
+                <div style={{ marginTop: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: '#1C2833' }}>
+                    Which medication? (optional)
+                  </div>
+                  <div className="option-grid c2">
+                    {[
+                      { value: 'finasteride', label: 'Finasteride (Propecia/Proscar)' },
+                      { value: 'dutasteride', label: 'Dutasteride (Avodart)' },
+                      { value: 'other', label: 'Other / Not sure' },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        className={`option-btn ${localData.hormonalTherapyType === opt.value ? 'selected' : ''}`}
+                        onClick={() => updateField('hormonalTherapyType', opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="question-note" style={{ marginTop: '8px', fontSize: '12px', color: '#F39C12' }}>
+                    Note: These medications can lower PSA by ~50%. Your doctor may need to adjust the PSA value for accurate interpretation.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

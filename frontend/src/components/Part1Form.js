@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Part1Form.css';
+import InfoIcon from './InfoIcon';
+import { fieldReferences } from '../utils/fieldReferences';
 
 const IPSS_QUESTIONS = [
   'Incomplete emptying — not fully emptying your bladder?',
@@ -60,6 +62,76 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   });
 
   const [stepErrors, setStepErrors] = useState({});
+  const [attemptedNext, setAttemptedNext] = useState(false);
+  const [detectedLocation, setDetectedLocation] = useState(null);
+  const [manualLocationMode, setManualLocationMode] = useState(false);
+
+  const mapCountryToRegion = (country, continent) => {
+    if (!country) return 'other';
+    
+    const countryLower = country.toLowerCase();
+    
+    // North America
+    if (['united states', 'canada', 'mexico'].some(c => countryLower.includes(c))) {
+      return 'north-america';
+    }
+    
+    // Latin America / Caribbean
+    if (['brazil', 'argentina', 'chile', 'colombia', 'peru', 'venezuela', 'ecuador', 'bolivia', 'paraguay', 'uruguay', 'guyana', 'suriname', 'french guiana',
+         'cuba', 'jamaica', 'haiti', 'dominican republic', 'puerto rico', 'trinidad', 'bahamas', 'barbados', 'saint lucia', 'grenada', 'antigua', 'dominica', 'saint kitts', 'virgin islands', 'cayman islands', 'bermuda'].some(c => countryLower.includes(c)) || continent === 'SA') {
+      return 'latin-america';
+    }
+    
+    // Africa
+    if (continent === 'AF' || ['nigeria', 'south africa', 'egypt', 'kenya', 'ethiopia', 'ghana', 'morocco', 'algeria', 'tunisia', 'libya', 'sudan', 'uganda', 'tanzania', 'zimbabwe', 'botswana', 'namibia', 'zambia', 'malawi', 'mozambique', 'madagascar', 'mauritius', 'seychelles'].some(c => countryLower.includes(c))) {
+      return 'africa';
+    }
+    
+    // Europe
+    if (continent === 'EU' || ['united kingdom', 'germany', 'france', 'italy', 'spain', 'portugal', 'netherlands', 'belgium', 'switzerland', 'austria', 'sweden', 'norway', 'denmark', 'finland', 'poland', 'czech', 'hungary', 'romania', 'bulgaria', 'croatia', 'serbia', 'bosnia', 'slovenia', 'slovakia', 'lithuania', 'latvia', 'estonia', 'ukraine', 'russia', 'belarus', 'moldova', 'albania', 'north macedonia', 'montenegro', 'kosovo', 'ireland', 'iceland', 'malta', 'cyprus', 'luxembourg', 'monaco', 'liechtenstein', 'andorra', 'san marino', 'vatican'].some(c => countryLower.includes(c))) {
+      return 'europe';
+    }
+    
+    // Asia
+    if (continent === 'AS' || ['china', 'japan', 'korea', 'india', 'indonesia', 'thailand', 'vietnam', 'philippines', 'malaysia', 'singapore', 'myanmar', 'cambodia', 'laos', 'brunei', 'timor', 'nepal', 'bangladesh', 'pakistan', 'sri lanka', 'maldives', 'bhutan', 'afghanistan', 'kazakhstan', 'uzbekistan', 'turkmenistan', 'kyrgyzstan', 'tajikistan', 'mongolia'].some(c => countryLower.includes(c))) {
+      return 'asia';
+    }
+    
+    // Middle East
+    if (['saudi arabia', 'iran', 'iraq', 'israel', 'turkey', 'syria', 'jordan', 'lebanon', 'yemen', 'oman', 'uae', 'qatar', 'bahrain', 'kuwait', 'palestine', 'azerbaijan', 'armenia', 'georgia'].some(c => countryLower.includes(c))) {
+      return 'middle-east';
+    }
+    
+    return 'other';
+  };
+
+  // Detect location based on IP
+  useEffect(() => {
+    const detectLocation = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        // Map country to region
+        const region = mapCountryToRegion(data.country_name, data.continent_code);
+        setDetectedLocation({
+          region: region,
+          country: data.country_name,
+          city: data.city
+        });
+        
+        // Auto-set the geographic origin in form data
+        if (!localData.geographicOrigin) {
+          setLocalData(prev => ({ ...prev, geographicOrigin: region }));
+        }
+      } catch (error) {
+        console.error('Location detection failed:', error);
+        setDetectedLocation({ region: 'other', error: true });
+      }
+    };
+
+    detectLocation();
+  }, []);
 
   useEffect(() => {
     const toInches = () => {
@@ -192,7 +264,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (localData.smoking !== null && localData.smoking !== undefined) count++;
     if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
     if (localData.dietPattern !== '') count++;
-    if (localData.geographicOrigin !== '') count++;
+    // Geographic origin is auto-detected via IP, always count as answered if set
+    if (localData.geographicOrigin && localData.geographicOrigin !== '') count++;
 
     localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
     localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
@@ -213,12 +286,15 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
     const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
     const hasDiet = localData.dietPattern !== '';
-    const hasGeo = localData.geographicOrigin !== '';
+    const hasGeo = localData.geographicOrigin && localData.geographicOrigin !== '';
+
+    // If IP detection hasn't completed yet, consider it valid to avoid blocking
+    const geoReady = hasGeo || !detectedLocation?.error;
 
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
 
-    return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasGeo && ipssComplete && shimComplete;
+    return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && geoReady && ipssComplete && shimComplete;
   };
 
   const renderStep0 = () => {
@@ -230,47 +306,43 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">About You</div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">1</div>
           <div className="question-text">Age</div>
+          <InfoIcon {...fieldReferences.age} />
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <input
             type="number"
             className="input-field"
-            style={{ 
-              borderColor: localData.age && !ageValid ? '#E74C3C' : ageValid ? '#27AE60' : undefined,
-              borderWidth: localData.age ? '2px' : '1px'
-            }}
+            style={{ width: '100%' }}
             placeholder="Age (18+)"
             min="18"
             max="120"
             value={localData.age}
             onChange={(e) => updateField('age', e.target.value)}
           />
-          {localData.age && !ageValid && (
+          {attemptedNext && !ageValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Age must be 18-120
+              Please enter age (18-120)
             </div>
           )}
         </div>
       </div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: raceValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">2</div>
           <div className="question-text">Race / Ethnicity</div>
+          <InfoIcon {...fieldReferences.race} />
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <select 
             className="input-field" 
-            style={{ 
-              borderColor: raceValid ? '#27AE60' : localData.race === '' ? '#E74C3C' : undefined,
-              borderWidth: '2px'
-            }}
+            style={{ width: '100%' }}
             value={localData.race || ''} 
             onChange={(e) => updateField('race', e.target.value)}
           >
@@ -281,6 +353,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <option value="asian">Asian / Pacific Islander</option>
             <option value="other">Other / Mixed</option>
           </select>
+          {attemptedNext && !raceValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Please select your race/ethnicity
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -295,10 +372,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">Family & Genetic Risk</div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">3</div>
           <div className="question-text">Family History of Prostate Cancer</div>
+          <InfoIcon {...fieldReferences.familyHistory} />
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -316,13 +394,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
+          {attemptedNext && !familyHistoryValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">4</div>
           <div className="question-text">Known BRCA1/BRCA2 Mutation</div>
+          <InfoIcon {...fieldReferences.brcaStatus} />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -341,6 +425,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
+          {attemptedNext && !brcaValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -356,10 +445,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">Body Metrics</div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">5</div>
           <div className="question-text">Height</div>
+          <InfoIcon {...fieldReferences.heightWeight} />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -398,10 +488,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
       </div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">6</div>
           <div className="question-text">Weight</div>
+          <InfoIcon {...fieldReferences.heightWeight} />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -449,10 +540,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">Lifestyle</div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: exerciseValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">7</div>
           <div className="question-text">Exercise Level</div>
+          <InfoIcon {...fieldReferences.exercise} />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -471,13 +563,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
+          {attemptedNext && !exerciseValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: smokingValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">8</div>
           <div className="question-text">Smoking Status</div>
+          <InfoIcon {...fieldReferences.smoking} />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -496,13 +594,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
+          {attemptedNext && !smokingValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="question-card">
+      <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">9</div>
           <div className="question-text">Chemical Exposure (e.g., Agent Orange or pesticides)</div>
+          <InfoIcon {...fieldReferences.chemicalExposure} />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -520,6 +624,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
+          {attemptedNext && !chemicalValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -530,13 +639,127 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const dietValid = !!localData.dietPattern;
     const geoValid = !!localData.geographicOrigin;
     
+    const regionLabels = {
+      'north-america': 'North America',
+      'latin-america': 'Latin America',
+      'caribbean': 'Caribbean',
+      'africa': 'Africa',
+      'europe': 'Europe',
+      'asia': 'Asia',
+      'middle-east': 'Middle East',
+      'other': 'Other'
+    };
+    
+    const regionOptions = [
+      { value: 'north-america', label: 'North America' },
+      { value: 'latin-america', label: 'Latin America' },
+      { value: 'caribbean', label: 'Caribbean' },
+      { value: 'africa', label: 'Africa' },
+      { value: 'europe', label: 'Europe' },
+      { value: 'asia', label: 'Asia' },
+      { value: 'middle-east', label: 'Middle East' },
+      { value: 'other', label: 'Other' },
+    ];
+    
     return (
     <div className="part1-step">
       <div className="section-header">Additional Information</div>
-      <div className="question-card">
+      
+      {/* Location - Auto-detected with edit option */}
+      <div className="question-card" style={{ borderColor: geoValid ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">10</div>
+          <div className="question-text">Geographic Origin</div>
+          <InfoIcon {...fieldReferences.geographicOrigin} />
+          {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          {!manualLocationMode ? (
+            <>
+              <div className="location-display" style={{ 
+                background: '#f8f9fa', 
+                padding: '12px 16px', 
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '10px'
+              }}>
+                <span style={{ fontSize: '24px' }}>📍</span>
+                <div style={{ flex: 1 }}>
+                  {detectedLocation ? (
+                    <>
+                      <div style={{ fontWeight: '600', color: '#1C2833' }}>
+                        {regionLabels[localData.geographicOrigin] || localData.geographicOrigin}
+                      </div>
+                      {detectedLocation.country && (
+                        <div style={{ fontSize: '13px', color: '#7F8C8D' }}>
+                          Detected: {detectedLocation.city ? `${detectedLocation.city}, ` : ''}{detectedLocation.country}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ color: '#7F8C8D' }}>Detecting your location...</div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setManualLocationMode(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#00578B',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  textDecoration: 'underline'
+                }}
+              >
+                Not correct? Click to manually select
+              </button>
+              {detectedLocation?.error && (
+                <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+                  Could not detect location. Please select manually.
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="option-grid c3">
+                {regionOptions.map(opt => (
+                  <button
+                    key={opt.value}
+                    className={`option-btn ${localData.geographicOrigin === opt.value ? 'selected' : ''}`}
+                    onClick={() => updateField('geographicOrigin', opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setManualLocationMode(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#7F8C8D',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  padding: '8px 0 0 0',
+                  marginTop: '8px'
+                }}
+              >
+                ← Back to detected location
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">11</div>
           <div className="question-text">Diet Pattern</div>
+          <InfoIcon {...fieldReferences.diet} />
           {dietValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -556,35 +779,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-        </div>
-      </div>
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">11</div>
-          <div className="question-text">Geographic Origin</div>
-          {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-        </div>
-        <div className="question-body">
-          <div className="option-grid c3">
-            {[
-              { value: 'north-america', label: 'North America' },
-              { value: 'latin-america', label: 'Latin America' },
-              { value: 'caribbean', label: 'Caribbean' },
-              { value: 'africa', label: 'Africa' },
-              { value: 'europe', label: 'Europe' },
-              { value: 'asia', label: 'Asia' },
-              { value: 'middle-east', label: 'Middle East' },
-              { value: 'other', label: 'Other / Prefer not to say' },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                className={`option-btn ${localData.geographicOrigin === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('geographicOrigin', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          {attemptedNext && !dietValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -599,14 +798,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">
         Urinary Symptoms (IPSS)
+        <InfoIcon {...fieldReferences.ipss} />
         {ipssComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
-        {!ipssComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
+        {!ipssComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
+        {!ipssComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
         Over the past month, how often have you had:
       </div>
       {IPSS_QUESTIONS.map((q, index) => (
-        <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
+        <div key={index} className="question-card" style={{ 
+          borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
+          borderWidth: '2px' 
+        }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
             <div className="question-text">{q}</div>
@@ -638,14 +842,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     <div className="part1-step">
       <div className="section-header">
         Sexual Health (SHIM)
+        <InfoIcon {...fieldReferences.shim} />
         {shimComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
-        {!shimComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
+        {!shimComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
+        {!shimComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
         Over the past 6 months:
       </div>
       {SHIM_QUESTIONS.map((item, index) => (
-        <div key={index} className="question-card" style={{ borderColor: localData.shim[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
+        <div key={index} className="question-card" style={{ 
+          borderColor: localData.shim[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
+          borderWidth: '2px' 
+        }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
             <div className="question-text">{item.q}</div>
@@ -729,9 +938,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       if (!localData.dietPattern) {
         errors.push('Please select your diet pattern');
       }
-      if (!localData.geographicOrigin) {
-        errors.push('Please select your geographic origin');
-      }
+      // Geographic origin is auto-detected, no validation needed
     }
     
     if (step === 5) {
@@ -753,24 +960,14 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const handleNext = () => {
     const errors = validateStep(part1Step);
-    console.log('Current step:', part1Step);
-    console.log('Validation errors:', errors);
-    console.log('Local data:', { 
-      age: localData.age, 
-      race: localData.race,
-      familyHistory: localData.familyHistory,
-      brcaStatus: localData.brcaStatus,
-      exercise: localData.exercise,
-      smoking: localData.smoking,
-      chemicalExposure: localData.chemicalExposure,
-      dietPattern: localData.dietPattern,
-      geographicOrigin: localData.geographicOrigin
-    });
+    setAttemptedNext(true);
     if (errors.length > 0) {
+      setStepErrors({ ...stepErrors, [part1Step]: errors });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    setStepErrors({});
+    setStepErrors({ ...stepErrors, [part1Step]: [] });
+    setAttemptedNext(false);
     onNext();
   };
 
@@ -811,6 +1008,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="answer-counter">
         {answeredCount}/{totalQuestions} answered
       </div>
+      {renderStepErrors()}
       {steps[part1Step]?.render()}
       <div className="form-navigation">
         <div className="form-navigation-inner">

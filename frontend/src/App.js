@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen';
+import WelcomeScreen2 from './components/WelcomeScreen2';
 import PhoneAuth from './components/PhoneAuth';
 import ConsentScreen from './components/ConsentScreen';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
@@ -712,7 +713,7 @@ function App() {
                   }
                   
                   setStage('post');
-                  setCurrentStep(1);
+                  setCurrentStep(0);
                   // Ensure sessionId is set before moving to post stage
                   if (user && !sessionId) {
                     console.warn('No sessionId found when moving to post stage');
@@ -735,6 +736,15 @@ function App() {
 
   const renderPostStage = () => {
     switch (currentStep) {
+      case 0:
+        // Welcome screen for Stage 2
+        return (
+          <WelcomeScreen2
+            preResult={preResult}
+            onBegin={() => setCurrentStep(1)}
+          />
+        );
+      
       case 1:
       case 2:
         // Use new Part2Form component with consistent styling
@@ -747,7 +757,7 @@ function App() {
             onBack={currentStep === 1 ? () => {
               setStage('pre');
               setCurrentStep(3);
-            } : handlePostPrevious}
+            } : () => setCurrentStep(currentStep - 1)}
             currentStep={currentStep}
             totalSteps={2}
           />
