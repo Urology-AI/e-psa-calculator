@@ -500,10 +500,10 @@ function App() {
   };
 
   const handlePart1Next = async () => {
-    if (part1Step < 4) {
+    if (part1Step < 6) {
       setPart1Step(part1Step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (part1Step === 4) {
+    } else if (part1Step === 6) {
       // Calculate Part 1 results using new calculator
       console.log('Calculating with preData:', preData);
       const result = calculateEPsa(preData);
@@ -653,7 +653,7 @@ function App() {
             onNext={handlePart1Next}
             onBack={handlePart1Back}
             currentStep={part1Step}
-            totalSteps={5}
+            totalSteps={7}
           />
         );
 
