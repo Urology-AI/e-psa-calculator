@@ -32,6 +32,10 @@ export const calculateEPsaPost = (preResult, postData) => {
     prePoints = 120 + Math.round(((preScore - 41) / 59) * 80); // >120 pts
   }
 
+  // Add baseline carry-forward so Part 2 reflects residual clinical context
+  // beyond the Part 1 probability-to-points conversion.
+  const baselineCarryPoints = 15;
+
   // PSA points
   const psaValue = parseFloat(psa) || 0;
   const psaPoints =
@@ -73,7 +77,7 @@ export const calculateEPsaPost = (preResult, postData) => {
     if (piradsValue === 2) piradsPoints = 0;
     if (piradsValue === 3) piradsPoints = 10;
 
-    const totalPoints = prePoints + psaPoints + piradsPoints;
+    const totalPoints = prePoints + baselineCarryPoints + psaPoints + piradsPoints;
 
     if (totalPoints <= 40) {
       riskPct = '0–10%';
@@ -128,7 +132,11 @@ export const calculateEPsaPost = (preResult, postData) => {
     riskPct,
     riskCat,
     riskClass,
-    totalPoints: prePoints + psaPoints + (piradsOverridden ? 0 : (piradsValue === 3 ? 10 : 0)),
+    totalPoints: prePoints + baselineCarryPoints + psaPoints + (piradsOverridden ? 0 : (piradsValue === 3 ? 10 : 0)),
+    prePoints,
+    baselineCarryPoints,
+    psaPoints,
+    piradsPoints: piradsOverridden ? 0 : (piradsValue === 3 ? 10 : 0),
     nextSteps,
     piradsOverridden
   };
