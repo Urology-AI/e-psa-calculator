@@ -812,10 +812,12 @@ function App() {
           </div>
           <div className="header-actions">
             <div className="stage-indicator">
-              {stage === 'pre' ? (
-                <span className="stage-badge stage-pre">Stage 1: Screening Priority</span>
-              ) : (
-                <span className="stage-badge stage-post">Stage 2: Risk Assessment</span>
+              {authStep === 'app' && (
+                stage === 'pre' ? (
+                  <span className="stage-badge stage-pre">Stage 1: Screening Priority</span>
+                ) : (
+                  <span className="stage-badge stage-post">Stage 2: Risk Assessment</span>
+                )
               )}
             </div>
             {user && (
