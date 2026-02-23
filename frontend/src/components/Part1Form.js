@@ -2,226 +2,257 @@ import React, { useState, useEffect } from 'react';
 import './Part1Form.css';
 
 const IPSS_QUESTIONS = [
-  "Incomplete emptying — not fully emptying your bladder?",
-  "Frequency — urinating again within 2 hours?",
-  "Intermittency — stopping and starting during urination?",
-  "Urgency — difficulty postponing urination?",
-  "Weak stream — weak urinary stream?",
-  "Straining — pushing or straining to begin?",
-  "Nocturia — getting up at night to urinate?",
+  'Incomplete emptying — not fully emptying your bladder?',
+  'Frequency — urinating again within 2 hours?',
+  'Intermittency — stopping and starting during urination?',
+  'Urgency — difficulty postponing urination?',
+  'Weak stream — weak urinary stream?',
+  'Straining — pushing or straining to begin?',
+  'Nocturia — getting up at night to urinate?',
 ];
 
-const IPSS_LABELS = ["Not at all", "< 1 in 5", "< Half", "~ Half", "> Half", "Always"];
+const IPSS_LABELS = ['Not at all', '< 1 in 5', '< Half', '~ Half', '> Half', 'Always'];
 
 const SHIM_QUESTIONS = [
   {
-    q: "How do you rate your confidence that you could get and keep an erection?",
-    opts: [[1, "Very low"], [2, "Low"], [3, "Moderate"], [4, "High"], [5, "Very high"]]
+    q: 'How do you rate your confidence that you could get and keep an erection?',
+    opts: [[1, 'Very low'], [2, 'Low'], [3, 'Moderate'], [4, 'High'], [5, 'Very high']]
   },
   {
-    q: "When you had erections with sexual stimulation, how often were they hard enough for penetration?",
-    opts: [[0, "No activity"], [1, "Almost never"], [2, "A few times"], [3, "Sometimes"], [4, "Most times"], [5, "Almost always"]]
+    q: 'When you had erections with sexual stimulation, how often were they hard enough for penetration?',
+    opts: [[0, 'No activity'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
   },
   {
-    q: "During intercourse, how often were you able to maintain your erection after penetration?",
-    opts: [[0, "Did not attempt"], [1, "Almost never"], [2, "A few times"], [3, "Sometimes"], [4, "Most times"], [5, "Almost always"]]
+    q: 'During intercourse, how often were you able to maintain your erection after penetration?',
+    opts: [[0, 'Did not attempt'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
   },
   {
-    q: "During intercourse, how difficult was it to maintain your erection to completion?",
-    opts: [[0, "Did not attempt"], [1, "Extremely difficult"], [2, "Very difficult"], [3, "Difficult"], [4, "Slightly difficult"], [5, "Not difficult"]]
+    q: 'During intercourse, how difficult was it to maintain your erection to completion?',
+    opts: [[0, 'Did not attempt'], [1, 'Extremely difficult'], [2, 'Very difficult'], [3, 'Difficult'], [4, 'Slightly difficult'], [5, 'Not difficult']]
   },
   {
-    q: "When you attempted intercourse, how often was it satisfactory for you?",
-    opts: [[0, "Did not attempt"], [1, "Almost never"], [2, "A few times"], [3, "Sometimes"], [4, "Most times"], [5, "Almost always"]]
+    q: 'When you attempted intercourse, how often was it satisfactory for you?',
+    opts: [[0, 'Did not attempt'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
   },
 ];
 
-const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1Step, totalSteps }) => {
+const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1Step }) => {
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
+    familyHistory: formData.familyHistory ?? null,
+    brcaStatus: formData.brcaStatus ?? null,
+    heightUnit: formData.heightUnit || 'imperial',
     heightFt: formData.heightFt || '',
     heightIn: formData.heightIn || '',
+    heightCm: formData.heightCm || '',
+    weightUnit: formData.weightUnit || 'lbs',
     weight: formData.weight || '',
+    weightKg: formData.weightKg || '',
     bmi: formData.bmi || 0,
-    familyHistory: formData.familyHistory || null,
+    exercise: formData.exercise ?? null,
+    smoking: formData.smoking ?? null,
+    chemicalExposure: formData.chemicalExposure ?? null,
+    dietPattern: formData.dietPattern || '',
+    geographicOrigin: formData.geographicOrigin || '',
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
-    exercise: formData.exercise || null,
   });
 
+  const [stepErrors, setStepErrors] = useState({});
+
   useEffect(() => {
-    // Calculate BMI when height/weight changes
-    const ft = parseFloat(localData.heightFt) || 0;
-    const inches = parseFloat(localData.heightIn) || 0;
-    const weight = parseFloat(localData.weight) || 0;
-    const totalInches = ft * 12 + inches;
-    
-    if (totalInches > 0 && weight > 0) {
-      const bmi = (weight / (totalInches * totalInches)) * 703;
+    const toInches = () => {
+      if (localData.heightUnit === 'metric') {
+        const cm = parseFloat(localData.heightCm);
+        if (isNaN(cm) || cm <= 0) return 0;
+        return cm / 2.54;
+      }
+      const ft = parseFloat(localData.heightFt);
+      const inches = parseFloat(localData.heightIn);
+      if (isNaN(ft) || isNaN(inches)) return 0;
+      return (ft * 12) + inches;
+    };
+
+    const toPounds = () => {
+      if (localData.weightUnit === 'kg') {
+        const kg = parseFloat(localData.weightKg);
+        if (isNaN(kg) || kg <= 0) return 0;
+        return kg * 2.20462;
+      }
+      const lbs = parseFloat(localData.weight);
+      if (isNaN(lbs) || lbs <= 0) return 0;
+      return lbs;
+    };
+
+    const totalInches = toInches();
+    const weightLbs = toPounds();
+
+    if (totalInches > 0 && weightLbs > 0) {
+      const bmi = (weightLbs / (totalInches * totalInches)) * 703;
       setLocalData(prev => ({ ...prev, bmi }));
     } else {
       setLocalData(prev => ({ ...prev, bmi: 0 }));
     }
-  }, [localData.heightFt, localData.heightIn, localData.weight]);
+  }, [
+    localData.heightUnit,
+    localData.heightFt,
+    localData.heightIn,
+    localData.heightCm,
+    localData.weightUnit,
+    localData.weight,
+    localData.weightKg
+  ]);
 
   useEffect(() => {
-    // Sync local data to parent
-    console.log('Part1Form: Syncing localData to parent:', localData);
     setFormData(localData);
   }, [localData, setFormData]);
 
   const updateField = (field, value) => {
-    // Validate numeric fields
     if (field === 'age') {
       // Always allow typing, only validate on blur or submit
       setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
-    
+
     if (field === 'heightFt') {
+      // Always allow typing
       setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
+
     if (field === 'heightIn') {
+      // Always allow typing
       setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
+
+    if (field === 'heightCm') {
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
+    }
+
     if (field === 'weight') {
+      // Always allow typing
       setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
-    
-    // For non-numeric fields, update normally
+
+    if (field === 'weightKg') {
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
+    }
+
     setLocalData(prev => ({ ...prev, [field]: value }));
   };
 
   const updateIPSS = (index, value) => {
-    const newIPSS = [...localData.ipss];
-    newIPSS[index] = parseInt(value);
-    setLocalData(prev => ({ ...prev, ipss: newIPSS }));
+    const next = [...localData.ipss];
+    next[index] = parseInt(value, 10);
+    setLocalData(prev => ({ ...prev, ipss: next }));
   };
 
   const updateSHIM = (index, value) => {
-    const newSHIM = [...localData.shim];
-    newSHIM[index] = parseInt(value);
-    setLocalData(prev => ({ ...prev, shim: newSHIM }));
+    const next = [...localData.shim];
+    next[index] = parseInt(value, 10);
+    setLocalData(prev => ({ ...prev, shim: next }));
+  };
+
+  const hasValidHeight = () => {
+    if (localData.heightUnit === 'metric') {
+      const cm = parseFloat(localData.heightCm);
+      return !isNaN(cm) && cm >= 100 && cm <= 250;
+    }
+    const ft = parseInt(localData.heightFt, 10);
+    const inch = parseInt(localData.heightIn, 10);
+    return !isNaN(ft) && ft >= 3 && ft <= 8 && !isNaN(inch) && inch >= 0 && inch <= 11;
+  };
+
+  const hasValidWeight = () => {
+    if (localData.weightUnit === 'kg') {
+      const kg = parseFloat(localData.weightKg);
+      return !isNaN(kg) && kg >= 25 && kg <= 250;
+    }
+    const lbs = parseFloat(localData.weight);
+    return !isNaN(lbs) && lbs >= 50 && lbs <= 500;
   };
 
   const countAnswered = () => {
     let count = 0;
-    // Demographics (4 questions)
-    const ageNum = parseInt(localData.age, 10);
-    if (localData.age && localData.age !== '' && !isNaN(ageNum) && ageNum >= 30 && ageNum <= 95) count++;
-    
+
+    if (localData.age) count++;
     if (localData.race !== null && localData.race !== undefined && localData.race !== '') count++;
-    
-    // BMI only counts if height and weight are valid
-    const ftNum = parseInt(localData.heightFt, 10);
-    const inNum = parseInt(localData.heightIn, 10);
-    const weightNum = parseFloat(localData.weight);
-    const hasValidHeight = !isNaN(ftNum) && ftNum >= 3 && ftNum <= 8 && 
-                           !isNaN(inNum) && inNum >= 0 && inNum <= 11;
-    const hasValidWeight = !isNaN(weightNum) && weightNum >= 50 && weightNum <= 500;
-    if (localData.bmi > 0 && hasValidHeight && hasValidWeight) count++;
-    
     if (localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
-    // IPSS (7 questions)
-    localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
-    // SHIM (5 questions)
-    localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
-    // Lifestyle (exercise only)
+    if (localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
+    if (hasValidHeight()) count++;
+    if (hasValidWeight()) count++;
     if (localData.exercise !== null && localData.exercise !== undefined) count++;
-    // Total: 4 + 7 + 5 + 1 = 17
+    if (localData.smoking !== null && localData.smoking !== undefined) count++;
+    if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
+    if (localData.dietPattern !== '') count++;
+    if (localData.geographicOrigin !== '') count++;
+
+    localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
+    localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
+
     return count;
   };
 
   const canProceed = () => {
-    // Check all required fields (17 required inputs)
     const ageNum = parseInt(localData.age, 10);
-    const hasAge = localData.age && localData.age !== '' && !isNaN(ageNum) && ageNum >= 30 && ageNum <= 95;
-    
+    const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
     const hasRace = localData.race !== null && localData.race !== undefined && localData.race !== '';
-    
-    // Validate height and weight are valid numbers
-    const ftNum = parseInt(localData.heightFt, 10);
-    const inNum = parseInt(localData.heightIn, 10);
-    const weightNum = parseFloat(localData.weight);
-    const hasValidHeight = !isNaN(ftNum) && ftNum >= 3 && ftNum <= 8 && 
-                           !isNaN(inNum) && inNum >= 0 && inNum <= 11;
-    const hasValidWeight = !isNaN(weightNum) && weightNum >= 50 && weightNum <= 500;
-    const hasBMI = localData.bmi > 0 && !isNaN(localData.bmi) && hasValidHeight && hasValidWeight;
-    
     const hasFamilyHistory = localData.familyHistory !== null && localData.familyHistory !== undefined;
+    const hasBrca = localData.brcaStatus !== null && localData.brcaStatus !== undefined;
+    const hasHeight = hasValidHeight();
+    const hasWeight = hasValidWeight();
+    const hasBMI = localData.bmi > 0;
+    const hasExercise = localData.exercise !== null && localData.exercise !== undefined;
+    const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
+    const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
+    const hasDiet = localData.dietPattern !== '';
+    const hasGeo = localData.geographicOrigin !== '';
+
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
-    const hasExercise = localData.exercise !== null && localData.exercise !== undefined;
-    
-    const canProceedResult = hasAge && hasRace && hasBMI && hasFamilyHistory && ipssComplete && shimComplete && hasExercise;
-    
-    // Debug logging to help identify missing fields
-    const currentCount = countAnswered();
-    if (!canProceedResult && currentCount >= 16) {
-      console.log('Validation check (17/17 shown but button disabled):', {
-        hasAge,
-        hasRace,
-        hasBMI,
-        hasValidHeight,
-        hasValidWeight,
-        hasFamilyHistory,
-        ipssComplete,
-        shimComplete,
-        hasExercise,
-        age: localData.age,
-        ageNum,
-        race: localData.race,
-        heightFt: localData.heightFt,
-        heightIn: localData.heightIn,
-        weight: localData.weight,
-        bmi: localData.bmi,
-        familyHistory: localData.familyHistory,
-        ipss: localData.ipss,
-        ipssLength: localData.ipss?.length,
-        shim: localData.shim,
-        shimLength: localData.shim?.length,
-        exercise: localData.exercise,
-        answeredCount: currentCount
-      });
-    }
-    
-    return canProceedResult;
+
+    return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasGeo && ipssComplete && shimComplete;
   };
 
-  const renderStep0 = () => (
+  const renderStep0 = () => {
+    const ageNum = parseInt(localData.age, 10);
+    const ageValid = localData.age && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
+    const raceValid = !!localData.race;
+    
+    return (
     <div className="part1-step">
-      <div className="section-header">Demographics</div>
-      
+      <div className="section-header">About You</div>
+
       <div className="question-card">
         <div className="question-header">
           <div className="question-number">1</div>
           <div className="question-text">Age</div>
+          {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <input
             type="number"
             className="input-field"
-            placeholder="Age (30-95)"
-            min="30"
-            max="95"
+            style={{ 
+              borderColor: localData.age && !ageValid ? '#E74C3C' : ageValid ? '#27AE60' : undefined,
+              borderWidth: localData.age ? '2px' : '1px'
+            }}
+            placeholder="Age (18+)"
+            min="18"
+            max="120"
             value={localData.age}
             onChange={(e) => updateField('age', e.target.value)}
-            onBlur={(e) => {
-              const ageNum = parseInt(e.target.value, 10);
-              if (e.target.value && (isNaN(ageNum) || ageNum < 30 || ageNum > 95)) {
-                e.target.setCustomValidity('Age must be between 30 and 95');
-              } else {
-                e.target.setCustomValidity('');
-              }
-            }}
           />
-          {localData.age && (parseInt(localData.age, 10) < 30 || parseInt(localData.age, 10) > 95) && (
+          {localData.age && !ageValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Age must be between 30 and 95
+              Age must be 18-120
             </div>
           )}
         </div>
@@ -231,129 +262,50 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">2</div>
           <div className="question-text">Race / Ethnicity</div>
+          {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div className="option-grid c3">
-            {[
-              { value: "white", label: "White" },
-              { value: "black", label: "Black / African American" },
-              { value: "hispanic", label: "Hispanic" },
-              { value: "asian", label: "Asian" },
-              { value: "other", label: "Other" },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                className={`option-btn ${localData.race === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('race', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <select 
+            className="input-field" 
+            style={{ 
+              borderColor: raceValid ? '#27AE60' : localData.race === '' ? '#E74C3C' : undefined,
+              borderWidth: '2px'
+            }}
+            value={localData.race || ''} 
+            onChange={(e) => updateField('race', e.target.value)}
+          >
+            <option value="">Select race/ethnicity</option>
+            <option value="white">White / Caucasian</option>
+            <option value="black">Black / African American</option>
+            <option value="hispanic">Hispanic / Latino</option>
+            <option value="asian">Asian / Pacific Islander</option>
+            <option value="other">Other / Mixed</option>
+          </select>
         </div>
       </div>
+    </div>
+  );
+  };
+
+  const renderStep1 = () => {
+    const familyHistoryValid = localData.familyHistory !== null && localData.familyHistory !== undefined;
+    const brcaValid = !!localData.brcaStatus;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">Family & Genetic Risk</div>
 
       <div className="question-card">
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">Height & Weight</div>
-        </div>
-        <div className="question-body">
-          <div className="input-row">
-            <input
-              type="number"
-              className="input-field input-sm"
-              placeholder="ft (3-8)"
-              min="3"
-              max="8"
-              value={localData.heightFt}
-              onChange={(e) => updateField('heightFt', e.target.value)}
-              onBlur={(e) => {
-                const ftNum = parseInt(e.target.value, 10);
-                if (e.target.value && (isNaN(ftNum) || ftNum < 3 || ftNum > 8)) {
-                  e.target.setCustomValidity('Height must be between 3 and 8 feet');
-                } else {
-                  e.target.setCustomValidity('');
-                }
-              }}
-            />
-            <span>ft</span>
-            <input
-              type="number"
-              className="input-field input-sm"
-              placeholder="in (0-11)"
-              min="0"
-              max="11"
-              value={localData.heightIn}
-              onChange={(e) => updateField('heightIn', e.target.value)}
-              onBlur={(e) => {
-                const inNum = parseInt(e.target.value, 10);
-                if (e.target.value && (isNaN(inNum) || inNum < 0 || inNum > 11)) {
-                  e.target.setCustomValidity('Inches must be between 0 and 11');
-                } else {
-                  e.target.setCustomValidity('');
-                }
-              }}
-            />
-            <span>in</span>
-            <input
-              type="number"
-              className="input-field"
-              placeholder="lbs (50-500)"
-              min="50"
-              max="500"
-              step="0.1"
-              style={{ width: '80px' }}
-              value={localData.weight}
-              onChange={(e) => updateField('weight', e.target.value)}
-              onBlur={(e) => {
-                const weightNum = parseFloat(e.target.value);
-                if (e.target.value && (isNaN(weightNum) || weightNum < 50 || weightNum > 500)) {
-                  e.target.setCustomValidity('Weight must be between 50 and 500 lbs');
-                } else {
-                  e.target.setCustomValidity('');
-                }
-              }}
-            />
-            <span>lbs</span>
-          </div>
-          {localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Height (feet) must be between 3 and 8
-            </div>
-          )}
-          {localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Height (inches) must be between 0 and 11
-            </div>
-          )}
-          {localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Weight must be between 50 and 500 lbs
-            </div>
-          )}
-          {localData.bmi > 0 && (
-            <div className="bmi-display">BMI: {localData.bmi.toFixed(1)}</div>
-          )}
-          {localData.heightFt && localData.heightIn && localData.weight && localData.bmi === 0 && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Please enter valid height and weight values
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-number">4</div>
           <div className="question-text">Family History of Prostate Cancer</div>
+          {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 0, label: "No" },
-              { value: 1, label: "Yes, 1 relative" },
-              { value: 2, label: "Yes, 2+" },
+              { value: 0, label: 'No' },
+              { value: 1, label: 'Yes' },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -366,88 +318,149 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       </div>
-    </div>
-  );
 
-  const renderStep1 = () => (
-    <div className="part1-step">
-      <div className="section-header">🏃 Urinary Symptoms (IPSS)</div>
-      
-      {IPSS_QUESTIONS.map((question, index) => (
-        <div key={index} className="question-card">
-          <div className="question-header">
-            <div className="question-number">{index + 5}</div>
-            <div className="question-text">{question}</div>
-          </div>
-          <div className="question-body">
-            <div className="option-grid c3">
-              {IPSS_LABELS.map((label, value) => (
-                <button
-                  key={value}
-                  className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`}
-                  onClick={() => updateIPSS(index, value)}
-                >
-                  <span className="score">({value})</span> {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ))}
-      
-      <div className="score-total">
-        IPSS Total: {localData.ipss.every(v => v !== null) ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="part1-step">
-      <div className="section-header">🏃 Sexual Health (SHIM)</div>
-      
-      {SHIM_QUESTIONS.map((item, index) => (
-        <div key={index} className="question-card">
-          <div className="question-header">
-            <div className="question-number">{index + 12}</div>
-            <div className="question-text">{item.q}</div>
-          </div>
-          <div className="question-body">
-            <div className="option-grid c3">
-              {item.opts.map(([score, label]) => (
-                <button
-                  key={score}
-                  className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`}
-                  onClick={() => updateSHIM(index, score)}
-                >
-                  <span className="score">({score})</span> {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ))}
-      
-      <div className="score-total">
-        SHIM Total: {localData.shim.every(v => v !== null) ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="part1-step">
-      <div className="section-header">🏃 Lifestyle</div>
-      
       <div className="question-card">
         <div className="question-header">
-          <div className="question-number">17</div>
-          <div className="question-text">Exercise Frequency</div>
+          <div className="question-number">4</div>
+          <div className="question-text">Known BRCA1/BRCA2 Mutation</div>
+          {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 2, label: "No regular exercise" },
-              { value: 1, label: "1–2 days/week" },
-              { value: 0, label: "3+ days/week" },
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' },
+              { value: 'unknown', label: 'Unknown' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.brcaStatus === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('brcaStatus', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  const renderStep2 = () => {
+    const heightValid = hasValidHeight();
+    const weightValid = hasValidWeight();
+    const bmiValid = localData.bmi > 0;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">Body Metrics</div>
+
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">5</div>
+          <div className="question-text">Height</div>
+          {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
+            <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
+              Feet / Inches
+            </button>
+            <button className={`option-btn ${localData.heightUnit === 'metric' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'metric')}>
+              Centimeters
+            </button>
+          </div>
+
+          {localData.heightUnit === 'imperial' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <input type="number" className="input-field" placeholder="Feet (3-8)" value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
+              <input type="number" className="input-field" placeholder="Inches (0-11)" value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
+            </div>
+          ) : (
+            <input type="number" className="input-field" placeholder="Height in cm (100-250)" value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
+          )}
+          {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Feet must be between 3 and 8
+            </div>
+          )}
+          {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Inches must be between 0 and 11
+            </div>
+          )}
+          {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Height must be between 100 and 250 cm
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">6</div>
+          <div className="question-text">Weight</div>
+          {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
+            <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
+              Pounds (lbs)
+            </button>
+            <button className={`option-btn ${localData.weightUnit === 'kg' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'kg')}>
+              Kilograms (kg)
+            </button>
+          </div>
+
+          {localData.weightUnit === 'kg' ? (
+            <input type="number" className="input-field" placeholder="Weight in kg (25-250)" value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
+          ) : (
+            <input type="number" className="input-field" placeholder="Weight in lbs (50-500)" value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
+          )}
+          {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Weight must be between 50 and 500 lbs
+            </div>
+          )}
+          {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Weight must be between 25 and 250 kg
+            </div>
+          )}
+
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '14px', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
+            BMI (auto-calculated): <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
+            {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  const renderStep3 = () => {
+    const exerciseValid = localData.exercise !== null && localData.exercise !== undefined;
+    const smokingValid = localData.smoking !== null && localData.smoking !== undefined;
+    const chemicalValid = !!localData.chemicalExposure;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">Lifestyle</div>
+
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">7</div>
+          <div className="question-text">Exercise Level</div>
+          {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c3">
+            {[
+              { value: 0, label: 'Regular (3+ days/week)' },
+              { value: 1, label: 'Some (1-2 days/week)' },
+              { value: 2, label: 'None' },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -460,36 +473,345 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       </div>
+
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">8</div>
+          <div className="question-text">Smoking Status</div>
+          {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c3">
+            {[
+              { value: 2, label: 'Current' },
+              { value: 1, label: 'Former' },
+              { value: 0, label: 'Never' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.smoking === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('smoking', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">9</div>
+          <div className="question-text">Chemical Exposure (e.g., Agent Orange or pesticides)</div>
+          {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c2">
+            {[
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('chemicalExposure', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
+  };
+
+  const renderStep4 = () => {
+    const dietValid = !!localData.dietPattern;
+    const geoValid = !!localData.geographicOrigin;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">Additional Information</div>
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">10</div>
+          <div className="question-text">Diet Pattern</div>
+          {dietValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c2">
+            {[
+              { value: 'balanced', label: 'Balanced / Mixed' },
+              { value: 'plant-forward', label: 'Plant-forward' },
+              { value: 'high-fat-red-meat', label: 'High fat / red meat heavy' },
+              { value: 'other', label: 'Other / Prefer not to say' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.dietPattern === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('dietPattern', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">11</div>
+          <div className="question-text">Geographic Origin</div>
+          {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c3">
+            {[
+              { value: 'north-america', label: 'North America' },
+              { value: 'latin-america', label: 'Latin America' },
+              { value: 'caribbean', label: 'Caribbean' },
+              { value: 'africa', label: 'Africa' },
+              { value: 'europe', label: 'Europe' },
+              { value: 'asia', label: 'Asia' },
+              { value: 'middle-east', label: 'Middle East' },
+              { value: 'other', label: 'Other / Prefer not to say' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.geographicOrigin === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('geographicOrigin', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  const renderStep5 = () => {
+    const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+    const answeredCount = localData.ipss.filter(v => v !== null && v !== undefined).length;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">
+        Urinary Symptoms (IPSS)
+        {ipssComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {!ipssComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
+      </div>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+        Over the past month, how often have you had:
+      </div>
+      {IPSS_QUESTIONS.map((q, index) => (
+        <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
+          <div className="question-header">
+            <div className="question-number">{index + 1}</div>
+            <div className="question-text">{q}</div>
+            {localData.ipss[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c3">
+              {IPSS_LABELS.map((label, value) => (
+                <button key={value} className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`} onClick={() => updateIPSS(index, value)}>
+                  <span className="score">({value})</span> {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : '#7F8C8D' }}>
+        IPSS Total: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+      </div>
+    </div>
+  );
+  };
+
+  const renderStep6 = () => {
+    const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+    const answeredCount = localData.shim.filter(v => v !== null && v !== undefined).length;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">
+        Sexual Health (SHIM)
+        {shimComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {!shimComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
+      </div>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+        Over the past 6 months:
+      </div>
+      {SHIM_QUESTIONS.map((item, index) => (
+        <div key={index} className="question-card" style={{ borderColor: localData.shim[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
+          <div className="question-header">
+            <div className="question-number">{index + 1}</div>
+            <div className="question-text">{item.q}</div>
+            {localData.shim[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c3">
+              {item.opts.map(([score, label]) => (
+                <button key={score} className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`} onClick={() => updateSHIM(index, score)}>
+                  <span className="score">({score})</span> {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : '#7F8C8D' }}>
+        SHIM Total: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
+      </div>
+    </div>
+  );
+  };
 
   const steps = [
-    { label: "Demographics", render: renderStep0 },
-    { label: "Urinary Symptoms", render: renderStep1 },
-    { label: "Sexual Health", render: renderStep2 },
-    { label: "Lifestyle", render: renderStep3 },
+    { label: 'About You', render: renderStep0 },
+    { label: 'Family & Genetic Risk', render: renderStep1 },
+    { label: 'Body Metrics', render: renderStep2 },
+    { label: 'Lifestyle', render: renderStep3 },
+    { label: 'Additional Info', render: renderStep4 },
+    { label: 'IPSS', render: renderStep5 },
+    { label: 'SHIM', render: renderStep6 },
   ];
+
+  const validateStep = (step) => {
+    const errors = [];
+    
+    if (step === 0) {
+      const ageNum = parseInt(localData.age, 10);
+      if (!localData.age || isNaN(ageNum) || ageNum < 18 || ageNum > 120) {
+        errors.push('Please enter a valid age (18+)');
+      }
+      if (!localData.race) {
+        errors.push('Please select your race/ethnicity');
+      }
+    }
+    
+    if (step === 1) {
+      if (localData.familyHistory === null || localData.familyHistory === undefined) {
+        errors.push('Please answer family history question');
+      }
+      if (!localData.brcaStatus) {
+        errors.push('Please answer BRCA status question');
+      }
+    }
+    
+    if (step === 2) {
+      if (!hasValidHeight()) {
+        errors.push('Please enter valid height');
+      }
+      if (!hasValidWeight()) {
+        errors.push('Please enter valid weight');
+      }
+      if (localData.bmi <= 0) {
+        errors.push('BMI could not be calculated - please check height and weight');
+      }
+    }
+    
+    if (step === 3) {
+      if (localData.exercise === null || localData.exercise === undefined) {
+        errors.push('Please select exercise level');
+      }
+      if (localData.smoking === null || localData.smoking === undefined) {
+        errors.push('Please select smoking status');
+      }
+      if (!localData.chemicalExposure) {
+        errors.push('Please answer chemical exposure question');
+      }
+    }
+    
+    if (step === 4) {
+      if (!localData.dietPattern) {
+        errors.push('Please select your diet pattern');
+      }
+      if (!localData.geographicOrigin) {
+        errors.push('Please select your geographic origin');
+      }
+    }
+    
+    if (step === 5) {
+      const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+      if (!ipssComplete) {
+        errors.push('Please answer all 7 IPSS questions');
+      }
+    }
+    
+    if (step === 6) {
+      const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+      if (!shimComplete) {
+        errors.push('Please answer all 5 SHIM questions');
+      }
+    }
+    
+    return errors;
+  };
+
+  const handleNext = () => {
+    const errors = validateStep(part1Step);
+    console.log('Current step:', part1Step);
+    console.log('Validation errors:', errors);
+    console.log('Local data:', { 
+      age: localData.age, 
+      race: localData.race,
+      familyHistory: localData.familyHistory,
+      brcaStatus: localData.brcaStatus,
+      exercise: localData.exercise,
+      smoking: localData.smoking,
+      chemicalExposure: localData.chemicalExposure,
+      dietPattern: localData.dietPattern,
+      geographicOrigin: localData.geographicOrigin
+    });
+    if (errors.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setStepErrors({});
+    onNext();
+  };
+
+  const renderStepErrors = () => {
+    const errors = stepErrors[part1Step];
+    if (!errors || errors.length === 0) return null;
+    
+    return (
+      <div style={{ 
+        background: '#FDEAEA', 
+        border: '1px solid #E74C3C', 
+        borderRadius: '8px', 
+        padding: '12px 16px', 
+        marginBottom: '16px' 
+      }}>
+        <div style={{ color: '#E74C3C', fontWeight: '600', marginBottom: '8px' }}>
+          Please complete the following before continuing:
+        </div>
+        <ul style={{ color: '#E74C3C', margin: 0, paddingLeft: '20px' }}>
+          {errors.map((error, idx) => (
+            <li key={idx}>{error}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
+  const totalQuestions = 23;
 
   return (
     <div className="part1-form-container">
       <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${(answeredCount / 17) * 100}%` }}></div>
+        <div className="progress-fill" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
       </div>
-      
+
       <div className="answer-counter">
-        {answeredCount}/17 answered
-        {answeredCount === 17 && !canProceedResult && (
-          <span style={{ color: '#E74C3C', fontSize: '12px', marginLeft: '8px' }}>
-            (Please check all fields are valid)
-          </span>
-        )}
+        {answeredCount}/{totalQuestions} answered
       </div>
-      
       {steps[part1Step]?.render()}
-      
       <div className="form-navigation">
         <div className="form-navigation-inner">
           {part1Step > 0 && (
@@ -498,17 +820,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </button>
           )}
           {part1Step < steps.length - 1 ? (
-            <button className="btn-next" onClick={onNext}>
+            <button className="btn-next" onClick={handleNext}>
               Next →
             </button>
           ) : (
-            <button 
-              className="btn-calculate" 
+            <button
+              className="btn-calculate"
               onClick={onNext}
               disabled={!canProceedResult}
-              title={!canProceedResult ? "Please complete all required fields" : "Click to calculate your score"}
+              title={!canProceedResult ? 'Please complete all required fields' : 'Click to calculate your score'}
             >
-              {canProceedResult ? "Calculate My Score ✓" : `Complete all questions (${answeredCount}/17)`}
+              {canProceedResult ? 'Calculate My Score ✓' : `Complete all questions (${answeredCount}/${totalQuestions})`}
             </button>
           )}
         </div>

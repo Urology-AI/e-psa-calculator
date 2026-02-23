@@ -114,17 +114,20 @@ const PrintableForm = ({ onBack }) => {
       </div>
 
       <div className="printable-body">
-        {/* Demographics Section */}
+        <div className="section-divider">
+          <span className="section-label">About You</span>
+        </div>
+
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">1.</span> Age: 
+              <span className="field-number">1.</span> Age:
               <input type="text" className="field-input-inline" placeholder="____" />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">2.</span> Race: 
+              <span className="field-number">2.</span> Race / Ethnicity:
               <label className="checkbox-inline"><input type="checkbox" /> White</label>
               <label className="checkbox-inline"><input type="checkbox" /> Black</label>
               <label className="checkbox-inline"><input type="checkbox" /> Hispanic</label>
@@ -134,27 +137,14 @@ const PrintableForm = ({ onBack }) => {
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              <span className="field-number">3.</span> Height: 
-              <input type="text" className="field-input-tiny" placeholder="__" /> ft 
-              <input type="text" className="field-input-tiny" placeholder="__" /> in
-            </label>
-          </div>
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              Weight: 
-              <input type="text" className="field-input-small" placeholder="____" /> lbs | 
-              BMI: <input type="text" className="field-input-tiny" placeholder="___" />
-            </label>
-          </div>
+        <div className="section-divider">
+          <span className="section-label">Family & Genetic Risk</span>
         </div>
 
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">4.</span> Family History: 
+              <span className="field-number">3.</span> Family History of prostate cancer:
               <label className="checkbox-inline"><input type="radio" name="family" value="0" /> None</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="1" /> 1 relative</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="2" /> 2+ relatives</label>
@@ -162,15 +152,110 @@ const PrintableForm = ({ onBack }) => {
           </div>
         </div>
 
-        {/* IPSS Section */}
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">4.</span> Known BRCA1/BRCA2 mutation:
+              <label className="checkbox-inline"><input type="radio" name="brca" value="yes" /> Yes</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="no" /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" /> Unknown</label>
+            </label>
+          </div>
+        </div>
+
         <div className="section-divider">
-          <span className="section-label">Urinary Symptoms (IPSS) — Rate 0-5:</span>
+          <span className="section-label">Body Metrics</span>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">5.</span> Height:
+              <label className="checkbox-inline"><input type="checkbox" /> Feet/Inches</label>
+              <input type="text" className="field-input-tiny" placeholder="__" /> ft
+              <input type="text" className="field-input-tiny" placeholder="__" /> in
+              <label className="checkbox-inline"><input type="checkbox" /> Centimeters</label>
+              <input type="text" className="field-input-small" placeholder="___ cm" />
+            </label>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">6.</span> Weight:
+              <label className="checkbox-inline"><input type="checkbox" /> lbs</label>
+              <input type="text" className="field-input-small" placeholder="____" />
+              <label className="checkbox-inline"><input type="checkbox" /> kg</label>
+              <input type="text" className="field-input-small" placeholder="____" />
+              &nbsp;| BMI: <input type="text" className="field-input-tiny" placeholder="___" />
+            </label>
+          </div>
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">Lifestyle</span>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">7.</span> Exercise level:
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" /> Regular</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" /> Some</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="2" /> None</label>
+            </label>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">8.</span> Smoking status:
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="current" /> Current</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="former" /> Former</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="never" /> Never</label>
+            </label>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">9.</span> Chemical exposure (Agent Orange/pesticides):
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" /> Yes</label>
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" /> No</label>
+            </label>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              Diet pattern:
+              <input type="text" className="field-input-inline" placeholder="________________" />
+            </label>
+          </div>
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              Geographic origin:
+              <input type="text" className="field-input-inline" placeholder="________________" />
+            </label>
+          </div>
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">Symptoms</span>
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">10. Urinary Symptoms (IPSS) — Rate 0-5:</span>
         </div>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">5.</span> Incomplete emptying
+              Incomplete emptying
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-0" value="0" />0</label>
                 <label><input type="radio" name="ipss-0" value="1" />1</label>
@@ -183,7 +268,7 @@ const PrintableForm = ({ onBack }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">6.</span> Frequency
+              Frequency
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-1" value="0" />0</label>
                 <label><input type="radio" name="ipss-1" value="1" />1</label>
@@ -199,7 +284,7 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">7.</span> Intermittency
+              Intermittency
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-2" value="0" />0</label>
                 <label><input type="radio" name="ipss-2" value="1" />1</label>
@@ -212,7 +297,7 @@ const PrintableForm = ({ onBack }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">8.</span> Urgency
+              Urgency
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-3" value="0" />0</label>
                 <label><input type="radio" name="ipss-3" value="1" />1</label>
@@ -228,7 +313,7 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">9.</span> Weak stream
+              Weak stream
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-4" value="0" />0</label>
                 <label><input type="radio" name="ipss-4" value="1" />1</label>
@@ -241,7 +326,7 @@ const PrintableForm = ({ onBack }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">10.</span> Straining
+              Straining
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-5" value="0" />0</label>
                 <label><input type="radio" name="ipss-5" value="1" />1</label>
@@ -257,7 +342,7 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">11.</span> Nocturia
+              Nocturia
               <div className="scale-compact">
                 <label><input type="radio" name="ipss-6" value="0" />0</label>
                 <label><input type="radio" name="ipss-6" value="1" />1</label>
@@ -275,15 +360,14 @@ const PrintableForm = ({ onBack }) => {
           </div>
         </div>
 
-        {/* SHIM Section */}
         <div className="section-divider">
-          <span className="section-label">Sexual Health (SHIM):</span>
+          <span className="section-label">11. Sexual Health (SHIM):</span>
         </div>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">12.</span> Confidence
+              Confidence
               <div className="scale-compact">
                 <label><input type="radio" name="shim-0" value="1" />1</label>
                 <label><input type="radio" name="shim-0" value="2" />2</label>
@@ -295,7 +379,7 @@ const PrintableForm = ({ onBack }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">13.</span> Hard enough
+              Hard enough
               <div className="scale-compact">
                 <label><input type="radio" name="shim-1" value="0" />0</label>
                 <label><input type="radio" name="shim-1" value="1" />1</label>
@@ -311,7 +395,7 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">14.</span> Maintain after
+              Maintain after
               <div className="scale-compact">
                 <label><input type="radio" name="shim-2" value="0" />0</label>
                 <label><input type="radio" name="shim-2" value="1" />1</label>
@@ -324,7 +408,7 @@ const PrintableForm = ({ onBack }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">15.</span> Difficulty maintain
+              Difficulty maintain
               <div className="scale-compact">
                 <label><input type="radio" name="shim-3" value="0" />0</label>
                 <label><input type="radio" name="shim-3" value="1" />1</label>
@@ -340,7 +424,7 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
-              <span className="field-number">16.</span> Satisfactory
+              Satisfactory
               <div className="scale-compact">
                 <label><input type="radio" name="shim-4" value="0" />0</label>
                 <label><input type="radio" name="shim-4" value="1" />1</label>
@@ -354,22 +438,6 @@ const PrintableForm = ({ onBack }) => {
           <div className="form-field-compact">
             <label className="field-label-compact">
               SHIM Total: <input type="text" className="field-input-tiny" placeholder="___" /> / 25
-            </label>
-          </div>
-        </div>
-
-        {/* Lifestyle Section */}
-        <div className="section-divider">
-          <span className="section-label">Lifestyle:</span>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              <span className="field-number">17.</span> Exercise: 
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="2" /> None</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" /> Some (1-2/wk)</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" /> Regular (3+/wk)</label>
             </label>
           </div>
         </div>
@@ -393,7 +461,6 @@ const PrintableForm = ({ onBack }) => {
             </label>
           </div>
         </div>
-
         <div className="printable-footer">
           <p className="footer-text">
             For educational and research purposes. Not for clinical decision-making without physician review. Part 1 uses 7 variables (Age, Race, Family History, BMI, IPSS, SHIM, Exercise). | Ashutosh K. Tewari, MD — Department of Urology — Mount Sinai Health System
