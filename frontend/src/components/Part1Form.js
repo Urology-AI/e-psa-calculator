@@ -74,59 +74,21 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   const updateField = (field, value) => {
     // Validate numeric fields
     if (field === 'age') {
-      // Age must be between 30 and 95
-      const ageNum = parseInt(value, 10);
-      if (value === '' || value === null || value === undefined) {
-        setLocalData(prev => ({ ...prev, [field]: '' }));
-        return;
-      }
-      if (isNaN(ageNum) || ageNum < 30 || ageNum > 95) {
-        // Don't update if invalid, but allow typing
-        return;
-      }
-      setLocalData(prev => ({ ...prev, [field]: ageNum.toString() }));
+      // Always allow typing, only validate on blur or submit
+      setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
     
     if (field === 'heightFt') {
-      // Height feet: 3-8 feet
-      const ftNum = parseInt(value, 10);
-      if (value === '' || value === null || value === undefined) {
-        setLocalData(prev => ({ ...prev, [field]: '' }));
-        return;
-      }
-      if (isNaN(ftNum) || ftNum < 3 || ftNum > 8) {
-        return;
-      }
-      setLocalData(prev => ({ ...prev, [field]: ftNum.toString() }));
+      setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
-    
     if (field === 'heightIn') {
-      // Height inches: 0-11 inches
-      const inNum = parseInt(value, 10);
-      if (value === '' || value === null || value === undefined) {
-        setLocalData(prev => ({ ...prev, [field]: '' }));
-        return;
-      }
-      if (isNaN(inNum) || inNum < 0 || inNum > 11) {
-        return;
-      }
-      setLocalData(prev => ({ ...prev, [field]: inNum.toString() }));
+      setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
-    
     if (field === 'weight') {
-      // Weight: 50-500 lbs (reasonable range)
-      const weightNum = parseFloat(value);
-      if (value === '' || value === null || value === undefined) {
-        setLocalData(prev => ({ ...prev, [field]: '' }));
-        return;
-      }
-      if (isNaN(weightNum) || weightNum < 50 || weightNum > 500) {
-        return;
-      }
-      setLocalData(prev => ({ ...prev, [field]: weightNum.toString() }));
+      setLocalData(prev => ({ ...prev, [field]: value }));
       return;
     }
     
