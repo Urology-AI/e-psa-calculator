@@ -82,11 +82,7 @@ function App() {
         const phone = currentUser.phoneNumber;
         setUserPhone(phone);
         
-        // Check if user has completed consent (check both localStorage and Firestore)
-        const hasConsented = localStorage.getItem(`consent_${currentUser.uid}`);
-        const storedConsentData = localStorage.getItem(`consentData_${currentUser.uid}`);
-        
-        // Also check Firestore for consent
+        // Check if user has completed consent in Firestore
         let userData = null;
         try {
           userData = await getUser(currentUser.uid);
@@ -94,23 +90,18 @@ function App() {
           console.warn('Could not fetch user data:', error);
         }
         
-        // If consent exists in localStorage OR Firestore, skip consent screen
-        const consentExists = (hasConsented && storedConsentData) || (userData && userData.consentToContact !== undefined);
+        // If consent exists in Firestore, skip consent screen
+        const consentExists = !!(userData && userData.consentToContact !== undefined);
         
         if (consentExists) {
           try {
             let consent;
-            if (storedConsentData) {
-              consent = JSON.parse(storedConsentData);
-            } else if (userData) {
+            if (userData) {
               // Reconstruct consent from Firestore data
               consent = {
                 consentToContact: userData.consentToContact || false,
                 consentTimestamp: userData.consentTimestamp || new Date().toISOString()
               };
-              // Save to localStorage for future use
-              localStorage.setItem(`consent_${currentUser.uid}`, consent.consentToContact ? 'true' : 'false');
-              localStorage.setItem(`consentData_${currentUser.uid}`, JSON.stringify(consent));
             }
             
             if (consent) {
@@ -127,13 +118,11 @@ function App() {
                 const sessionId = userData.currentSessionId;
                 setSessionId(sessionId);
                 localStorage.setItem(`sessionId_${currentUser.uid}`, sessionId);
-                console.log('Restored session ID:', sessionId);
                 
                 // Load session data and restore stage/form state
                 try {
                   const session = await getSession(sessionId);
                   if (session) {
-                    console.log('Loaded session:', session);
                     
                     // Restore stage based on session status
                     if (session.status === 'STEP2_COMPLETE') {
@@ -171,14 +160,11 @@ function App() {
                         // Calculate result FIRST before setting preData
                         try {
                           const preResult = calculateEPsa(session.step1);
-                          console.log('Restored preResult:', preResult);
-                          console.log('Session step1 data:', session.step1);
                           
                           // Set result FIRST, then data, then step
                           if (preResult) {
                             // Set result immediately
                             setPreResult(preResult);
-                            console.log('Set preResult state:', preResult);
                             
                             // Then set form data
                             setPreData(session.step1);
@@ -186,7 +172,6 @@ function App() {
                             // Then set step after a brief delay to ensure state is set
                             setTimeout(() => {
                               setCurrentStep(3);
-                              console.log('Set currentStep to 3, preResult should be:', preResult);
                             }, 150);
                           } else {
                             console.warn('Invalid preResult calculated, starting fresh');
@@ -307,11 +292,7 @@ function App() {
     setUser(user);
     setUserPhone(phone);
     
-    // Check if user already has consent (don't ask again)
-    const hasConsented = localStorage.getItem(`consent_${user.uid}`);
-    const storedConsentData = localStorage.getItem(`consentData_${user.uid}`);
-    
-    // Also check Firestore
+    // Check if user already has consent in Firestore
     let userData = null;
     try {
       userData = await getUser(user.uid);
@@ -319,20 +300,16 @@ function App() {
       console.warn('Could not fetch user data:', error);
     }
     
-    const consentExists = (hasConsented && storedConsentData) || (userData && userData.consentToContact !== undefined);
+    const consentExists = !!(userData && userData.consentToContact !== undefined);
     
     if (consentExists) {
       // User already consented - skip consent screen
       let consent;
-      if (storedConsentData) {
-        consent = JSON.parse(storedConsentData);
-      } else if (userData) {
+      if (userData) {
         consent = {
           consentToContact: userData.consentToContact || false,
           consentTimestamp: userData.consentTimestamp || new Date().toISOString()
         };
-        localStorage.setItem(`consent_${user.uid}`, consent.consentToContact ? 'true' : 'false');
-        localStorage.setItem(`consentData_${user.uid}`, JSON.stringify(consent));
       }
       if (consent) {
         setConsentData(consent);
@@ -350,15 +327,8 @@ function App() {
     // Save consent to Firestore along with phone number
     if (user && userPhone) {
       try {
-        console.log('Saving consent:', consent);
-        console.log('User UID:', user.uid);
-        console.log('User authenticated:', !!user);
-        console.log('Phone number:', userPhone);
         
         await createOrUpdateUser(user.uid, userPhone, consent);
-        localStorage.setItem(`consent_${user.uid}`, consent.consentToContact ? 'true' : 'false');
-        localStorage.setItem(`consentData_${user.uid}`, JSON.stringify(consent));
-        console.log('Consent saved successfully');
         setAuthStep('app');
       } catch (error) {
         console.error('Error saving consent:', error);
@@ -367,10 +337,10 @@ function App() {
         
         // Check if it's a permission error
         if (error.code === 'permission-denied' || error.message.includes('permission')) {
-          console.warn('Permission denied - Firestore rules may not be deployed. Saving to localStorage only.');
+          console.warn('Permission denied - Firestore rules may not be deployed.');
         }
         
-        // Still proceed to app even if save fails (data saved in localStorage)
+        // Still proceed to app even if save fails
         setAuthStep('app');
       }
     } else {
@@ -388,11 +358,9 @@ function App() {
       try {
         // Delete the session document from Firestore
         await deleteSession(sessionId);
-        console.log('Deleted session from Firestore:', sessionId);
         
         // Clear currentSessionId from user document
         await clearUserSession(user.uid);
-        console.log('Cleared session reference from user document');
       } catch (error) {
         console.error('Error deleting session from Firebase:', error);
         // Continue clearing local data even if Firebase delete fails
@@ -443,7 +411,6 @@ function App() {
       localStorage.removeItem(`sessionId_${user.uid}`);
     }
     
-    console.log('All data cleared. New session will be created when user starts filling the form.');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -489,8 +456,6 @@ function App() {
       setSessionId(null);
       // Clear user-specific localStorage but keep general settings
       if (user) {
-        localStorage.removeItem(`consent_${user.uid}`);
-        localStorage.removeItem(`consentData_${user.uid}`);
         localStorage.removeItem(`sessionId_${user.uid}`);
       }
     } catch (error) {
@@ -512,9 +477,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (part1Step === 6) {
       // Calculate Part 1 results using new calculator
-      console.log('Calculating with preData:', preData);
       const result = calculateEPsa(preData);
-      console.log('Calculation result:', result);
       
       if (!result) {
         console.error('Calculation failed - missing required fields');
@@ -536,7 +499,6 @@ function App() {
               finalScore: result.score,
               finalRisk: result.risk
             });
-            console.log('Updated session:', sessionId);
           } else {
             // Create new session
             const newSessionId = await createSession(user.uid, {
@@ -547,7 +509,6 @@ function App() {
             });
             setSessionId(newSessionId);
             localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
-            console.log('Created new session:', newSessionId);
           }
         } catch (error) {
           console.error('Error saving step 1:', error);
@@ -581,10 +542,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 2) {
       // Calculate Post results using Part 1 data
-      console.log('Calculating Part 2 with Part 1 result:', preResult);
-      console.log('Part 2 form data:', postData);
       const result = calculateEPsaPost(preResult, postData);
-      console.log('Part 2 calculation result:', result);
       setPostResult(result);
       
       // Save to Firestore
@@ -597,7 +555,6 @@ function App() {
               step2: postData,
               finalCategory: result.riskCat
             });
-            console.log('Updated session with step 2:', sessionId);
           } else {
             // Create new session if missing (shouldn't happen, but handle gracefully)
             console.warn('No sessionId found, creating new session for step 2');
@@ -609,7 +566,6 @@ function App() {
             });
             setSessionId(newSessionId);
             localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
-            console.log('Created new session for step 2:', newSessionId);
           }
         } catch (error) {
           console.error('Error saving step 2:', error);
@@ -683,7 +639,6 @@ function App() {
         );
 
       case 3:
-        console.log('Rendering case 3, preResult:', preResult);
         return (
           <div className="pre-results-step">
             {preResult ? (
@@ -814,9 +769,6 @@ function App() {
                   e.target.style.display = 'none';
                 }
               }} 
-              onLoad={() => {
-                console.log('Logo loaded successfully from:', (process.env.PUBLIC_URL || '') + '/logo.png');
-              }}
             />
           </div>
           <div className="header-text">

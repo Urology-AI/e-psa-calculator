@@ -36,7 +36,7 @@ const ModelDocs = ({ onClose }) => {
                 &nbsp;&nbsp;- 0.0292 × IPSS (0–35)<br/>
                 &nbsp;&nbsp;- 0.5947 × Exercise (0=regular, 1=some, 2=none)<br/>
                 &nbsp;&nbsp;- 0.8911 × Family_History (1=yes, 0=no)<br/>
-                &nbsp;&nbsp;- 0.0358 × SHIM (5–25)
+                &nbsp;&nbsp;- 0.0358 × SHIM (1–25)
               </code>
             </div>
             <p className="formula-note">
@@ -69,7 +69,7 @@ const ModelDocs = ({ onClose }) => {
                   <td>Binary</td>
                   <td>0 or 1</td>
                   <td>-0.0253</td>
-                  <td>1 if Black/African American, 0 otherwise. Note: Negative coefficient from derivation cohort; may reflect specific population characteristics.</td>
+                  <td>Backend encoding: 1 if Black/African American, 0 otherwise. UI still captures multiple race/ethnicity groups for patient-facing inclusivity.</td>
                 </tr>
                 <tr>
                   <td><strong>BMI</strong></td>
@@ -88,7 +88,7 @@ const ModelDocs = ({ onClose }) => {
                 <tr>
                   <td><strong>SHIM</strong></td>
                   <td>Sum (5 items)</td>
-                  <td>5–25</td>
+                  <td>1–25</td>
                   <td>-0.0358</td>
                   <td>Sexual Health Inventory for Men. Sum of 5 sexual function questions. Higher scores = better function.</td>
                 </tr>
@@ -148,11 +148,7 @@ const ModelDocs = ({ onClose }) => {
                 </tr>
                 <tr>
                   <td>ePSA AUC</td>
-                  <td>0.610 (95% CI: 0.481–0.737)</td>
-                </tr>
-                <tr>
-                  <td>PSA AUC (comparison)</td>
-                  <td>0.511 (95% CI: 0.374–0.651)</td>
+                  <td>0.673</td>
                 </tr>
                 <tr>
                   <td>Screening Prevalence</td>
@@ -166,9 +162,8 @@ const ModelDocs = ({ onClose }) => {
             </table>
             <div className="info-box info">
               <strong>Note on AUC:</strong> The Area Under the ROC Curve (AUC) measures discrimination 
-              (ability to distinguish high vs. low risk). An AUC of 0.610 indicates modest discrimination 
-              (better than chance at 0.5, but less than excellent at 0.8+). The wide confidence interval 
-              reflects uncertainty from the small derivation cohort.
+              (ability to distinguish high vs. low risk). An AUC of 0.673 indicates modest discrimination 
+              (better than chance at 0.5, but less than excellent at 0.8+).
             </div>
           </section>
 

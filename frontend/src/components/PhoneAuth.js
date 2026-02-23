@@ -110,7 +110,6 @@ const PhoneAuth = ({ onAuthSuccess }) => {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
           callback: () => {
-            console.log('reCAPTCHA verified successfully');
           },
           'expired-callback': () => {
             console.error('reCAPTCHA expired');
@@ -144,7 +143,6 @@ const PhoneAuth = ({ onAuthSuccess }) => {
           );
           
           await Promise.race([renderPromise, timeoutPromise]);
-          console.log('reCAPTCHA rendered successfully');
         } catch (renderError) {
           console.error('reCAPTCHA render error:', renderError);
           // Clean up on render failure
