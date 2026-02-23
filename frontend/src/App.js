@@ -42,12 +42,21 @@ function App() {
     weight: '',
     bmi: 0,
     familyHistory: null,
+    brcaStatus: null,
+    heightUnit: 'imperial',
+    heightCm: '',
+    weightUnit: 'lbs',
+    weightKg: '',
     ipss: Array(7).fill(null),
     shim: Array(5).fill(null),
     exercise: null,
+    smoking: null,
+    chemicalExposure: null,
+    dietPattern: '',
+    geographicOrigin: '',
   });
   
-  const [part1Step, setPart1Step] = useState(0); // 0-3 for the 4 steps in Part 1
+  const [part1Step, setPart1Step] = useState(0); // 0-4 for the 5 steps in Part 1
 
   // ePSA-Post form data
   const [postData, setPostData] = useState({
@@ -397,9 +406,18 @@ function App() {
       weight: '',
       bmi: 0,
       familyHistory: null,
+      brcaStatus: null,
+      heightUnit: 'imperial',
+      heightCm: '',
+      weightUnit: 'lbs',
+      weightKg: '',
       ipss: Array(7).fill(null),
       shim: Array(5).fill(null),
       exercise: null,
+      smoking: null,
+      chemicalExposure: null,
+      dietPattern: '',
+      geographicOrigin: '',
     });
     setPostData({
       psa: '',
@@ -440,9 +458,18 @@ function App() {
         weight: '',
         bmi: 0,
         familyHistory: null,
+        brcaStatus: null,
+        heightUnit: 'imperial',
+        heightCm: '',
+        weightUnit: 'lbs',
+        weightKg: '',
         ipss: Array(7).fill(null),
         shim: Array(5).fill(null),
         exercise: null,
+        smoking: null,
+        chemicalExposure: null,
+        dietPattern: '',
+        geographicOrigin: '',
       });
       setPostData({
         psa: '',
@@ -473,10 +500,10 @@ function App() {
   };
 
   const handlePart1Next = async () => {
-    if (part1Step < 3) {
+    if (part1Step < 6) {
       setPart1Step(part1Step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (part1Step === 3) {
+    } else if (part1Step === 6) {
       // Calculate Part 1 results using new calculator
       console.log('Calculating with preData:', preData);
       const result = calculateEPsa(preData);
@@ -485,7 +512,7 @@ function App() {
       if (!result) {
         console.error('Calculation failed - missing required fields');
         console.error('preData state:', preData);
-        alert('Please complete all required fields before calculating your score. Make sure you have entered your age, race, height/weight (for BMI), family history, all IPSS questions, all SHIM questions, and exercise frequency.');
+        alert('Please complete all required fields before calculating your score. Make sure you have entered all required fields in About You, Family & Genetic Risk, Body Metrics, Lifestyle, and Symptoms.');
         return;
       }
       
@@ -626,7 +653,7 @@ function App() {
             onNext={handlePart1Next}
             onBack={handlePart1Back}
             currentStep={part1Step}
-            totalSteps={4}
+            totalSteps={7}
           />
         );
 
