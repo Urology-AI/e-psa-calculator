@@ -59,27 +59,29 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     shim: formData.shim || Array(5).fill(null),
   });
 
+  const [stepErrors, setStepErrors] = useState({});
+
   useEffect(() => {
     const toInches = () => {
       if (localData.heightUnit === 'metric') {
         const cm = parseFloat(localData.heightCm);
-        if (isNaN(cm) || cm < 100 || cm > 250) return 0;
+        if (isNaN(cm) || cm <= 0) return 0;
         return cm / 2.54;
       }
       const ft = parseFloat(localData.heightFt);
       const inches = parseFloat(localData.heightIn);
-      if (isNaN(ft) || isNaN(inches) || ft < 3 || ft > 8 || inches < 0 || inches > 11) return 0;
+      if (isNaN(ft) || isNaN(inches)) return 0;
       return (ft * 12) + inches;
     };
 
     const toPounds = () => {
       if (localData.weightUnit === 'kg') {
         const kg = parseFloat(localData.weightKg);
-        if (isNaN(kg) || kg < 25 || kg > 250) return 0;
+        if (isNaN(kg) || kg <= 0) return 0;
         return kg * 2.20462;
       }
       const lbs = parseFloat(localData.weight);
-      if (isNaN(lbs) || lbs < 50 || lbs > 500) return 0;
+      if (isNaN(lbs) || lbs <= 0) return 0;
       return lbs;
     };
 
@@ -108,45 +110,39 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const updateField = (field, value) => {
     if (field === 'age') {
-      const ageNum = parseInt(value, 10);
-      if (value === '') return setLocalData(prev => ({ ...prev, age: '' }));
-      if (isNaN(ageNum) || ageNum < 30 || ageNum > 95) return;
-      return setLocalData(prev => ({ ...prev, age: ageNum.toString() }));
+      // Always allow typing, only validate on blur or submit
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     if (field === 'heightFt') {
-      const ft = parseInt(value, 10);
-      if (value === '') return setLocalData(prev => ({ ...prev, heightFt: '' }));
-      if (isNaN(ft) || ft < 3 || ft > 8) return;
-      return setLocalData(prev => ({ ...prev, heightFt: ft.toString() }));
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     if (field === 'heightIn') {
-      const inch = parseInt(value, 10);
-      if (value === '') return setLocalData(prev => ({ ...prev, heightIn: '' }));
-      if (isNaN(inch) || inch < 0 || inch > 11) return;
-      return setLocalData(prev => ({ ...prev, heightIn: inch.toString() }));
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     if (field === 'heightCm') {
-      const cm = parseFloat(value);
-      if (value === '') return setLocalData(prev => ({ ...prev, heightCm: '' }));
-      if (isNaN(cm) || cm < 100 || cm > 250) return;
-      return setLocalData(prev => ({ ...prev, heightCm: cm.toString() }));
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     if (field === 'weight') {
-      const lbs = parseFloat(value);
-      if (value === '') return setLocalData(prev => ({ ...prev, weight: '' }));
-      if (isNaN(lbs) || lbs < 50 || lbs > 500) return;
-      return setLocalData(prev => ({ ...prev, weight: lbs.toString() }));
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     if (field === 'weightKg') {
-      const kg = parseFloat(value);
-      if (value === '') return setLocalData(prev => ({ ...prev, weightKg: '' }));
-      if (isNaN(kg) || kg < 25 || kg > 250) return;
-      return setLocalData(prev => ({ ...prev, weightKg: kg.toString() }));
+      // Always allow typing
+      setLocalData(prev => ({ ...prev, [field]: value }));
+      return;
     }
 
     setLocalData(prev => ({ ...prev, [field]: value }));
@@ -206,7 +202,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const canProceed = () => {
     const ageNum = parseInt(localData.age, 10);
-    const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 30 && ageNum <= 95;
+    const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
     const hasRace = localData.race !== null && localData.race !== undefined && localData.race !== '';
     const hasFamilyHistory = localData.familyHistory !== null && localData.familyHistory !== undefined;
     const hasBrca = localData.brcaStatus !== null && localData.brcaStatus !== undefined;
@@ -225,7 +221,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasGeo && ipssComplete && shimComplete;
   };
 
-  const renderStep0 = () => (
+  const renderStep0 = () => {
+    const ageNum = parseInt(localData.age, 10);
+    const ageValid = localData.age && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
+    const raceValid = !!localData.race;
+    
+    return (
     <div className="part1-step">
       <div className="section-header">About You</div>
 
@@ -233,17 +234,27 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">1</div>
           <div className="question-text">Age</div>
+          {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <input
             type="number"
             className="input-field"
-            placeholder="Age (30-95)"
-            min="30"
-            max="95"
+            style={{ 
+              borderColor: localData.age && !ageValid ? '#E74C3C' : ageValid ? '#27AE60' : undefined,
+              borderWidth: localData.age ? '2px' : '1px'
+            }}
+            placeholder="Age (18+)"
+            min="18"
+            max="120"
             value={localData.age}
             onChange={(e) => updateField('age', e.target.value)}
           />
+          {localData.age && !ageValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Age must be 18-120
+            </div>
+          )}
         </div>
       </div>
 
@@ -251,9 +262,18 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">2</div>
           <div className="question-text">Race / Ethnicity</div>
+          {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <select className="input-field" value={localData.race || ''} onChange={(e) => updateField('race', e.target.value)}>
+          <select 
+            className="input-field" 
+            style={{ 
+              borderColor: raceValid ? '#27AE60' : localData.race === '' ? '#E74C3C' : undefined,
+              borderWidth: '2px'
+            }}
+            value={localData.race || ''} 
+            onChange={(e) => updateField('race', e.target.value)}
+          >
             <option value="">Select race/ethnicity</option>
             <option value="white">White / Caucasian</option>
             <option value="black">Black / African American</option>
@@ -265,8 +285,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       </div>
     </div>
   );
+  };
 
-  const renderStep1 = () => (
+  const renderStep1 = () => {
+    const familyHistoryValid = localData.familyHistory !== null && localData.familyHistory !== undefined;
+    const brcaValid = !!localData.brcaStatus;
+    
+    return (
     <div className="part1-step">
       <div className="section-header">Family & Genetic Risk</div>
 
@@ -274,6 +299,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">3</div>
           <div className="question-text">Family History of Prostate Cancer</div>
+          {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
@@ -297,6 +323,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">4</div>
           <div className="question-text">Known BRCA1/BRCA2 Mutation</div>
+          {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
@@ -314,15 +341,18 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-            Collected for prospective validation — not included in current model calculation.
-          </div>
         </div>
       </div>
     </div>
   );
+  };
 
-  const renderStep2 = () => (
+  const renderStep2 = () => {
+    const heightValid = hasValidHeight();
+    const weightValid = hasValidWeight();
+    const bmiValid = localData.bmi > 0;
+    
+    return (
     <div className="part1-step">
       <div className="section-header">Body Metrics</div>
 
@@ -330,6 +360,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">5</div>
           <div className="question-text">Height</div>
+          {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
@@ -349,6 +380,21 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           ) : (
             <input type="number" className="input-field" placeholder="Height in cm (100-250)" value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
           )}
+          {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Feet must be between 3 and 8
+            </div>
+          )}
+          {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Inches must be between 0 and 11
+            </div>
+          )}
+          {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Height must be between 100 and 250 cm
+            </div>
+          )}
         </div>
       </div>
 
@@ -356,6 +402,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">6</div>
           <div className="question-text">Weight</div>
+          {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
@@ -372,16 +419,33 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           ) : (
             <input type="number" className="input-field" placeholder="Weight in lbs (50-500)" value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
           )}
+          {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Weight must be between 50 and 500 lbs
+            </div>
+          )}
+          {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+              Weight must be between 25 and 250 kg
+            </div>
+          )}
 
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '14px' }}>
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '14px', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
             BMI (auto-calculated): <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
+            {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
         </div>
       </div>
     </div>
   );
+  };
 
-  const renderStep3 = () => (
+  const renderStep3 = () => {
+    const exerciseValid = localData.exercise !== null && localData.exercise !== undefined;
+    const smokingValid = localData.smoking !== null && localData.smoking !== undefined;
+    const chemicalValid = !!localData.chemicalExposure;
+    
+    return (
     <div className="part1-step">
       <div className="section-header">Lifestyle</div>
 
@@ -389,6 +453,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">7</div>
           <div className="question-text">Exercise Level</div>
+          {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
@@ -397,7 +462,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               { value: 1, label: 'Some (1-2 days/week)' },
               { value: 2, label: 'None' },
             ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`} onClick={() => updateField('exercise', opt.value)}>{opt.label}</button>
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('exercise', opt.value)}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
         </div>
@@ -407,6 +478,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">8</div>
           <div className="question-text">Smoking Status</div>
+          {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
@@ -415,11 +487,14 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               { value: 1, label: 'Former' },
               { value: 0, label: 'Never' },
             ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.smoking === opt.value ? 'selected' : ''}`} onClick={() => updateField('smoking', opt.value)}>{opt.label}</button>
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.smoking === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('smoking', opt.value)}
+              >
+                {opt.label}
+              </button>
             ))}
-          </div>
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-            Collected for prospective validation — not included in current model calculation.
           </div>
         </div>
       </div>
@@ -428,6 +503,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">9</div>
           <div className="question-text">Chemical Exposure (e.g., Agent Orange or pesticides)</div>
+          {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2">
@@ -435,74 +511,111 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               { value: 'yes', label: 'Yes' },
               { value: 'no', label: 'No' },
             ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`} onClick={() => updateField('chemicalExposure', opt.value)}>{opt.label}</button>
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('chemicalExposure', opt.value)}
+              >
+                {opt.label}
+              </button>
             ))}
-          </div>
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-            Collected for prospective validation — not included in current model calculation.
-          </div>
-        </div>
-      </div>
-
-      <div className="question-card">
-        <div className="question-header">
-          <div className="question-text">Additional Prospective Data</div>
-        </div>
-        <div className="question-body">
-          <div style={{ display: 'grid', gap: '8px' }}>
-            <select className="input-field" value={localData.dietPattern} onChange={(e) => updateField('dietPattern', e.target.value)}>
-              <option value="">Diet pattern</option>
-              <option value="balanced">Balanced / Mixed</option>
-              <option value="plant-forward">Plant-forward</option>
-              <option value="high-fat-red-meat">High fat / red meat heavy</option>
-              <option value="other">Other / Prefer not to say</option>
-            </select>
-
-            <select className="input-field" value={localData.geographicOrigin} onChange={(e) => updateField('geographicOrigin', e.target.value)}>
-              <option value="">Geographic origin</option>
-              <option value="north-america">North America</option>
-              <option value="latin-america">Latin America</option>
-              <option value="caribbean">Caribbean</option>
-              <option value="africa">Africa</option>
-              <option value="europe">Europe</option>
-              <option value="asia">Asia</option>
-              <option value="middle-east">Middle East</option>
-              <option value="other">Other / Prefer not to say</option>
-            </select>
-          </div>
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-            Collected for prospective validation — not included in current model calculation.
           </div>
         </div>
       </div>
     </div>
   );
+  };
 
-  const renderStep4 = () => (
+  const renderStep4 = () => {
+    const dietValid = !!localData.dietPattern;
+    const geoValid = !!localData.geographicOrigin;
+    
+    return (
     <div className="part1-step">
-      <div className="section-header">Symptoms</div>
-
+      <div className="section-header">Additional Information</div>
       <div className="question-card">
         <div className="question-header">
           <div className="question-number">10</div>
-          <div className="question-text">Urinary Symptoms (IPSS)</div>
+          <div className="question-text">Diet Pattern</div>
+          {dietValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c2">
+            {[
+              { value: 'balanced', label: 'Balanced / Mixed' },
+              { value: 'plant-forward', label: 'Plant-forward' },
+              { value: 'high-fat-red-meat', label: 'High fat / red meat heavy' },
+              { value: 'other', label: 'Other / Prefer not to say' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.dietPattern === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('dietPattern', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+      <div className="question-card">
+        <div className="question-header">
+          <div className="question-number">11</div>
+          <div className="question-text">Geographic Origin</div>
+          {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div className="option-grid c3">
+            {[
+              { value: 'north-america', label: 'North America' },
+              { value: 'latin-america', label: 'Latin America' },
+              { value: 'caribbean', label: 'Caribbean' },
+              { value: 'africa', label: 'Africa' },
+              { value: 'europe', label: 'Europe' },
+              { value: 'asia', label: 'Asia' },
+              { value: 'middle-east', label: 'Middle East' },
+              { value: 'other', label: 'Other / Prefer not to say' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.geographicOrigin === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('geographicOrigin', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  };
 
+  const renderStep5 = () => {
+    const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+    const answeredCount = localData.ipss.filter(v => v !== null && v !== undefined).length;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">
+        Urinary Symptoms (IPSS)
+        {ipssComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {!ipssComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
+      </div>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+        Over the past month, how often have you had:
+      </div>
       {IPSS_QUESTIONS.map((q, index) => (
-        <div key={index} className="question-card">
+        <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
             <div className="question-text">{q}</div>
+            {localData.ipss[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
           <div className="question-body">
             <div className="option-grid c3">
               {IPSS_LABELS.map((label, value) => (
-                <button
-                  key={value}
-                  className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`}
-                  onClick={() => updateIPSS(index, value)}
-                >
+                <button key={value} className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`} onClick={() => updateIPSS(index, value)}>
                   <span className="score">({value})</span> {label}
                 </button>
               ))}
@@ -510,32 +623,38 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-
-      <div className="score-total">
-        IPSS Total: {localData.ipss.every(v => v !== null) ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : '#7F8C8D' }}>
+        IPSS Total: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
       </div>
+    </div>
+  );
+  };
 
-      <div className="question-card" style={{ marginTop: '16px' }}>
-        <div className="question-header">
-          <div className="question-number">11</div>
-          <div className="question-text">Sexual Health (SHIM)</div>
-        </div>
+  const renderStep6 = () => {
+    const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+    const answeredCount = localData.shim.filter(v => v !== null && v !== undefined).length;
+    
+    return (
+    <div className="part1-step">
+      <div className="section-header">
+        Sexual Health (SHIM)
+        {shimComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {!shimComplete && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
       </div>
-
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+        Over the past 6 months:
+      </div>
       {SHIM_QUESTIONS.map((item, index) => (
-        <div key={index} className="question-card">
+        <div key={index} className="question-card" style={{ borderColor: localData.shim[index] !== null ? '#27AE60' : '#E74C3C', borderWidth: '2px' }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
             <div className="question-text">{item.q}</div>
+            {localData.shim[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
           <div className="question-body">
             <div className="option-grid c3">
               {item.opts.map(([score, label]) => (
-                <button
-                  key={score}
-                  className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`}
-                  onClick={() => updateSHIM(index, score)}
-                >
+                <button key={score} className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`} onClick={() => updateSHIM(index, score)}>
                   <span className="score">({score})</span> {label}
                 </button>
               ))}
@@ -543,20 +662,141 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-
-      <div className="score-total">
-        SHIM Total: {localData.shim.every(v => v !== null) ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
+      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : '#7F8C8D' }}>
+        SHIM Total: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
       </div>
     </div>
   );
+  };
 
   const steps = [
     { label: 'About You', render: renderStep0 },
     { label: 'Family & Genetic Risk', render: renderStep1 },
     { label: 'Body Metrics', render: renderStep2 },
     { label: 'Lifestyle', render: renderStep3 },
-    { label: 'Symptoms', render: renderStep4 },
+    { label: 'Additional Info', render: renderStep4 },
+    { label: 'IPSS', render: renderStep5 },
+    { label: 'SHIM', render: renderStep6 },
   ];
+
+  const validateStep = (step) => {
+    const errors = [];
+    
+    if (step === 0) {
+      const ageNum = parseInt(localData.age, 10);
+      if (!localData.age || isNaN(ageNum) || ageNum < 18 || ageNum > 120) {
+        errors.push('Please enter a valid age (18+)');
+      }
+      if (!localData.race) {
+        errors.push('Please select your race/ethnicity');
+      }
+    }
+    
+    if (step === 1) {
+      if (localData.familyHistory === null || localData.familyHistory === undefined) {
+        errors.push('Please answer family history question');
+      }
+      if (!localData.brcaStatus) {
+        errors.push('Please answer BRCA status question');
+      }
+    }
+    
+    if (step === 2) {
+      if (!hasValidHeight()) {
+        errors.push('Please enter valid height');
+      }
+      if (!hasValidWeight()) {
+        errors.push('Please enter valid weight');
+      }
+      if (localData.bmi <= 0) {
+        errors.push('BMI could not be calculated - please check height and weight');
+      }
+    }
+    
+    if (step === 3) {
+      if (localData.exercise === null || localData.exercise === undefined) {
+        errors.push('Please select exercise level');
+      }
+      if (localData.smoking === null || localData.smoking === undefined) {
+        errors.push('Please select smoking status');
+      }
+      if (!localData.chemicalExposure) {
+        errors.push('Please answer chemical exposure question');
+      }
+    }
+    
+    if (step === 4) {
+      if (!localData.dietPattern) {
+        errors.push('Please select your diet pattern');
+      }
+      if (!localData.geographicOrigin) {
+        errors.push('Please select your geographic origin');
+      }
+    }
+    
+    if (step === 5) {
+      const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+      if (!ipssComplete) {
+        errors.push('Please answer all 7 IPSS questions');
+      }
+    }
+    
+    if (step === 6) {
+      const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+      if (!shimComplete) {
+        errors.push('Please answer all 5 SHIM questions');
+      }
+    }
+    
+    return errors;
+  };
+
+  const handleNext = () => {
+    const errors = validateStep(part1Step);
+    console.log('Current step:', part1Step);
+    console.log('Validation errors:', errors);
+    console.log('Local data:', { 
+      age: localData.age, 
+      race: localData.race,
+      familyHistory: localData.familyHistory,
+      brcaStatus: localData.brcaStatus,
+      exercise: localData.exercise,
+      smoking: localData.smoking,
+      chemicalExposure: localData.chemicalExposure,
+      dietPattern: localData.dietPattern,
+      geographicOrigin: localData.geographicOrigin
+    });
+    if (errors.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setStepErrors({});
+    onNext();
+  };
+
+  const renderStepErrors = () => {
+    const errors = stepErrors[part1Step];
+    if (!errors || errors.length === 0) return null;
+    
+    return (
+      <div style={{ 
+        background: '#FDEAEA', 
+        border: '1px solid #E74C3C', 
+        borderRadius: '8px', 
+        padding: '12px 16px', 
+        marginBottom: '16px' 
+      }}>
+        <div style={{ color: '#E74C3C', fontWeight: '600', marginBottom: '8px' }}>
+          Please complete the following before continuing:
+        </div>
+        <ul style={{ color: '#E74C3C', margin: 0, paddingLeft: '20px' }}>
+          {errors.map((error, idx) => (
+            <li key={idx}>{error}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
@@ -571,9 +811,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="answer-counter">
         {answeredCount}/{totalQuestions} answered
       </div>
-
       {steps[part1Step]?.render()}
-
       <div className="form-navigation">
         <div className="form-navigation-inner">
           {part1Step > 0 && (
@@ -582,7 +820,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </button>
           )}
           {part1Step < steps.length - 1 ? (
-            <button className="btn-next" onClick={onNext}>
+            <button className="btn-next" onClick={handleNext}>
               Next →
             </button>
           ) : (
