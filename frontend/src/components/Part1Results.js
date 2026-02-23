@@ -11,14 +11,12 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
     );
   }
 
-  const { score, risk, color, action, ipssTotal, shimTotal, bmi, age } = result;
+  const { score, scoreRange, confidenceRange, risk, color, action, ipssTotal, shimTotal, bmi, age } = result;
 
   const riskLevels = [
-    { label: "LOW", range: "<21%" },
-    { label: "LOW-MOD", range: "21-31%" },
-    { label: "MOD", range: "31-41%" },
-    { label: "MOD-HIGH", range: "41-52%" },
-    { label: "HIGH", range: ">52%" },
+    { label: 'LOWER', range: '<8%' },
+    { label: 'MODERATE', range: '8%–20%' },
+    { label: 'HIGHER', range: '≥20%' },
   ];
 
   return (
@@ -53,8 +51,8 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
               key={label}
               className="risk-bar-item"
               style={{
-                background: isActive ? RISK_COLORS[label] : "#E8ECF0",
-                color: isActive ? "white" : "#7F8C8D",
+                background: isActive ? RISK_COLORS[label] : '#E8ECF0',
+                color: isActive ? 'white' : '#7F8C8D',
               }}
             >
               <div className="rlabel">{label}</div>
@@ -65,6 +63,8 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
       </div>
 
       <div className="summary-box">
+        <div>Score Tier: <strong>{scoreRange}</strong></div>
+        <div>Displayed Range (±10%): <strong>{confidenceRange}</strong></div>
         <div>Age: <strong>{age}</strong></div>
         <div>BMI: <strong>{bmi}</strong></div>
         <div>IPSS: <strong>{ipssTotal}/35</strong></div>

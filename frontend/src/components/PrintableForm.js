@@ -360,7 +360,7 @@ const PrintableForm = ({ onBack }) => {
 
         {/* Lifestyle Section */}
         <div className="section-divider">
-          <span className="section-label">Lifestyle & Medical History:</span>
+          <span className="section-label">Lifestyle:</span>
         </div>
 
         <div className="form-row">
@@ -368,16 +368,20 @@ const PrintableForm = ({ onBack }) => {
             <label className="field-label-inline">
               <span className="field-number">17.</span> Exercise: 
               <label className="checkbox-inline"><input type="radio" name="exercise" value="2" /> None</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" /> 1-2/wk</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" /> 3+/wk</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" /> Some (1-2/wk)</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" /> Regular (3+/wk)</label>
             </label>
           </div>
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">Part 1 Scoring Reference (7-variable model):</span>
+        </div>
+
+        <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">18.</span> Smoking: 
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="0" /> Never</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="1" /> Former</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="2" /> Current</label>
+              ePSA probability tiers: <strong>Lower &lt;8%</strong> | <strong>Moderate 8%–20%</strong> | <strong>Higher ≥20%</strong>
             </label>
           </div>
         </div>
@@ -385,35 +389,14 @@ const PrintableForm = ({ onBack }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">19.</span> Diabetes: 
-              <label className="checkbox-inline"><input type="radio" name="diabetes" value="0" /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="diabetes" value="1" /> Yes</label>
-            </label>
-          </div>
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              <span className="field-number">20.</span> Conditions: 
-              <label className="checkbox-inline"><input type="checkbox" /> HBP</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Cholesterol</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Heart</label>
-            </label>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              <span className="field-number">21.</span> Medications: 
-              <label className="checkbox-inline"><input type="checkbox" /> Finasteride</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Testosterone</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Statin</label>
+              Displayed patient range: <strong>Score ±10%</strong>
             </label>
           </div>
         </div>
 
         <div className="printable-footer">
           <p className="footer-text">
-            For educational and research purposes. Not for clinical decision-making without physician review. | Ashutosh K. Tewari, MD — Department of Urology — Mount Sinai Health System
+            For educational and research purposes. Not for clinical decision-making without physician review. Part 1 uses 7 variables (Age, Race, Family History, BMI, IPSS, SHIM, Exercise). | Ashutosh K. Tewari, MD — Department of Urology — Mount Sinai Health System
           </p>
         </div>
       </div>
