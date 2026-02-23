@@ -52,7 +52,7 @@ const WelcomeScreen = ({ onBegin }) => {
           <div className="welcome-features">
             <div className="feature-item">
               <span className="feature-icon">📋</span>
-              <span className="feature-text">20 questions</span>
+              <span className="feature-text">17 core questions</span>
             </div>
             <div className="feature-item">
               <span className="feature-icon">⏱</span>
