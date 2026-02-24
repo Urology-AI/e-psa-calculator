@@ -14,7 +14,6 @@ import GlobalBackButton from './components/GlobalBackButton.jsx';
 import StepNavigation from './components/StepNavigation.jsx';
 import StepForm from './components/StepForm.jsx';
 import FormField from './components/FormField.jsx';
-import Results from './components/Results.jsx';
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
