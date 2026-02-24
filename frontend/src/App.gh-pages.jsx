@@ -318,20 +318,6 @@ const App = () => {
           {authStep === 'app' && stage === 'pre' && renderPreStage()}
           {authStep === 'app' && stage === 'post' && renderPostStage()}
         </main>
-
-        <footer className="app-footer">
-          <div className="demo-notice">
-            <strong>🚀 Demo Version:</strong> This is a static demonstration. 
-            <br />
-            • Data stored locally in browser only
-            <br />
-            • JSON import/export supported
-            <br />
-            • No PDF import (requires server processing)
-            <br />
-            • No cloud storage or synchronization
-          </div>
-        </footer>
       </div>
     </div>
   );
