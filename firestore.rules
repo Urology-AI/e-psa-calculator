@@ -20,7 +20,9 @@ service cloud.firestore {
     // Check if user is super admin (NYU email domain)
     function isSuperAdmin() {
       return isAuthenticated() && 
-        request.auth.token.email.matches('.*@nyulangone.org$');
+        (request.auth.token.email.matches('.*@nyulangone.org$') ||
+         request.auth.token.email.matches('.*@mssm.edu$') ||
+         request.auth.token.email.matches('.*@nyu.edu$'));
     }
     
     // Validate string field
@@ -37,6 +39,17 @@ service cloud.firestore {
       
       // Users can read their own admin status
       allow get: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // SECTION LOCKS COLLECTION (Data Integrity)
+    // ============================================
+    match /users/{userId}/sectionLocks/{lockId} {
+      // Users can read/write their own locks
+      allow read, write, create, update: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Admins can manage any locks
+      allow read, write, create, update, delete: if isAuthenticated() && isAdmin();
     }
     
     // ============================================

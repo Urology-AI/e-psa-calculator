@@ -1,8 +1,40 @@
 import React from 'react';
 import './Part2Results.css';
 import { RISK_COLORS } from '../utils/epsaCalculator';
+import ResultsPrint from './ResultsPrint';
+import PrintableForm from './PrintableForm';
+import { 
+  ArrowLeftIcon, 
+  RefreshCwIcon, 
+  PrinterIcon, 
+  FileTextIcon, 
+  CloudIcon,
+  HardDriveIcon,
+  DownloadIcon
+} from 'lucide-react';
 
-const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, onPrint }) => {
+const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMode, postData }) => {
+  const [showResultsPrint, setShowResultsPrint] = React.useState(false);
+  const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+
+  if (showResultsPrint) {
+    return (
+      <ResultsPrint 
+        result={result} 
+        formData={preResult} 
+        onBack={() => setShowResultsPrint(false)} 
+      />
+    );
+  }
+
+  if (showPrintableForm) {
+    return (
+      <PrintableForm 
+        formData={{...preResult, ...postData}} 
+        onBack={() => setShowPrintableForm(false)} 
+      />
+    );
+  }
   if (!result) {
     return (
       <div className="part2-results-container">
@@ -111,14 +143,63 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, onPrint }
 
       <div className="result-buttons">
         <button className="btn-edit" onClick={onEditAnswers}>
-          ← Edit Answers
+          <ArrowLeftIcon size={18} />
+          <span>Edit Answers</span>
         </button>
         <button className="btn-start-over" onClick={onStartOver}>
-          ↺ Start Over
+          <RefreshCwIcon size={18} />
+          <span>Start Over</span>
         </button>
-        <button className="btn-print" onClick={onPrint}>
-          Print Results
+        <button className="btn-print" onClick={() => setShowResultsPrint(true)}>
+          <PrinterIcon size={18} />
+          <span>Print Results</span>
         </button>
+        <button className="btn-print-form" onClick={() => setShowPrintableForm(true)}>
+          <FileTextIcon size={18} />
+          <span>Print Form</span>
+        </button>
+        
+        {/* Storage mode specific actions */}
+        {storageMode === 'cloud' && (
+          <button className="btn-save" onClick={() => {
+            // TODO: Implement save to cloud functionality
+            console.log('Save to cloud functionality coming soon');
+          }}>
+            <CloudIcon size={18} />
+            <span>Save to Cloud</span>
+          </button>
+        )}
+        
+        {/* Export available for both storage modes */}
+        {(storageMode === 'local' || storageMode === 'cloud') && (
+          <button className="btn-export" onClick={() => {
+            try {
+              const exportData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                part: 'complete',
+                part1Data: preResult,
+                part2Data: postData
+              };
+              const dataStr = JSON.stringify(exportData, null, 2);
+              const dataBlob = new Blob([dataStr], { type: 'application/json' });
+              const url = URL.createObjectURL(dataBlob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error('Export failed:', error);
+              alert('Export failed. Please try again.');
+            }
+          }}>
+            <DownloadIcon size={18} />
+            <span>Export Data</span>
+          </button>
+        )}
       </div>
 
     </div>

@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
+import { 
+  FileTextIcon, 
+  ClipboardListIcon, 
+  ClockIcon, 
+  LockIcon, 
+  ArrowRightIcon 
+} from 'lucide-react';
 
-const WelcomeScreen = ({ onBegin }) => {
+const WelcomeScreen = ({ onBegin, formData }) => {
   const [showForm, setShowForm] = useState(false);
 
   const handleViewForm = () => {
@@ -14,14 +21,11 @@ const WelcomeScreen = ({ onBegin }) => {
   };
 
   if (showForm) {
-    return <PrintableForm onBack={handleBack} />;
+    return <PrintableForm onBack={handleBack} formData={formData} />;
   }
 
   return (
     <div className="welcome-screen">
-      <button className="btn-view-form" onClick={handleViewForm} title="View Offline Form">
-        📄 View Form
-      </button>
       <div className="welcome-container">
         <div className="welcome-body">
           <p className="welcome-description">
@@ -30,21 +34,27 @@ const WelcomeScreen = ({ onBegin }) => {
 
           <div className="welcome-features">
             <div className="feature-item">
-              <span className="feature-icon">📋</span>
+              <ClipboardListIcon size={20} className="feature-icon" />
               <span className="feature-text">23 questions</span>
             </div>
             <div className="feature-item">
-              <span className="feature-icon">⏱</span>
+              <ClockIcon size={20} className="feature-icon" />
               <span className="feature-text">~5 min</span>
             </div>
             <div className="feature-item">
-              <span className="feature-icon">🔒</span>
+              <LockIcon size={20} className="feature-icon" />
               <span className="feature-text">Private</span>
             </div>
           </div>
 
           <button className="btn-begin-assessment" onClick={onBegin}>
-            Begin Assessment →
+            <span>Begin Assessment</span>
+            <ArrowRightIcon size={18} />
+          </button>
+
+          <button className="btn-view-form-bottom" onClick={handleViewForm} title="View Offline Form">
+            <FileTextIcon size={16} />
+            <span>View Printable Form</span>
           </button>
         </div>
 

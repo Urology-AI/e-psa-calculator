@@ -4,6 +4,28 @@ import { getSession } from '../services/adminService';
 import { format } from 'date-fns';
 import './SessionDetail.css';
 
+const formatDate = (dateValue) => {
+  if (!dateValue) return 'N/A';
+  
+  try {
+    // Handle Firestore Timestamp
+    if (dateValue.toDate && typeof dateValue.toDate === 'function') {
+      return format(dateValue.toDate(), 'PPPpp');
+    }
+    
+    // Handle string dates
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    
+    return format(date, 'PPPpp');
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'N/A';
+  }
+};
+
 const SessionDetail = () => {
   const { sessionId } = useParams();
   const [session, setSession] = useState(null);
@@ -98,12 +120,12 @@ const SessionDetail = () => {
         </div>
         <div className="meta-item">
           <label>Created:</label>
-          <span>{format(new Date(session.createdAt), 'PPPpp')}</span>
+          <span>{formatDate(session.createdAt)}</span>
         </div>
         {session.updatedAt && (
           <div className="meta-item">
             <label>Updated:</label>
-            <span>{format(new Date(session.updatedAt), 'PPPpp')}</span>
+            <span>{formatDate(session.updatedAt)}</span>
           </div>
         )}
       </div>

@@ -1,8 +1,40 @@
 import React from 'react';
 import './Part1Results.css';
 import { RISK_COLORS } from '../utils/epsaCalculator';
+import PrintableForm from './PrintableForm';
+import ResultsPrint from './ResultsPrint';
+import { 
+  ArrowLeftIcon, 
+  RefreshCwIcon, 
+  PrinterIcon, 
+  FileTextIcon, 
+  CloudIcon,
+  HardDriveIcon
+} from 'lucide-react';
 
-const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
+const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false }) => {
+  const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+  const [showResultsPrint, setShowResultsPrint] = React.useState(false);
+
+  if (showPrintableForm) {
+    return (
+      <PrintableForm 
+        formData={formData} 
+        onBack={() => setShowPrintableForm(false)} 
+      />
+    );
+  }
+
+  if (showResultsPrint) {
+    return (
+      <ResultsPrint 
+        result={result} 
+        formData={formData} 
+        onBack={() => setShowResultsPrint(false)} 
+      />
+    );
+  }
+
   if (!result) {
     return (
       <div className="part1-results-container">
@@ -24,6 +56,17 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
       <div className="results-header">
         <div className="results-logo">ePSA</div>
         <div className="results-subtitle">Prostate-Specific Awareness — Results</div>
+        {storageMode && (
+          <div className="storage-indicator">
+            {storageMode === 'cloud' ? 'Cloud Storage' : 'Self-Storage'}
+          </div>
+        )}
+        {/* Debug info - remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+            Debug: formData has {formData ? Object.keys(formData).length : 0} fields
+          </div>
+        )}
       </div>
 
       <div className="score-card">
@@ -73,16 +116,70 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, onPrint }) => {
 
       <div className="result-buttons">
         <button className="btn-edit" onClick={onEditAnswers}>
-          ← Edit Answers
+          <ArrowLeftIcon size={18} />
+          <span>Edit Answers</span>
         </button>
         <button className="btn-start-over" onClick={onStartOver}>
-          ↺ Start Over
+          <RefreshCwIcon size={18} />
+          <span>Start Over</span>
         </button>
-        <button className="btn-print" onClick={onPrint}>
-          Print Results
+        <button className="btn-print" onClick={() => setShowResultsPrint(true)}>
+          <PrinterIcon size={18} />
+          <span>Print Results</span>
         </button>
+        <button className="btn-print-form" onClick={() => setShowPrintableForm(true)}>
+          <FileTextIcon size={18} />
+          <span>Print Form</span>
+        </button>
+        
+        {/* Storage mode specific actions */}
+        {storageMode === 'cloud' && (
+          <button className="btn-save" onClick={() => {
+            // TODO: Implement save to cloud functionality
+            console.log('Save to cloud functionality coming soon');
+          }}>
+            <CloudIcon size={18} />
+            <span>Save to Cloud</span>
+          </button>
+        )}
+        
+        {/* Export available for both storage modes */}
+        {(storageMode === 'local' || storageMode === 'cloud') && (
+          <button className="btn-export" onClick={() => {
+            try {
+              console.log('Exporting data:', formData);
+              
+              // Check if formData exists and has content
+              if (!formData || Object.keys(formData).length === 0) {
+                throw new Error('No form data available to export');
+              }
+              
+              const exportData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                part: 'part1',
+                formData: formData
+              };
+              const dataStr = JSON.stringify(exportData, null, 2);
+              const dataBlob = new Blob([dataStr], { type: 'application/json' });
+              const url = URL.createObjectURL(dataBlob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error('Export failed:', error);
+              alert('Export failed. Please try again.');
+            }
+          }}>
+            <DownloadIcon size={18} />
+            <span>Export Data</span>
+          </button>
+        )}
       </div>
-
     </div>
   );
 };

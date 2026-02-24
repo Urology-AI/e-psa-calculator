@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Part1Form.css';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
+import { CheckIcon } from 'lucide-react';
 
 const IPSS_QUESTIONS = [
   'Incomplete emptying — not fully emptying your bladder?',
@@ -43,6 +44,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     age: formData.age || '',
     race: formData.race || null,
     familyHistory: formData.familyHistory ?? null,
+    inflammationHistory: formData.inflammationHistory ?? null,
     brcaStatus: formData.brcaStatus ?? null,
     heightUnit: formData.heightUnit || 'imperial',
     heightFt: formData.heightFt || '',
@@ -257,6 +259,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (localData.age) count++;
     if (localData.race !== null && localData.race !== undefined && localData.race !== '') count++;
     if (localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
+    if (localData.inflammationHistory !== null && localData.inflammationHistory !== undefined) count++;
     if (localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
     if (hasValidHeight()) count++;
     if (hasValidWeight()) count++;
@@ -278,6 +281,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
     const hasRace = localData.race !== null && localData.race !== undefined && localData.race !== '';
     const hasFamilyHistory = localData.familyHistory !== null && localData.familyHistory !== undefined;
+    const hasInflammationHistory = localData.inflammationHistory !== null && localData.inflammationHistory !== undefined;
     const hasBrca = localData.brcaStatus !== null && localData.brcaStatus !== undefined;
     const hasHeight = hasValidHeight();
     const hasWeight = hasValidWeight();
@@ -294,7 +298,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
 
-    return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && geoReady && ipssComplete && shimComplete;
+    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && geoReady && ipssComplete && shimComplete;
   };
 
   const renderStep0 = () => {
@@ -366,6 +370,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const renderStep1 = () => {
     const familyHistoryValid = localData.familyHistory !== null && localData.familyHistory !== undefined;
+    const inflammationHistoryValid = localData.inflammationHistory !== null && localData.inflammationHistory !== undefined;
     const brcaValid = !!localData.brcaStatus;
     
     return (
@@ -402,9 +407,46 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
       </div>
 
-      <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+      <div className="question-card" style={{ borderColor: inflammationHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">4</div>
+          <div className="question-text">Previous History of Inflammation</div>
+          <InfoIcon {...fieldReferences.inflammationHistory} />
+          {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+            Have you ever been diagnosed with any inflammatory condition?
+            <br />
+            <span style={{ fontSize: '13px', fontStyle: 'italic' }}>
+              (ex. Ulcerative Colitis, Crohn's disease, chronic prostatitis)
+            </span>
+          </div>
+          <div className="option-grid c3">
+            {[
+              { value: 0, label: 'No' },
+              { value: 1, label: 'Yes' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.inflammationHistory === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('inflammationHistory', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {attemptedNext && !inflammationHistoryValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please select an option
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">5</div>
           <div className="question-text">Known BRCA1/BRCA2 Mutation</div>
           <InfoIcon {...fieldReferences.brcaStatus} />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -447,7 +489,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">5</div>
+          <div className="question-number">6</div>
           <div className="question-text">Height</div>
           <InfoIcon {...fieldReferences.heightWeight} />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -490,7 +532,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">6</div>
+          <div className="question-number">7</div>
           <div className="question-text">Weight</div>
           <InfoIcon {...fieldReferences.heightWeight} />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -542,7 +584,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: exerciseValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">7</div>
+          <div className="question-number">8</div>
           <div className="question-text">Exercise Level</div>
           <InfoIcon {...fieldReferences.exercise} />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -573,7 +615,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: smokingValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">8</div>
+          <div className="question-number">9</div>
           <div className="question-text">Smoking Status</div>
           <InfoIcon {...fieldReferences.smoking} />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -604,7 +646,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">9</div>
+          <div className="question-number">10</div>
           <div className="question-text">Chemical Exposure (e.g., Agent Orange or pesticides)</div>
           <InfoIcon {...fieldReferences.chemicalExposure} />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -668,7 +710,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       {/* Location - Auto-detected with edit option */}
       <div className="question-card" style={{ borderColor: geoValid ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">10</div>
+          <div className="question-number">11</div>
           <div className="question-text">Geographic Origin</div>
           <InfoIcon {...fieldReferences.geographicOrigin} />
           {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
@@ -757,10 +799,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
       <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">11</div>
+          <div className="question-number">12</div>
           <div className="question-text">Diet Pattern</div>
           <InfoIcon {...fieldReferences.diet} />
-          {dietValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
           <div className="option-grid c2">
@@ -799,7 +841,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="section-header">
         Urinary Symptoms (IPSS)
         <InfoIcon {...fieldReferences.ipss} />
-        {ipssComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
         {!ipssComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
         {!ipssComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
       </div>
@@ -843,7 +885,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="section-header">
         Sexual Health (SHIM)
         <InfoIcon {...fieldReferences.shim} />
-        {shimComplete && <span style={{ color: '#27AE60', marginLeft: '12px' }}>✓ Complete</span>}
+        {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
         {!shimComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
         {!shimComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
       </div>
@@ -858,7 +900,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
             <div className="question-text">{item.q}</div>
-            {localData.shim[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+            {localData.shim[index] !== null && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
           </div>
           <div className="question-body">
             <div className="option-grid c3">

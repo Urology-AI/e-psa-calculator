@@ -29,12 +29,15 @@ const UsersList = () => {
 
   const handleViewPhone = async (userId) => {
     try {
+      setSelectedUser(userId); // Set the selected user
       const info = await getUserPhone(userId);
       setPhoneInfo(info);
       setShowPhoneModal(true);
     } catch (error) {
       console.error('Error fetching phone info:', error);
-      alert('Error fetching phone information. Check console for details.');
+      setSelectedUser(userId); // Still set the user even on error
+      setPhoneInfo(null);
+      setShowPhoneModal(true); // Show modal with error message
     }
   };
 
@@ -50,16 +53,16 @@ const UsersList = () => {
     <div className="users-list">
       <div className="users-header">
         <h2>Users with Consent to Contact</h2>
-        <div className="users-controls">
-          <input
-            type="text"
-            placeholder="Search by User ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <span className="user-count">{filteredUsers.length} users</span>
-        </div>
+      </div>
+      <div className="users-controls">
+        <input
+          type="text"
+          placeholder="Search by User ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <span className="user-count">{filteredUsers.length} users</span>
       </div>
 
       <div className="users-table-container">
@@ -127,7 +130,7 @@ const UsersList = () => {
       )}
 
       {/* Phone Info Modal */}
-      {showPhoneModal && phoneInfo && (
+      {showPhoneModal && (
         <div className="modal-overlay" onClick={() => setShowPhoneModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -140,35 +143,67 @@ const UsersList = () => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="phone-info">
-                <div className="info-row">
-                  <label>User ID:</label>
-                  <span>{phoneInfo.userId}</span>
+              {phoneInfo ? (
+                <div className="phone-info">
+                  <div className="info-row">
+                    <label>User ID:</label>
+                    <span>{selectedUser}</span>
+                  </div>
+                  {phoneInfo.phoneNumber ? (
+                    <div className="info-row">
+                      <label>Phone Number:</label>
+                      <span className="phone-number">{phoneInfo.phoneNumber}</span>
+                    </div>
+                  ) : (
+                    <div className="info-note">
+                      <p>Phone number could not be decrypted: {phoneInfo.note || 'Unknown reason'}</p>
+                      {phoneInfo.foundCollection && (
+                        <p>Data found in collection: {phoneInfo.foundCollection}</p>
+                      )}
+                      {phoneInfo.availableFields && (
+                        <div>
+                          <p>Available fields:</p>
+                          <ul>
+                            {phoneInfo.availableFields.map(field => (
+                              <li key={field}>{field}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {phoneInfo.phoneHash && (
+                    <div className="info-row">
+                      <label>Phone Hash:</label>
+                      <span className="phone-hash">{phoneInfo.phoneHash}</span>
+                    </div>
+                  )}
+                  <div className="info-row">
+                    <label>Stored At:</label>
+                    <span>{new Date(phoneInfo.storedAt).toLocaleString()}</span>
+                  </div>
+                  <div className="info-row">
+                    <label>Encryption:</label>
+                    <span>{phoneInfo.encryptionMethod || 'AES-256'}</span>
+                  </div>
                 </div>
-                <div className="info-row">
-                  <label>Phone Hash:</label>
-                  <span className="phone-hash">{phoneInfo.phoneHash}</span>
+              ) : (
+                <div className="phone-info">
+                  <div className="info-row">
+                    <label>User ID:</label>
+                    <span>{selectedUser}</span>
+                  </div>
+                  <div className="info-note">
+                    <p>Phone information not available for this user.</p>
+                    <p>This could mean:</p>
+                    <ul>
+                      <li>User hasn't provided phone number</li>
+                      <li>Phone data is encrypted but not accessible</li>
+                      <li>Technical error occurred</li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="info-row">
-                  <label>Consent to Contact:</label>
-                  <span className={phoneInfo.consentToContact ? 'consent-yes' : 'consent-no'}>
-                    {phoneInfo.consentToContact ? 'Yes' : 'No'}
-                  </span>
-                </div>
-                <div className="info-row">
-                  <label>Last Updated:</label>
-                  <span>
-                    {phoneInfo.lastUpdated 
-                      ? format(new Date(phoneInfo.lastUpdated), 'MMM dd, yyyy HH:mm')
-                      : 'N/A'
-                    }
-                  </span>
-                </div>
-                <div className="info-note">
-                  <p><strong>Note:</strong> Phone numbers are hashed for privacy. 
-                  To access actual phone numbers, use the secure decryption system.</p>
-                </div>
-              </div>
+              )}
             </div>
             <div className="modal-footer">
               <button 

@@ -4,6 +4,28 @@ import { getUsersWithConsent } from '../services/adminService';
 import { format } from 'date-fns';
 import './Dashboard.css';
 
+const formatDate = (dateValue) => {
+  if (!dateValue) return 'N/A';
+  
+  try {
+    // Handle Firestore Timestamp
+    if (dateValue.toDate && typeof dateValue.toDate === 'function') {
+      return format(dateValue.toDate(), 'MMM dd, HH:mm');
+    }
+    
+    // Handle string dates
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    
+    return format(date, 'MMM dd, HH:mm');
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'N/A';
+  }
+};
+
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -54,6 +76,44 @@ const Dashboard = () => {
         <p>HIPAA-compliant data management for ePSA application</p>
       </div>
 
+      <div className="action-list">
+        <Link to="/users" className="action-item">
+          <div className="action-icon users">👥</div>
+          <div className="action-content">
+            <div className="action-title">Manage Users</div>
+            <div className="action-description">View and manage user accounts</div>
+          </div>
+          <span className="action-arrow">→</span>
+        </Link>
+        
+        <Link to="/export" className="action-item">
+          <div className="action-icon export">📊</div>
+          <div className="action-content">
+            <div className="action-title">Export Data</div>
+            <div className="action-description">CSV export and analytics</div>
+          </div>
+          <span className="action-arrow">→</span>
+        </Link>
+        
+        <div className="action-item">
+          <div className="action-icon phone">📞</div>
+          <div className="action-content">
+            <div className="action-title">Phone Lookup</div>
+            <div className="action-description">Secure phone number access</div>
+          </div>
+          <span className="action-arrow">→</span>
+        </div>
+        
+        <div className="action-item">
+          <div className="action-icon settings">⚙️</div>
+          <div className="action-content">
+            <div className="action-title">Settings</div>
+            <div className="action-description">System configuration</div>
+          </div>
+          <span className="action-arrow">→</span>
+        </div>
+      </div>
+
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Users</h3>
@@ -87,9 +147,9 @@ const Dashboard = () => {
             <Link to="/users" className="action-btn primary">
               View All Users
             </Link>
-            <button className="action-btn secondary">
+            <Link to="/export" className="action-btn secondary">
               Export Data
-            </button>
+            </Link>
             <button className="action-btn secondary">
               Audit Logs
             </button>
@@ -99,15 +159,15 @@ const Dashboard = () => {
         <div className="section">
           <h3>Recent Activity</h3>
           <div className="activity-list">
-            {stats.recentActivity.length === 0 ? (
+            {!Array.isArray(stats.recentActivity) || stats.recentActivity.length === 0 ? (
               <p>No recent activity</p>
             ) : (
               stats.recentActivity.map((activity, index) => (
                 <div key={index} className="activity-item">
-                  <span className="activity-type">{activity.type}</span>
-                  <span className="activity-user">User: {activity.userId.substring(0, 8)}...</span>
+                  <span className="activity-type">{activity.type || 'Unknown'}</span>
+                  <span className="activity-user">User: {activity.userId ? activity.userId.substring(0, 8) + '...' : 'N/A'}</span>
                   <span className="activity-time">
-                    {format(new Date(activity.timestamp), 'MMM dd, HH:mm')}
+                    {formatDate(activity.timestamp)}
                   </span>
                 </div>
               ))

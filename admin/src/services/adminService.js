@@ -17,6 +17,18 @@ const getAdminUsersFn = httpsCallable(functions, 'getAdminUsers');
 const storeEncryptedPhoneFn = httpsCallable(functions, 'storeEncryptedPhone');
 const getDecryptedPhoneFn = httpsCallable(functions, 'getDecryptedPhone');
 
+// CSV export functions
+const exportUsersCSVFn = httpsCallable(functions, 'exportUsersCSV');
+const exportSessionsCSVFn = httpsCallable(functions, 'exportSessionsCSV');
+
+// Section lock functions
+const lockSectionFn = httpsCallable(functions, 'lockSection');
+const unlockSectionFn = httpsCallable(functions, 'unlockSection');
+const getSectionLocksFn = httpsCallable(functions, 'getSectionLocks');
+
+// Phone data diagnostic function (HIPAA safe)
+const checkCollectionsFn = httpsCallable(functions, 'checkCollections');
+
 /**
  * Admin login verification
  */
@@ -176,6 +188,103 @@ export const deleteUserData = async (userId) => {
     return result.data;
   } catch (error) {
     console.error('deleteUserData error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Export users data as CSV (admin only)
+ */
+export const exportUsersCSV = async () => {
+  try {
+    const result = await exportUsersCSVFn();
+    return result.data;
+  } catch (error) {
+    console.error('exportUsersCSV error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Export sessions data as CSV (admin only)
+ */
+export const exportSessionsCSV = async (dateRange = null) => {
+  try {
+    const result = await exportSessionsCSVFn({ dateRange });
+    return result.data;
+  } catch (error) {
+    console.error('exportSessionsCSV error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Download CSV file
+ */
+export const downloadCSV = (csvContent, filename) => {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+};
+
+/**
+ * Lock a user section (prevent edits)
+ */
+export const lockSection = async (userId, section, reason) => {
+  try {
+    const result = await lockSectionFn({ userId, section, locked: true, reason });
+    return result.data;
+  } catch (error) {
+    console.error('lockSection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Unlock a user section (admin only)
+ */
+export const unlockSection = async (userId, section, adminReason) => {
+  try {
+    const result = await unlockSectionFn({ userId, section, adminReason });
+    return result.data;
+  } catch (error) {
+    console.error('unlockSection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get section locks for a user
+ */
+export const getSectionLocks = async (userId) => {
+  try {
+    const result = await getSectionLocksFn({ userId });
+    return result.data;
+  } catch (error) {
+    console.error('getSectionLocks error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check collections (HIPAA safe - only collection names, no data)
+ */
+export const checkCollections = async () => {
+  try {
+    const result = await checkCollectionsFn();
+    return result.data;
+  } catch (error) {
+    console.error('checkCollections error:', error);
     throw error;
   }
 };

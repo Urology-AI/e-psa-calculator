@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getUser, getUserSessions, getUserPhone } from '../services/adminService';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { getUser, getUserSessions, deleteUserData, getUserPhone } from '../services/adminService';
+import SessionDetail from './SessionDetail';
+import SectionLocks from '../components/SectionLocks';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -24,15 +26,22 @@ const UserDetail = () => {
 
   const loadUserData = async () => {
     try {
-      const [userData, sessionsData, phoneData] = await Promise.all([
+      setLoading(true);
+      const [userData, sessionsData] = await Promise.all([
         getUser(userId),
-        getUserSessions(userId),
-        getUserPhone(userId)
+        getUserSessions(userId)
       ]);
-      
       setUser(userData);
-      setSessions(sessionsData.sessions || []);
-      setPhoneInfo(phoneData);
+      setSessions(sessionsData);
+      
+      // Try to get phone info separately (it might fail if not available)
+      try {
+        const phoneData = await getUserPhone(userId);
+        setPhoneInfo(phoneData);
+      } catch (phoneError) {
+        console.log('Phone info not available:', phoneError.message);
+        setPhoneInfo(null);
+      }
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
@@ -45,17 +54,11 @@ const UserDetail = () => {
     if (!element) return;
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      });
-      
+      const canvas = await html2canvas(element);
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
+      const pdf = new jsPDF();
       const imgWidth = 210;
-      const pageHeight = 297;
+      const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
@@ -70,7 +73,6 @@ const UserDetail = () => {
         heightLeft -= pageHeight;
       }
 
-      // Save the PDF
       pdf.save(`ePSA-Report-${userId.substring(0, 8)}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -82,13 +84,34 @@ const UserDetail = () => {
     const file = event.target.files[0];
     if (file && file.type === 'application/pdf') {
       setScannedPdf(file);
-      // In a real implementation, you would upload this to Firebase Storage
       console.log('PDF uploaded:', file.name);
     }
   };
 
-  const renderSessionData = (session) => {
-    return (
+  const formatDate = (dateValue) => {
+  if (!dateValue) return 'N/A';
+  
+  try {
+    // Handle Firestore Timestamp
+    if (dateValue.toDate && typeof dateValue.toDate === 'function') {
+      return format(dateValue.toDate(), 'MMM dd, yyyy HH:mm');
+    }
+    
+    // Handle string dates
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    
+    return format(date, 'MMM dd, yyyy HH:mm');
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'N/A';
+  }
+};
+
+const renderSessionData = (session) => {
+  return (
       <div className="session-data">
         {session.step1 && (
           <div className="step-data">
@@ -215,7 +238,13 @@ const UserDetail = () => {
           className={`tab ${activeTab === 'contact' ? 'active' : ''}`}
           onClick={() => setActiveTab('contact')}
         >
-          Contact Info
+          Contact
+        </button>
+        <button 
+          className={`tab ${activeTab === 'locks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('locks')}
+        >
+          Section Locks
         </button>
       </div>
 
@@ -232,21 +261,11 @@ const UserDetail = () => {
                   </div>
                   <div className="info-item">
                     <label>Created:</label>
-                    <span>
-                      {user.createdAt 
-                        ? format(new Date(user.createdAt), 'MMM dd, yyyy HH:mm')
-                        : 'N/A'
-                      }
-                    </span>
+                    <span>{formatDate(user.createdAt)}</span>
                   </div>
                   <div className="info-item">
                     <label>Last Updated:</label>
-                    <span>
-                      {user.updatedAt 
-                        ? format(new Date(user.updatedAt), 'MMM dd, yyyy HH:mm')
-                        : 'N/A'
-                      }
-                    </span>
+                    <span>{formatDate(user.updatedAt)}</span>
                   </div>
                   <div className="info-item">
                     <label>Consent to Contact:</label>
@@ -259,21 +278,21 @@ const UserDetail = () => {
 
               <div className="overview-card">
                 <h3>Session Summary</h3>
-                <div className="session-summary">
+                <div className="summary-grid">
                   <div className="summary-item">
                     <span className="summary-label">Total Sessions:</span>
-                    <span className="summary-value">{sessions.length}</span>
+                    <span className="summary-value">{Array.isArray(sessions) ? sessions.length : 0}</span>
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">Completed:</span>
                     <span className="summary-value">
-                      {sessions.filter(s => s.status === 'STEP2_COMPLETE').length}
+                      {Array.isArray(sessions) ? sessions.filter(s => s.status === 'STEP2_COMPLETE').length : 0}
                     </span>
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">In Progress:</span>
                     <span className="summary-value">
-                      {sessions.filter(s => s.status === 'STEP1_COMPLETE').length}
+                      {Array.isArray(sessions) ? sessions.filter(s => s.status === 'STEP1_COMPLETE').length : 0}
                     </span>
                   </div>
                 </div>
@@ -284,7 +303,7 @@ const UserDetail = () => {
 
         {activeTab === 'sessions' && (
           <div className="sessions-content">
-            {sessions.length === 0 ? (
+            {!Array.isArray(sessions) || sessions.length === 0 ? (
               <p>No sessions found for this user.</p>
             ) : (
               <div className="sessions-list">
@@ -298,11 +317,11 @@ const UserDetail = () => {
                     </div>
                     <div className="session-dates">
                       <span>
-                        Created: {format(new Date(session.createdAt), 'MMM dd, yyyy HH:mm')}
+                        Created: {formatDate(session.createdAt)}
                       </span>
                       {session.updatedAt && (
                         <span>
-                          Updated: {format(new Date(session.updatedAt), 'MMM dd, yyyy HH:mm')}
+                          Updated: {formatDate(session.updatedAt)}
                         </span>
                       )}
                     </div>
@@ -314,46 +333,45 @@ const UserDetail = () => {
           </div>
         )}
 
-        {activeTab === 'contact' && phoneInfo && (
+        {activeTab === 'contact' && (
           <div className="contact-content">
             <div className="contact-card">
-              <h3>Contact Information</h3>
+              <h3>Phone Information</h3>
               <div className="contact-info">
-                <div className="info-item">
-                  <label>Phone Hash:</label>
-                  <span className="phone-hash">{phoneInfo.phoneHash}</span>
-                </div>
-                <div className="info-item">
-                  <label>Consent to Contact:</label>
-                  <span className={phoneInfo.consentToContact ? 'consent-yes' : 'consent-no'}>
-                    {phoneInfo.consentToContact ? 'Yes' : 'No'}
-                  </span>
-                </div>
-                <div className="info-note">
-                  <p><strong>Important:</strong> Phone numbers are hashed for privacy. 
-                  Use the secure phone lookup system to obtain actual contact information.</p>
-                </div>
+                {phoneInfo ? (
+                  <React.Fragment>
+                    <div className="info-row">
+                      <label>Phone Number:</label>
+                      <span className="phone-number">{phoneInfo.phoneNumber}</span>
+                    </div>
+                    {phoneInfo.phoneHash && (
+                      <div className="info-row">
+                        <label>Phone Hash:</label>
+                        <span className="phone-hash">{phoneInfo.phoneHash}</span>
+                      </div>
+                    )}
+                    <div className="info-row">
+                      <label>Stored At:</label>
+                      <span>{formatDate(phoneInfo.storedAt)}</span>
+                    </div>
+                    <div className="info-row">
+                      <label>Encryption:</label>
+                      <span>{phoneInfo.encryptionMethod || 'AES-256'}</span>
+                    </div>
+                  </React.Fragment>
+                ) : (
+                  <div className="info-note">
+                    <p>Phone information not available or encrypted.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Hidden element for PDF generation */}
-      <div id="user-report" style={{ display: 'none' }}>
-        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-          <h1>ePSA Assessment Report</h1>
-          <h2>User: {userId}</h2>
-          <p>Generated: {format(new Date(), 'PPPpp')}</p>
-          
-          {sessions.map((session, index) => (
-            <div key={session.sessionId} style={{ marginBottom: '30px' }}>
-              <h3>Session {index + 1}</h3>
-              <p>Status: {session.status}</p>
-              {renderSessionData(session)}
-            </div>
-          ))}
-        </div>
+        {activeTab === 'locks' && (
+          <SectionLocks userId={userId} />
+        )}
       </div>
 
       {/* PDF Upload Modal */}

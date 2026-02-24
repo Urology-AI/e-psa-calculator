@@ -43,7 +43,7 @@
  * 2. RACE_BLACK: Binary (1=Black/African American, 0=Other)
  *    Coefficient: -0.0253 (protective - unexpected clinically)
  *    Impact: Being Black ≈ -0.2% probability change
- *    ⚠️ Note: Negative coefficient seems counterintuitive; verify with literature
+ *    Note: Negative coefficient seems counterintuitive; verify with literature
  * 
  * 3. BMI: Continuous (kg/m²), Calculated from height/weight
  *    Coefficient: +0.0195 (higher BMI = higher risk)
@@ -52,7 +52,7 @@
  * 4. IPSS: Sum of 7 questions (0-5 each), Range: 0-35
  *    Lower scores = fewer urinary symptoms
  *    Coefficient: -0.0292 (protective - higher IPSS = lower risk)
- *    ⚠️ Note: Negative coefficient seems counterintuitive; verify with literature
+ *    Note: Negative coefficient seems counterintuitive; verify with literature
  *    Impact: +10 IPSS points ≈ -2.0% probability change
  * 
  * 5. SHIM: Sum of 5 questions, Range: 1-25
@@ -66,7 +66,7 @@
  * 
  * 7. FAMILY HISTORY: Binary (1=yes, 0=no)
  *    Coefficient: -0.8911 (having FH = higher risk)
- *    ⚠️ Note: Large negative coefficient; verify magnitude
+ *    Note: Large negative coefficient; verify magnitude
  *    Impact: Having FH ≈ -4.8% probability change
  * 
  * CLINICAL VALIDATION NOTES
@@ -81,27 +81,27 @@
  * High-Risk Profile (70yo, BMI 30, no exercise, family history, IPSS 35, SHIM 5):
  *   - Logit: -3.353
  *   - Probability: 3.4%
- *   - Tier: LOWER ⚠️
+ *   - Tier: LOWER
  *   - Expected: Higher risk given profile
  *   - Issue: Negative coefficients for IPSS/Race may be pushing probability down
  * 
  * Low-Risk Profile (40yo, BMI 20, regular exercise, no FH, IPSS 0, SHIM 25):
  *   - Logit: -2.524
  *   - Probability: 7.4%
- *   - Tier: LOWER ✓
+ *   - Tier: LOWER
  *   - At threshold, reasonable for young healthy patient
  * 
  * COEFFICIENT SIGN VERIFICATION
  * -----------------------------
  * 
- * ✅ Expected signs (match clinical intuition):
+ * Expected signs (match clinical intuition):
  *   - Age (+): Older = higher risk
  *   - BMI (+): Higher BMI = higher risk
  *   - Exercise (-): No exercise = higher risk
  *   - SHIM (-): Lower sexual function = higher risk
  *   - FH (-): Family history = higher risk
  * 
- * ⚠️ Unexpected signs (counterintuitive):
+ * Unexpected signs (counterintuitive):
  *   - Race_Black (-): Being Black = lower risk? (typically higher prostate cancer risk)
  *   - IPSS (-): More urinary symptoms = lower risk? (typically associated with BPH/prostate issues)
  * 
@@ -130,7 +130,7 @@
  * Minimum possible score (best case):
  *   Age: 30, White, BMI: 20, IPSS: 0, Exercise: 0, FH: 0, SHIM: 25
  *   Logit: -1.894, Probability: ~13% → MODERATE
- *   ⚠️ Even "best case" is moderate risk due to negative intercept
+ *   Note: Even "best case" is moderate risk due to negative intercept
  * 
  * Maximum possible score (worst case):
  *   Age: 95, Black, BMI: 50, IPSS: 35, Exercise: 2, FH: 1, SHIM: 5

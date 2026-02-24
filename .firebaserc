@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "epsa-30d0b"
-  }
+  },
+  "targets": {
+    "epsa-30d0b": {
+      "hosting": {
+        "admin": [
+          "epsa-30d0b"
+        ],
+        "app": [
+          "epsa-30d0b"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
