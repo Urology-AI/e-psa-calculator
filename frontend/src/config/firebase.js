@@ -2,19 +2,20 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Firebase configuration
 // Uses environment variables only - no hardcoded values
 // For local development: set values in .env file (see .env.example)
 // For GitHub Pages: set values as GitHub Secrets
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Validate that all required config values are present
@@ -33,7 +34,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Analytics (only in browser, not SSR)
 let analytics = null;
-if (typeof window !== 'undefined' && process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
+if (typeof window !== 'undefined' && import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
   analytics = getAnalytics(app);
 }
 
@@ -44,13 +45,22 @@ export const auth = getAuth(app);
 // Run: firebase emulators:start --only auth
 // Or use test phone numbers with production auth
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-if (isLocalhost && process.env.REACT_APP_USE_AUTH_EMULATOR === 'true') {
+if (isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true') {
   connectAuthEmulator(auth, 'http://localhost:9099');
   console.log('Using Firebase Auth Emulator');
 }
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Initialize Cloud Functions
+export const functions = getFunctions(app);
+
+// Use Firebase Functions Emulator for local development
+if (isLocalhost && import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true') {
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  console.log('Using Firebase Functions Emulator');
+}
 
 export { analytics };
 export { firebaseConfig };
