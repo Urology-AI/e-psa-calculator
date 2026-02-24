@@ -9,9 +9,7 @@ export default defineConfig({
     outDir: '../docs',
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        main: './src/index.gh-pages.jsx'
-      },
+      input: './index.gh-pages.html',
       external: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/analytics', 'firebase/functions'],
       output: {
         manualChunks: {
