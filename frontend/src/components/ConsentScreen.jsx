@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import './ConsentScreen.css';
+import { 
+  ShieldIcon, 
+  SmartphoneIcon, 
+  CalendarIcon, 
+  HospitalIcon 
+} from 'lucide-react';
 
 const ConsentScreen = ({ phone, onConsentComplete }) => {
   const [consent, setConsent] = useState(null);
@@ -33,10 +39,22 @@ const ConsentScreen = ({ phone, onConsentComplete }) => {
 
         <div className="consent-reasons">
           <ul>
-            <li>🔐 Account login and verification</li>
-            <li>📲 Screening results follow-up</li>
-            <li>📅 PSA test reminders</li>
-            <li>🏥 Connection to Mount Sinai care resources</li>
+            <li>
+              <ShieldIcon size={16} />
+              Account login and verification
+            </li>
+            <li>
+              <SmartphoneIcon size={16} />
+              Screening results follow-up
+            </li>
+            <li>
+              <CalendarIcon size={16} />
+              PSA test reminders
+            </li>
+            <li>
+              <HospitalIcon size={16} />
+              Connection to Mount Sinai care resources
+            </li>
           </ul>
         </div>
 

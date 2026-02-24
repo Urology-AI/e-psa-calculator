@@ -15,6 +15,10 @@ const getUserFn = httpsCallable(functions, 'getUser');
 const getUserSessionsFn = httpsCallable(functions, 'getUserSessions');
 const getSessionFn = httpsCallable(functions, 'getSession');
 
+// Section lock functions
+const lockSectionFn = httpsCallable(functions, 'lockSection');
+const getSectionLocksFn = httpsCallable(functions, 'getSectionLocks');
+
 /**
  * Upsert user consent (backend validates and stores hashed phone only)
  */
@@ -106,6 +110,42 @@ export const getSession = async (sessionId) => {
     return result.data;
   } catch (error) {
     console.error('getSession error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lock a section to prevent further edits
+ */
+export const lockSection = async (section, reason) => {
+  try {
+    const { auth } = await import('../config/firebase');
+    if (!auth.currentUser) {
+      throw new Error('No authenticated user found');
+    }
+    const userId = auth.currentUser.uid;
+    const result = await lockSectionFn({ userId, section, locked: true, reason });
+    return result.data;
+  } catch (error) {
+    console.error('lockSection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get lock status for user sections
+ */
+export const getSectionLocks = async () => {
+  try {
+    const { auth } = await import('../config/firebase');
+    if (!auth.currentUser) {
+      throw new Error('No authenticated user found');
+    }
+    const userId = auth.currentUser.uid;
+    const result = await getSectionLocksFn({ userId });
+    return result.data;
+  } catch (error) {
+    console.error('getSectionLocks error:', error);
     throw error;
   }
 };

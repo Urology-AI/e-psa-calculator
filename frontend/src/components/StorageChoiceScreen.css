@@ -1,0 +1,268 @@
+.storage-choice-container {
+  min-height: 100vh;
+  background: #F8FAFB;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  color: #1C2833;
+}
+
+.storage-choice-header {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 600px;
+}
+
+.storage-logo {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #2E7D32;
+}
+
+.storage-choice-header h1 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #1C2833;
+}
+
+.storage-subtitle {
+  font-size: 18px;
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0;
+  color: #5D6D7E;
+}
+
+.storage-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 40px;
+}
+
+.storage-card {
+  background: white;
+  border: 1px solid #E8ECF0;
+  border-radius: 16px;
+  padding: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.storage-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-color: #00578B;
+}
+
+.storage-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #00578B;
+}
+
+.storage-card h3 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #1C2833;
+  font-weight: 600;
+}
+
+.storage-description {
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: #5D6D7E;
+}
+
+.storage-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px 0;
+  text-align: left;
+}
+
+.storage-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5D6D7E;
+}
+
+.feature-check-icon {
+  color: #4CAF50;
+  flex-shrink: 0;
+}
+
+.storage-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: 2px solid #00578B;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #00578B;
+}
+
+.storage-btn:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.storage-btn.primary {
+  background: #00578B;
+  color: white;
+}
+
+.storage-btn.primary:hover {
+  background: #004170;
+  transform: translateY(-1px);
+}
+
+.storage-btn.secondary {
+  background: transparent;
+  color: #00578B;
+  border: 2px solid #00578B;
+}
+
+.storage-btn.secondary:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.storage-import-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.import-text {
+  font-size: 16px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+  color: #5D6D7E;
+}
+
+.import-btn {
+  background: transparent;
+  color: #00578B;
+  border: 2px solid #00578B;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.import-btn:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.storage-footer {
+  text-align: center;
+  max-width: 600px;
+  margin-top: auto;
+}
+
+.footer-text {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+  color: #5D6D7E;
+}
+
+.privacy-note {
+  font-size: 14px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #5D6D7E;
+}
+
+.privacy-lock-icon {
+  color: #00578B;
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .storage-choice-container {
+    padding: 20px 16px;
+  }
+
+  .storage-choice-header h1 {
+    font-size: 28px;
+  }
+
+  .storage-subtitle {
+    font-size: 16px;
+  }
+
+  .storage-options {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 400px;
+  }
+
+  .storage-card {
+    padding: 24px;
+  }
+
+  .storage-icon {
+    font-size: 40px;
+  }
+
+  .storage-card h3 {
+    font-size: 20px;
+  }
+
+  .storage-description {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .storage-choice-container {
+    padding: 16px 12px;
+  }
+
+  .storage-logo {
+    font-size: 36px;
+  }
+
+  .storage-choice-header h1 {
+    font-size: 24px;
+  }
+
+  .storage-card {
+    padding: 20px;
+  }
+
+  .storage-icon {
+    font-size: 32px;
+  }
+}
