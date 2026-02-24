@@ -9,7 +9,7 @@ import {
   ArrowRightIcon 
 } from 'lucide-react';
 
-const WelcomeScreen = ({ onBegin, formData }) => {
+const WelcomeScreen = ({ onBegin, onImport, formData }) => {
   const [showForm, setShowForm] = useState(false);
 
   const handleViewForm = () => {
@@ -50,6 +50,11 @@ const WelcomeScreen = ({ onBegin, formData }) => {
           <button className="btn-begin-assessment" onClick={onBegin}>
             <span>Begin Assessment</span>
             <ArrowRightIcon size={18} />
+          </button>
+
+          <button className="btn-import-json" onClick={onImport}>
+            <FileTextIcon size={16} />
+            <span>Import JSON File</span>
           </button>
 
           <button className="btn-view-form-bottom" onClick={handleViewForm} title="View Offline Form">
