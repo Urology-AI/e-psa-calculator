@@ -65,6 +65,34 @@
   transform: scale(0.98);
 }
 
+.btn-import-json {
+  width: 100%;
+  padding: 12px 0;
+  background: transparent;
+  color: #00578B;
+  border: 2px solid #00578B;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-import-json:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-import-json:active {
+  transform: scale(0.98);
+}
+
 @media print {
   .btn-view-form,
   .btn-view-form-bottom {
