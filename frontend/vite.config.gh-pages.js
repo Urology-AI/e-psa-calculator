@@ -20,6 +20,7 @@ export default defineConfig({
   define: {
     // Disable Firebase for GitHub Pages demo
     'process.env.NODE_ENV': JSON.stringify('production'),
-    'import.meta.env.VITE_DISABLE_FIREBASE': JSON.stringify('true')
+    'import.meta.env.VITE_DISABLE_FIREBASE': JSON.stringify('true'),
+    'import.meta.env.VITE_GITHUB_PAGES': JSON.stringify('true')
   }
 })
