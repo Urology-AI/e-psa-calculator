@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:gh-pages": "vite build --config vite.config.gh-pages.js && echo 'GitHub Pages build completed in ../docs directory'",
+    "build:gh-pages": "vite build --config vite.config.gh-pages.js && cd ../docs && mv index.gh-pages.html index.html && echo 'GitHub Pages build completed in ../docs directory'",
     "preview": "vite preview",
     "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d ../docs"
