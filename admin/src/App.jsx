@@ -19,9 +19,15 @@ function App() {
       setUser(user);
       
       if (user) {
-        // Check if user has admin claims
-        const idTokenResult = await user.getIdTokenResult();
-        setIsAdmin(idTokenResult.claims.admin === true);
+        // Check if user is admin via Firestore database
+        try {
+          const { adminLogin } = await import('./services/adminService');
+          await adminLogin(user.email);
+          setIsAdmin(true);
+        } catch (error) {
+          console.error('Admin verification failed:', error);
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }

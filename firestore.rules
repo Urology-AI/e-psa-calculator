@@ -10,14 +10,33 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // Check if user is admin (custom claim)
+    // Check if user is admin (via admins collection)
     function isAdmin() {
-      return isAuthenticated() && request.auth.token.admin == true;
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isActive == true;
+    }
+    
+    // Check if user is super admin (NYU email domain)
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email.matches('.*@nyulangone.org$');
     }
     
     // Validate string field
     function isValidString(value, maxLength) {
       return value is string && value.size() <= maxLength;
+    }
+    
+    // ============================================
+    // ADMINS COLLECTION (Admin User Management)
+    // ============================================
+    match /admins/{userId} {
+      // Only super admins can manage admin collection
+      allow read, write, create, update, delete: if isAuthenticated() && isSuperAdmin();
+      
+      // Users can read their own admin status
+      allow get: if isAuthenticated() && request.auth.uid == userId;
     }
     
     // ============================================
@@ -49,6 +68,15 @@ service cloud.firestore {
       // List own sessions or admin
       allow list: if isAuthenticated() && 
         (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // ============================================
+    // SECURE PHONE DATA COLLECTION (Admin Only)
+    // ============================================
+    match /securePhoneData/{userId} {
+      // Only admins can access encrypted phone data
+      allow read, write, create, update: if isAuthenticated() && isAdmin();
+      allow delete: if false; // Keep for audit trail
     }
     
     // ============================================

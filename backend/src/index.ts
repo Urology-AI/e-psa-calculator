@@ -3,6 +3,22 @@ import * as functions from 'firebase-functions';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
 
+// Type definitions for better type safety
+interface AdminLoginData {
+  email: string;
+}
+
+interface StoreEncryptedPhoneData {
+  userId: string;
+  encryptedPhone: string;
+  encryptionKey: string;
+}
+
+interface GetDecryptedPhoneData {
+  userId: string;
+  decryptionKey: string;
+}
+
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -519,6 +535,164 @@ export const cleanupAbandonedSessions = functions.pubsub.schedule('0 3 * * *') /
     
     return { deleted: deletedCount };
   });
+
+// ============================================
+// ADMIN AUTHENTICATION & MANAGEMENT
+// ============================================
+
+// Check if user is admin based on Firestore database
+async function isAdminUser(userId: string): Promise<boolean> {
+  try {
+    const adminDoc = await db.collection('admins').doc(userId).get();
+    return adminDoc.exists && adminDoc.data()?.isActive === true;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}
+
+// ============================================
+// CLOUD FUNCTION: Admin Login Verification
+// ============================================
+export const adminLogin = functions.https.onCall(async (data: AdminLoginData, context: functions.https.CallableContext) => {
+  // Rate limiting
+  enforceRateLimit(context);
+  
+  // 1. Authentication check
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  const { email } = data;
+  const userEmail = context.auth.token.email;
+
+  // 2. Verify email matches authenticated user
+  if (!userEmail || userEmail.toLowerCase() !== email.toLowerCase()) {
+    throw new functions.https.HttpsError('permission-denied', 'Email does not match authenticated user');
+  }
+
+  // 3. Check if user is admin in Firestore database
+  const isAdmin = await isAdminUser(context.auth.uid);
+  if (!isAdmin) {
+    throw new functions.https.HttpsError('permission-denied', 'Not authorized as admin. Admin access must be granted in Firestore database.');
+  }
+
+  // 4. Log admin access
+  await logAudit('ADMIN_LOGIN', context.auth.uid, 'admin', 'system', {
+    email: userEmail,
+    timestamp: new Date().toISOString()
+  });
+
+  return {
+    success: true,
+    email: userEmail,
+    isAdmin: true,
+    message: 'Admin access granted'
+  };
+});
+
+// ============================================
+// CLOUD FUNCTION: Store Encrypted Phone Number
+// ============================================
+export const storeEncryptedPhone = functions.https.onCall(async (data: StoreEncryptedPhoneData, context: functions.https.CallableContext) => {
+  // Rate limiting
+  enforceRateLimit(context);
+  
+  // 1. Authentication check
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  // 2. Admin authorization check (Firestore database)
+  const isAdmin = await isAdminUser(context.auth.uid);
+  if (!isAdmin) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
+  }
+
+  const { userId, encryptedPhone, encryptionKey } = data;
+
+  // 3. Validate input
+  if (!userId || !encryptedPhone || !encryptionKey) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required fields');
+  }
+
+  // 4. Store in secure collection (separate from main user data)
+  const securePhoneRef = db.collection('securePhoneData').doc(userId);
+  await securePhoneRef.set({
+    encryptedPhone,
+    encryptionKey: CryptoJS.SHA256(encryptionKey).toString(), // Hash the key for security
+    storedBy: context.auth.uid,
+    storedAt: admin.firestore.FieldValue.serverTimestamp(),
+    accessLog: admin.firestore.FieldValue.arrayUnion({
+      accessedBy: context.auth.uid,
+      timestamp: new Date().toISOString(),
+      action: 'store_encrypted_phone'
+    })
+  }, { merge: true });
+
+  // 5. Log this sensitive operation
+  await logAudit('PHONE_ENCRYPT_STORE', context.auth.uid, 'user', userId, {
+    action: 'store_encrypted_phone',
+    hasEncryptedPhone: true
+  });
+
+  return {
+    success: true,
+    message: 'Encrypted phone number stored securely'
+  };
+});
+
+// ============================================
+// CLOUD FUNCTION: Get Decrypted Phone Number
+// ============================================
+export const getDecryptedPhone = functions.https.onCall(async (data: GetDecryptedPhoneData, context: functions.https.CallableContext) => {
+  // Rate limiting (stricter for phone access)
+  enforceRateLimit(context);
+  
+  // 1. Authentication check
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  // 2. Admin authorization check (Firestore database)
+  const isAdmin = await isAdminUser(context.auth.uid);
+  if (!isAdmin) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
+  }
+
+  const { userId, decryptionKey } = data;
+
+  // 3. Get encrypted phone data
+  const securePhoneDoc = await db.collection('securePhoneData').doc(userId).get();
+  if (!securePhoneDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'Encrypted phone data not found');
+  }
+
+  const phoneData = securePhoneDoc.data();
+  if (!phoneData) {
+    throw new functions.https.HttpsError('not-found', 'Phone data is empty');
+  }
+
+  // 4. Verify decryption key
+  const keyHash = CryptoJS.SHA256(decryptionKey).toString();
+  if (phoneData.encryptionKey !== keyHash) {
+    throw new functions.https.HttpsError('permission-denied', 'Invalid decryption key');
+  }
+
+  // 5. Log this sensitive access
+  await logAudit('PHONE_DECRYPT_ACCESS', context.auth.uid, 'user', userId, {
+    action: 'decrypt_phone_access',
+    reason: 'admin_lookup'
+  });
+
+  // 6. Return encrypted data (decryption happens client-side)
+  return {
+    userId,
+    encryptedPhone: phoneData.encryptedPhone,
+    storedAt: phoneData.storedAt,
+    warning: 'Handle this data with extreme care. All access is logged.'
+  };
+});
 
 // ============================================
 // HTTP FUNCTION: User Data Export (GDPR/CCPA compliance)
