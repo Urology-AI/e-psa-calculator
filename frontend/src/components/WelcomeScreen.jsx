@@ -27,6 +27,16 @@ const WelcomeScreen = ({ onBegin, formData }) => {
   return (
     <div className="welcome-screen">
       <div className="welcome-container">
+        <div className="welcome-header">
+          <div className="welcome-logo-container">
+            <div className="welcome-logo">ePSA</div>
+          </div>
+          <div className="welcome-title">Prostate-Specific Awareness</div>
+          <h1 className="welcome-heading">Risk Assessment Tool</h1>
+          <p className="welcome-subtitle">Evidence-based cancer risk evaluation</p>
+          <p className="welcome-tagline">For educational and research purposes</p>
+        </div>
+        
         <div className="welcome-body">
           <p className="welcome-description">
             This 5-minute questionnaire calculates your personalized risk assessment using validated clinical instruments.
