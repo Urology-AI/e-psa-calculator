@@ -3,16 +3,11 @@ node_modules/
 /.pnp
 .pnp.js
 
-# Testing
-/coverage
-
-# Production
+# Production builds
 /build
 /dist
-
-# Misc
-.DS_Store
-*.log
+/backend/lib/
+/frontend/build/
 
 # Environment variables - NEVER commit these!
 .env
@@ -41,14 +36,31 @@ Thumbs.db
 .firebase/
 firebase-debug.log
 firestore-debug.log
+ui-debug.log
 
-# Yarn
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+.eslintcache
+
+# parcel-bundler cache
+.parcel-cache/
+.cache
+
+# Vite
+dist-ssr/
+*.local
 
 # Temporary files
 *.tmp
 *.temp
+tmp/
+temp/

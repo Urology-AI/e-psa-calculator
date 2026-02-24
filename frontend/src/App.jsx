@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
 import './App.css';
-import WelcomeScreen from './components/WelcomeScreen';
-import WelcomeScreen2 from './components/WelcomeScreen2';
-import PhoneAuth from './components/PhoneAuth';
-import ConsentScreen from './components/ConsentScreen';
+import WelcomeScreen from './components/WelcomeScreen.jsx';
+import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
+import PhoneAuth from './components/PhoneAuth.jsx';
+import ConsentScreen from './components/ConsentScreen.jsx';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
-import StepNavigation from './components/StepNavigation';
-import StepForm from './components/StepForm';
-import FormField from './components/FormField';
-import Results from './components/Results';
-import Part1Form from './components/Part1Form';
-import Part1Results from './components/Part1Results';
-import Part2Form from './components/Part2Form';
-import Part2Results from './components/Part2Results';
-import ModelDocs from './components/ModelDocs';
+import StepNavigation from './components/StepNavigation.jsx';
+import StepForm from './components/StepForm.jsx';
+import FormField from './components/FormField.jsx';
+import Results from './components/Results.jsx';
+import Part1Form from './components/Part1Form.jsx';
+import Part1Results from './components/Part1Results.jsx';
+import Part2Form from './components/Part2Form.jsx';
+import Part2Results from './components/Part2Results.jsx';
+import ModelDocs from './components/ModelDocs.jsx';
 import { calculateEPsaPost } from './utils/epsaPostCalculator';
 import { calculateEPsa } from './utils/epsaCalculator';
-import { createOrUpdateUser, createSession, updateSession, deleteSession, clearUserSession, getSession, getUser } from './services/firestoreService';
+import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
@@ -328,7 +328,7 @@ function App() {
     if (user && userPhone) {
       try {
         
-        await createOrUpdateUser(user.uid, userPhone, consent);
+        await upsertConsent(consent);
         setAuthStep('app');
       } catch (error) {
         console.error('Error saving consent:', error);
@@ -356,11 +356,8 @@ function App() {
     // Delete current session from Firebase and clear user's session reference
     if (user && sessionId) {
       try {
-        // Delete the session document from Firestore
+        // Delete the session via backend
         await deleteSession(sessionId);
-        
-        // Clear currentSessionId from user document
-        await clearUserSession(user.uid);
       } catch (error) {
         console.error('Error deleting session from Firebase:', error);
         // Continue clearing local data even if Firebase delete fails
@@ -493,20 +490,14 @@ function App() {
         try {
           if (sessionId) {
             // Update existing session
-            await updateSession(sessionId, {
-              status: 'STEP1_COMPLETE',
-              step1: preData,
-              finalScore: result.score,
-              finalRisk: result.risk
-            });
+            await updateSession(sessionId, preData, result);
           } else {
             // Create new session
-            const newSessionId = await createSession(user.uid, {
-              status: 'STEP1_COMPLETE',
+            const response = await createSession({
               step1: preData,
-              finalScore: result.score,
-              finalRisk: result.risk
+              result: result
             });
+            const newSessionId = response.sessionId;
             setSessionId(newSessionId);
             localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
           }
@@ -549,21 +540,17 @@ function App() {
       if (user) {
         try {
           if (sessionId) {
-            // Update existing session
-            await updateSession(sessionId, {
-              status: 'STEP2_COMPLETE',
-              step2: postData,
-              finalCategory: result.riskCat
-            });
+            // Update existing session with Part 2 data
+            await updateSession(sessionId, postData, result);
           } else {
             // Create new session if missing (shouldn't happen, but handle gracefully)
             console.warn('No sessionId found, creating new session for step 2');
-            const newSessionId = await createSession(user.uid, {
-              status: 'STEP2_COMPLETE',
+            const response = await createSession({
               step1: preData || null,
               step2: postData,
-              finalCategory: result.riskCat
+              result: { score: result.score, risk: result.riskCat }
             });
+            const newSessionId = response.sessionId;
             setSessionId(newSessionId);
             localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
           }
