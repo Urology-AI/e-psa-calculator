@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 
 // Import components (excluding Firebase-dependent ones)
-import WelcomeScreen from './components/WelcomeScreen.jsx';
+import WelcomeScreenGHPages from './components/WelcomeScreen.gh-pages.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import Part1Form from './components/Part1Form.jsx';
 import Part2Form from './components/Part2Form.jsx';
@@ -126,7 +126,7 @@ const App = () => {
   const renderWelcome = () => {
     return (
       <div className="welcome-container">
-        <WelcomeScreen 
+        <WelcomeScreenGHPages 
           onBegin={() => {
             // Skip storage choice for demo - go directly to app with local storage
             setAuthStep('app');
