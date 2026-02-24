@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import UsersList from './pages/UsersList';
 import UserDetail from './pages/UserDetail';
 import SessionDetail from './pages/SessionDetail';
+import DataExport from './pages/DataExport';
 import './App.css';
 
 function App() {
@@ -74,11 +75,13 @@ function App() {
         
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<UsersList />} />
             <Route path="/users/:userId" element={<UserDetail />} />
             <Route path="/sessions/:sessionId" element={<SessionDetail />} />
+            <Route path="/export" element={<DataExport />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </main>
       </div>

@@ -32,6 +32,12 @@ if (missingFields.length > 0) {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Disable reCAPTCHA for development when using emulator
+if (window.location.hostname === 'localhost' && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true') {
+  app.automaticDataCollectionEnabled = false;
+  console.log('🚫 Automatic data collection disabled for emulator testing');
+}
+
 // Initialize Firebase Analytics (only in browser, not SSR)
 let analytics = null;
 if (typeof window !== 'undefined' && import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
@@ -41,13 +47,27 @@ if (typeof window !== 'undefined' && import.meta.env.VITE_ENABLE_ANALYTICS === '
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
+// Check if running on localhost
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
 // Use Firebase Auth Emulator for local development (bypasses reCAPTCHA)
 // Run: firebase emulators:start --only auth
 // Or use test phone numbers with production auth
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 if (isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true') {
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  console.log('Using Firebase Auth Emulator');
+  // IMPORTANT: Set emulator settings BEFORE connecting
+  auth.settings.appVerificationDisabledForTesting = true;
+  auth.tenantId = null;
+  
+  try {
+    connectAuthEmulator(auth, 'http://localhost:9099');
+    console.log('Firebase Auth Emulator connected on port 9099');
+    console.log('reCAPTCHA should be bypassed');
+  } catch (error) {
+    console.error('Failed to connect to Auth Emulator:', error);
+    console.log('Falling back to production auth (reCAPTCHA will be shown)');
+  }
+} else {
+  console.log('Using production Firebase auth (reCAPTCHA enabled)');
 }
 
 // Initialize Cloud Firestore and get a reference to the service

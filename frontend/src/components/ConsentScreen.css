@@ -54,6 +54,14 @@
   padding: 0.5rem 0;
   color: #555;
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consent-reasons li svg {
+  color: #00578B;
+  flex-shrink: 0;
 }
 
 .consent-form {

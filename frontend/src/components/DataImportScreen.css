@@ -1,0 +1,264 @@
+.import-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  color: white;
+}
+
+.import-header {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.import-header h1 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.import-header p {
+  font-size: 18px;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.import-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto 40px;
+}
+
+.import-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+}
+
+.import-section h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-section p {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.file-drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 40px 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.active {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.drop-icon {
+  font-size: 48px;
+  opacity: 0.8;
+}
+
+.drop-content p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.drop-text {
+  opacity: 0.7 !important;
+  font-size: 14px !important;
+}
+
+.file-select-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.file-select-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.import-loading {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-width: 400px;
+  margin: 0 auto 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.import-loading p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.import-error {
+  text-align: center;
+  padding: 20px;
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.5);
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto 20px;
+}
+
+.import-error p {
+  margin: 0;
+  font-size: 16px;
+  color: #ffcdd2;
+}
+
+.import-help {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.import-help h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.import-help ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.import-help li {
+  padding: 8px 0;
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.import-help strong {
+  color: white;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .import-container {
+    padding: 20px 16px;
+  }
+
+  .import-header h1 {
+    font-size: 28px;
+  }
+
+  .import-header p {
+    font-size: 16px;
+  }
+
+  .import-methods {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .import-section {
+    padding: 24px;
+  }
+
+  .file-drop-zone {
+    padding: 30px 16px;
+  }
+
+  .drop-icon {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .import-container {
+    padding: 16px 12px;
+  }
+
+  .import-header h1 {
+    font-size: 24px;
+  }
+
+  .import-section {
+    padding: 20px;
+  }
+
+  .file-drop-zone {
+    padding: 24px 12px;
+  }
+
+  .drop-icon {
+    font-size: 32px;
+  }
+}
