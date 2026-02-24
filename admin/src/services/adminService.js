@@ -11,6 +11,71 @@ const getUsersWithConsentFn = httpsCallable(functions, 'getUsersWithConsent');
 const exportUserDataFn = httpsCallable(functions, 'exportUserData');
 const deleteUserDataFn = httpsCallable(functions, 'deleteUserData');
 
+// New admin authentication functions
+const adminLoginFn = httpsCallable(functions, 'adminLogin');
+const getAdminUsersFn = httpsCallable(functions, 'getAdminUsers');
+const storeEncryptedPhoneFn = httpsCallable(functions, 'storeEncryptedPhone');
+const getDecryptedPhoneFn = httpsCallable(functions, 'getDecryptedPhone');
+
+/**
+ * Admin login verification
+ */
+export const adminLogin = async (email) => {
+  try {
+    const result = await adminLoginFn({ email });
+    return result.data;
+  } catch (error) {
+    console.error('adminLogin error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get list of authorized admin users
+ */
+export const getAdminUsers = async () => {
+  try {
+    const result = await getAdminUsersFn();
+    return result.data;
+  } catch (error) {
+    console.error('getAdminUsers error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Store encrypted phone number for a user
+ */
+export const storeEncryptedPhone = async (userId, encryptedPhone, encryptionKey) => {
+  try {
+    const result = await storeEncryptedPhoneFn({ 
+      userId, 
+      encryptedPhone, 
+      encryptionKey 
+    });
+    return result.data;
+  } catch (error) {
+    console.error('storeEncryptedPhone error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get decrypted phone number (returns encrypted data for client-side decryption)
+ */
+export const getDecryptedPhone = async (userId, decryptionKey) => {
+  try {
+    const result = await getDecryptedPhoneFn({ 
+      userId, 
+      decryptionKey 
+    });
+    return result.data;
+  } catch (error) {
+    console.error('getDecryptedPhone error:', error);
+    throw error;
+  }
+};
+
 /**
  * Get user information
  */
