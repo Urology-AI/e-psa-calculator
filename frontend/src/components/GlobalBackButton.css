@@ -1,0 +1,55 @@
+.global-back-btn {
+  background: white;
+  color: #00578B;
+  border: 2px solid #00578B;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+
+.global-back-btn:hover {
+  background: #00578B;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.global-back-btn:active {
+  transform: scale(0.98);
+}
+
+.global-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Hide on print */
+@media print {
+  .global-back-btn {
+    display: none !important;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .global-back-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .global-back-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}

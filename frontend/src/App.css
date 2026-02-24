@@ -26,6 +26,8 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #E8ECF0;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {
@@ -33,6 +35,10 @@ body {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 3px solid #f0f0f0;
+}
+
+.app-header.with-back-button {
+  margin-top: 0;
 }
 
 .header-logo-container {
@@ -308,6 +314,9 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-model-docs:hover {

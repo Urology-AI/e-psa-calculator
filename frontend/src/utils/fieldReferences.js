@@ -32,6 +32,13 @@ export const fieldReferences = {
       { name: "ZERO Cancer", url: "https://zerocancer.org/risk-factors" }
     ]
   },
+  inflammationHistory: {
+    field: "Inflammation History",
+    description: "Chronic inflammatory conditions like prostatitis, ulcerative colitis, and Crohn's disease may increase prostate cancer risk through chronic inflammation mechanisms.",
+    sources: [
+      { name: "PMC Study", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/" }
+    ]
+  },
   brcaStatus: {
     field: "BRCA Mutations",
     description: "BRCA1 and BRCA2 gene mutations increase prostate cancer risk. Men with BRCA2 mutations have a 20-25% lifetime risk.",

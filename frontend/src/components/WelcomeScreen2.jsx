@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen2.css';
 import RiskAssessmentDocs from './RiskAssessmentDocs';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 const WelcomeScreen2 = ({ onBegin, preResult }) => {
   const [showModelDetails, setShowModelDetails] = useState(false);
@@ -105,13 +106,6 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
                     </div>
                   </div>
                   
-                  <button 
-                    className="btn-view-docs" 
-                    onClick={() => setShowDocs(true)}
-                  >
-                    📋 View Risk Assessment Documentation
-                  </button>
-                  
                   <div className="risk-tiers">
                     <h5>Risk Categories</h5>
                     <div className="tier-row">
@@ -143,7 +137,8 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
                 className="btn-hide-details" 
                 onClick={() => setShowModelDetails(false)}
               >
-                ← Hide Details
+                <EyeOffIcon size={16} />
+                Hide Details
               </button>
             </div>
           ) : (
@@ -151,7 +146,8 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
               className="btn-view-model" 
               onClick={() => setShowModelDetails(true)}
             >
-              🔍 View Risk Assessment Model Details
+              <EyeIcon size={16} />
+              View Risk Assessment Model Details
             </button>
           )}
 
@@ -163,8 +159,7 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
           </div>
 
           <div className="time-estimate">
-            <span className="time-icon">⏱</span>
-            <span>Estimated time: ~5-7 minutes</span>
+            Estimated time: ~5-7 minutes
           </div>
 
           <button className="btn-begin-stage2" onClick={onBegin}>
@@ -172,6 +167,20 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
           </button>
         </div>
       </div>
+
+      <footer className="welcome2-footer">
+        <div className="footer-content">
+          <p className="footer-text">
+            ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool
+          </p>
+          <button 
+            className="btn-model-docs" 
+            onClick={() => setShowDocs(true)}
+          >
+            View Risk Assessment Documentation
+          </button>
+        </div>
+      </footer>
     </div>
   );
 };

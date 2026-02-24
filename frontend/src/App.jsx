@@ -4,8 +4,12 @@ import { auth } from './config/firebase';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
+import StorageChoiceScreen from './components/StorageChoiceScreen.jsx';
+import DataImportScreen from './components/DataImportScreen.jsx';
 import PhoneAuth from './components/PhoneAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
+import { BookIcon } from 'lucide-react';
+import GlobalBackButton from './components/GlobalBackButton.jsx';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import StepNavigation from './components/StepNavigation.jsx';
 import StepForm from './components/StepForm.jsx';
@@ -19,6 +23,7 @@ import ModelDocs from './components/ModelDocs.jsx';
 import { calculateEPsaPost } from './utils/epsaPostCalculator';
 import { calculateEPsa } from './utils/epsaCalculator';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
+import { useSectionLocks } from './hooks/useSectionLocks';
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
@@ -29,12 +34,16 @@ const POST_STEPS = [
 function App() {
   const [user, setUser] = useState(null);
   const [userPhone, setUserPhone] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'login', 'consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'storage', 'import', 'login', 'consent', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
+  const [storageMode, setStorageMode] = useState(null); // 'cloud' or 'local' - data sovereignty choice
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId, setSessionId] = useState(null);
+  
+  // Section locks for clinical data integrity
+  const { isLocked, lockSection } = useSectionLocks(storageMode);
   
   // ePSA-Pre form data (Part 1: 7-variable model inputs)
   const [preData, setPreData] = useState({
@@ -327,7 +336,6 @@ function App() {
     // Save consent to Firestore along with phone number
     if (user && userPhone) {
       try {
-        
         await upsertConsent(consent);
         setAuthStep('app');
       } catch (error) {
@@ -340,19 +348,79 @@ function App() {
           console.warn('Permission denied - Firestore rules may not be deployed.');
         }
         
-        // Still proceed to app even if save fails
+        // Still proceed to app even if Firestore fails
         setAuthStep('app');
       }
     } else {
-      console.warn('User or phone number missing, cannot save consent');
-      console.warn('User:', user);
-      console.warn('UserPhone:', userPhone);
-      // Still proceed to app
       setAuthStep('app');
     }
   };
 
+  const handleImportSuccess = (importedData, importType) => {
+    console.log('Import successful:', importType, importedData);
+    
+    let dataToImport, targetStage = 'pre';
+    
+    // Handle new export format
+    if (importedData.version && importedData.formData) {
+      // New export format
+      if (importedData.part === 'part1') {
+        dataToImport = importedData.formData;
+        targetStage = 'pre';
+      } else if (importedData.part === 'complete') {
+        // Complete data - need to set both pre and post data
+        dataToImport = importedData.part1Data;
+        setPostData(importedData.part2Data || {});
+        targetStage = 'post';
+      }
+    } else {
+      // Legacy format - handle as before
+      dataToImport = importedData;
+      targetStage = 'pre';
+    }
+    
+    // Set the imported data to appropriate state
+    setPreData(prevData => ({
+      ...prevData,
+      ...dataToImport
+    }));
+    
+    // Calculate Part1 results immediately
+    const part1Result = calculateEPsa(dataToImport);
+    setPreResult(part1Result);
+    
+    // Calculate Part2 results if this is complete import and post data exists
+    if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0) {
+      const part2Result = calculatePart2Risk(importedData.part2Data, part1Result);
+      setPostResult(part2Result);
+    }
+    
+    // Set storage mode based on import type or user preference
+    if (importType === 'pdf') {
+      setStorageMode('local'); // PDF import defaults to local storage
+    } else {
+      // For JSON, preserve the storage mode or default to local
+      setStorageMode(importedData.storageMode || 'local');
+    }
+    
+    // Navigate to appropriate results screen
+    setAuthStep('app');
+    setStage(targetStage);
+    if (targetStage === 'pre') {
+      setCurrentStep(3); // Go to Part1 results
+      setPart1Step(4);
+    } else {
+      setCurrentStep(3); // Go to Part2 results
+    }
+  };
+
   const handleClearData = async () => {
+    // Check if any sections are locked
+    if (isLocked('part1') || isLocked('part2')) {
+      alert('Cannot clear data: Some sections have been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
+      return;
+    }
+    
     // Delete current session from Firebase and clear user's session reference
     if (user && sessionId) {
       try {
@@ -508,10 +576,24 @@ function App() {
       
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Lock Part 1 after completion to prevent further edits
+      try {
+        await lockSection('part1', 'Part 1 completed - clinical data locked');
+      } catch (error) {
+        console.error('Error locking Part 1:', error);
+        // Don't show error to user, just log it
+      }
     }
   };
   
   const handlePart1Back = () => {
+    // Check if Part 1 is locked
+    if (isLocked('part1')) {
+      alert('This section has been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
+      return;
+    }
+    
     if (part1Step > 0) {
       setPart1Step(part1Step - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -561,10 +643,24 @@ function App() {
       
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Lock Part 2 after completion to prevent further edits
+      try {
+        await lockSection('part2', 'Part 2 completed - clinical data locked');
+      } catch (error) {
+        console.error('Error locking Part 2:', error);
+        // Don't show error to user, just log it
+      }
     }
   };
 
   const handlePostPrevious = () => {
+    // Check if Part 2 is locked
+    if (isLocked('part2')) {
+      alert('This section has been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
+      return;
+    }
+    
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -577,13 +673,69 @@ function App() {
     return true;
   };
 
+  // Global back navigation handler
+  const handleGlobalBack = () => {
+    if (authStep === 'app') {
+      // In main app, handle back based on current step and stage
+      if (stage === 'pre') {
+        if (currentStep === 1) {
+          // From Part1Form, go back to welcome
+          setAuthStep('welcome');
+          setPart1Step(0);
+          setCurrentStep(1);
+        } else if (currentStep === 3) {
+          // From Part1Results, go back to Part1Form (edit answers)
+          setPart1Step(0); // Go to first step of Part1Form
+          setCurrentStep(1);
+        }
+      } else if (stage === 'post') {
+        if (currentStep === 1) {
+          // From Part2Form, go back to Part1Results
+          setCurrentStep(3);
+          setStage('pre');
+        } else if (currentStep === 3) {
+          // From Part2Results, go back to Part2Form
+          setCurrentStep(1);
+        }
+      }
+    } else {
+      // In auth flow, handle back based on auth step
+      switch (authStep) {
+        case 'storage':
+          setAuthStep('welcome');
+          break;
+        case 'import':
+          setAuthStep('storage');
+          break;
+        case 'phone':
+          setAuthStep('import');
+          break;
+        case 'consent':
+          setAuthStep('phone');
+          break;
+        case 'welcome':
+        default:
+          // Can't go back from welcome
+          break;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Determine if back button should be shown
+  const shouldShowBackButton = () => {
+    if (authStep === 'welcome') return false;
+    if (authStep === 'app' && stage === 'pre' && currentStep === 1 && part1Step === 0) return false;
+    return true;
+  };
+
   // Render authentication screens
   const renderAuthScreen = () => {
     switch (authStep) {
       case 'welcome':
         return (
           <>
-            <WelcomeScreen onBegin={() => setAuthStep('login')} />
+            <WelcomeScreen onBegin={() => setAuthStep('storage')} formData={{}} />
             <footer className="app-footer">
               <div className="footer-content">
                 <p className="footer-text">
@@ -593,11 +745,36 @@ function App() {
                   className="btn-model-docs" 
                   onClick={() => setShowModelDocs(true)}
                 >
-                  📖 Model Documentation
+                  <BookIcon size={16} />
+                  <span>Model Documentation</span>
                 </button>
               </div>
             </footer>
           </>
+        );
+      case 'storage':
+        return (
+          <StorageChoiceScreen 
+            onChoice={(mode) => {
+              setStorageMode(mode);
+              if (mode === 'cloud') {
+                setAuthStep('login');
+              } else {
+                // Local storage mode - skip auth and go directly to form
+                setAuthStep('app');
+                setStage('pre');
+                setCurrentStep(1);
+              }
+            }}
+            onImport={() => setAuthStep('import')}
+          />
+        );
+      case 'import':
+        return (
+          <DataImportScreen 
+            onImportSuccess={handleImportSuccess}
+            onBack={() => setAuthStep('storage')}
+          />
         );
       case 'login':
         return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
@@ -631,6 +808,8 @@ function App() {
             {preResult ? (
               <Part1Results
                 result={preResult}
+                formData={preData}
+                storageMode={storageMode}
                 onEditAnswers={() => {
                   setPart1Step(0);
                   setCurrentStep(1);
@@ -641,7 +820,6 @@ function App() {
                     await handleClearData();
                   }
                 }}
-                onPrint={() => window.print()}
               />
             ) : (
               <div className="loading-results">
@@ -716,6 +894,8 @@ function App() {
               <Part2Results
                 result={postResult}
                 preResult={preResult}
+                postData={postData}
+                storageMode={storageMode}
                 onEditAnswers={() => {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -725,7 +905,6 @@ function App() {
                     await handleClearData();
                   }
                 }}
-                onPrint={() => window.print()}
               />
             )}
           </div>
@@ -739,7 +918,11 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        <header className="app-header">
+        <GlobalBackButton 
+          onBack={handleGlobalBack} 
+          show={shouldShowBackButton()} 
+        />
+        <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
             <img 
               src={(process.env.PUBLIC_URL || '') + '/logo.png'}
