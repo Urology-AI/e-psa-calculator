@@ -91,8 +91,18 @@ const App = () => {
       setPart1Step(part1Step + 1);
     } else {
       // Calculate Part1 results
-      const result = calculateEPsa(updatedData);
-      setPreResult(result);
+      try {
+        const result = calculateEPsa(updatedData);
+        if (result) {
+          setPreResult(result);
+        } else {
+          console.error('calculateEPsa returned null/undefined');
+          setPreResult({ error: 'Calculation failed' });
+        }
+      } catch (error) {
+        console.error('Error in calculateEPsa:', error);
+        setPreResult({ error: 'Calculation failed' });
+      }
       setCurrentStep(3);
     }
   };
@@ -164,7 +174,7 @@ const App = () => {
       case 3:
         return (
           <div className="pre-results-step">
-            {preResult ? (
+            {preResult && !preResult.error ? (
               <Part1Results
                 result={preResult}
                 formData={preData}
@@ -182,6 +192,17 @@ const App = () => {
                   }
                 }}
               />
+            ) : preResult?.error ? (
+              <div className="error-results">
+                <p>There was an error calculating your results. Please try again.</p>
+                <button onClick={() => {
+                  setPreResult(null);
+                  setCurrentStep(1);
+                  setPart1Step(0);
+                }}>
+                  Try Again
+                </button>
+              </div>
             ) : (
               <div className="loading-results">
                 <p>Loading your results...</p>
@@ -194,7 +215,7 @@ const App = () => {
                   setCurrentStep(0);
                 }}
                 className="btn btn-primary"
-                disabled={!preResult}
+                disabled={!preResult || preResult.error}
               >
                 Continue to Risk Assessment →
               </button>
