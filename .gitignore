@@ -8,6 +8,7 @@ node_modules/
 /dist
 /backend/lib/
 /frontend/build/
+/admin/build/
 
 # Environment variables - NEVER commit these!
 .env
