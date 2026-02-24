@@ -302,15 +302,37 @@ const App = () => {
   };
 
   return (
-    <div className="app">
-      {shouldShowBackButton() && (
-        <GlobalBackButton onBack={handleGlobalBack} />
-      )}
+    <div className="app" style={{ minHeight: '100vh', padding: '2rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <GlobalBackButton 
+        onBack={handleGlobalBack} 
+        show={shouldShowBackButton()} 
+      />
       
-      <div className="container">
-        <header className="app-header">
-          <div className="app-logo">ePSA</div>
-          <div className="app-subtitle">Prostate-Specific Awareness</div>
+      <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem', background: '#fff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', border: '1px solid #E8ECF0', display: 'flex', flexDirection: 'column' }}>
+        <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`} style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div className="header-logo-container" style={{ textAlign: 'center', padding: '32px 20px 20px', background: 'white', borderRadius: '16px', border: '1px solid #E8ECF0', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img 
+              src="/e-psa-calculator/logo.png"
+              alt="ePSA Logo" 
+              className="logo"
+              style={{ display: 'block', margin: '0 auto 1.5rem', maxWidth: '200px', maxHeight: '120px', width: 'auto', height: 'auto', objectFit: 'contain', transition: 'transform 0.3s ease', visibility: 'visible', opacity: 1 }}
+              onError={(e) => {
+                console.error('Logo.png failed to load:', e.target.src);
+                const currentSrc = e.target.src;
+                if (currentSrc.includes('logo.png')) {
+                  e.target.src = "/e-psa-calculator/logo.jpg";
+                } else {
+                  console.warn('Both logo files failed to load');
+                  e.target.style.display = 'none';
+                }
+              }} 
+            />
+          </div>
+          <div className="header-text" style={{ textAlign: 'center' }}>
+            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px', textAlign: 'center' }}>ePSA</h1>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px', textAlign: 'center' }}>Prostate‑Specific Awareness</h2>
+            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0, textAlign: 'center' }}>A Non‑Validated Educational Risk Tool</p>
+          </div>
         </header>
 
         <main className="app-main">
