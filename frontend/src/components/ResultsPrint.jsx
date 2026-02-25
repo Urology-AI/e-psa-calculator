@@ -90,7 +90,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
   const isPart2 = result.riskPct !== undefined; // Part2 has riskPct, Part1 has score
   
   // Extract Part2 data if available
-  let riskPct, riskCat, riskClass, totalPoints, nextSteps;
+  let riskPct = 0, riskCat = 'N/A', riskClass = 'N/A', totalPoints = 0, nextSteps = 'N/A';
   if (isPart2) {
     ({ riskPct, riskCat, riskClass, totalPoints, nextSteps } = result);
   }
