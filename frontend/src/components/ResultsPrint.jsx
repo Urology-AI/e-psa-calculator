@@ -77,6 +77,15 @@ const ResultsPrint = ({ result, formData, onBack }) => {
     );
   }
 
+  const getRiskColor = (risk) => {
+    switch (risk) {
+      case 'LOWER': return '#27AE60';
+      case 'MODERATE': return '#F39C12';
+      case 'HIGHER': return '#E74C3C';
+      default: return '#7F8C8D';
+    }
+  };
+
   // Check if this is Part1 or Part2 results
   const isPart2 = result.riskPct !== undefined; // Part2 has riskPct, Part1 has score
   
@@ -109,15 +118,6 @@ const ResultsPrint = ({ result, formData, onBack }) => {
     shimTotal: formData.shimTotal || 0,
     bmi: formData.bmi || 0,
     age: formData.age || 0
-  };
-
-  const getRiskColor = (risk) => {
-    switch (risk) {
-      case 'LOWER': return '#27AE60';
-      case 'MODERATE': return '#F39C12';
-      case 'HIGHER': return '#E74C3C';
-      default: return '#7F8C8D';
-    }
   };
 
   const formatAnswer = (value, type) => {
