@@ -7,10 +7,13 @@
 
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 
+export const CALCULATOR_CONFIG_STORAGE_KEY = 'epsa_calculator_config';
+export const CALCULATOR_CONFIG_DOC_PATH = { collection: 'calculatorConfig', doc: 'published' };
+
 // Get current config (from localStorage or default)
 export const getCalculatorConfig = () => {
   try {
-    const stored = localStorage.getItem('epsa_calculator_config');
+    const stored = localStorage.getItem(CALCULATOR_CONFIG_STORAGE_KEY);
     if (stored) {
       return JSON.parse(stored);
     }
@@ -20,10 +23,43 @@ export const getCalculatorConfig = () => {
   return DEFAULT_CALCULATOR_CONFIG;
 };
 
+// Refresh config from Firestore published doc (if Firebase is configured)
+// Returns the loaded config, or null if refresh failed.
+export const refreshCalculatorConfig = async () => {
+  try {
+    const firebaseModule = await import('../config/firebase');
+    const firestoreDb = firebaseModule.db;
+
+    if (!firestoreDb) {
+      return null;
+    }
+
+    const { doc, getDoc } = await import('firebase/firestore');
+    const ref = doc(firestoreDb, CALCULATOR_CONFIG_DOC_PATH.collection, CALCULATOR_CONFIG_DOC_PATH.doc);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      return null;
+    }
+
+    const data = snap.data();
+    const publishedConfig = data?.config;
+    if (!publishedConfig) {
+      return null;
+    }
+
+    localStorage.setItem(CALCULATOR_CONFIG_STORAGE_KEY, JSON.stringify(publishedConfig));
+    return publishedConfig;
+  } catch (error) {
+    console.warn('Failed to refresh calculator config from Firestore:', error);
+    return null;
+  }
+};
+
 // Save config to localStorage (and Firebase in production)
 export const saveCalculatorConfig = async (config) => {
   try {
-    localStorage.setItem('epsa_calculator_config', JSON.stringify(config));
+    localStorage.setItem(CALCULATOR_CONFIG_STORAGE_KEY, JSON.stringify(config));
     
     // Store version history
     const versions = JSON.parse(localStorage.getItem('epsa_config_versions') || '[]');

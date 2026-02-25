@@ -22,7 +22,7 @@ import { calculateEPsaPost } from './utils/epsaPostCalculator';
 import { calculateEPsa } from './utils/epsaCalculator';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 import { useSectionLocks } from './hooks/useSectionLocks';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig } from './utils/dynamicCalculator';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const POST_STEPS = [
@@ -45,6 +45,15 @@ function App() {
   // Calculator configuration and A/B testing
   const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
   const [modelVariant, setModelVariant] = useState('control');
+
+  useEffect(() => {
+    (async () => {
+      const refreshed = await refreshCalculatorConfig();
+      if (refreshed) {
+        setCalculatorConfig(refreshed);
+      }
+    })();
+  }, []);
   
   // Section locks for clinical data integrity
   const { isLocked, lockSection } = useSectionLocks(storageMode);

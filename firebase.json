@@ -24,7 +24,7 @@
     },
     {
       "target": "admin",
-      "public": "admin/build",
+      "public": "frontend/admin-dist",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -33,7 +33,7 @@
       "rewrites": [
         {
           "source": "**",
-          "destination": "/index.html"
+          "destination": "/admin.html"
         }
       ]
     }

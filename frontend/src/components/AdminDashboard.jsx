@@ -14,7 +14,7 @@ import InsightsDashboard from './admin/InsightsDashboard';
 import UserManagement from './admin/UserManagement';
 import SystemStatus from './admin/SystemStatus';
 import AdminManagement from './admin/AdminManagement';
-import { getCalculatorConfig, saveCalculatorConfig } from '../utils/dynamicCalculator';
+import { getCalculatorConfig, saveCalculatorConfig, refreshCalculatorConfig } from '../utils/dynamicCalculator';
 import { getAdminInsightsData } from '../services/adminAnalyticsService';
 import { trackAdminEvent } from '../services/adminAnalyticsService';
 import './AdminDashboard.css';
@@ -29,6 +29,12 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
 
   useEffect(() => {
     loadDashboardData();
+    (async () => {
+      const refreshed = await refreshCalculatorConfig();
+      if (refreshed) {
+        setCalculatorConfig(refreshed);
+      }
+    })();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
