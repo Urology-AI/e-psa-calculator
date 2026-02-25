@@ -332,11 +332,11 @@ const ResultsPrint = ({ result, formData, onBack }) => {
               <h3>Symptom Scores</h3>
               <div className="answer-item">
                 <span className="answer-question">IPSS (Urinary Symptoms):</span>
-                <span className="answer-value">{ipssTotal}/35</span>
+                <span className="answer-value">{part1Data.ipssTotal}/35</span>
               </div>
               <div className="answer-item">
                 <span className="answer-question">SHIM (Sexual Health):</span>
-                <span className="answer-value">{shimTotal}/25</span>
+                <span className="answer-value">{part1Data.shimTotal}/25</span>
               </div>
             </div>
           </div>
