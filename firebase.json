@@ -23,7 +23,7 @@
       ]
     },
     {
-      "site": "epsa-admin-89185",
+      "target": "admin",
       "public": "admin/build",
       "ignore": [
         "firebase.json",

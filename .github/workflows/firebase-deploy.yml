@@ -36,7 +36,6 @@ jobs:
     - name: Build frontend
       run: |
         cd frontend
-        npm ci
         npm run build
       env:
         VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
@@ -51,11 +50,41 @@ jobs:
       run: |
         cd admin
         npm run build
-        
-    - name: Deploy to Firebase Hosting
+
+    - name: Deploy app (live)
+      if: ${{ github.event_name == 'push' }}
       uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: '${{ secrets.GITHUB_TOKEN }}'
         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
         channelId: live
         projectId: epsa-30d0b
+        target: app
+
+    - name: Deploy admin (live)
+      if: ${{ github.event_name == 'push' }}
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
+        channelId: live
+        projectId: epsa-30d0b
+        target: admin
+
+    - name: Deploy app (preview)
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
+        projectId: epsa-30d0b
+        target: app
+
+    - name: Deploy admin (preview)
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
+        projectId: epsa-30d0b
+        target: admin
