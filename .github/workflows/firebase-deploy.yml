@@ -40,10 +40,15 @@ jobs:
         VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         
-    - name: Build admin (frontend admin.html)
+    - name: Install admin-dashboard dependencies
       run: |
-        cd frontend
-        npm run build:admin
+        cd admin-dashboard
+        npm ci
+        
+    - name: Build admin-dashboard
+      run: |
+        cd admin-dashboard
+        npm run build
 
     - name: Deploy app (live)
       if: ${{ github.event_name == 'push' }}

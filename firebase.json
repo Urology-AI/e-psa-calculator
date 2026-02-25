@@ -24,7 +24,7 @@
     },
     {
       "target": "admin",
-      "public": "frontend/admin-dist",
+      "public": "admin-dashboard/dist",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -33,7 +33,7 @@
       "rewrites": [
         {
           "source": "**",
-          "destination": "/admin.html"
+          "destination": "/index.html"
         }
       ]
     }

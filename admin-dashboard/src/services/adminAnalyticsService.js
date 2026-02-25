@@ -113,35 +113,6 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
   }
 };
 
-// Test basic Firebase connection
-const testBasicConnection = async () => {
-  try {
-    // Try to access the database root
-    const testQuery = collection(adminDb, '_test');
-    await getDocs(testQuery);
-    return { success: true };
-  } catch (error) {
-    // Check if it's a permission issue or missing collection
-    if (error.code === 'permission-denied') {
-      return { 
-        success: false, 
-        message: 'Permission denied - check Firebase security rules' 
-      };
-    } else if (error.code === 'not-found') {
-      return { 
-        success: true, // This is expected - collection doesn't exist yet
-        message: 'Collections not created yet - this is normal for new setup' 
-      };
-    } else {
-      return { 
-        success: false, 
-        message: error.message || 'Unknown Firebase error',
-        code: error.code 
-      };
-    }
-  }
-};
-
 // Helper functions
 const calculateConversionRate = (events) => {
   const part1Events = events.filter(e => e.eventType === 'part1_completed');
