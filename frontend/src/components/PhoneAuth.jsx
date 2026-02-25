@@ -8,7 +8,7 @@ import './PhoneAuth.css';
 
 // Check if using Auth Emulator (reCAPTCHA not needed)
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const usingEmulator = isLocalhost && process.env.REACT_APP_USE_AUTH_EMULATOR === 'true';
+const usingEmulator = isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true';
 
 // Mock RecaptchaVerifier for Auth Emulator - always resolves successfully
 class MockRecaptchaVerifier {

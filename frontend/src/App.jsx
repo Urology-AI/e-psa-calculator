@@ -9,7 +9,6 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import PhoneAuth from './components/PhoneAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import { BookIcon } from 'lucide-react';
-import GlobalBackButton from './components/GlobalBackButton.jsx';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import StepNavigation from './components/StepNavigation.jsx';
 import StepForm from './components/StepForm.jsx';
@@ -23,6 +22,8 @@ import { calculateEPsaPost } from './utils/epsaPostCalculator';
 import { calculateEPsa } from './utils/epsaCalculator';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 import { useSectionLocks } from './hooks/useSectionLocks';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig } from './utils/dynamicCalculator';
+import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
@@ -40,6 +41,10 @@ function App() {
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [sessionId, setSessionId] = useState(null);
+  
+  // Calculator configuration and A/B testing
+  const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
+  const [modelVariant, setModelVariant] = useState('control');
   
   // Section locks for clinical data integrity
   const { isLocked, lockSection } = useSectionLocks(storageMode);
@@ -140,7 +145,7 @@ function App() {
                         setPreData(session.step1);
                         // Recalculate pre result using new calculator
                         try {
-                          const preResult = calculateEPsa(session.step1);
+                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
                           setPreResult(preResult);
                         } catch (error) {
                           console.error('Error calculating preResult:', error);
@@ -151,8 +156,8 @@ function App() {
                         // Recalculate post result if we have pre result
                         if (session.step1) {
                           try {
-                            const preResult = calculateEPsa(session.step1);
-                            const postResult = calculateEPsaPost(preResult, session.step2);
+                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
                             setPostResult(postResult);
                           } catch (error) {
                             console.error('Error calculating postResult:', error);
@@ -167,7 +172,7 @@ function App() {
                       if (session.step1) {
                         // Calculate result FIRST before setting preData
                         try {
-                          const preResult = calculateEPsa(session.step1);
+                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
                           
                           // Set result FIRST, then data, then step
                           if (preResult) {
@@ -224,7 +229,7 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateEPsa(session.step1);
+                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
                             setPreResult(preResult);
                           } catch (error) {
                             console.error('Error calculating preResult:', error);
@@ -234,8 +239,8 @@ function App() {
                           setPostData(session.step2);
                           if (session.step1) {
                             try {
-                              const preResult = calculateEPsa(session.step1);
-                              const postResult = calculateEPsaPost(preResult, session.step2);
+                              const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                              const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
                               setPostResult(postResult);
                             } catch (error) {
                               console.error('Error calculating postResult:', error);
@@ -248,7 +253,7 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateEPsa(session.step1);
+                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
                             setPreResult(preResult);
                           } catch (error) {
                             console.error('Error calculating preResult:', error);
@@ -540,8 +545,8 @@ function App() {
       setPart1Step(part1Step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (part1Step === 6) {
-      // Calculate Part 1 results using new calculator
-      const result = calculateEPsa(preData);
+      // Calculate Part 1 results using DYNAMIC calculator
+      const result = calculateDynamicEPsa(preData, calculatorConfig);
       
       if (!result) {
         console.error('Calculation failed - missing required fields');
@@ -551,6 +556,18 @@ function App() {
       }
       
       setPreResult(result);
+      
+      // Track Part 1 completion
+      trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART1_COMPLETED, {
+        sessionId,
+        predictedRisk: result.score,
+        riskCategory: result.risk,
+        ipssTotal: result.ipssTotal,
+        shimTotal: result.shimTotal,
+        age: result.age,
+        bmi: result.bmi,
+        modelVersion: '1.0.0'
+      });
       
       // Save to Firestore
       if (user) {
@@ -613,9 +630,20 @@ function App() {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 2) {
-      // Calculate Post results using Part 1 data
-      const result = calculateEPsaPost(preResult, postData);
+      // Calculate Post results using DYNAMIC calculator
+      const result = calculateDynamicEPsaPost(preResult, postData, calculatorConfig);
       setPostResult(result);
+      
+      // Track Part 2 completion
+      trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART2_COMPLETED, {
+        sessionId,
+        predictedRisk: result.riskPct,
+        riskCategory: result.riskClass,
+        totalPoints: result.totalPoints,
+        psaPoints: result.psaPoints,
+        piradsScore: postData.pirads,
+        modelVersion: '1.0.0'
+      });
       
       // Save to Firestore
       if (user) {
@@ -917,14 +945,10 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        <GlobalBackButton 
-          onBack={handleGlobalBack} 
-          show={shouldShowBackButton()} 
-        />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
             <img 
-              src={(process.env.PUBLIC_URL || '') + '/logo.png'}
+              src="/logo.png"
               alt="ePSA Logo" 
               className="logo"
               onError={(e) => {
@@ -932,7 +956,7 @@ function App() {
                 // Fallback: try logo.jpg if logo.png doesn't exist
                 const currentSrc = e.target.src;
                 if (currentSrc.includes('logo.png')) {
-                  e.target.src = (process.env.PUBLIC_URL || '') + '/logo.jpg';
+                  e.target.src = '/logo.jpg';
                 } else {
                   console.warn('Both logo files failed to load');
                   e.target.style.display = 'none';

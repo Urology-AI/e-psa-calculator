@@ -63,7 +63,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
           </div>
         )}
         {/* Debug info - remove in production */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
             Debug: formData has {formData ? Object.keys(formData).length : 0} fields
           </div>

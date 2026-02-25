@@ -110,12 +110,12 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="header-center">
             <div className="printable-logo-container">
               <img 
-                src={(process.env.PUBLIC_URL || '') + '/logo.png'}
+                src="/logo.png"
                 alt="ePSA Logo" 
                 className="printable-logo"
                 onError={(e) => {
                   if (e.target.src.includes('logo.png')) {
-                    e.target.src = (process.env.PUBLIC_URL || '') + '/logo.jpg';
+                    e.target.src = '/logo.jpg';
                   } else {
                     e.target.style.display = 'none';
                   }
