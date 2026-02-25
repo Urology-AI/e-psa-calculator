@@ -1,6 +1,6 @@
 import React from 'react';
 import './Part2Results.css';
-import { RISK_COLORS } from '../utils/epsaCalculator';
+import { RISK_COLORS } from '../utils/riskColors';
 import ResultsPrint from './ResultsPrint';
 import PrintableForm from './PrintableForm';
 import { 

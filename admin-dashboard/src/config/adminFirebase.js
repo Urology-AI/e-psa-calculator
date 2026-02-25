@@ -28,14 +28,18 @@ adminAuth.settings.appVerificationDisabledForTesting = false;
 adminAuth.tenantId = null;
 
 // Ensure we're using production, not emulator
-console.log('🔥 Admin Firebase initialized in PRODUCTION mode');
-console.log('Project ID:', adminFirebaseConfig.projectId);
-console.log('🚫 Emulators DISABLED for admin dashboard');
+if (import.meta.env.DEV) {
+  console.log('🔥 Admin Firebase initialized in PRODUCTION mode');
+  console.log('Project ID:', adminFirebaseConfig.projectId);
+  console.log('🚫 Emulators DISABLED for admin dashboard');
+}
 
 // Admin analytics service
 export const adminAnalytics = {
   trackEvent: async (eventType, data) => {
-    console.log('Admin Analytics:', eventType, data);
+    if (import.meta.env.DEV) {
+      console.log('Admin Analytics:', eventType, data);
+    }
     // Add admin-specific analytics tracking here if needed
   }
 };

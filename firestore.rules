@@ -52,14 +52,6 @@ service cloud.firestore {
     }
     
     // ============================================
-    // ADMIN USERS COLLECTION
-    // ============================================
-    match /admin_users/{userId} {
-      allow read, write: if isAuthenticated() && isSuperAdmin();
-      allow get: if isAuthenticated() && (request.auth.uid == userId || isAuthorizedAdmin());
-    }
-    
-    // ============================================
     // LEGACY ADMINS COLLECTION
     // ============================================
     match /admins/{userId} {

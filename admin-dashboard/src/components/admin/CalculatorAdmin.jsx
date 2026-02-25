@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, Save, RotateCcw, AlertTriangle, CheckCircle, Database, TrendingUp } from 'lucide-react';
-import { DEFAULT_CALCULATOR_CONFIG, ALTERNATIVE_MODELS, WEIGHT_ADJUSTMENT_GUIDELINES } from '../../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG, ALTERNATIVE_MODELS, WEIGHT_ADJUSTMENT_GUIDELINES } from '@frontend/config/calculatorConfig';
 import { adminDb } from '../../config/adminFirebase';
 import './CalculatorAdmin.css';
 

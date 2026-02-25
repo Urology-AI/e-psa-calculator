@@ -123,7 +123,7 @@ const AdminManagement = () => {
           <Shield size={16} />
           <p>
             Admin authorization is verified through Firebase using multiple methods:
-            Firestore admin_users collection, Firebase Custom Claims, and verified email domains.
+            Firestore admins collection, Firebase Custom Claims, and verified email domains.
           </p>
         </div>
       </div>

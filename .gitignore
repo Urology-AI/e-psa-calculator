@@ -9,8 +9,11 @@ node_modules/
 /docs
 /backend/lib/
 /frontend/build/
+/frontend/dist/
 /admin/build/
 /frontend/admin-dist/
+/admin-dashboard/dist/
+/admin-dashboard/build/
 
 # Environment variables - NEVER commit these!
 .env

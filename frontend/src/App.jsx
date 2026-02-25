@@ -10,16 +10,11 @@ import PhoneAuth from './components/PhoneAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import { BookIcon } from 'lucide-react';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
-import StepNavigation from './components/StepNavigation.jsx';
-import StepForm from './components/StepForm.jsx';
-import FormField from './components/FormField.jsx';
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
-import { calculateEPsaPost } from './utils/epsaPostCalculator';
-import { calculateEPsa } from './utils/epsaCalculator';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 import { useSectionLocks } from './hooks/useSectionLocks';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
@@ -399,12 +394,12 @@ function App() {
     }));
     
     // Calculate Part1 results immediately
-    const part1Result = calculateEPsa(dataToImport);
+    const part1Result = calculateDynamicEPsa(dataToImport, calculatorConfig);
     setPreResult(part1Result);
     
     // Calculate Part2 results if this is complete import and post data exists
     if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0) {
-      const part2Result = calculatePart2Risk(importedData.part2Data, part1Result);
+      const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
       setPostResult(part2Result);
     }
     
