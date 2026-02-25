@@ -17,7 +17,6 @@ import Part2Results from './components/Part2Results.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import GlobalBackButton from './components/GlobalBackButton.jsx';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
-import { useSectionLocks } from './hooks/useSectionLocks';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
@@ -51,8 +50,7 @@ function App() {
     })();
   }, []);
   
-  // Section locks for clinical data integrity
-  const { isLocked, lockSection } = useSectionLocks(storageMode);
+  const shouldTrackAnalytics = storageMode === 'cloud';
   
   // ePSA-Pre form data (Part 1: 7-variable model inputs)
   const [preData, setPreData] = useState({
@@ -424,14 +422,8 @@ function App() {
   };
 
   const handleClearData = async () => {
-    // Check if any sections are locked
-    if (isLocked('part1') || isLocked('part2')) {
-      alert('Cannot clear data: Some sections have been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
-      return;
-    }
-    
     // Delete current session from Firebase and clear user's session reference
-    if (user && sessionId) {
+    if (storageMode === 'cloud' && user && sessionId) {
       try {
         // Delete the session via backend
         await deleteSession(sessionId);
@@ -529,7 +521,7 @@ function App() {
       setPostResult(null);
       setSessionId(null);
       // Clear user-specific localStorage but keep general settings
-      if (user) {
+      if (storageMode === 'cloud' && user) {
         localStorage.removeItem(`sessionId_${user.uid}`);
       }
     } catch (error) {
@@ -562,20 +554,22 @@ function App() {
       
       setPreResult(result);
       
-      // Track Part 1 completion
-      trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART1_COMPLETED, {
-        sessionId,
-        predictedRisk: result.score,
-        riskCategory: result.risk,
-        ipssTotal: result.ipssTotal,
-        shimTotal: result.shimTotal,
-        age: result.age,
-        bmi: result.bmi,
-        modelVersion: '1.0.0'
-      });
+      // Track only in cloud mode
+      if (shouldTrackAnalytics) {
+        trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART1_COMPLETED, {
+          sessionId,
+          predictedRisk: result.score,
+          riskCategory: result.risk,
+          ipssTotal: result.ipssTotal,
+          shimTotal: result.shimTotal,
+          age: result.age,
+          bmi: result.bmi,
+          modelVersion: result.modelVersion || calculatorConfig?.version || 'unknown'
+        });
+      }
       
       // Save to Firestore
-      if (user) {
+      if (storageMode === 'cloud' && user) {
         try {
           if (sessionId) {
             // Update existing session
@@ -598,23 +592,10 @@ function App() {
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // Lock Part 1 after completion to prevent further edits
-      try {
-        await lockSection('part1', 'Part 1 completed - clinical data locked');
-      } catch (error) {
-        console.error('Error locking Part 1:', error);
-        // Don't show error to user, just log it
-      }
     }
   };
   
   const handlePart1Back = () => {
-    // Check if Part 1 is locked
-    if (isLocked('part1')) {
-      alert('This section has been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
-      return;
-    }
-    
     if (part1Step > 0) {
       setPart1Step(part1Step - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -639,19 +620,21 @@ function App() {
       const result = calculateDynamicEPsaPost(preResult, postData, calculatorConfig);
       setPostResult(result);
       
-      // Track Part 2 completion
-      trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART2_COMPLETED, {
-        sessionId,
-        predictedRisk: result.riskPct,
-        riskCategory: result.riskClass,
-        totalPoints: result.totalPoints,
-        psaPoints: result.psaPoints,
-        piradsScore: postData.pirads,
-        modelVersion: '1.0.0'
-      });
+      // Track only in cloud mode
+      if (shouldTrackAnalytics) {
+        trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART2_COMPLETED, {
+          sessionId,
+          predictedRisk: result.riskPct,
+          riskCategory: result.riskClass,
+          totalPoints: result.totalPoints,
+          psaPoints: result.psaPoints,
+          piradsScore: postData.pirads,
+          modelVersion: result.modelVersion || calculatorConfig?.version || 'unknown'
+        });
+      }
       
       // Save to Firestore
-      if (user) {
+      if (storageMode === 'cloud' && user) {
         try {
           if (sessionId) {
             // Update existing session with Part 2 data
@@ -676,23 +659,10 @@ function App() {
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // Lock Part 2 after completion to prevent further edits
-      try {
-        await lockSection('part2', 'Part 2 completed - clinical data locked');
-      } catch (error) {
-        console.error('Error locking Part 2:', error);
-        // Don't show error to user, just log it
-      }
     }
   };
 
   const handlePostPrevious = () => {
-    // Check if Part 2 is locked
-    if (isLocked('part2')) {
-      alert('This section has been completed and locked for data integrity. Please contact your healthcare provider if you need to make changes.');
-      return;
-    }
-    
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -901,6 +871,7 @@ function App() {
         return (
           <WelcomeScreen2
             preResult={preResult}
+            config={calculatorConfig}
             onBegin={() => setCurrentStep(1)}
           />
         );
@@ -929,6 +900,7 @@ function App() {
             {postResult && (
               <Part2Results
                 result={postResult}
+                preData={preData}
                 preResult={preResult}
                 postData={postData}
                 storageMode={storageMode}
@@ -1009,7 +981,7 @@ function App() {
         )}
       </div>
       
-      {showModelDocs && <ModelDocs onClose={() => setShowModelDocs(false)} />}
+      {showModelDocs && <ModelDocs config={calculatorConfig} onClose={() => setShowModelDocs(false)} />}
     </div>
   );
 }

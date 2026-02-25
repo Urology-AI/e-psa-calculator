@@ -45,7 +45,7 @@ export const trackOutcome = async (patientId, predictedRisk, actualOutcome, clin
       actualOutcome, // 'cancer_detected', 'no_cancer', 'pending'
       clinicalData,
       timestamp: Timestamp.now(),
-      modelVersion: clinicalData.modelVersion || '1.0.0'
+      modelVersion: clinicalData.modelVersion || 'unknown'
     });
   } catch (error) {
     console.error('Error tracking outcome:', error);

@@ -21,6 +21,38 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
 
   const ageNum = requireNumber(formData?.age, 'Age');
   const bmiNum = requireNumber(formData?.bmi, 'BMI');
+  const validateOrdinalArray = (fieldLabel, values, expectedLength, minValue, maxValue) => {
+    if (!Array.isArray(values)) {
+      errors.push(`${fieldLabel} responses are required`);
+      return null;
+    }
+
+    if (values.length !== expectedLength) {
+      errors.push(`${fieldLabel} must contain ${expectedLength} responses`);
+      return null;
+    }
+
+    let total = 0;
+    for (let i = 0; i < values.length; i += 1) {
+      const raw = values[i];
+      if (raw === null || raw === undefined || raw === '') {
+        errors.push(`${fieldLabel} response ${i + 1} is required`);
+        return null;
+      }
+      const score = Number(raw);
+      if (!Number.isFinite(score) || !Number.isInteger(score)) {
+        errors.push(`${fieldLabel} response ${i + 1} must be an integer`);
+        return null;
+      }
+      if (score < minValue || score > maxValue) {
+        errors.push(`${fieldLabel} response ${i + 1} must be between ${minValue} and ${maxValue}`);
+        return null;
+      }
+      total += score;
+    }
+
+    return total;
+  };
 
   if (!formData?.race) {
     errors.push('Race is required');
@@ -39,21 +71,8 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     errors.push('Family history is required');
   }
 
-  const ipssTotal = Array.isArray(formData?.ipss)
-    ? formData.ipss.reduce((a, b) => a + (b ?? 0), 0)
-    : null;
-
-  const shimTotal = Array.isArray(formData?.shim)
-    ? formData.shim.reduce((a, b) => a + (b ?? 0), 0)
-    : null;
-
-  if (!Array.isArray(formData?.ipss)) {
-    errors.push('IPSS responses are required');
-  }
-
-  if (!Array.isArray(formData?.shim)) {
-    errors.push('SHIM responses are required');
-  }
+  const ipssTotal = validateOrdinalArray('IPSS', formData?.ipss, 7, 0, 5);
+  const shimTotal = validateOrdinalArray('SHIM', formData?.shim, 5, 0, 5);
 
   if (validation) {
     if (ageNum != null && (ageNum < validation.minAge || ageNum > validation.maxAge)) {
@@ -222,6 +241,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }
 
   const piradsValue = knowPirads ? parseInt(pirads) : 0;
+  const baselineCarryPoints = part2.baselineCarryPoints;
+  let piradsPoints = 0;
+  let totalPoints = prePoints + baselineCarryPoints + psaPoints;
   let riskPct, riskCat, riskClass, nextSteps, piradsOverridden = false;
 
   if (knowPirads && part2.piradsOverrides[piradsValue]) {
@@ -234,7 +256,6 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }
 
   if (!piradsOverridden) {
-    let piradsPoints = 0;
     for (const p of part2.piradsPoints) {
       if (piradsValue === p.value) {
         piradsPoints = p.points;
@@ -242,7 +263,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
       }
     }
 
-    const totalPoints = prePoints + part2.baselineCarryPoints + psaPoints + piradsPoints;
+    totalPoints += piradsPoints;
 
     for (const category of part2.riskCategories) {
       if (totalPoints <= category.maxPoints) {
@@ -260,11 +281,11 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     riskPct,
     riskCat,
     riskClass,
-    totalPoints: prePoints + part2.baselineCarryPoints + psaPoints + (piradsOverridden ? 0 : (piradsValue === 3 ? 10 : 0)),
+    totalPoints,
     prePoints,
-    baselineCarryPoints: part2.baselineCarryPoints,
+    baselineCarryPoints,
     psaPoints,
-    piradsPoints: piradsOverridden ? 0 : (piradsValue === 3 ? 10 : 0),
+    piradsPoints,
     nextSteps,
     piradsOverridden,
     modelVersion: config.version

@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import './WelcomeScreen2.css';
 import RiskAssessmentDocs from './RiskAssessmentDocs';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 
-const WelcomeScreen2 = ({ onBegin, preResult }) => {
+const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const [showModelDetails, setShowModelDetails] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
+  const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
+  const riskCategories = part2.riskCategories || [];
+  const toPct = (value) => (typeof value === 'number' ? `${Math.round(value * 100)}%` : String(value));
   const getRiskColor = (tier) => {
     switch (tier) {
       case 'Lower': return '#27AE60';
@@ -17,7 +22,7 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
 
   return (
     <div className="welcome-screen-2">
-      {showDocs && <RiskAssessmentDocs onClose={() => setShowDocs(false)} />}
+      {showDocs && <RiskAssessmentDocs config={activeConfig} onClose={() => setShowDocs(false)} />}
       
       <div className="welcome2-container">
         <div className="welcome2-header">
@@ -98,28 +103,24 @@ const WelcomeScreen2 = ({ onBegin, preResult }) => {
                     </div>
                     <div className="formula-row">
                       <span className="formula-label">Stage 2 Adjustments:</span>
-                      <span className="formula-value">Clinical modifiers (± 15-25%)</span>
+                      <span className="formula-value">Baseline carry + PSA points + PI-RADS points/override</span>
                     </div>
                     <div className="formula-row formula-total">
                       <span className="formula-label">Final Risk Score:</span>
-                      <span className="formula-value">Combined probability with confidence interval</span>
+                      <span className="formula-value">Dynamic category mapping from total points</span>
                     </div>
                   </div>
                   
                   <div className="risk-tiers">
                     <h5>Risk Categories</h5>
-                    <div className="tier-row">
-                      <span className="tier-badge" style={{ backgroundColor: '#27AE60' }}>Low</span>
-                      <span>&lt; 8% probability</span>
-                    </div>
-                    <div className="tier-row">
-                      <span className="tier-badge" style={{ backgroundColor: '#F39C12' }}>Moderate</span>
-                      <span>8-20% probability</span>
-                    </div>
-                    <div className="tier-row">
-                      <span className="tier-badge" style={{ backgroundColor: '#E74C3C' }}>High</span>
-                      <span>&gt; 20% probability</span>
-                    </div>
+                    {riskCategories.map((category, index) => (
+                      <div className="tier-row" key={`welcome2-tier-${index}`}>
+                        <span className="tier-badge" style={{ backgroundColor: '#1C2833' }}>
+                          {String(category.riskCat || '').replace(/[🟢🟡🟠🔴]/g, '').trim()}
+                        </span>
+                        <span>{toPct(category.riskPct)} probability</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
