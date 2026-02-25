@@ -1,6 +1,6 @@
 /**
- * Admin App Entry Point
- * Separate application for admin subdomain with email OTP authentication
+ * Admin Dashboard - Standalone Entry Point
+ * Completely separate from the main ePSA frontend app
  */
 
 import React, { useState, useEffect } from 'react';

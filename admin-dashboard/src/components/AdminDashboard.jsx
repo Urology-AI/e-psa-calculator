@@ -1,6 +1,6 @@
 /**
- * Admin Dashboard - Separate Subdomain Interface
- * Dedicated admin interface for ePSA calculator management
+ * Admin Dashboard - Separate Standalone Application
+ * Completely separate from the main ePSA frontend
  */
 
 import React, { useState, useEffect } from 'react';
@@ -82,7 +82,6 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
       alert('Failed to save configuration');
     }
   };
-
 
   const renderActiveContent = () => {
     switch (activeTab) {

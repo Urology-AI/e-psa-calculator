@@ -9,7 +9,7 @@ import { firebaseAdminAuthService } from './firebaseAdminAuthService';
 
 const ADMIN_ACTION_CODE_SETTINGS = {
   // URL to redirect back to after email verification
-  url: window.location.origin + '/admin.html',
+  url: window.location.origin + '/',
   // This must be true for email link sign-in
   handleCodeInApp: true,
   // iOS and Android app bundle IDs
@@ -181,7 +181,6 @@ export class AdminAuthService {
       'auth/operation-not-allowed': 'Email link authentication is not enabled. Please enable it in Firebase Console → Authentication → Sign-in method → Email/Password → Enable "Email link (passwordless sign-in)"',
       'auth/invalid-action-code': 'Invalid or expired login link. Please request a new login link.',
       'auth/expired-action-code': 'Login link has expired. Please request a new link (links expire in 24 hours).',
-      'auth/invalid-email': 'Invalid email address',
       'auth/user-disabled': 'Account has been disabled',
       'auth/weak-password': 'Password is too weak',
       'auth/email-already-in-use': 'Email is already in use',
