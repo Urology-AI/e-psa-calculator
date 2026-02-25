@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, Save, RotateCcw, AlertTriangle, CheckCircle, Database, TrendingUp } from 'lucide-react';
 import { DEFAULT_CALCULATOR_CONFIG, ALTERNATIVE_MODELS, WEIGHT_ADJUSTMENT_GUIDELINES } from '../../config/calculatorConfig';
+import { adminDb } from '../../config/adminFirebase';
 import './CalculatorAdmin.css';
 
 const CalculatorAdmin = ({ userRole = 'admin' }) => {
@@ -20,13 +21,36 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
 
   const loadCurrentConfig = async () => {
     try {
-      // In production, this would fetch from Firebase
+      const { doc, getDoc } = await import('firebase/firestore');
+      const publishedRef = doc(adminDb, 'calculatorConfig', 'published');
+      const publishedSnap = await getDoc(publishedRef);
+
+      if (publishedSnap.exists()) {
+        const data = publishedSnap.data();
+        if (data?.config) {
+          setConfig(data.config);
+          localStorage.setItem('epsa_calculator_config', JSON.stringify(data.config));
+          return;
+        }
+      }
+
       const storedConfig = localStorage.getItem('epsa_calculator_config');
       if (storedConfig) {
         setConfig(JSON.parse(storedConfig));
+        return;
       }
+
+      setConfig(DEFAULT_CALCULATOR_CONFIG);
     } catch (error) {
       console.error('Error loading config:', error);
+      try {
+        const storedConfig = localStorage.getItem('epsa_calculator_config');
+        if (storedConfig) {
+          setConfig(JSON.parse(storedConfig));
+        }
+      } catch (_e) {
+        setConfig(DEFAULT_CALCULATOR_CONFIG);
+      }
     }
   };
 
@@ -105,6 +129,15 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
     setHasChanges(true);
   };
 
+  const updatePart2 = (updater) => {
+    setConfig(prev => {
+      const updatedPart2 = updater(prev.part2);
+      return { ...prev, part2: updatedPart2 };
+    });
+    setHasChanges(true);
+    setSelectedModel('custom');
+  };
+
   const applyModelTemplate = (modelKey) => {
     if (modelKey === 'default') {
       setConfig(DEFAULT_CALCULATOR_CONFIG);
@@ -134,24 +167,32 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
 
     setIsLoading(true);
     try {
-      // In production, save to Firebase
-      localStorage.setItem('epsa_calculator_config', JSON.stringify(config));
-      
-      // Create version entry
-      const versions = JSON.parse(localStorage.getItem('epsa_config_versions') || '[]');
-      versions.push({
+      const nowIso = new Date().toISOString();
+      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
+      const publishedRef = doc(adminDb, 'calculatorConfig', 'published');
+      await setDoc(publishedRef, {
         version: config.version,
-        timestamp: new Date().toISOString(),
-        config: config,
-        user: 'admin' // In production, use actual user ID
+        config,
+        updatedAt: serverTimestamp(),
+        updatedAtIso: nowIso
+      }, { merge: true });
+
+      const versionRef = doc(adminDb, 'calculatorConfigVersions', nowIso);
+      await setDoc(versionRef, {
+        version: config.version,
+        config,
+        createdAt: serverTimestamp(),
+        createdAtIso: nowIso
       });
-      localStorage.setItem('epsa_config_versions', JSON.stringify(versions));
+
+      localStorage.setItem('epsa_calculator_config', JSON.stringify(config));
 
       setHasChanges(false);
-      setSaveStatus({ type: 'success', message: 'Configuration saved successfully!' });
+      setSaveStatus({ type: 'success', message: 'Configuration published successfully!' });
     } catch (error) {
       console.error('Error saving config:', error);
-      setSaveStatus({ type: 'error', message: 'Failed to save configuration.' });
+      setSaveStatus({ type: 'error', message: 'Failed to publish configuration.' });
     } finally {
       setIsLoading(false);
     }
@@ -409,6 +450,73 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
         <div className="config-section">
           <h3>Part 2: Clinical Data Integration</h3>
           <p>Part 2 uses a points-based system. Configure scoring below:</p>
+
+          <div className="psa-points-section">
+            <h4>Baseline Carry-Forward Points</h4>
+            <div className="points-row">
+              <span>Baseline carry points</span>
+              <input
+                type="number"
+                value={config.part2.baselineCarryPoints}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  updatePart2(prev => ({
+                    ...prev,
+                    baselineCarryPoints: Number.isFinite(value) ? value : 0
+                  }));
+                }}
+              />
+              <span>points</span>
+            </div>
+          </div>
+
+          <div className="psa-points-section">
+            <h4>Pre-Score to Points Mapping</h4>
+            {config.part2.preScoreToPoints.ranges.map((range, idx) => (
+              <div key={idx} className="points-row">
+                <span>Pre-score &lt; {range.max}</span>
+                <span style={{ marginLeft: '8px' }}>base</span>
+                <input
+                  type="number"
+                  value={range.base ?? 0}
+                  onChange={(e) => {
+                    const next = [...config.part2.preScoreToPoints.ranges];
+                    next[idx] = { ...next[idx], base: parseInt(e.target.value, 10) || 0 };
+                    updatePart2(prev => ({
+                      ...prev,
+                      preScoreToPoints: { ...prev.preScoreToPoints, ranges: next }
+                    }));
+                  }}
+                />
+                <span>mult</span>
+                <input
+                  type="number"
+                  value={range.multiplier}
+                  onChange={(e) => {
+                    const next = [...config.part2.preScoreToPoints.ranges];
+                    next[idx] = { ...next[idx], multiplier: parseInt(e.target.value, 10) || 0 };
+                    updatePart2(prev => ({
+                      ...prev,
+                      preScoreToPoints: { ...prev.preScoreToPoints, ranges: next }
+                    }));
+                  }}
+                />
+                <span>div</span>
+                <input
+                  type="number"
+                  value={range.divisor}
+                  onChange={(e) => {
+                    const next = [...config.part2.preScoreToPoints.ranges];
+                    next[idx] = { ...next[idx], divisor: parseFloat(e.target.value) || 1 };
+                    updatePart2(prev => ({
+                      ...prev,
+                      preScoreToPoints: { ...prev.preScoreToPoints, ranges: next }
+                    }));
+                  }}
+                />
+              </div>
+            ))}
+          </div>
           
           <div className="psa-points-section">
             <h4>PSA Level Points</h4>
@@ -420,12 +528,69 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
                   value={range.points}
                   onChange={(e) => {
                     const newPoints = [...config.part2.psaPoints];
-                    newPoints[idx].points = parseInt(e.target.value);
-                    setConfig({ ...config, part2: { ...config.part2, psaPoints: newPoints }});
-                    setHasChanges(true);
+                    newPoints[idx] = { ...newPoints[idx], points: parseInt(e.target.value, 10) || 0 };
+                    updatePart2(prev => ({ ...prev, psaPoints: newPoints }));
                   }}
                 />
                 <span>points</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="pirads-section">
+            <h4>PI-RADS Points</h4>
+            {config.part2.piradsPoints.map((p, idx) => (
+              <div key={idx} className="points-row">
+                <span>PI-RADS {p.value}</span>
+                <input
+                  type="number"
+                  value={p.points}
+                  onChange={(e) => {
+                    const next = [...config.part2.piradsPoints];
+                    next[idx] = { ...next[idx], points: parseInt(e.target.value, 10) || 0 };
+                    updatePart2(prev => ({ ...prev, piradsPoints: next }));
+                  }}
+                />
+                <span>points</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="psa-points-section">
+            <h4>Risk Categories (Total Points → Risk)</h4>
+            {config.part2.riskCategories.map((cat, idx) => (
+              <div key={idx} className="points-row">
+                <span>≤ {cat.maxPoints === Infinity ? '∞' : cat.maxPoints}</span>
+                <span style={{ marginLeft: '8px' }}>riskPct</span>
+                <input
+                  type="text"
+                  value={cat.riskPct}
+                  onChange={(e) => {
+                    const next = [...config.part2.riskCategories];
+                    next[idx] = { ...next[idx], riskPct: e.target.value };
+                    updatePart2(prev => ({ ...prev, riskCategories: next }));
+                  }}
+                />
+                <span>riskCat</span>
+                <input
+                  type="text"
+                  value={cat.riskCat}
+                  onChange={(e) => {
+                    const next = [...config.part2.riskCategories];
+                    next[idx] = { ...next[idx], riskCat: e.target.value };
+                    updatePart2(prev => ({ ...prev, riskCategories: next }));
+                  }}
+                />
+                <span>class</span>
+                <input
+                  type="text"
+                  value={cat.riskClass}
+                  onChange={(e) => {
+                    const next = [...config.part2.riskCategories];
+                    next[idx] = { ...next[idx], riskClass: e.target.value };
+                    updatePart2(prev => ({ ...prev, riskCategories: next }));
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -435,7 +600,38 @@ const CalculatorAdmin = ({ userRole = 'admin' }) => {
             {Object.entries(config.part2.piradsOverrides).map(([score, data]) => (
               <div key={score} className="pirads-override">
                 <strong>PI-RADS {score}:</strong>
-                <span>{data.riskPct} - {data.riskCat}</span>
+                <div className="points-row" style={{ marginTop: '8px' }}>
+                  <span>riskPct</span>
+                  <input
+                    type="text"
+                    value={data.riskPct}
+                    onChange={(e) => {
+                      const next = { ...config.part2.piradsOverrides };
+                      next[score] = { ...next[score], riskPct: e.target.value };
+                      updatePart2(prev => ({ ...prev, piradsOverrides: next }));
+                    }}
+                  />
+                  <span>riskCat</span>
+                  <input
+                    type="text"
+                    value={data.riskCat}
+                    onChange={(e) => {
+                      const next = { ...config.part2.piradsOverrides };
+                      next[score] = { ...next[score], riskCat: e.target.value };
+                      updatePart2(prev => ({ ...prev, piradsOverrides: next }));
+                    }}
+                  />
+                  <span>class</span>
+                  <input
+                    type="text"
+                    value={data.riskClass}
+                    onChange={(e) => {
+                      const next = { ...config.part2.piradsOverrides };
+                      next[score] = { ...next[score], riskClass: e.target.value };
+                      updatePart2(prev => ({ ...prev, piradsOverrides: next }));
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>

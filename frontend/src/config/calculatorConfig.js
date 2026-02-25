@@ -5,7 +5,7 @@
  */
 
 export const DEFAULT_CALCULATOR_CONFIG = {
-  version: '1.0.0',
+  version: '1.0.1',
   part1: {
     intercept: -3.8347,
     variables: [
@@ -22,7 +22,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'raceBlack',
         name: 'Race (Black/African American)',
-        weight: 0.0253,
+        weight: -0.0253,
         type: 'binary',
         description: 'Black race (1 if Black, 0 otherwise)',
         clinicalNote: 'Black men have 1.6-1.8x higher risk'
@@ -40,7 +40,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'ipssTotal',
         name: 'IPSS Total Score',
-        weight: 0.0292,
+        weight: -0.0292,
         type: 'continuous',
         min: 0,
         max: 35,
@@ -51,7 +51,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'exerciseCode',
         name: 'Exercise Level',
-        weight: 0.5947,
+        weight: -0.5947,
         type: 'ordinal',
         options: [
           { value: 0, label: 'Regular (3+ days/week)' },
@@ -63,7 +63,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'fhBinary',
         name: 'Family History',
-        weight: 0.8911,
+        weight: -0.8911,
         type: 'binary',
         description: 'Family history of prostate cancer (1 if yes, 0 if no)',
         clinicalNote: 'Strong risk factor - 2-3x increased risk'
@@ -71,7 +71,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'shimTotal',
         name: 'SHIM Total Score',
-        weight: 0.0358,
+        weight: -0.0358,
         type: 'continuous',
         min: 0,
         max: 25,

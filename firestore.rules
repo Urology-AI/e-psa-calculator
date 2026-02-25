@@ -5,99 +5,129 @@ service cloud.firestore {
     // HELPER FUNCTIONS
     // ============================================
     
-    // Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Check if user is admin (via admins collection)
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isActive == true;
     }
     
-    // Check if user is super admin (NYU email domain)
+    // Optimized with regex to handle both domains and case-insensitivity
     function isSuperAdmin() {
-      return isAuthenticated() && 
-        (request.auth.token.email.matches('.*@nyulangone.org$') ||
-         request.auth.token.email.matches('.*@mssm.edu$') ||
-         request.auth.token.email.matches('.*@nyu.edu$'));
+      return isAuthenticated() && (
+        request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
+        request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
+      );
     }
     
-    // Validate string field
+    function isAuthorizedAdmin() {
+      return isAdmin() || isSuperAdmin();
+    }
+    
+    // FIXED: Added null check to prevent rule evaluation errors
     function isValidString(value, maxLength) {
-      return value is string && value.size() <= maxLength;
+      return value != null && value is string && value.size() <= maxLength;
     }
     
     // ============================================
-    // ADMINS COLLECTION (Admin User Management)
+    // ANALYTICS COLLECTIONS
+    // ============================================
+    match /analytics/{document}/{subDocument} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+    }
+    
+    // Specific analytics subcollections
+    match /analytics/calculator_usage/events/{eventId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+    }
+    
+    match /analytics/outcomes/records/{recordId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+    }
+    
+    // ============================================
+    // ADMIN USERS COLLECTION
+    // ============================================
+    match /admin_users/{userId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow get: if isAuthenticated() && (request.auth.uid == userId || isAuthorizedAdmin());
+    }
+    
+    // ============================================
+    // LEGACY ADMINS COLLECTION
     // ============================================
     match /admins/{userId} {
-      // Only super admins can manage admin collection
       allow read, write, create, update, delete: if isAuthenticated() && isSuperAdmin();
-      
-      // Users can read their own admin status
-      allow get: if isAuthenticated() && request.auth.uid == userId;
+      allow get: if isAuthenticated() && (request.auth.uid == userId || isAuthorizedAdmin());
+      allow list: if isAuthenticated() && isAuthorizedAdmin();
     }
     
     // ============================================
-    // SECTION LOCKS COLLECTION (Data Integrity)
+    // CONNECTION TESTS
+    // ============================================
+    match /_connection_test/{document} {
+      allow read, write: if isAuthenticated() && isAuthorizedAdmin();
+    }
+    
+    // ============================================
+    // SECTION LOCKS COLLECTION
     // ============================================
     match /users/{userId}/sectionLocks/{lockId} {
-      // Users can read/write their own locks
-      allow read, write, create, update: if isAuthenticated() && request.auth.uid == userId;
-      
-      // Admins can manage any locks
-      allow read, write, create, update, delete: if isAuthenticated() && isAdmin();
+      allow read, write, create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isSuperAdmin());
     }
     
     // ============================================
     // USERS COLLECTION (PHI - Backend Only)
     // ============================================
     match /users/{userId} {
-      // Users can read their own data; admins can read all
       allow get: if isAuthenticated() && 
-        (request.auth.uid == userId || isAdmin());
-      
-      // BLOCK all client writes - must use Cloud Functions
-      allow create, update: if false;
-      
-      // List users - admin only
-      allow list: if isAuthenticated() && isAdmin();
+        (request.auth.uid == userId || isAdmin() || isSuperAdmin());
+      allow list: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+      allow create, update: if false; 
     }
     
     // ============================================
     // SESSIONS COLLECTION (PHI - Backend Only)
     // ============================================
     match /sessions/{sessionId} {
-      // Users can read their own sessions; admins can read all
-      allow get: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin());
-      
-      // BLOCK all client writes - must use Cloud Functions
+      allow get, list: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
       allow create, update, delete: if false;
-      
-      // List own sessions or admin
-      allow list: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin());
     }
     
     // ============================================
-    // SECURE PHONE DATA COLLECTION (Admin Only)
+    // SECURE PHONE DATA COLLECTION
     // ============================================
     match /securePhoneData/{userId} {
-      // Only admins can access encrypted phone data
-      allow read, write, create, update: if isAuthenticated() && isAdmin();
-      allow delete: if false; // Keep for audit trail
+      allow read, write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+      allow delete: if false;
     }
     
     // ============================================
-    // AUDIT LOGS (Backend Only, Admin Read)
+    // AUDIT LOGS
     // ============================================
     match /auditLogs/{logId} {
-      allow create: if false; // Only backend via Admin SDK
-      allow read: if isAuthenticated() && isAdmin();
+      allow read: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // ============================================
+    // CALCULATOR CONFIG (Public Read, Admin Write)
+    // ============================================
+    match /calculatorConfig/{docId} {
+      allow get: if docId == 'published';
+      allow create, update, delete: if isAuthenticated() && isAuthorizedAdmin();
+    }
+
+    match /calculatorConfigVersions/{versionId} {
+      allow read: if isAuthenticated() && isAuthorizedAdmin();
+      allow create: if isAuthenticated() && isAuthorizedAdmin();
       allow update, delete: if false;
     }
     
