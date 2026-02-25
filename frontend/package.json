@@ -7,9 +7,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --config vite.config.admin.js",
     "build": "vite build",
+    "build:admin": "vite build --config vite.config.admin.js",
     "build:gh-pages": "vite build --config vite.config.gh-pages.js && cd ../docs && mv index.gh-pages.html index.html && echo 'GitHub Pages build completed in ../docs directory'",
     "preview": "vite preview",
+    "preview:admin": "vite preview --config vite.config.admin.js",
     "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d ../docs"
   },
@@ -20,7 +23,9 @@
     "jspdf": "^4.2.0",
     "lucide-react": "^0.575.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-is": "^19.2.4",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
