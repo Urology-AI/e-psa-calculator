@@ -82,6 +82,10 @@ const ResultsPrint = ({ result, formData, onBack }) => {
       case 'LOWER': return '#27AE60';
       case 'MODERATE': return '#F39C12';
       case 'HIGHER': return '#E74C3C';
+      case 'low-risk': return '#27AE60';
+      case 'moderate-risk': return '#F39C12';
+      case 'high-risk': return '#D35400';
+      case 'very-high-risk': return '#E74C3C';
       default: return '#7F8C8D';
     }
   };
@@ -90,7 +94,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
   const isPart2 = result.riskPct !== undefined; // Part2 has riskPct, Part1 has score
   
   // Extract Part2 data if available
-  let riskPct = 0, riskCat = 'N/A', riskClass = 'N/A', totalPoints = 0, nextSteps = 'N/A';
+  let riskPct = 'N/A', riskCat = 'N/A', riskClass = 'N/A', totalPoints = 0, nextSteps = [];
   if (isPart2) {
     ({ riskPct, riskCat, riskClass, totalPoints, nextSteps } = result);
   }
@@ -224,10 +228,10 @@ const ResultsPrint = ({ result, formData, onBack }) => {
                 <div className="score-display">
                   <div className="score-label">CLINICAL RISK</div>
                   <div className="score-value" style={{ color: getRiskColor(riskClass) }}>
-                    {riskPct}%
+                    {riskPct}
                   </div>
                   <div className="risk-badge" style={{ background: getRiskColor(riskClass) }}>
-                    {riskClass}
+                    {String(riskCat || riskClass).replace(/[🟢🟡🟠🔴]/g, '').trim()}
                   </div>
                 </div>
               </div>
@@ -242,7 +246,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Next Steps:</span>
-                  <span className="detail-value">{nextSteps}</span>
+                  <span className="detail-value">{Array.isArray(nextSteps) && nextSteps.length ? nextSteps.join(' | ') : 'Discuss with physician'}</span>
                 </div>
               </div>
             </div>
@@ -339,6 +343,28 @@ const ResultsPrint = ({ result, formData, onBack }) => {
                 <span className="answer-value">{part1Data.shimTotal}/25</span>
               </div>
             </div>
+
+            {isPart2 && (
+              <div className="answer-category">
+                <h3>Part 2 Clinical Data</h3>
+                <div className="answer-item">
+                  <span className="answer-question">PSA (ng/mL):</span>
+                  <span className="answer-value">{formData.psa || 'Not answered'}</span>
+                </div>
+                <div className="answer-item">
+                  <span className="answer-question">Know PI-RADS:</span>
+                  <span className="answer-value">{formData.knowPirads ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="answer-item">
+                  <span className="answer-question">PI-RADS Score:</span>
+                  <span className="answer-value">{formData.knowPirads ? formData.pirads : 'N/A'}</span>
+                </div>
+                <div className="answer-item">
+                  <span className="answer-question">On hormonal therapy:</span>
+                  <span className="answer-value">{formData.onHormonalTherapy ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,7 +1,21 @@
 import React from 'react';
 import './ModelDocs.css';
+import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 
-const ModelDocs = ({ onClose }) => {
+const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
+  const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
+  const part1 = activeConfig.part1 || DEFAULT_CALCULATOR_CONFIG.part1;
+  const variables = part1.variables || [];
+
+  const getVar = (id) => variables.find(v => v.id === id) || {};
+  const pct = (value) => `${Math.round(Number(value) * 100)}%`;
+  const w = (id) => Number(getVar(id).weight ?? 0).toFixed(4);
+
+  const ageVar = getVar('age');
+  const bmiVar = getVar('bmi');
+  const ipssVar = getVar('ipssTotal');
+  const shimVar = getVar('shimTotal');
+
   return (
     <div className="model-docs-overlay">
       <div className="model-docs-container">
@@ -29,18 +43,21 @@ const ModelDocs = ({ onClose }) => {
             <h3>Model Formula</h3>
             <div className="formula-box">
               <code>
-                logit = -3.8347<br/>
-                &nbsp;&nbsp;+ 0.0454 × Age (years)<br/>
-                &nbsp;&nbsp;- 0.0253 × Race_Black (1=Black, 0=other)<br/>
-                &nbsp;&nbsp;+ 0.0195 × BMI (kg/m²)<br/>
-                &nbsp;&nbsp;- 0.0292 × IPSS (0–35)<br/>
-                &nbsp;&nbsp;- 0.5947 × Exercise (0=regular, 1=some, 2=none)<br/>
-                &nbsp;&nbsp;- 0.8911 × Family_History (1=yes, 0=no)<br/>
-                &nbsp;&nbsp;- 0.0358 × SHIM (1–25)
+                logit = {Number(part1.intercept ?? 0).toFixed(4)}<br/>
+                &nbsp;&nbsp;{Number(w('age')) >= 0 ? '+' : '-'} {Math.abs(Number(w('age'))).toFixed(4)} × Age (years)<br/>
+                &nbsp;&nbsp;{Number(w('raceBlack')) >= 0 ? '+' : '-'} {Math.abs(Number(w('raceBlack'))).toFixed(4)} × Race_Black (1=Black, 0=other)<br/>
+                &nbsp;&nbsp;{Number(w('bmi')) >= 0 ? '+' : '-'} {Math.abs(Number(w('bmi'))).toFixed(4)} × BMI (kg/m²)<br/>
+                &nbsp;&nbsp;{Number(w('ipssTotal')) >= 0 ? '+' : '-'} {Math.abs(Number(w('ipssTotal'))).toFixed(4)} × IPSS ({ipssVar.min ?? 0}–{ipssVar.max ?? 35})<br/>
+                &nbsp;&nbsp;{Number(w('exerciseCode')) >= 0 ? '+' : '-'} {Math.abs(Number(w('exerciseCode'))).toFixed(4)} × Exercise (0=regular, 1=some, 2=none)<br/>
+                &nbsp;&nbsp;{Number(w('fhBinary')) >= 0 ? '+' : '-'} {Math.abs(Number(w('fhBinary'))).toFixed(4)} × FH (1=yes, 0=no)<br/>
+                &nbsp;&nbsp;{Number(w('shimTotal')) >= 0 ? '+' : '-'} {Math.abs(Number(w('shimTotal'))).toFixed(4)} × SHIM ({shimVar.min ?? 0}–{shimVar.max ?? 25})
               </code>
             </div>
             <p className="formula-note">
               Probability = 1 / (1 + e<sup>-logit</sup>)
+            </p>
+            <p className="formula-note">
+              Active model version: <strong>{activeConfig.version || 'unknown'}</strong>
             </p>
           </section>
 
@@ -60,50 +77,50 @@ const ModelDocs = ({ onClose }) => {
                 <tr>
                   <td><strong>Age</strong></td>
                   <td>Continuous</td>
-                  <td>30–95 years</td>
-                  <td>+0.0454</td>
+                  <td>{ageVar.min ?? 18}–{ageVar.max ?? 120} years</td>
+                  <td>{Number(w('age')) >= 0 ? '+' : '-'}{Math.abs(Number(w('age'))).toFixed(4)}</td>
                   <td>Patient age in years. Higher age increases risk score.</td>
                 </tr>
                 <tr>
                   <td><strong>Race_Black</strong></td>
                   <td>Binary</td>
                   <td>0 or 1</td>
-                  <td>-0.0253</td>
+                  <td>{Number(w('raceBlack')) >= 0 ? '+' : '-'}{Math.abs(Number(w('raceBlack'))).toFixed(4)}</td>
                   <td>Backend encoding: 1 if Black/African American, 0 otherwise. UI still captures multiple race/ethnicity groups for patient-facing inclusivity.</td>
                 </tr>
                 <tr>
                   <td><strong>BMI</strong></td>
                   <td>Continuous</td>
-                  <td>Calculated</td>
-                  <td>+0.0195</td>
+                  <td>{bmiVar.min ?? 15}–{bmiVar.max ?? 60} kg/m²</td>
+                  <td>{Number(w('bmi')) >= 0 ? '+' : '-'}{Math.abs(Number(w('bmi'))).toFixed(4)}</td>
                   <td>Body Mass Index (kg/m²). Auto-calculated from height and weight. Higher BMI increases risk.</td>
                 </tr>
                 <tr>
                   <td><strong>IPSS</strong></td>
                   <td>Sum (7 items)</td>
-                  <td>0–35</td>
-                  <td>-0.0292</td>
+                  <td>{ipssVar.min ?? 0}–{ipssVar.max ?? 35}</td>
+                  <td>{Number(w('ipssTotal')) >= 0 ? '+' : '-'}{Math.abs(Number(w('ipssTotal'))).toFixed(4)}</td>
                   <td>International Prostate Symptom Score. Sum of 7 urinary symptom questions (0-5 each). Lower scores = fewer symptoms.</td>
                 </tr>
                 <tr>
                   <td><strong>SHIM</strong></td>
                   <td>Sum (5 items)</td>
-                  <td>1–25</td>
-                  <td>-0.0358</td>
+                  <td>{shimVar.min ?? 0}–{shimVar.max ?? 25}</td>
+                  <td>{Number(w('shimTotal')) >= 0 ? '+' : '-'}{Math.abs(Number(w('shimTotal'))).toFixed(4)}</td>
                   <td>Sexual Health Inventory for Men. Sum of 5 sexual function questions. Higher scores = better function.</td>
                 </tr>
                 <tr>
                   <td><strong>Exercise</strong></td>
                   <td>Ordinal</td>
                   <td>0, 1, 2</td>
-                  <td>-0.5947</td>
+                  <td>{Number(w('exerciseCode')) >= 0 ? '+' : '-'}{Math.abs(Number(w('exerciseCode'))).toFixed(4)}</td>
                   <td>0=Regular (3+ days/week), 1=Some (1-2 days/week), 2=None. No exercise increases risk.</td>
                 </tr>
                 <tr>
                   <td><strong>Family History</strong></td>
                   <td>Binary</td>
                   <td>0 or 1</td>
-                  <td>-0.8911</td>
+                  <td>{Number(w('fhBinary')) >= 0 ? '+' : '-'}{Math.abs(Number(w('fhBinary'))).toFixed(4)}</td>
                   <td>1 if any first-degree relative with prostate cancer, 0 otherwise. Family history significantly increases risk.</td>
                 </tr>
               </tbody>
@@ -115,25 +132,25 @@ const ModelDocs = ({ onClose }) => {
             <div className="tiers-grid">
               <div className="tier-card lower">
                 <h4>Lower Risk</h4>
-                <div className="tier-range">&lt; 8%</div>
+                <div className="tier-range">&lt; {pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)}</div>
                 <p>Continue routine screening as recommended for age group.</p>
                 <p className="tier-action">Action: Follow standard age-based screening guidelines.</p>
               </div>
               <div className="tier-card moderate">
                 <h4>Moderate Risk</h4>
-                <div className="tier-range">8% – 20%</div>
+                <div className="tier-range">{pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)} – {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
                 <p>Consider PSA blood testing for additional risk stratification.</p>
                 <p className="tier-action">Action: Discuss PSA blood test with your doctor.</p>
               </div>
               <div className="tier-card higher">
                 <h4>Higher Risk</h4>
-                <div className="tier-range">≥ 20%</div>
+                <div className="tier-range">≥ {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
                 <p>Elevated risk suggests need for comprehensive evaluation.</p>
                 <p className="tier-action">Action: Schedule PSA test and urology consultation.</p>
               </div>
             </div>
             <p className="confidence-note">
-              <strong>Displayed Range:</strong> A ±10% confidence interval is shown to patients 
+              <strong>Displayed Range:</strong> A ±10% uncertainty band is shown to patients 
               (e.g., score of 15% displays as "5%–25%") to acknowledge model uncertainty.
             </p>
           </section>

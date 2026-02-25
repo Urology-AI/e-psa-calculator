@@ -13,15 +13,28 @@ import {
   DownloadIcon
 } from 'lucide-react';
 
-const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMode, postData }) => {
+const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+  const combinedFormData = {
+    ...(preData || {}),
+    ...(postData || {}),
+    ipssTotal: preResult?.ipssTotal,
+    shimTotal: preResult?.shimTotal,
+    score: preResult?.score,
+    scoreRange: preResult?.scoreRange,
+    confidenceRange: preResult?.confidenceRange,
+    risk: preResult?.risk,
+    action: preResult?.action,
+    bmi: preResult?.bmi ?? preData?.bmi,
+    age: preResult?.age ?? preData?.age
+  };
 
   if (showResultsPrint) {
     return (
       <ResultsPrint 
         result={result} 
-        formData={preResult} 
+        formData={combinedFormData}
         onBack={() => setShowResultsPrint(false)} 
       />
     );
@@ -30,7 +43,7 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMo
   if (showPrintableForm) {
     return (
       <PrintableForm 
-        formData={{...preResult, ...postData}} 
+        formData={combinedFormData}
         onBack={() => setShowPrintableForm(false)} 
       />
     );
@@ -43,13 +56,24 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMo
     );
   }
 
-  const { riskPct, riskCat, riskClass, totalPoints, nextSteps } = result;
+  const {
+    riskPct,
+    riskCat,
+    riskClass,
+    totalPoints,
+    nextSteps,
+    prePoints,
+    psaPoints,
+    piradsPoints,
+    piradsOverridden
+  } = result;
 
   // Map risk class to color
   const getRiskColor = (riskClass) => {
-    if (riskClass.includes('low')) return RISK_COLORS.LOW;
-    if (riskClass.includes('moderate')) return RISK_COLORS["LOW-MOD"];
-    if (riskClass.includes('high') && !riskClass.includes('very')) return RISK_COLORS.MOD;
+    const cls = String(riskClass || '');
+    if (cls.includes('low')) return RISK_COLORS.LOW;
+    if (cls.includes('moderate')) return RISK_COLORS["LOW-MOD"];
+    if (cls.includes('high') && !cls.includes('very')) return RISK_COLORS.MOD;
     return RISK_COLORS.HIGH;
   };
 
@@ -87,7 +111,7 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMo
           RECOMMENDED NEXT STEPS
         </div>
         <ul className="rec-list">
-          {nextSteps.map((step, index) => {
+          {(nextSteps?.length ? nextSteps : ['Discuss these results with your physician and review PSA/MRI follow-up options.']).map((step, index) => {
             // Check for external links
             if (step.includes('Learn more about prostate cancer health')) {
               return (
@@ -133,6 +157,11 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMo
 
       <div className="summary-box">
         <div>Total Points: <strong>{totalPoints}</strong></div>
+        <div>Pre-score Points: <strong>{prePoints}</strong></div>
+        <div>PSA: <strong>{postData?.psa || 'N/A'} ng/mL</strong> ({psaPoints} pts)</div>
+        <div>
+          PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong> ({piradsPoints} pts{piradsOverridden ? ', override applied' : ''})
+        </div>
         {preResult && (
           <>
             <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
@@ -178,8 +207,10 @@ const Part2Results = ({ result, preResult, onEditAnswers, onStartOver, storageMo
                 version: '1.0',
                 exportDate: new Date().toISOString(),
                 part: 'complete',
-                part1Data: preResult,
-                part2Data: postData
+                part1Data: preData || {},
+                part1Result: preResult || {},
+                part2Data: postData || {},
+                part2Result: result || {}
               };
               const dataStr = JSON.stringify(exportData, null, 2);
               const dataBlob = new Blob([dataStr], { type: 'application/json' });

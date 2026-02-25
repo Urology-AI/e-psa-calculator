@@ -25,7 +25,7 @@ const PrintableForm = ({ onBack, formData }) => {
   // Helper function to get field value
   const getFieldValue = (fieldName, defaultValue = '') => {
     if (!formData) return defaultValue;
-    return formData[fieldName] || defaultValue;
+    return formData[fieldName] ?? defaultValue;
   };
 
   const handlePrint = async () => {
@@ -485,14 +485,14 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">12.</span> PSA Level (ng/mL):
-              <input type="text" className="field-input-small" placeholder="____" />
+              <input type="text" className="field-input-small" placeholder="____" value={getFieldValue('psa', '')} readOnly />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
               On hormonal therapy affecting PSA:
-              <label className="checkbox-inline"><input type="checkbox" /> Yes</label>
-              <label className="checkbox-inline"><input type="checkbox" /> No</label>
+              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('onHormonalTherapy', true)} readOnly /> Yes</label>
+              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('onHormonalTherapy', false)} readOnly /> No</label>
             </label>
           </div>
         </div>
@@ -501,9 +501,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               Medication:
-              <label className="checkbox-inline"><input type="checkbox" /> Finasteride</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Dutasteride</label>
-              <label className="checkbox-inline"><input type="checkbox" /> Other</label>
+              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'finasteride')} readOnly /> Finasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'dutasteride')} readOnly /> Dutasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'other')} readOnly /> Other</label>
             </label>
           </div>
         </div>
@@ -512,12 +512,12 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">13.</span> MRI PIRADS Score:
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="na" /> Not applicable</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="1" /> 1</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="2" /> 2</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="3" /> 3</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="4" /> 4</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="5" /> 5</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="na" checked={!getFieldValue('knowPirads', false)} readOnly /> Not applicable</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="1" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '1')} readOnly /> 1</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="2" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '2')} readOnly /> 2</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="3" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '3')} readOnly /> 3</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="4" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '4')} readOnly /> 4</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="5" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '5')} readOnly /> 5</label>
             </label>
           </div>
         </div>

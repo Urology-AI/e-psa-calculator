@@ -1,7 +1,25 @@
 import React from 'react';
 import './ModelDocs.css';
+import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 
-const RiskAssessmentDocs = ({ onClose }) => {
+const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
+  const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
+  const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
+  const validation = activeConfig.validation || DEFAULT_CALCULATOR_CONFIG.validation;
+  const preRanges = part2.preScoreToPoints?.ranges || [];
+  const psaPoints = part2.psaPoints || [];
+  const piradsPoints = part2.piradsPoints || [];
+  const piradsOverrides = part2.piradsOverrides || {};
+  const riskCategories = part2.riskCategories || [];
+
+  const pointsList = (items) => items.map((item) => item.points).join(', ');
+  const toPct = (value) => (typeof value === 'number' ? `${Math.round(value * 100)}%` : String(value));
+  const formatMax = (value) => (value === Infinity ? '∞' : value);
+
+  const piradsOverrideEntries = Object.entries(piradsOverrides)
+    .map(([score, data]) => ({ score: Number(score), ...data }))
+    .sort((a, b) => a.score - b.score);
+
   return (
     <div className="model-docs-overlay">
       <div className="model-docs-container">
@@ -30,13 +48,17 @@ const RiskAssessmentDocs = ({ onClose }) => {
               <code>
                 <strong>Stage 1 Score:</strong> ePSA baseline (0-100%)<br/><br/>
                 <strong>Stage 2 Adjustments:</strong><br/>
-                &nbsp;&nbsp;+ PSA points (0, 5, 10, 20, or 40)<br/>
-                &nbsp;&nbsp;+ PIRADS points (0 or 10, or override for PIRADS 4/5)<br/><br/>
+                &nbsp;&nbsp;+ Baseline carry points ({part2.baselineCarryPoints})<br/>
+                &nbsp;&nbsp;+ PSA points ({pointsList(psaPoints)})<br/>
+                &nbsp;&nbsp;+ PIRADS points ({pointsList(piradsPoints)}, or override for PIRADS {piradsOverrideEntries.map((x) => x.score).join('/')})<br/><br/>
                 <strong>Total Points → Risk Category</strong>
               </code>
             </div>
             <p className="formula-note">
-              PIRADS 4 → 52% risk | PIRADS 5 → 89% risk (automatic high-risk)
+              {piradsOverrideEntries.map((entry) => `PIRADS ${entry.score} → ${entry.riskPct} risk`).join(' | ')} (automatic override)
+            </p>
+            <p className="formula-note">
+              Active model version: <strong>{activeConfig.version || 'unknown'}</strong>
             </p>
           </section>
 
@@ -56,22 +78,22 @@ const RiskAssessmentDocs = ({ onClose }) => {
                 <tr>
                   <td><strong>PSA Level</strong></td>
                   <td>Continuous</td>
-                  <td>0.1-100+ ng/mL</td>
-                  <td>0-40</td>
+                  <td>{validation.minPSA ?? 0}–{validation.maxPSA ?? 1000} ng/mL</td>
+                  <td>{pointsList(psaPoints)}</td>
                   <td>Prostate-Specific Antigen blood test. Higher levels increase risk score. Note: 5-alpha reductase inhibitors (finasteride/dutasteride) can lower PSA by ~50%.</td>
                 </tr>
                 <tr>
                   <td><strong>PI-RADS Score</strong></td>
                   <td>Ordinal</td>
                   <td>1-5 or N/A</td>
-                  <td>0-10 or override</td>
-                  <td>MRI-based lesion assessment. Scores 4-5 trigger automatic high-risk classification regardless of other factors.</td>
+                  <td>{pointsList(piradsPoints)} or override</td>
+                  <td>MRI-based lesion assessment. Scores {piradsOverrideEntries.map((x) => x.score).join('/')} trigger automatic override regardless of other factors.</td>
                 </tr>
                 <tr>
                   <td><strong>Stage 1 Baseline</strong></td>
                   <td>Percentage</td>
                   <td>0-100%</td>
-                  <td>0-160+</td>
+                  <td>Piecewise from config ({preRanges.length} ranges)</td>
                   <td>Converted from Stage 1 ePSA probability score to points scale.</td>
                 </tr>
               </tbody>
@@ -81,42 +103,35 @@ const RiskAssessmentDocs = ({ onClose }) => {
           <section className="docs-section">
             <h3>Risk Categories & Next Steps</h3>
             <div className="tiers-grid">
-              <div className="tier-card lower">
-                <h4>Low Risk (0-40 points)</h4>
-                <div className="tier-range">0–10% probability</div>
-                <p className="tier-action">
-                  Continue routine screening. Focus on healthy lifestyle.
-                </p>
-              </div>
-              <div className="tier-card moderate">
-                <h4>Moderate Risk (41-80 points)</h4>
-                <div className="tier-range">10–20% probability</div>
-                <p className="tier-action">
-                  Consider PSA testing. Discuss with your doctor, especially if age 50+.
-                </p>
-              </div>
-              <div className="tier-card higher">
-                <h4>High Risk (81-120 points)</h4>
-                <div className="tier-range">20–40% probability</div>
-                <p className="tier-action">
-                  Schedule urology consultation. Consider MRI if PSA elevated.
-                </p>
-              </div>
-              <div className="tier-card" style={{borderColor: '#8B0000', background: '#FFF5F5'}}>
-                <h4>Very High Risk (&gt;120 points)</h4>
-                <div className="tier-range">40–70% probability</div>
-                <p className="tier-action">
-                  Prompt urology referral. PSA + MRI + possible biopsy recommended.
-                </p>
-              </div>
+              {riskCategories.map((category, index) => {
+                const prevMax = index > 0 ? riskCategories[index - 1].maxPoints : 0;
+                const pointsLabel = index === 0
+                  ? `0-${formatMax(category.maxPoints)} points`
+                  : category.maxPoints === Infinity
+                    ? `>${prevMax} points`
+                    : `${prevMax + 1}-${category.maxPoints} points`;
+                const name = String(category.riskCat || '').replace(/[🟢🟡🟠🔴]/g, '').trim();
+                return (
+                  <div key={`${name}-${index}`} className="tier-card">
+                    <h4>{name} ({pointsLabel})</h4>
+                    <div className="tier-range">{toPct(category.riskPct)} probability</div>
+                    <p className="tier-action">
+                      Category determined dynamically from total points.
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
           <section className="docs-section">
             <h3>PI-RADS Override Logic</h3>
             <div className="info-box info">
-              <p><strong>PI-RADS 4:</strong> Automatically sets risk to <strong>52% (43–61%)</strong></p>
-              <p><strong>PI-RADS 5:</strong> Automatically sets risk to <strong>89% (76–97%)</strong></p>
+              {piradsOverrideEntries.map((entry) => (
+                <p key={`pirads-override-${entry.score}`}>
+                  <strong>PI-RADS {entry.score}:</strong> Automatically sets risk to <strong>{entry.riskPct}</strong>
+                </p>
+              ))}
               <p style={{marginTop: '10px'}}>
                 This override reflects that MRI-detected suspicious lesions are strong independent 
                 predictors of clinically significant prostate cancer.
