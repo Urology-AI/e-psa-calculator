@@ -36,9 +36,13 @@ const isFirebaseConfigured = () => {
 const requiredFields = ['apiKey', 'projectId', 'appId'];
 const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
 
+const isDev = import.meta.env.DEV;
+
 if (!isFirebaseConfigured()) {
   if (isGitHubPages || isFirebaseDisabled) {
-    console.log('Firebase is disabled for GitHub Pages demo');
+    if (isDev) {
+      console.log('Firebase is disabled for GitHub Pages demo');
+    }
   } else {
     const errorMessage = `Firebase configuration is missing required values: ${missingFields.join(', ')}. ` +
       `Please set environment variables (see .env.example) or configure GitHub Secrets for deployment.`;
@@ -64,10 +68,14 @@ if (isFirebaseConfigured()) {
   // Disable reCAPTCHA for development when using emulator
   if (window.location.hostname === 'localhost' && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true') {
     app.automaticDataCollectionEnabled = false;
-    console.log('🚫 Automatic data collection disabled for emulator testing');
+    if (isDev) {
+      console.log('🚫 Automatic data collection disabled for emulator testing');
+    }
   }
 } else {
-  console.log('Firebase is not initialized - running in demo mode');
+  if (isDev) {
+    console.log('Firebase is not initialized - running in demo mode');
+  }
   // Set services to undefined for demo mode
   app = undefined;
   auth = undefined;
@@ -89,19 +97,27 @@ if (isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true' && auth) {
   
   try {
     connectAuthEmulator(auth, 'http://localhost:9099');
-    console.log('🔧 Using Firebase Auth Emulator (http://localhost:9099)');
+    if (isDev) {
+      console.log('🔧 Using Firebase Auth Emulator (http://localhost:9099)');
+    }
   } catch (error) {
     console.error('Failed to connect to Auth Emulator:', error);
-    console.log('Falling back to production auth (reCAPTCHA will be shown)');
+    if (isDev) {
+      console.log('Falling back to production auth (reCAPTCHA will be shown)');
+    }
   }
 } else if (auth) {
-  console.log('Using production Firebase auth (reCAPTCHA enabled)');
+  if (isDev) {
+    console.log('Using production Firebase auth (reCAPTCHA enabled)');
+  }
 }
 
 // Use Firebase Functions Emulator for local development
 if (isLocalhost && import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true' && functions) {
   connectFunctionsEmulator(functions, 'http://localhost:5001');
-  console.log('🔧 Using Firebase Functions Emulator (http://localhost:5001)');
+  if (isDev) {
+    console.log('🔧 Using Firebase Functions Emulator (http://localhost:5001)');
+  }
 }
 
 // Export Firebase services (will be undefined if not configured)

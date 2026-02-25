@@ -14,9 +14,8 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import GlobalBackButton from './components/GlobalBackButton.jsx';
 
-// Import utilities (no Firebase dependencies)
-import { calculateEPsa } from './utils/epsaCalculator';
-import { calculateEPsaPost } from './utils/epsaPostCalculator';
+// Import unified calculator utilities (no Firebase dependencies)
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
 
 const App = () => {
   const [authStep, setAuthStep] = useState('welcome');
@@ -29,6 +28,8 @@ const App = () => {
   const [postData, setPostData] = useState({});
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+
+  const [calculatorConfig] = useState(() => getCalculatorConfig());
 
   // Handle local file import
   const handleLocalImport = (event) => {
@@ -43,7 +44,7 @@ const App = () => {
           if (importedData.version && importedData.formData) {
             if (importedData.part === 'part1') {
               setPreData(importedData.formData);
-              const result = calculateEPsa(importedData.formData);
+              const result = calculateDynamicEPsa(importedData.formData, calculatorConfig);
               setPreResult(result);
               setAuthStep('app');
               setStage('pre');
@@ -52,10 +53,10 @@ const App = () => {
             } else if (importedData.part === 'complete') {
               setPreData(importedData.part1Data);
               setPostData(importedData.part2Data || {});
-              const part1Result = calculateEPsa(importedData.part1Data);
+              const part1Result = calculateDynamicEPsa(importedData.part1Data, calculatorConfig);
               setPreResult(part1Result);
               if (importedData.part2Data) {
-                const part2Result = calculateEPsaPost(part1Result, importedData.part2Data);
+                const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
                 setPostResult(part2Result);
               }
               setAuthStep('app');
@@ -65,7 +66,7 @@ const App = () => {
           } else {
             // Legacy format
             setPreData(importedData);
-            const result = calculateEPsa(importedData);
+            const result = calculateDynamicEPsa(importedData, calculatorConfig);
             setPreResult(result);
             setAuthStep('app');
             setStage('pre');
@@ -92,15 +93,15 @@ const App = () => {
     } else {
       // Calculate Part1 results
       try {
-        const result = calculateEPsa(updatedData);
+        const result = calculateDynamicEPsa(updatedData, calculatorConfig);
         if (result) {
           setPreResult(result);
         } else {
-          console.error('calculateEPsa returned null/undefined');
+          console.error('calculateDynamicEPsa returned null/undefined');
           setPreResult({ error: 'Calculation failed' });
         }
       } catch (error) {
-        console.error('Error in calculateEPsa:', error);
+        console.error('Error in calculateDynamicEPsa:', error);
         setPreResult({ error: 'Calculation failed' });
       }
       setCurrentStep(3);
@@ -116,7 +117,7 @@ const App = () => {
       setCurrentStep(currentStep + 1);
     } else {
       // Calculate Part2 results
-      const result = calculateEPsaPost(preResult, updatedData);
+      const result = calculateDynamicEPsaPost(preResult, updatedData, calculatorConfig);
       setPostResult(result);
       setCurrentStep(3);
     }

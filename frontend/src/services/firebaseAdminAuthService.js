@@ -6,7 +6,6 @@
 import { adminDb } from '../config/adminFirebase';
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { adminAuth } from '../config/adminFirebase';
-import { getIdToken } from 'firebase/auth';
 
 export class FirebaseAdminAuthService {
   constructor() {
@@ -54,7 +53,7 @@ export class FirebaseAdminAuthService {
       return {
         authorized: false,
         source: 'not_found',
-        error: 'Admin user not found in admin_users collection and no admin custom claims'
+        error: 'Admin user not found in admins collection and no admin custom claims'
       };
       
     } catch (error) {

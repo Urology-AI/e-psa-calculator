@@ -11,6 +11,13 @@ export default defineConfig({
   server: {
     port: 3001,
     host: true,
+    fs: {
+      allow: [
+        resolve(__dirname, '..'),
+        resolve(__dirname, '../frontend'),
+        resolve(__dirname, '../frontend/src'),
+      ],
+    },
   },
   preview: {
     port: 3002,
@@ -19,6 +26,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@frontend': resolve(__dirname, '../frontend/src'),
     },
   },
 })
