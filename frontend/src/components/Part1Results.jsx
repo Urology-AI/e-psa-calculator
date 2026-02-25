@@ -8,6 +8,7 @@ import {
   RefreshCwIcon, 
   PrinterIcon, 
   FileTextIcon, 
+  DownloadIcon,
   CloudIcon,
   HardDriveIcon
 } from 'lucide-react';
