@@ -99,16 +99,16 @@ const ResultsPrint = ({ result, formData, onBack }) => {
     bmi: formData.bmi || 0,
     age: formData.age || 0
   } : {
-    score,
-    scoreRange,
-    confidenceRange,
-    risk,
-    color: getRiskColor(risk),
-    action,
-    ipssTotal,
-    shimTotal,
-    bmi,
-    age
+    score: result.score || 0,
+    scoreRange: result.scoreRange || 'N/A',
+    confidenceRange: result.confidenceRange || 'N/A',
+    risk: result.risk || 'N/A',
+    color: getRiskColor(result.risk || 'N/A'),
+    action: result.action || 'N/A',
+    ipssTotal: formData.ipssTotal || 0,
+    shimTotal: formData.shimTotal || 0,
+    bmi: formData.bmi || 0,
+    age: formData.age || 0
   };
 
   const getRiskColor = (risk) => {
