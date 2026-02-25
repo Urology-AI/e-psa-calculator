@@ -274,7 +274,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       
       <div className="form-navigation">
         <div className="form-navigation-inner">
-          {currentStep > 1 && (
+          {typeof onBack === 'function' && (
             <button className="btn-back" onClick={onBack}>
               ← Back
             </button>
