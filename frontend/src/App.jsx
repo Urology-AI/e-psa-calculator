@@ -15,6 +15,7 @@ import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
+import GlobalBackButton from './components/GlobalBackButton.jsx';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 import { useSectionLocks } from './hooks/useSectionLocks';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
@@ -720,7 +721,11 @@ function App() {
           setCurrentStep(1);
         }
       } else if (stage === 'post') {
-        if (currentStep === 1) {
+        if (currentStep === 0) {
+          // From Stage 2 welcome, go back to Part 1 results
+          setCurrentStep(3);
+          setStage('pre');
+        } else if (currentStep === 1) {
           // From Part2Form, go back to Part1Results
           setCurrentStep(3);
           setStage('pre');
@@ -738,11 +743,11 @@ function App() {
         case 'import':
           setAuthStep('storage');
           break;
-        case 'phone':
-          setAuthStep('import');
+        case 'login':
+          setAuthStep('storage');
           break;
         case 'consent':
-          setAuthStep('phone');
+          setAuthStep('login');
           break;
         case 'welcome':
         default:
@@ -949,6 +954,7 @@ function App() {
   return (
     <div className="App">
       <div className="container">
+        <GlobalBackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
             <img 
