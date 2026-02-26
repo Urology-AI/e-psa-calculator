@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import './DataImportScreen.css';
-import { ArrowLeftIcon, UploadIcon, FileTextIcon, DatabaseIcon } from 'lucide-react';
+import { ArrowLeftIcon, UploadIcon, FileTextIcon, DatabaseIcon, KeyIcon } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 const DataImportScreen = ({ onBack, onImportSuccess }) => {
   const [dragActive, setDragActive] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [loadingSession, setLoadingSession] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -79,6 +83,51 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
     }
   };
 
+  const handleSessionLogin = async (e) => {
+    e.preventDefault();
+    setLoadingSession(true);
+    setError('');
+
+    try {
+      // Validate session ID format (8 characters, alphanumeric)
+      if (!sessionId || !/^[A-Z0-9]{8}$/.test(sessionId.toUpperCase())) {
+        throw new Error('Please enter a valid 8-character Session ID (letters and numbers only)');
+      }
+
+      // Look up session in Firestore
+      const sessionDoc = await getDoc(doc(db, 'users', sessionId.toUpperCase()));
+      if (!sessionDoc.exists()) {
+        throw new Error('Session ID not found. Please check your Session ID and try again.');
+      }
+
+      const sessionData = sessionDoc.data();
+      if (!sessionData.isAnonymous) {
+        throw new Error('This Session ID is not for an anonymous session.');
+      }
+
+      // Create mock user object for anonymous session
+      const mockUser = {
+        uid: sessionId.toUpperCase(),
+        isAnonymous: true,
+        sessionId: sessionId.toUpperCase(),
+        ...sessionData
+      };
+
+      // Trigger success callback with session data
+      onImportSuccess({
+        sessionId: sessionId.toUpperCase(),
+        authMethod: 'anonymous',
+        existingSession: true,
+        userData: sessionData
+      }, 'session');
+
+    } catch (err) {
+      setError(err.message || 'Failed to load session. Please try again.');
+    } finally {
+      setLoadingSession(false);
+    }
+  };
+
   return (
     <div className="import-container">
       <div className="import-header">
@@ -91,6 +140,38 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
       </div>
 
       <div className="import-methods">
+        {/* Session ID Login */}
+        <div className="import-section">
+          <h3>
+            <KeyIcon size={20} />
+            Login with Session ID
+          </h3>
+          <p>Enter your 8-character Session ID to continue your anonymous assessment</p>
+          
+          <form onSubmit={handleSessionLogin} className="session-login-form">
+            <div className="session-input-group">
+              <input
+                type="text"
+                value={sessionId}
+                onChange={(e) => setSessionId(e.target.value.toUpperCase())}
+                placeholder="A1B2C3D4"
+                className="session-input"
+                maxLength={8}
+                style={{ textTransform: 'uppercase' }}
+              />
+              <button 
+                type="submit" 
+                disabled={loadingSession || sessionId.length !== 8}
+                className="session-login-btn"
+              >
+                {loadingSession ? 'Loading...' : 'Login'}
+              </button>
+            </div>
+            {error && <div className="import-error">{error}</div>}
+          </form>
+        </div>
+
+        {/* File Upload */}
         <div className="import-section">
           <h3>
             <FileTextIcon size={20} />

@@ -3,11 +3,12 @@ import './ConsentScreen.css';
 import { 
   ShieldIcon, 
   SmartphoneIcon, 
+  MailIcon,
   CalendarIcon, 
   HospitalIcon 
 } from 'lucide-react';
 
-const ConsentScreen = ({ phone, onConsentComplete }) => {
+const ConsentScreen = ({ phone, email, onConsentComplete }) => {
   const [consent, setConsent] = useState(null);
   const [error, setError] = useState('');
 
@@ -27,13 +28,16 @@ const ConsentScreen = ({ phone, onConsentComplete }) => {
     onConsentComplete(consentData);
   };
 
+  const contactInfo = email || phone;
+  const isEmail = !!email;
+
   return (
     <div className="consent-container">
       <div className="consent-card">
         <div className="consent-header">
           <h2>Follow-Up Communication Consent</h2>
           <p className="consent-intro">
-            Your phone number <strong>{phone}</strong> will be used for:
+            Your {isEmail ? 'email address' : 'phone number'} <strong>{contactInfo}</strong> will be used for:
           </p>
         </div>
 
@@ -44,7 +48,7 @@ const ConsentScreen = ({ phone, onConsentComplete }) => {
               Account login and verification
             </li>
             <li>
-              <SmartphoneIcon size={16} />
+              {isEmail ? <MailIcon size={16} /> : <SmartphoneIcon size={16} />}
               Screening results follow-up
             </li>
             <li>

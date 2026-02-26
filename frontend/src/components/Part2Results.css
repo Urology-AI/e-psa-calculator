@@ -35,6 +35,21 @@
   margin-bottom: 16px;
 }
 
+.session-id-display {
+  background: #F8FAFB;
+  border: 1px solid #E8ECF0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #5D6D7E;
+  margin: 8px 0;
+}
+
+.session-id-display strong {
+  color: #00578B;
+  font-family: 'Courier New', monospace;
+}
+
 .score-label {
   font-size: 13px;
   color: #7F8C8D;
