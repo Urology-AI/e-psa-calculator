@@ -14,7 +14,7 @@ import {
   HardDriveIcon
 } from 'lucide-react';
 
-const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false, sessionId = null }) => {
+const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false, sessionId = null, userEmail = null, userPhone = null }) => {
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const handleExportCsv = () => {
@@ -38,6 +38,8 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         result={result} 
         formData={formData} 
         sessionId={sessionId}
+        userEmail={userEmail}
+        userPhone={userPhone}
         onBack={() => setShowResultsPrint(false)} 
       />
     );
@@ -224,7 +226,12 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
                   version: '1.0',
                   exportDate: new Date().toISOString(),
                   part: 'part1',
-                  formData: formData
+                  formData: formData,
+                  userInfo: {
+                    email: userEmail || null,
+                    phone: userPhone || null,
+                    sessionId: sessionId || null
+                  }
                 };
                 const dataStr = JSON.stringify(exportData, null, 2);
                 const dataBlob = new Blob([dataStr], { type: 'application/json' });

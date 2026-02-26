@@ -4,7 +4,7 @@ import jsPDF from 'jspdf';
 import './ResultsPrint.css';
 import { downloadCsv, buildPart1CsvRows, buildPart2CsvRows } from '../utils/exportCsv';
 
-const ResultsPrint = ({ result, formData, onBack, sessionId = null }) => {
+const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = null, userPhone = null }) => {
   const resultsRef = useRef(null);
 
   const handleExportCsv = () => {

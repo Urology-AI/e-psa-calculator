@@ -89,6 +89,13 @@ body {
   color: #00578B;
   font-weight: 600;
   font-family: 'Courier New', monospace;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.user-session:hover {
+  color: #004a75;
 }
 
 .logo {

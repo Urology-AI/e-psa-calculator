@@ -14,8 +14,7 @@ import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
-import ModelDocs from './components/ModelDocs.jsx';
-import GlobalBackButton from './components/GlobalBackButton.jsx';
+import ProfileManager from './components/ProfileManager.jsx';
 import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -38,6 +37,7 @@ function App() {
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [appSessionId, setAppSessionId] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
   
   // Detect email from URL params for unique links
   const [urlEmail, setUrlEmail] = useState(null);
@@ -397,7 +397,41 @@ function App() {
     }
   };
 
-  const handleImportSuccess = (importedData, importType) => {
+  const createNewAnonymousSession = async () => {
+    // Generate new session ID
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let newSessionId = '';
+    for (let i = 0; i < 8; i++) {
+      newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setAppSessionId(newSessionId);
+    const mockUser = {
+      uid: newSessionId,
+      isAnonymous: true,
+      sessionId: newSessionId
+    };
+    setUser(mockUser);
+    console.log('Created new anonymous session:', newSessionId);
+  };
+
+  const promptUserForAuthChoice = async () => {
+    const choice = confirm(
+      'No user identification found in imported data.\n\n' +
+      'Choose your authentication method:\n' +
+      'Click OK for Email/Phone authentication\n' +
+      'Click Cancel for Anonymous session'
+    );
+    
+    if (choice) {
+      // User wants email/phone auth - go to auth screen
+      setAuthStep('login');
+    } else {
+      // User wants anonymous session
+      await createNewAnonymousSession();
+    }
+  };
+
+  const handleImportSuccess = async (importedData, importType) => {
     console.log('Import successful:', importType, importedData);
     
     if (importType === 'session') {
@@ -432,6 +466,95 @@ function App() {
     
     // Handle file import (JSON or PDF)
     let dataToImport, targetStage = 'pre';
+    
+    // Check for user info in imported data
+    if (importedData.userInfo) {
+      const { email, phone, sessionId: importedSessionId } = importedData.userInfo;
+      
+      if (email) {
+        // Check if email user exists in Firebase
+        console.log('Import contains email:', email);
+        try {
+          // Query Firebase for user by email (this would need to be implemented)
+          // For now, we'll assume we found the user and proceed
+          const confirmMessage = `Found existing session for email: ${email}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
+          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
+          
+          if (userChoice) {
+            // Link to existing email session
+            setUserEmail(email);
+            // Create mock user for email session
+            const mockUser = {
+              uid: email,
+              email: email,
+              isAnonymous: false
+            };
+            setUser(mockUser);
+          } else {
+            // Create new anonymous session
+            await createNewAnonymousSession();
+          }
+        } catch (error) {
+          console.log('Email user not found, creating new session');
+          await createNewAnonymousSession();
+        }
+      } else if (phone) {
+        // Check if phone user exists in Firebase
+        console.log('Import contains phone:', phone);
+        try {
+          const confirmMessage = `Found existing session for phone: ${phone}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
+          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
+          
+          if (userChoice) {
+            // Link to existing phone session
+            setUserPhone(phone);
+            // Create mock user for phone session
+            const mockUser = {
+              uid: phone,
+              phoneNumber: phone,
+              isAnonymous: false
+            };
+            setUser(mockUser);
+          } else {
+            // Create new anonymous session
+            await createNewAnonymousSession();
+          }
+        } catch (error) {
+          console.log('Phone user not found, creating new session');
+          await createNewAnonymousSession();
+        }
+      } else if (importedSessionId) {
+        // Check if session ID exists in Firebase
+        console.log('Import contains session ID:', importedSessionId);
+        try {
+          const confirmMessage = `Found existing anonymous session: ${importedSessionId}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
+          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
+          
+          if (userChoice) {
+            // Link to existing session
+            setAppSessionId(importedSessionId);
+            const mockUser = {
+              uid: importedSessionId,
+              isAnonymous: true,
+              sessionId: importedSessionId
+            };
+            setUser(mockUser);
+          } else {
+            // Create new anonymous session
+            await createNewAnonymousSession();
+          }
+        } catch (error) {
+          console.log('Session ID not found, creating new session');
+          await createNewAnonymousSession();
+        }
+      } else {
+        // No user info - prompt for choice
+        await promptUserForAuthChoice();
+      }
+    } else {
+      // No user info in import - prompt for choice
+      await promptUserForAuthChoice();
+    }
     
     // Handle new export format
     if (importedData.version && importedData.formData) {
@@ -905,6 +1028,8 @@ function App() {
                 formData={preData}
                 storageMode={storageMode}
                 sessionId={appSessionId}
+                userEmail={userEmail}
+                userPhone={userPhone}
                 onEditAnswers={() => {
                   setPart1Step(0);
                   setCurrentStep(1);
@@ -994,6 +1119,8 @@ function App() {
                 postData={postData}
                 storageMode={storageMode}
                 sessionId={appSessionId}
+                userEmail={userEmail}
+                userPhone={userPhone}
                 onEditAnswers={() => {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1054,13 +1181,11 @@ function App() {
             {user && (
               <div className="user-info">
                 <div className="user-identifier">
-                  {userEmail ? (
-                    <span className="user-email">{userEmail}</span>
-                  ) : userPhone ? (
-                    <span className="user-phone">{userPhone}</span>
-                  ) : appSessionId ? (
-                    <span className="user-session">Session: {appSessionId}</span>
-                  ) : null}
+                  {appSessionId && (
+                    <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
+                      Session: {appSessionId}
+                    </span>
+                  )}
                 </div>
                 <button onClick={handleLogout} className="btn-logout">
                   Logout
@@ -1070,19 +1195,24 @@ function App() {
           </div>
         </header>
 
-        {/* Part1Form handles its own navigation */}
-
-        {/* Part2Form handles its own navigation */}
-
         {authStep !== 'app' ? renderAuthScreen() : (
           <>
-            {stage === 'pre' && renderPreStage()}
-            {stage === 'post' && renderPostStage()}
+            {showProfile && (
+              <ProfileManager 
+                sessionId={appSessionId} 
+                onProfileUpdate={(updatedData) => {
+                  setUserEmail(updatedData.email);
+                  setUserPhone(updatedData.phone);
+                }}
+              />
+            )}
+            
+            {/* Part1Form handles its own navigation */}
+            {/* Part2Form handles its own navigation */}
+            {renderAppContent()}
           </>
         )}
       </div>
-      
-      {showModelDocs && <ModelDocs config={calculatorConfig} onClose={() => setShowModelDocs(false)} />}
     </div>
   );
 }
