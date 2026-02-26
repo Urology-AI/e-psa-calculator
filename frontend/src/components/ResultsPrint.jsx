@@ -103,7 +103,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
   const part1Data = isPart2 ? {
     score: formData.score || 0,
     scoreRange: formData.scoreRange || 'N/A',
-    confidenceRange: formData.confidenceRange || 'N/A',
+    displayRange: formData.displayRange || formData.confidenceRange || 'N/A',
     risk: formData.risk || 'N/A',
     color: getRiskColor(formData.risk),
     action: formData.action || 'N/A',
@@ -114,7 +114,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
   } : {
     score: result.score || 0,
     scoreRange: result.scoreRange || 'N/A',
-    confidenceRange: result.confidenceRange || 'N/A',
+    displayRange: result.displayRange || result.confidenceRange || 'N/A',
     risk: result.risk || 'N/A',
     color: getRiskColor(result.risk || 'N/A'),
     action: result.action || 'N/A',
@@ -157,7 +157,7 @@ const ResultsPrint = ({ result, formData, onBack }) => {
         <div className="print-header">
           <div className="print-logo">ePSA</div>
           <div className="print-title">Prostate-Specific Awareness — Results</div>
-          <div className="print-subtitle">Educational Risk Assessment Results</div>
+          <div className="print-subtitle">A Non-Validated Educational Risk Tool</div>
           <div className="print-date">
             Generated: {new Date().toLocaleDateString('en-US', { 
               year: 'numeric', 
@@ -194,8 +194,8 @@ const ResultsPrint = ({ result, formData, onBack }) => {
               <span className="detail-value">{part1Data.scoreRange}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Confidence Range (±10%):</span>
-              <span className="detail-value">{part1Data.confidenceRange}</span>
+              <span className="detail-label">Display Range:</span>
+              <span className="detail-value">{part1Data.displayRange}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Age:</span>
@@ -223,10 +223,10 @@ const ResultsPrint = ({ result, formData, onBack }) => {
           {/* Part2 Results - if available */}
           {isPart2 && (
             <div className="part2-results-section">
-              <h3>Part 2: Clinical Risk Assessment</h3>
+              <h3>Part 2: Educational Summary (PSA / MRI Context)</h3>
               <div className="result-score-card">
                 <div className="score-display">
-                  <div className="score-label">CLINICAL RISK</div>
+                  <div className="score-label">EDUCATIONAL CATEGORY</div>
                   <div className="score-value" style={{ color: getRiskColor(riskClass) }}>
                     {riskPct}
                   </div>
@@ -367,11 +367,8 @@ const ResultsPrint = ({ result, formData, onBack }) => {
         {/* Footer */}
         <div className="print-footer">
           <div className="footer-disclaimer">
-            <p><strong>Important Disclaimer:</strong> The ePSA (Prostate-Specific Awareness) tool is an educational 
-            resource designed to raise awareness about prostate cancer risk factors. It is not a diagnostic tool 
-            and should not be used as a substitute for professional medical advice, diagnosis, or treatment.</p>
-            <p>Please consult with a qualified healthcare provider for any medical concerns or before making 
-            any decisions related to your health.</p>
+            <p><strong>Important Disclaimer:</strong> This is a Non-Validated Educational Risk Tool. It is not medical advice, not diagnostic, and not intended to guide treatment decisions. PSA and MRI decisions (including whether to repeat PSA, order MRI, or consider biopsy) depend on individual factors and should be made with a qualified healthcare professional.</p>
+            <p>Please consult with a qualified healthcare provider for any medical concerns or before making any decisions related to your health.</p>
           </div>
           <div className="footer-info">
             <p>Million Strong Men — ePSA Tool</p>

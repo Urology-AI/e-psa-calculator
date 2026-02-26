@@ -16,6 +16,9 @@ import {
 const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+  const footerDisclaimerText =
+    'This is a Non-Validated Educational Risk Tool and is not medical advice. PSA and MRI decisions (including whether to repeat PSA, order MRI, or consider biopsy) depend on individual factors and should be made with a qualified healthcare professional.';
+
   const combinedFormData = {
     ...(preData || {}),
     ...(postData || {}),
@@ -52,6 +55,9 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     return (
       <div className="part2-results-container">
         <p>No results available.</p>
+        <div className="summary-box">
+          <div style={{ fontSize: '13px', color: '#666' }}>{footerDisclaimerText}</div>
+        </div>
       </div>
     );
   }
@@ -67,6 +73,18 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     piradsPoints,
     piradsOverridden
   } = result;
+
+  const part2RiskExplanationText =
+    'Part 2 combines your Part 1 result with PSA information (and optional MRI PI-RADS) to create an educational summary. It is not a diagnosis and should not be used to make decisions on its own. PSA and MRI findings often require careful interpretation (including PSA trends over time, prostate size, infections/inflammation, and medications).';
+
+  const pointsExplanationText =
+    'Points are used only to organize inputs (baseline estimate + PSA range + optional MRI category) into a simple educational category. Points are not a clinical scale and are not meant to imply exact probabilities or certainty.';
+
+  const piradsExplanationTextProvided =
+    'PI-RADS is an MRI reporting category that can meaningfully change how risk is interpreted. When a PI-RADS value is provided, the tool may adjust the category to reflect typical patterns seen with MRI findings. This is an educational simplification and should be reviewed with the clinician who ordered or interpreted your MRI.';
+
+  const piradsExplanationTextNotProvided =
+    'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.';
 
   // Map risk class to color
   const getRiskColor = (riskClass) => {
@@ -84,10 +102,11 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       <div className="results-header">
         <div className="results-logo">ePSA</div>
         <div className="results-subtitle">Risk Assessment — Results</div>
+        <div className="results-subtitle">A Non-Validated Educational Risk Tool</div>
       </div>
 
       <div className="score-card">
-        <div className="score-label">YOUR RISK OF PROSTATE CANCER</div>
+        <div className="score-label">YOUR EDUCATIONAL RISK CATEGORY</div>
         <div className="score-big" style={{ color: riskColor }}>
           {riskPct}
         </div>
@@ -108,7 +127,7 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
 
       <div className="recommendation-box" style={{ border: `2px solid ${riskColor}` }}>
         <div className="rec-label" style={{ color: riskColor }}>
-          RECOMMENDED NEXT STEPS
+          CONSIDER DISCUSSING NEXT STEPS
         </div>
         <ul className="rec-list">
           {(nextSteps?.length ? nextSteps : ['Discuss these results with your physician and review PSA/MRI follow-up options.']).map((step, index) => {
@@ -153,6 +172,17 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
             return <li key={index}>{step}</li>;
           })}
         </ul>
+      </div>
+
+      <div className="summary-box">
+        <div><strong>Risk explanation</strong></div>
+        <div style={{ marginTop: '6px' }}>{part2RiskExplanationText}</div>
+        <div style={{ marginTop: '10px' }}><strong>How the score is summarized (Points)</strong></div>
+        <div style={{ marginTop: '6px' }}>{pointsExplanationText}</div>
+        <div style={{ marginTop: '10px' }}><strong>About PI-RADS</strong></div>
+        <div style={{ marginTop: '6px' }}>
+          {postData?.knowPirads ? piradsExplanationTextProvided : piradsExplanationTextNotProvided}
+        </div>
       </div>
 
       <div className="summary-box">
