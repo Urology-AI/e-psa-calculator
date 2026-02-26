@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon } from 'lucide-react';
+import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, LinkIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
 
-const ProfileManager = ({ sessionId, onProfileUpdate }) => {
+const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [editForm, setEditForm] = useState({
     email: '',
     phone: ''
@@ -51,6 +52,34 @@ const ProfileManager = ({ sessionId, onProfileUpdate }) => {
     });
     setError('');
     setSuccess('');
+  };
+
+  const handleUnlinkSession = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Delete session from Firestore
+      await deleteDoc(doc(db, 'users', sessionId));
+      
+      setSuccess('Session unlinked successfully!');
+      
+      // Notify parent component to handle unlink
+      if (onSessionUnlink) {
+        onSessionUnlink();
+      }
+      
+      // Close profile manager after unlink
+      setTimeout(() => {
+        setShowUnlinkConfirm(false);
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error unlinking session:', err);
+      setError('Failed to unlink session. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -122,16 +151,64 @@ const ProfileManager = ({ sessionId, onProfileUpdate }) => {
             <span className="session-id">Session: {sessionId}</span>
           </div>
         </div>
-        {!isEditing && (
-          <button className="edit-profile-btn" onClick={handleEdit}>
-            <Edit2Icon size={14} />
-            Edit Profile
-          </button>
-        )}
+        <div className="profile-actions">
+          {!isEditing && !showUnlinkConfirm && (
+            <>
+              <button className="link-session-btn" onClick={() => setIsEditing(true)}>
+                <Edit2Icon size={14} />
+                Edit Profile
+              </button>
+              <button className="unlink-session-btn" onClick={() => setShowUnlinkConfirm(true)}>
+                <UnlinkIcon size={14} />
+                Unlink Session
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="profile-content">
-        {isEditing ? (
+        {showUnlinkConfirm ? (
+          <div className="unlink-confirm">
+            <div className="unlink-warning">
+              <AlertTriangleIcon size={24} />
+              <h3>Unlink Session</h3>
+              <p>
+                This will permanently delete your session "{sessionId}" and all associated data. 
+                This action cannot be undone.
+              </p>
+              <div className="warning-details">
+                <ul>
+                  <li>All assessment data will be deleted</li>
+                  <li>Session ID will no longer work</li>
+                  <li>You will need to create a new session</li>
+                </ul>
+              </div>
+            </div>
+            
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+            
+            <div className="form-actions">
+              <button 
+                className="unlink-confirm-btn" 
+                onClick={handleUnlinkSession}
+                disabled={loading}
+              >
+                <UnlinkIcon size={14} />
+                {loading ? 'Unlinking...' : 'Unlink Session'}
+              </button>
+              <button 
+                className="cancel-btn" 
+                onClick={() => setShowUnlinkConfirm(false)}
+                disabled={loading}
+              >
+                <XIcon size={14} />
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : isEditing ? (
           <div className="profile-edit-form">
             <div className="form-group">
               <label>

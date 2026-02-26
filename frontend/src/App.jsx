@@ -15,7 +15,8 @@ import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import ProfileManager from './components/ProfileManager.jsx';
-import { upsertConsent, createSession, updateSession, deleteSession, getUser, getUserSessions } from './services/phiBackendService';
+import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
@@ -38,6 +39,7 @@ function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [appSessionId, setAppSessionId] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showTestPanel, setShowTestPanel] = useState(false);
   
   // Detect email from URL params for unique links
   const [urlEmail, setUrlEmail] = useState(null);
@@ -397,6 +399,29 @@ function App() {
     }
   };
 
+  const handleSessionUnlink = async () => {
+    // Clear all session data and return to welcome
+    setUser(null);
+    setUserPhone(null);
+    setUserEmail(null);
+    setAppSessionId(null);
+    setConsentData(null);
+    setSessionId(null);
+    setAuthStep('welcome');
+    setShowProfile(false);
+    
+    // Clear form data
+    setPreData({});
+    setPostData({});
+    setPreResult(null);
+    setPostResult(null);
+    setStage('pre');
+    setCurrentStep(1);
+    setPart1Step(0);
+    
+    console.log('Session unlinked, returned to welcome screen');
+  };
+
   const createNewAnonymousSession = async () => {
     // Generate new session ID
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -404,6 +429,32 @@ function App() {
     for (let i = 0; i < 8; i++) {
       newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    
+    // Check if Firebase user exists
+    let firebaseUser = null;
+    try {
+      firebaseUser = auth.currentUser;
+    } catch (error) {
+      console.log('Firebase auth check failed:', error);
+    }
+    
+    // Create session in Firestore
+    try {
+      await setDoc(doc(db, 'users', newSessionId), {
+        uid: newSessionId,
+        sessionId: newSessionId,
+        authMethod: 'anonymous',
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        isAnonymous: true,
+        email: null,
+        phone: null,
+        hasFirebaseUser: !!firebaseUser
+      });
+    } catch (error) {
+      console.error('Error creating session in Firestore:', error);
+    }
+    
     setAppSessionId(newSessionId);
     const mockUser = {
       uid: newSessionId,
@@ -411,7 +462,7 @@ function App() {
       sessionId: newSessionId
     };
     setUser(mockUser);
-    console.log('Created new anonymous session:', newSessionId);
+    console.log('Created new anonymous session:', newSessionId, 'Firebase user:', !!firebaseUser);
   };
 
   const promptUserForAuthChoice = async () => {
@@ -435,31 +486,62 @@ function App() {
     console.log('Import successful:', importType, importedData);
     
     if (importType === 'session') {
-      // Handle session ID login
+      // Handle session ID login - verify session exists and check for Firebase user
       const { sessionId, userData, existingSession } = importedData;
       
-      // Create mock user object
-      const mockUser = {
-        uid: sessionId,
-        isAnonymous: true,
-        sessionId: sessionId
-      };
-      
-      setUser(mockUser);
-      setAppSessionId(sessionId);
-      
-      // Check if user has consent
-      const consentExists = !!(userData && userData.consentToContact !== undefined);
-      
-      if (consentExists) {
-        const consent = {
-          consentToContact: userData.consentToContact || false,
-          consentTimestamp: userData.consentTimestamp || new Date().toISOString()
+      try {
+        // Verify session exists in Firestore
+        const sessionDoc = await getDoc(doc(db, 'users', sessionId));
+        if (!sessionDoc.exists()) {
+          throw new Error('Session not found in database');
+        }
+        
+        const sessionData = sessionDoc.data();
+        
+        // Check if Firebase user exists for this session
+        let firebaseUser = null;
+        try {
+          // Try to get Firebase user by UID (session ID)
+          firebaseUser = auth.currentUser;
+          if (!firebaseUser || firebaseUser.uid !== sessionId) {
+            // No Firebase user or different user - create new anonymous Firebase user
+            console.log('Creating Firebase user for session:', sessionId);
+            // Note: Firebase doesn't allow creating users with custom UIDs directly
+            // We'll work with mock user object for session-based auth
+          }
+        } catch (authError) {
+          console.log('Firebase auth check failed, using session-based auth:', authError);
+        }
+        
+        const mockUser = {
+          uid: sessionId,
+          isAnonymous: true,
+          sessionId: sessionId
         };
-        setConsentData(consent);
-        setAuthStep('app');
-      } else {
-        setAuthStep('consent');
+        
+        setUser(mockUser);
+        setAppSessionId(sessionId);
+        
+        // Update user state with contact info from session
+        if (sessionData?.email) setUserEmail(sessionData.email);
+        if (sessionData?.phone) setUserPhone(sessionData.phone);
+        
+        const consentExists = !!(sessionData && sessionData.consentToContact !== undefined);
+        
+        if (consentExists) {
+          const consent = {
+            consentToContact: sessionData.consentToContact || false,
+            consentTimestamp: sessionData.consentTimestamp || new Date().toISOString()
+          };
+          setConsentData(consent);
+          setAuthStep('app');
+        } else {
+          setAuthStep('consent');
+        }
+      } catch (error) {
+        console.error('Session login error:', error);
+        alert(`Failed to load session: ${error.message}`);
+        return;
       }
       return;
     }
@@ -467,111 +549,144 @@ function App() {
     // Handle file import (JSON or PDF)
     let dataToImport, targetStage = 'pre';
     
-    // Check for user info in imported data
-    if (importedData.userInfo) {
-      const { email, phone, sessionId: importedSessionId } = importedData.userInfo;
-      
-      if (email) {
-        // Check if email user exists in Firebase
-        console.log('Import contains email:', email);
-        try {
-          // Query Firebase for user by email (this would need to be implemented)
-          // For now, we'll assume we found the user and proceed
-          const confirmMessage = `Found existing session for email: ${email}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
-          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
-          
-          if (userChoice) {
-            // Link to existing email session
-            setUserEmail(email);
-            // Create mock user for email session
-            const mockUser = {
-              uid: email,
-              email: email,
-              isAnonymous: false
-            };
-            setUser(mockUser);
-          } else {
-            // Create new anonymous session
-            await createNewAnonymousSession();
-          }
-        } catch (error) {
-          console.log('Email user not found, creating new session');
-          await createNewAnonymousSession();
-        }
-      } else if (phone) {
-        // Check if phone user exists in Firebase
-        console.log('Import contains phone:', phone);
-        try {
-          const confirmMessage = `Found existing session for phone: ${phone}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
-          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
-          
-          if (userChoice) {
-            // Link to existing phone session
-            setUserPhone(phone);
-            // Create mock user for phone session
-            const mockUser = {
-              uid: phone,
-              phoneNumber: phone,
-              isAnonymous: false
-            };
-            setUser(mockUser);
-          } else {
-            // Create new anonymous session
-            await createNewAnonymousSession();
-          }
-        } catch (error) {
-          console.log('Phone user not found, creating new session');
-          await createNewAnonymousSession();
-        }
-      } else if (importedSessionId) {
-        // Check if session ID exists in Firebase
-        console.log('Import contains session ID:', importedSessionId);
-        try {
-          const confirmMessage = `Found existing anonymous session: ${importedSessionId}\n\nDo you want to:\n1. Link to this existing session\n2. Create new anonymous session`;
-          const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new anonymous session');
-          
-          if (userChoice) {
-            // Link to existing session
-            setAppSessionId(importedSessionId);
-            const mockUser = {
-              uid: importedSessionId,
-              isAnonymous: true,
-              sessionId: importedSessionId
-            };
-            setUser(mockUser);
-          } else {
-            // Create new anonymous session
-            await createNewAnonymousSession();
-          }
-        } catch (error) {
-          console.log('Session ID not found, creating new session');
-          await createNewAnonymousSession();
-        }
-      } else {
-        // No user info - prompt for choice
-        await promptUserForAuthChoice();
-      }
-    } else {
-      // No user info in import - prompt for choice
-      await promptUserForAuthChoice();
-    }
-    
     // Handle new export format
     if (importedData.version && importedData.formData) {
-      // New export format
       if (importedData.part === 'part1') {
         dataToImport = importedData.formData;
         targetStage = 'pre';
       } else if (importedData.part === 'complete') {
-        // Complete data - need to set both pre and post data
         dataToImport = importedData.part1Data;
         setPostData(importedData.part2Data || {});
         targetStage = 'post';
       }
     } else {
-      // Legacy format - handle as before
       dataToImport = importedData;
       targetStage = 'pre';
+    }
+    
+    // Check for user info in imported data
+    if (importedData.userInfo) {
+      const { email, phone, sessionId: importedSessionId } = importedData.userInfo;
+      
+      if (importedSessionId) {
+        // Check if this session ID exists in Firestore
+        try {
+          const existingDoc = await getDoc(doc(db, 'users', importedSessionId));
+          if (existingDoc.exists()) {
+            const existingData = existingDoc.data();
+            const confirmMessage = `Found existing session: ${importedSessionId}\n` +
+              `Created: ${new Date(existingData.createdAt).toLocaleDateString()}\n` +
+              `Has ${existingData.email ? 'email' : 'no email'} and ${existingData.phone ? 'phone' : 'no phone'}\n\n` +
+              `Do you want to:\n` +
+              `1. Link to this existing session and import data\n` +
+              `2. Create new session with imported data`;
+            
+            const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new session');
+            
+            if (userChoice) {
+              // Link to existing session - check for Firebase user
+              let firebaseUser = null;
+              try {
+                firebaseUser = auth.currentUser;
+                if (!firebaseUser || firebaseUser.uid !== importedSessionId) {
+                  console.log('No Firebase user found for session, using session-based auth');
+                }
+              } catch (authError) {
+                console.log('Firebase auth check failed:', authError);
+              }
+              
+              setAppSessionId(importedSessionId);
+              const mockUser = {
+                uid: importedSessionId,
+                isAnonymous: true,
+                sessionId: importedSessionId
+              };
+              setUser(mockUser);
+              
+              if (existingData?.email) setUserEmail(existingData.email);
+              if (existingData?.phone) setUserPhone(existingData.phone);
+              
+              // Update session with imported data
+              await updateDoc(doc(db, 'users', importedSessionId), {
+                lastLoginAt: new Date().toISOString(),
+                importedData: dataToImport,
+                importDate: new Date().toISOString(),
+                hasFirebaseUser: !!firebaseUser
+              });
+              
+              // Set the imported data to state
+              setPreData(prevData => ({
+                ...prevData,
+                ...dataToImport
+              }));
+              
+              // Check consent and proceed
+              const consentExists = !!(existingData && existingData.consentToContact !== undefined);
+              if (consentExists) {
+                const consent = {
+                  consentToContact: existingData.consentToContact || false,
+                  consentTimestamp: existingData.consentTimestamp || new Date().toISOString()
+                };
+                setConsentData(consent);
+                setAuthStep('app');
+              } else {
+                setAuthStep('consent');
+              }
+              return;
+            }
+          }
+        } catch (error) {
+          console.log('Error checking existing session:', error);
+        }
+      }
+      
+      if (email || phone) {
+        // Create new session and add contact info
+        await createNewAnonymousSession();
+        
+        try {
+          await updateDoc(doc(db, 'users', appSessionId), {
+            email: email || null,
+            phone: phone || null,
+            lastLoginAt: new Date().toISOString(),
+            importedData: dataToImport,
+            importDate: new Date().toISOString()
+          });
+          
+          if (email) setUserEmail(email);
+          if (phone) setUserPhone(phone);
+          
+          console.log('Created new session with contact info:', { email, phone });
+        } catch (error) {
+          console.error('Error adding contact info to session:', error);
+        }
+      } else {
+        // No user info - create new session
+        await createNewAnonymousSession();
+        
+        try {
+          await updateDoc(doc(db, 'users', appSessionId), {
+            lastLoginAt: new Date().toISOString(),
+            importedData: dataToImport,
+            importDate: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Error saving imported data:', error);
+        }
+      }
+    } else {
+      // No user info - create new session
+      await createNewAnonymousSession();
+      
+      try {
+        await updateDoc(doc(db, 'users', appSessionId), {
+          lastLoginAt: new Date().toISOString(),
+          importedData: dataToImport,
+          importDate: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Error saving imported data:', error);
+      }
     }
     
     // Set the imported data to appropriate state
@@ -1178,25 +1293,36 @@ function App() {
                 )
               )}
             </div>
-            {user && (
-              <div className="user-info">
-                <div className="user-identifier">
-                  {appSessionId && (
-                    <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
-                      Session: {appSessionId}
-                    </span>
-                  )}
+            <div className="header-controls">
+              <button 
+                className="test-panel-btn" 
+                onClick={() => setShowTestPanel(!showTestPanel)}
+                title="Toggle Firebase Test Panel"
+              >
+                🔬
+              </button>
+              {user && (
+                <div className="user-info">
+                  <div className="user-identifier">
+                    {appSessionId && (
+                      <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
+                        Session: {appSessionId}
+                      </span>
+                    )}
+                  </div>
+                  <button onClick={handleLogout} className="btn-logout">
+                    Logout
+                  </button>
                 </div>
-                <button onClick={handleLogout} className="btn-logout">
-                  Logout
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </header>
 
         {authStep !== 'app' ? renderAuthScreen() : (
           <>
+            {showTestPanel && <FirebaseTestPanel />}
+            
             {showProfile && (
               <ProfileManager 
                 sessionId={appSessionId} 
@@ -1204,6 +1330,7 @@ function App() {
                   setUserEmail(updatedData.email);
                   setUserPhone(updatedData.phone);
                 }}
+                onSessionUnlink={handleSessionUnlink}
               />
             )}
             
