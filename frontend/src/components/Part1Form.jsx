@@ -58,82 +58,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     smoking: formData.smoking ?? null,
     chemicalExposure: formData.chemicalExposure ?? null,
     dietPattern: formData.dietPattern || '',
-    geographicOrigin: formData.geographicOrigin || '',
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
   });
 
   const [stepErrors, setStepErrors] = useState({});
   const [attemptedNext, setAttemptedNext] = useState(false);
-  const [detectedLocation, setDetectedLocation] = useState(null);
-  const [manualLocationMode, setManualLocationMode] = useState(false);
-
-  const mapCountryToRegion = (country, continent) => {
-    if (!country) return 'other';
-    
-    const countryLower = country.toLowerCase();
-    
-    // North America
-    if (['united states', 'canada', 'mexico'].some(c => countryLower.includes(c))) {
-      return 'north-america';
-    }
-    
-    // Latin America / Caribbean
-    if (['brazil', 'argentina', 'chile', 'colombia', 'peru', 'venezuela', 'ecuador', 'bolivia', 'paraguay', 'uruguay', 'guyana', 'suriname', 'french guiana',
-         'cuba', 'jamaica', 'haiti', 'dominican republic', 'puerto rico', 'trinidad', 'bahamas', 'barbados', 'saint lucia', 'grenada', 'antigua', 'dominica', 'saint kitts', 'virgin islands', 'cayman islands', 'bermuda'].some(c => countryLower.includes(c)) || continent === 'SA') {
-      return 'latin-america';
-    }
-    
-    // Africa
-    if (continent === 'AF' || ['nigeria', 'south africa', 'egypt', 'kenya', 'ethiopia', 'ghana', 'morocco', 'algeria', 'tunisia', 'libya', 'sudan', 'uganda', 'tanzania', 'zimbabwe', 'botswana', 'namibia', 'zambia', 'malawi', 'mozambique', 'madagascar', 'mauritius', 'seychelles'].some(c => countryLower.includes(c))) {
-      return 'africa';
-    }
-    
-    // Europe
-    if (continent === 'EU' || ['united kingdom', 'germany', 'france', 'italy', 'spain', 'portugal', 'netherlands', 'belgium', 'switzerland', 'austria', 'sweden', 'norway', 'denmark', 'finland', 'poland', 'czech', 'hungary', 'romania', 'bulgaria', 'croatia', 'serbia', 'bosnia', 'slovenia', 'slovakia', 'lithuania', 'latvia', 'estonia', 'ukraine', 'russia', 'belarus', 'moldova', 'albania', 'north macedonia', 'montenegro', 'kosovo', 'ireland', 'iceland', 'malta', 'cyprus', 'luxembourg', 'monaco', 'liechtenstein', 'andorra', 'san marino', 'vatican'].some(c => countryLower.includes(c))) {
-      return 'europe';
-    }
-    
-    // Asia
-    if (continent === 'AS' || ['china', 'japan', 'korea', 'india', 'indonesia', 'thailand', 'vietnam', 'philippines', 'malaysia', 'singapore', 'myanmar', 'cambodia', 'laos', 'brunei', 'timor', 'nepal', 'bangladesh', 'pakistan', 'sri lanka', 'maldives', 'bhutan', 'afghanistan', 'kazakhstan', 'uzbekistan', 'turkmenistan', 'kyrgyzstan', 'tajikistan', 'mongolia'].some(c => countryLower.includes(c))) {
-      return 'asia';
-    }
-    
-    // Middle East
-    if (['saudi arabia', 'iran', 'iraq', 'israel', 'turkey', 'syria', 'jordan', 'lebanon', 'yemen', 'oman', 'uae', 'qatar', 'bahrain', 'kuwait', 'palestine', 'azerbaijan', 'armenia', 'georgia'].some(c => countryLower.includes(c))) {
-      return 'middle-east';
-    }
-    
-    return 'other';
-  };
-
-  // Detect location based on IP
-  useEffect(() => {
-    const detectLocation = async () => {
-      try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        // Map country to region
-        const region = mapCountryToRegion(data.country_name, data.continent_code);
-        setDetectedLocation({
-          region: region,
-          country: data.country_name,
-          city: data.city
-        });
-        
-        // Auto-set the geographic origin in form data
-        if (!localData.geographicOrigin) {
-          setLocalData(prev => ({ ...prev, geographicOrigin: region }));
-        }
-      } catch (error) {
-        console.error('Location detection failed:', error);
-        setDetectedLocation({ region: 'other', error: true });
-      }
-    };
-
-    detectLocation();
-  }, []);
 
   useEffect(() => {
     const toInches = () => {
@@ -267,8 +197,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (localData.smoking !== null && localData.smoking !== undefined) count++;
     if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
     if (localData.dietPattern !== '') count++;
-    // Geographic origin is auto-detected via IP, always count as answered if set
-    if (localData.geographicOrigin && localData.geographicOrigin !== '') count++;
 
     localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
     localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
@@ -290,15 +218,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
     const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
     const hasDiet = localData.dietPattern !== '';
-    const hasGeo = localData.geographicOrigin && localData.geographicOrigin !== '';
-
-    // If IP detection hasn't completed yet, consider it valid to avoid blocking
-    const geoReady = hasGeo || !detectedLocation?.error;
 
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
 
-    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && geoReady && ipssComplete && shimComplete;
+    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && ipssComplete && shimComplete;
   };
 
   const renderStep0 = () => {
@@ -679,127 +603,14 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const renderStep4 = () => {
     const dietValid = !!localData.dietPattern;
-    const geoValid = !!localData.geographicOrigin;
-    
-    const regionLabels = {
-      'north-america': 'North America',
-      'latin-america': 'Latin America',
-      'caribbean': 'Caribbean',
-      'africa': 'Africa',
-      'europe': 'Europe',
-      'asia': 'Asia',
-      'middle-east': 'Middle East',
-      'other': 'Other'
-    };
-    
-    const regionOptions = [
-      { value: 'north-america', label: 'North America' },
-      { value: 'latin-america', label: 'Latin America' },
-      { value: 'caribbean', label: 'Caribbean' },
-      { value: 'africa', label: 'Africa' },
-      { value: 'europe', label: 'Europe' },
-      { value: 'asia', label: 'Asia' },
-      { value: 'middle-east', label: 'Middle East' },
-      { value: 'other', label: 'Other' },
-    ];
     
     return (
     <div className="part1-step">
       <div className="section-header">Additional Information</div>
-      
-      {/* Location - Auto-detected with edit option */}
-      <div className="question-card" style={{ borderColor: geoValid ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">11</div>
-          <div className="question-text">Geographic Origin</div>
-          <InfoIcon {...fieldReferences.geographicOrigin} />
-          {geoValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-        </div>
-        <div className="question-body">
-          {!manualLocationMode ? (
-            <>
-              <div className="location-display" style={{ 
-                background: '#f8f9fa', 
-                padding: '12px 16px', 
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '10px'
-              }}>
-                <span style={{ fontSize: '24px' }}>📍</span>
-                <div style={{ flex: 1 }}>
-                  {detectedLocation ? (
-                    <>
-                      <div style={{ fontWeight: '600', color: '#1C2833' }}>
-                        {regionLabels[localData.geographicOrigin] || localData.geographicOrigin}
-                      </div>
-                      {detectedLocation.country && (
-                        <div style={{ fontSize: '13px', color: '#7F8C8D' }}>
-                          Detected: {detectedLocation.city ? `${detectedLocation.city}, ` : ''}{detectedLocation.country}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div style={{ color: '#7F8C8D' }}>Detecting your location...</div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setManualLocationMode(true)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#00578B',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  textDecoration: 'underline'
-                }}
-              >
-                Not correct? Click to manually select
-              </button>
-              {detectedLocation?.error && (
-                <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-                  Could not detect location. Please select manually.
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="option-grid c3">
-                {regionOptions.map(opt => (
-                  <button
-                    key={opt.value}
-                    className={`option-btn ${localData.geographicOrigin === opt.value ? 'selected' : ''}`}
-                    onClick={() => updateField('geographicOrigin', opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setManualLocationMode(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#7F8C8D',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  padding: '8px 0 0 0',
-                  marginTop: '8px'
-                }}
-              >
-                ← Back to detected location
-              </button>
-            </>
-          )}
-        </div>
-      </div>
 
       <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">12</div>
+          <div className="question-number">11</div>
           <div className="question-text">Diet Pattern</div>
           <InfoIcon {...fieldReferences.diet} />
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
@@ -980,7 +791,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       if (!localData.dietPattern) {
         errors.push('Please select your diet pattern');
       }
-      // Geographic origin is auto-detected, no validation needed
     }
     
     if (step === 5) {
@@ -1039,7 +849,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
-  const totalQuestions = 23;
+  const totalQuestions = 22;
 
   return (
     <div className="part1-form-container">

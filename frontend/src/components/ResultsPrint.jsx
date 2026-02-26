@@ -326,10 +326,6 @@ const ResultsPrint = ({ result, formData, onBack }) => {
                 <span className="answer-question">11. Diet Pattern:</span>
                 <span className="answer-value">{formData.dietPattern || 'Not answered'}</span>
               </div>
-              <div className="answer-item">
-                <span className="answer-question">12. Geographic Origin:</span>
-                <span className="answer-value">{formData.geographicOrigin || 'Not answered'}</span>
-              </div>
             </div>
 
             <div className="answer-category">

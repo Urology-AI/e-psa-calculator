@@ -63,7 +63,6 @@ const PreDataSchema = z.object({
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
   chemicalExposure: z.union([z.number().int().min(0).max(1), z.null()]).optional(),
   dietPattern: z.enum(['western', 'mediterranean', 'asian', 'vegetarian', 'other']).optional().transform(val => val || ''),
-  geographicOrigin: z.enum(['north-america', 'europe', 'asia', 'africa', 'south-america', 'oceania', 'other']).optional().transform(val => val || ''),
 });
 
 const PostDataSchema = z.object({

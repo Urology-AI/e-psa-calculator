@@ -66,8 +66,7 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
           exercise: 'regular',
           smoking: 'never',
           chemicalExposure: 'no',
-          dietPattern: 'mediterranean',
-          geographicOrigin: 'north_america'
+          dietPattern: 'mediterranean'
         };
         onImportSuccess(simulatedData, 'pdf');
       } else {
