@@ -16,6 +16,7 @@ import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import ProfileManager from './components/ProfileManager.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
+import GlobalBackButton from './components/GlobalBackButton.jsx';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
