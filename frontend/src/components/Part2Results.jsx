@@ -14,7 +14,7 @@ import {
   DownloadIcon
 } from 'lucide-react';
 
-const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null }) => {
+const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null, userEmail = null, userPhone = null }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const handleExportCsv = () => {
@@ -45,6 +45,8 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
         result={result} 
         formData={combinedFormData}
         sessionId={sessionId}
+        userEmail={userEmail}
+        userPhone={userPhone}
         onBack={() => setShowResultsPrint(false)} 
       />
     );
@@ -250,7 +252,12 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
                   part1Data: preData || {},
                   part1Result: preResult || {},
                   part2Data: postData || {},
-                  part2Result: result || {}
+                  part2Result: result || {},
+                  userInfo: {
+                    email: userEmail || null,
+                    phone: userPhone || null,
+                    sessionId: sessionId || null
+                  }
                 };
                 const dataStr = JSON.stringify(exportData, null, 2);
                 const dataBlob = new Blob([dataStr], { type: 'application/json' });

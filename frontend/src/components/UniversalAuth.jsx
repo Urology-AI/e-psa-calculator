@@ -261,6 +261,18 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     }
   };
 
+  const handlePhoneAuth = async () => {
+    // First create session, then link phone
+    await handleAnonymousAuth();
+    // Phone will be added after session is created
+  };
+
+  const handleEmailAuth = async () => {
+    // First create session, then link email  
+    await handleAnonymousAuth();
+    // Email will be added after session is created
+  };
+
   const handleBack = () => {
     setStep('input');
     setCode('');
