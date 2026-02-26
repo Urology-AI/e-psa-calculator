@@ -14,7 +14,7 @@ import {
   HardDriveIcon
 } from 'lucide-react';
 
-const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false }) => {
+const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false, sessionId = null }) => {
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const handleExportCsv = () => {
@@ -37,6 +37,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       <ResultsPrint 
         result={result} 
         formData={formData} 
+        sessionId={sessionId}
         onBack={() => setShowResultsPrint(false)} 
       />
     );
@@ -99,9 +100,11 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
   return (
     <div className="part1-results-container">
       <div className="results-header">
-        <div className="results-logo">ePSA</div>
-        <div className="results-subtitle">Prostate-Specific Awareness — Results</div>
-        <div className="results-subtitle">A Non-Validated Educational Risk Tool</div>
+        {sessionId && (
+          <div className="session-id-display">
+            Session ID: <strong>{sessionId}</strong>
+          </div>
+        )}
         {storageMode && (
           <div className="storage-indicator">
             {storageMode === 'cloud' ? 'Cloud Storage' : 'Self-Storage'}

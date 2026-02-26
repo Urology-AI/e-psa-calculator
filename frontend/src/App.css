@@ -55,6 +55,42 @@ body {
   justify-content: center;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-identifier {
+  text-align: right;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #00578B;
+  font-weight: 600;
+}
+
+.user-phone {
+  font-size: 14px;
+  color: #00578B;
+  font-weight: 600;
+}
+
+.user-session {
+  font-size: 14px;
+  color: #00578B;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
 .logo {
   display: block !important;
   margin: 0 auto 1.5rem;

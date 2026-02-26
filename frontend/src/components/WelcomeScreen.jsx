@@ -9,7 +9,7 @@ import {
   ArrowRightIcon 
 } from 'lucide-react';
 
-const WelcomeScreen = ({ onBegin, formData }) => {
+const WelcomeScreen = ({ onBegin, formData, urlEmail }) => {
   const [showForm, setShowForm] = useState(false);
 
   const handleViewForm = () => {
@@ -18,6 +18,15 @@ const WelcomeScreen = ({ onBegin, formData }) => {
 
   const handleBack = () => {
     setShowForm(false);
+  };
+
+  const handleBegin = () => {
+    // If URL email is present, skip storage choice and go directly to login
+    if (urlEmail) {
+      onBegin(); // This will trigger login step directly
+    } else {
+      onBegin(); // Normal flow
+    }
   };
 
   if (showForm) {
@@ -47,7 +56,7 @@ const WelcomeScreen = ({ onBegin, formData }) => {
             </div>
           </div>
 
-          <button className="btn-begin-assessment" onClick={onBegin}>
+          <button className="btn-begin-assessment" onClick={handleBegin}>
             <span>Begin Assessment</span>
             <ArrowRightIcon size={18} />
           </button>

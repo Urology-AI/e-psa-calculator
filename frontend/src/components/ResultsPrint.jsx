@@ -4,7 +4,7 @@ import jsPDF from 'jspdf';
 import './ResultsPrint.css';
 import { downloadCsv, buildPart1CsvRows, buildPart2CsvRows } from '../utils/exportCsv';
 
-const ResultsPrint = ({ result, formData, onBack }) => {
+const ResultsPrint = ({ result, formData, onBack, sessionId = null }) => {
   const resultsRef = useRef(null);
 
   const handleExportCsv = () => {
@@ -186,18 +186,18 @@ const ResultsPrint = ({ result, formData, onBack }) => {
       </div>
 
       <div ref={resultsRef} className="results-print-content">
-        {/* Header */}
-        <div className="print-header">
-          <div className="print-logo">ePSA</div>
-          <div className="print-title">Prostate-Specific Awareness — Results</div>
-          <div className="print-subtitle">A Non-Validated Educational Risk Tool</div>
-          <div className="print-date">
+        {/* Session ID */}
+        {sessionId && (
+          <div className="print-session-id">
+            Session ID: {sessionId}
+          </div>
+        )}
+        <div className="print-date">
             Generated: {new Date().toLocaleDateString('en-US', { 
               year: 'numeric', 
               month: 'long', 
               day: 'numeric' 
             })}
-          </div>
         </div>
 
         {/* Main Results */}

@@ -14,7 +14,7 @@ import {
   DownloadIcon
 } from 'lucide-react';
 
-const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData }) => {
+const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const handleExportCsv = () => {
@@ -44,6 +44,7 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       <ResultsPrint 
         result={result} 
         formData={combinedFormData}
+        sessionId={sessionId}
         onBack={() => setShowResultsPrint(false)} 
       />
     );
@@ -106,9 +107,11 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
   return (
     <div className="part2-results-container">
       <div className="results-header">
-        <div className="results-logo">ePSA</div>
-        <div className="results-subtitle">Risk Assessment — Results</div>
-        <div className="results-subtitle">A Non-Validated Educational Risk Tool</div>
+        {sessionId && (
+          <div className="session-id-display">
+            Session ID: <strong>{sessionId}</strong>
+          </div>
+        )}
       </div>
 
       <div className="score-card">

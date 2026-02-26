@@ -6,7 +6,7 @@ import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import StorageChoiceScreen from './components/StorageChoiceScreen.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
-import PhoneAuth from './components/PhoneAuth.jsx';
+import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import { BookIcon } from 'lucide-react';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
@@ -29,13 +29,28 @@ const POST_STEPS = [
 function App() {
   const [user, setUser] = useState(null);
   const [userPhone, setUserPhone] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
   const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'storage', 'import', 'login', 'consent', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
-  const [storageMode, setStorageMode] = useState(null); // 'cloud' or 'local' - data sovereignty choice
+  const [storageMode, setStorageMode] = useState('cloud'); // Force cloud-only mode
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
-  const [sessionId, setSessionId] = useState(null);
+  const [appSessionId, setAppSessionId] = useState(null);
+  
+  // Detect email from URL params for unique links
+  const [urlEmail, setUrlEmail] = useState(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setUrlEmail(email);
+      setUserEmail(email);
+      // Force cloud mode and skip storage choice for email links
+      setStorageMode('cloud');
+    }
+  }, []);
   
   // Calculator configuration and A/B testing
   const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
@@ -95,7 +110,9 @@ function App() {
       if (currentUser) {
         setUser(currentUser);
         const phone = currentUser.phoneNumber;
+        const email = currentUser.email;
         setUserPhone(phone);
+        setUserEmail(email);
         
         // Check if user has completed consent in Firestore
         let userData = null;
@@ -103,6 +120,11 @@ function App() {
           userData = await getUser(currentUser.uid);
         } catch (error) {
           console.warn('Could not fetch user data:', error);
+        }
+        
+        // Handle anonymous users
+        if (userData && userData.isAnonymous && userData.sessionId) {
+          setAppSessionId(userData.sessionId);
         }
         
         // If consent exists in Firestore, skip consent screen
@@ -294,6 +316,8 @@ function App() {
         // User logged out - go back to welcome screen
         setUser(null);
         setUserPhone(null);
+        setUserEmail(null);
+        setAppSessionId(null);
         setConsentData(null);
         setSessionId(null);
         setAuthStep('welcome');
@@ -303,9 +327,20 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleAuthSuccess = async (user, phone) => {
+  const handleAuthSuccess = async (user, authInfo) => {
     setUser(user);
-    setUserPhone(phone);
+    // Support both phone and email auth
+    if (typeof authInfo === 'string') {
+      // Legacy phone auth
+      setUserPhone(authInfo);
+    } else if (authInfo && authInfo.phone) {
+      setUserPhone(authInfo.phone);
+    } else if (user.email) {
+      setUserEmail(user.email);
+    } else if (user.isAnonymous && user.sessionId) {
+      // Anonymous auth - set session ID
+      setAppSessionId(user.sessionId);
+    }
     
     // Check if user already has consent in Firestore
     let userData = null;
@@ -365,6 +400,37 @@ function App() {
   const handleImportSuccess = (importedData, importType) => {
     console.log('Import successful:', importType, importedData);
     
+    if (importType === 'session') {
+      // Handle session ID login
+      const { sessionId, userData, existingSession } = importedData;
+      
+      // Create mock user object
+      const mockUser = {
+        uid: sessionId,
+        isAnonymous: true,
+        sessionId: sessionId
+      };
+      
+      setUser(mockUser);
+      setAppSessionId(sessionId);
+      
+      // Check if user has consent
+      const consentExists = !!(userData && userData.consentToContact !== undefined);
+      
+      if (consentExists) {
+        const consent = {
+          consentToContact: userData.consentToContact || false,
+          consentTimestamp: userData.consentTimestamp || new Date().toISOString()
+        };
+        setConsentData(consent);
+        setAuthStep('app');
+      } else {
+        setAuthStep('consent');
+      }
+      return;
+    }
+    
+    // Handle file import (JSON or PDF)
     let dataToImport, targetStage = 'pre';
     
     // Handle new export format
@@ -481,19 +547,22 @@ function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // Clear all user-related state
       setUser(null);
       setUserPhone(null);
-      setAuthStep('welcome');
+      setUserEmail(null);
+      setAppSessionId(null);
       setConsentData(null);
-      setStage('pre');
-      setCurrentStep(1);
-      setPart1Step(0);
+      setSessionId(null);
+      setAuthStep('welcome');
+      // Clear any imported data
+      setImportedData(null);
       setPreData({
-        age: '',
+        age: null,
         race: null,
-        heightFt: '',
-        heightIn: '',
-        weight: '',
+        heightFt: null,
+        heightIn: null,
+        weight: null,
         bmi: 0,
         familyHistory: null,
         brcaStatus: null,
@@ -516,13 +585,24 @@ function App() {
       });
       setPreResult(null);
       setPostResult(null);
-      setSessionId(null);
+      // Reset form progress
+      setStage('pre');
+      setCurrentStep(1);
+      setPart1Step(0);
       // Clear user-specific localStorage but keep general settings
       if (storageMode === 'cloud' && user) {
         localStorage.removeItem(`sessionId_${user.uid}`);
       }
     } catch (error) {
       console.error('Error signing out:', error);
+      // Still clear state even if Firebase logout fails
+      setUser(null);
+      setUserPhone(null);
+      setUserEmail(null);
+      setAppSessionId(null);
+      setConsentData(null);
+      setSessionId(null);
+      setAuthStep('welcome');
     }
   };
 
@@ -738,7 +818,18 @@ function App() {
       case 'welcome':
         return (
           <>
-            <WelcomeScreen onBegin={() => setAuthStep('storage')} formData={{}} />
+            <WelcomeScreen 
+              onBegin={() => {
+                if (urlEmail) {
+                  // Skip storage choice for email links, go directly to login
+                  setAuthStep('login');
+                } else {
+                  setAuthStep('storage');
+                }
+              }} 
+              formData={{}} 
+              urlEmail={urlEmail}
+            />
             <footer className="app-footer">
               <div className="footer-content">
                 <p className="footer-text">
@@ -759,15 +850,9 @@ function App() {
         return (
           <StorageChoiceScreen 
             onChoice={(mode) => {
-              setStorageMode(mode);
-              if (mode === 'cloud') {
-                setAuthStep('login');
-              } else {
-                // Local storage mode - skip auth and go directly to form
-                setAuthStep('app');
-                setStage('pre');
-                setCurrentStep(1);
-              }
+              // Force cloud mode - ignore mode parameter
+              setStorageMode('cloud');
+              setAuthStep('login');
             }}
             onImport={() => setAuthStep('import')}
           />
@@ -780,9 +865,15 @@ function App() {
           />
         );
       case 'login':
-        return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
+        return <UniversalAuth onAuthSuccess={handleAuthSuccess} initialEmail={urlEmail} />;
       case 'consent':
-        return <ConsentScreen phone={userPhone} onConsentComplete={handleConsentComplete} />;
+        return (
+          <ConsentScreen 
+            phone={userPhone} 
+            email={userEmail} 
+            onConsentComplete={handleConsentComplete} 
+          />
+        );
       default:
         return null;
     }
@@ -813,6 +904,7 @@ function App() {
                 result={preResult}
                 formData={preData}
                 storageMode={storageMode}
+                sessionId={appSessionId}
                 onEditAnswers={() => {
                   setPart1Step(0);
                   setCurrentStep(1);
@@ -901,6 +993,7 @@ function App() {
                 preResult={preResult}
                 postData={postData}
                 storageMode={storageMode}
+                sessionId={appSessionId}
                 onEditAnswers={() => {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -959,9 +1052,20 @@ function App() {
               )}
             </div>
             {user && (
-              <button onClick={handleLogout} className="btn-logout">
-                Logout
-              </button>
+              <div className="user-info">
+                <div className="user-identifier">
+                  {userEmail ? (
+                    <span className="user-email">{userEmail}</span>
+                  ) : userPhone ? (
+                    <span className="user-phone">{userPhone}</span>
+                  ) : appSessionId ? (
+                    <span className="user-session">Session: {appSessionId}</span>
+                  ) : null}
+                </div>
+                <button onClick={handleLogout} className="btn-logout">
+                  Logout
+                </button>
+              </div>
             )}
           </div>
         </header>
