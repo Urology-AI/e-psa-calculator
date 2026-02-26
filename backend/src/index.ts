@@ -62,7 +62,7 @@ const PreDataSchema = z.object({
   exercise: z.union([z.number().int().min(0).max(2), z.null()]).transform(val => val === null ? 0 : val),
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
   chemicalExposure: z.union([z.number().int().min(0).max(1), z.null()]).optional(),
-  dietPattern: z.enum(['western', 'mediterranean', 'asian', 'vegetarian', 'other']).optional().transform(val => val || ''),
+  dietPattern: z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']).optional().transform(val => val || ''),
 });
 
 const PostDataSchema = z.object({
