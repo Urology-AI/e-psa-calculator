@@ -41,7 +41,13 @@
   letter-spacing: 1px;
 }
 
-.edit-profile-btn {
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.link-session-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -56,9 +62,94 @@
   transition: all 0.2s;
 }
 
-.edit-profile-btn:hover {
+.link-session-btn:hover {
   background: #00578B;
   color: white;
+}
+
+.unlink-session-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unlink-session-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.unlink-confirm {
+  text-align: center;
+  padding: 20px;
+}
+
+.unlink-warning {
+  margin-bottom: 20px;
+}
+
+.unlink-warning h3 {
+  color: #dc2626;
+  margin: 16px 0 12px 0;
+  font-size: 18px;
+}
+
+.unlink-warning p {
+  color: #5D6D7E;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.warning-details {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.warning-details ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #7f1d1d;
+}
+
+.warning-details li {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.unlink-confirm-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #dc2626;
+  color: white;
+  border: 2px solid #dc2626;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unlink-confirm-btn:hover:not(:disabled) {
+  background: transparent;
+  color: #dc2626;
+}
+
+.unlink-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .profile-content {
