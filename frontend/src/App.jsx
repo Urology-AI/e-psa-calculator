@@ -16,10 +16,20 @@ import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import ProfileManager from './components/ProfileManager.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
-import GlobalBackButton from './components/GlobalBackButton.jsx';
+import BackButton from './components/BackButton.jsx';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
+
+// Simple inline back button component for testing
+const TestBackButton = ({ onBack, show }) => {
+  if (!show) return null;
+  return (
+    <button onClick={onBack} style={{margin: '10px', padding: '8px 16px'}}>
+      ← Back
+    </button>
+  );
+};
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
@@ -1259,7 +1269,7 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        <GlobalBackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
+        <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
             <img 
