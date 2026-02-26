@@ -271,12 +271,6 @@ const PrintableForm = ({ onBack, formData }) => {
               <input type="text" className="field-input-inline" placeholder="________________" value={getFieldValue('dietPattern', '')} readOnly />
             </label>
           </div>
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              Geographic origin:
-              <input type="text" className="field-input-inline" placeholder="________________" value={getFieldValue('geographicOrigin', '')} readOnly />
-            </label>
-          </div>
         </div>
 
         <div className="section-divider">

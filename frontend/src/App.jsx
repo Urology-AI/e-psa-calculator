@@ -72,7 +72,6 @@ function App() {
     smoking: null,
     chemicalExposure: null,
     dietPattern: '',
-    geographicOrigin: '',
   });
   
   const [part1Step, setPart1Step] = useState(0); // 0-4 for the 5 steps in Part 1
@@ -456,7 +455,6 @@ function App() {
       smoking: null,
       chemicalExposure: null,
       dietPattern: '',
-      geographicOrigin: '',
     });
     setPostData({
       psa: '',
@@ -509,7 +507,6 @@ function App() {
         smoking: null,
         chemicalExposure: null,
         dietPattern: '',
-        geographicOrigin: '',
       });
       setPostData({
         psa: '',

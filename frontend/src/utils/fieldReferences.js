@@ -87,13 +87,6 @@ export const fieldReferences = {
       { name: "ZERO Cancer", url: "https://zerocancer.org/risk-factors" }
     ]
   },
-  geographicOrigin: {
-    field: "Geographic Origin",
-    description: "Prostate cancer rates vary by geography. Rates are highest in North America, Europe, and Australia.",
-    sources: [
-      { name: "PMC Study", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/" }
-    ]
-  },
   ipss: {
     field: "IPSS (Urinary Symptoms)",
     description: "International Prostate Symptom Score measures lower urinary tract symptoms often associated with prostate enlargement.",
