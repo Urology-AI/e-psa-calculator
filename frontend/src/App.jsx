@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './config/firebase';
+import { auth, db } from './config/firebase';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
@@ -17,7 +17,7 @@ import Part2Results from './components/Part2Results.jsx';
 import ProfileManager from './components/ProfileManager.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
-import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
@@ -51,6 +51,7 @@ function App() {
   const [appSessionId, setAppSessionId] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const [importedData, setImportedData] = useState(null);
   
   // Detect email from URL params for unique links
   const [urlEmail, setUrlEmail] = useState(null);
@@ -340,6 +341,99 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+
+  const upsertConsent = async (consent) => {
+    if (!user?.uid) {
+      throw new Error('Cannot save consent without an authenticated user/session');
+    }
+
+    const consentToContact = consent?.consentToContact === true;
+    await setDoc(doc(db, 'users', user.uid), {
+      consentToContact,
+      consentTimestamp: consent?.consentTimestamp || new Date().toISOString(),
+      updatedAt: serverTimestamp(),
+      lastLoginAt: new Date().toISOString(),
+      email: userEmail || null,
+      phone: userPhone || null,
+      sessionType: user?.isAnonymous ? 'anonymous' : (userEmail ? 'email' : 'phone')
+    }, { merge: true });
+
+    return { success: true };
+  };
+
+  const getUser = async (uid) => {
+    if (!uid) return null;
+    const userSnap = await getDoc(doc(db, 'users', uid));
+    if (!userSnap.exists()) return null;
+    return { id: userSnap.id, ...userSnap.data() };
+  };
+
+  const getSession = async (id) => {
+    if (!id) return null;
+    const sessionSnap = await getDoc(doc(db, 'sessions', id));
+    if (!sessionSnap.exists()) return null;
+    return { id: sessionSnap.id, ...sessionSnap.data() };
+  };
+
+  const createSession = async (payload) => {
+    if (!user?.uid) {
+      throw new Error('Cannot create session without a logged in user/session');
+    }
+
+    const sessionRef = doc(collection(db, 'sessions'));
+    const status = payload?.step2 ? 'STEP2_COMPLETE' : 'STEP1_COMPLETE';
+
+    await setDoc(sessionRef, {
+      uid: user.uid,
+      step1: payload?.step1 || null,
+      step2: payload?.step2 || null,
+      result: payload?.result || null,
+      status,
+      version: 'epsa-v2',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    await setDoc(doc(db, 'users', user.uid), {
+      currentSessionId: sessionRef.id,
+      lastLoginAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(),
+      sessionType: user?.isAnonymous ? 'anonymous' : (userEmail ? 'email' : 'phone')
+    }, { merge: true });
+
+    return { sessionId: sessionRef.id };
+  };
+
+  const updateSession = async (id, stepData, result, phase = 'step2') => {
+    if (!id) throw new Error('Session ID is required');
+
+    const sessionRef = doc(db, 'sessions', id);
+    const sessionSnap = await getDoc(sessionRef);
+    const existing = sessionSnap.exists() ? sessionSnap.data() : {};
+
+    const updates = {
+      result,
+      updatedAt: serverTimestamp()
+    };
+
+    if (phase === 'step1') {
+      updates.step1 = stepData;
+      updates.status = 'STEP1_COMPLETE';
+      updates.step2 = existing?.step2 || null;
+    } else {
+      updates.step1 = existing?.step1 || null;
+      updates.step2 = stepData;
+      updates.status = 'STEP2_COMPLETE';
+    }
+
+    await setDoc(sessionRef, updates, { merge: true });
+  };
+
+  const deleteSession = async (id) => {
+    if (!id) return;
+    await deleteDoc(doc(db, 'sessions', id));
+  };
+
   const handleAuthSuccess = async (user, authInfo) => {
     setUser(user);
     // Support both phone and email auth
@@ -387,8 +481,8 @@ function App() {
   const handleConsentComplete = async (consent) => {
     setConsentData(consent);
     
-    // Save consent to Firestore along with phone number
-    if (user && userPhone) {
+    // Save consent to Firestore for any authenticated mode (phone, email, or anonymous)
+    if (user) {
       try {
         await upsertConsent(consent);
         setAuthStep('app');
@@ -422,8 +516,34 @@ function App() {
     setShowProfile(false);
     
     // Clear form data
-    setPreData({});
-    setPostData({});
+    setPreData({
+      age: '',
+      race: null,
+      heightFt: '',
+      heightIn: '',
+      weight: '',
+      bmi: 0,
+      familyHistory: null,
+      brcaStatus: null,
+      heightUnit: 'imperial',
+      heightCm: '',
+      weightUnit: 'lbs',
+      weightKg: '',
+      ipss: Array(7).fill(null),
+      shim: Array(5).fill(null),
+      exercise: null,
+      smoking: null,
+      chemicalExposure: null,
+      dietPattern: '',
+    });
+    setPostData({
+      psa: '',
+      knowPsa: false,
+      onHormonalTherapy: false,
+      hormonalTherapyType: '',
+      knowPirads: false,
+      pirads: '0'
+    });
     setPreResult(null);
     setPostResult(null);
     setStage('pre');
@@ -475,6 +595,7 @@ function App() {
       sessionId: newSessionId
     };
     setUser(mockUser);
+    return newSessionId;
   };
 
   const promptUserForAuthChoice = async () => {
@@ -496,6 +617,7 @@ function App() {
 
   const handleImportSuccess = async (importedData, importType) => {
     console.log('Import successful:', importType, importedData);
+    setImportedData(importedData);
     
     if (importType === 'session') {
       // Handle session ID login - verify session exists and check for Firebase user
@@ -654,15 +776,16 @@ function App() {
       
       if (email || phone) {
         // Create new session and add contact info
-        await createNewAnonymousSession();
+        const newSessionId = await createNewAnonymousSession();
         
         try {
-          await updateDoc(doc(db, 'users', appSessionId), {
+          await updateDoc(doc(db, 'users', newSessionId), {
             email: email || null,
             phone: phone || null,
             lastLoginAt: new Date().toISOString(),
             importedData: dataToImport,
-            importDate: new Date().toISOString()
+            importDate: new Date().toISOString(),
+            sessionType: email ? 'email' : phone ? 'phone' : 'anonymous'
           });
           
           if (email) setUserEmail(email);
@@ -674,13 +797,14 @@ function App() {
         }
       } else {
         // No user info - create new session
-        await createNewAnonymousSession();
+        const newSessionId = await createNewAnonymousSession();
         
         try {
-          await updateDoc(doc(db, 'users', appSessionId), {
+          await updateDoc(doc(db, 'users', newSessionId), {
             lastLoginAt: new Date().toISOString(),
             importedData: dataToImport,
-            importDate: new Date().toISOString()
+            importDate: new Date().toISOString(),
+            sessionType: email ? 'email' : phone ? 'phone' : 'anonymous'
           });
         } catch (error) {
           console.error('Error saving imported data:', error);
@@ -688,13 +812,14 @@ function App() {
       }
     } else {
       // No user info - create new session
-      await createNewAnonymousSession();
+      const newSessionId = await createNewAnonymousSession();
       
       try {
-        await updateDoc(doc(db, 'users', appSessionId), {
+        await updateDoc(doc(db, 'users', newSessionId), {
           lastLoginAt: new Date().toISOString(),
           importedData: dataToImport,
-          importDate: new Date().toISOString()
+          importDate: new Date().toISOString(),
+          sessionType: 'anonymous'
         });
       } catch (error) {
         console.error('Error saving imported data:', error);
@@ -900,7 +1025,7 @@ function App() {
         try {
           if (sessionId) {
             // Update existing session
-            await updateSession(sessionId, preData, result);
+            await updateSession(sessionId, preData, result, 'step1');
           } else {
             // Create new session
             const response = await createSession({
@@ -965,7 +1090,7 @@ function App() {
         try {
           if (sessionId) {
             // Update existing session with Part 2 data
-            await updateSession(sessionId, postData, result);
+            await updateSession(sessionId, postData, result, 'step2');
           } else {
             // Create new session if missing (shouldn't happen, but handle gracefully)
             console.warn('No sessionId found, creating new session for step 2');
