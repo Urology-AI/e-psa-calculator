@@ -7,30 +7,33 @@
 export const DEFAULT_CALCULATOR_CONFIG = {
   version: '1.0.1',
   part1: {
-    intercept: -3.8347,
+    intercept: -1.44968,
+    encodings: {
+      raceBlackValues: ['black', 'black or african american', 'african american', 'black/aa']
+    },
     variables: [
       {
         id: 'age',
         name: 'Age',
-        weight: 0.0454,
+        weight: 0.03879,
         type: 'continuous',
         min: 18,
         max: 120,
         unit: 'years',
-        description: 'Age in years'
+        description: 'Age in years (if only Age Group available, use midpoint)'
       },
       {
         id: 'raceBlack',
         name: 'Race (Black/African American)',
-        weight: -0.0253,
+        weight: 0.0,
         type: 'binary',
-        description: 'Black race (1 if Black, 0 otherwise)',
-        clinicalNote: 'Black men have 1.6-1.8x higher risk'
+        description: 'Black race (1 if Black/AA, 0 otherwise)',
+        clinicalNote: 'Cohort-refit with non-negative constraint resulted in ~0 effect in this dataset'
       },
       {
         id: 'bmi',
         name: 'BMI',
-        weight: 0.0195,
+        weight: 0.01455,
         type: 'continuous',
         min: 15,
         max: 60,
@@ -40,44 +43,52 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       {
         id: 'ipssTotal',
         name: 'IPSS Total Score',
-        weight: -0.0292,
+        weight: -0.03683,
         type: 'continuous',
         min: 0,
         max: 35,
         unit: 'points',
-        description: 'International Prostate Symptom Score',
-        clinicalNote: 'Higher symptoms may indicate BPH, not necessarily cancer'
+        description: 'International Prostate Symptom Score (total 0–35)',
+        clinicalNote: 'In this cohort, higher LUTS burden associated with lower csPCa likelihood (likely BPH signal)'
       },
       {
         id: 'exerciseCode',
         name: 'Exercise Level',
-        weight: -0.5947,
+        weight: 0.0,
         type: 'ordinal',
         options: [
           { value: 0, label: 'Regular (3+ days/week)' },
           { value: 1, label: 'Some (1-2 days/week)' },
           { value: 2, label: 'None' }
         ],
-        description: 'Exercise frequency (protective factor)'
+        description: 'Exercise frequency',
+        clinicalNote: 'Exercise_Score was constant in the cohort file used for refit; coefficient set to 0'
       },
       {
         id: 'fhBinary',
         name: 'Family History',
-        weight: -0.8911,
+        weight: 0.0,
         type: 'binary',
         description: 'Family history of prostate cancer (1 if yes, 0 if no)',
-        clinicalNote: 'Strong risk factor - 2-3x increased risk'
+        clinicalNote: 'Cohort-refit with non-negative constraint resulted in ~0 effect in this dataset'
       },
       {
         id: 'shimTotal',
         name: 'SHIM Total Score',
-        weight: -0.0358,
+        weight: 0.0,
         type: 'continuous',
         min: 0,
         max: 25,
         unit: 'points',
-        description: 'Sexual Health Inventory for Men',
-        clinicalNote: 'Lower scores may indicate hormonal issues'
+        description: 'SHIM total (not present in refit cohort file; weight set to 0 until refit with SHIM data)'
+      },
+      {
+        id: 'inflammationHx',
+        name: 'History of Inflammatory Condition',
+        weight: 0.0,
+        type: 'binary',
+        required: false,
+        description: 'History of inflammatory condition (e.g., UC, Crohn’s, chronic prostatitis)'
       }
     ],
     riskCutoffs: {

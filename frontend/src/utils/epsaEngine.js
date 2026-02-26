@@ -117,6 +117,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     familyHistory
   } = formData;
 
+  const normalizeRaceValue = (value) => String(value ?? '').trim().toLowerCase();
+  const configuredRaceBlackValues = part1?.encodings?.raceBlackValues;
+  const raceBlackValues = Array.isArray(configuredRaceBlackValues) && configuredRaceBlackValues.length > 0
+    ? configuredRaceBlackValues.map(normalizeRaceValue)
+    : null;
+
   const variableValues = {};
 
   part1.variables.forEach(variable => {
@@ -125,7 +131,11 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
         variableValues.age = parseInt(age, 10);
         break;
       case 'raceBlack':
-        variableValues.raceBlack = race === 'black' ? 1 : 0;
+        if (raceBlackValues) {
+          variableValues.raceBlack = raceBlackValues.includes(normalizeRaceValue(race)) ? 1 : 0;
+        } else {
+          variableValues.raceBlack = race === 'black' ? 1 : 0;
+        }
         break;
       case 'bmi':
         variableValues.bmi = parseFloat(bmi);

@@ -15,6 +15,8 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const bmiVar = getVar('bmi');
   const ipssVar = getVar('ipssTotal');
   const shimVar = getVar('shimTotal');
+  const inflammationVar = getVar('inflammationHx');
+  const hasInflammationVar = Boolean(inflammationVar && inflammationVar.id);
 
   return (
     <div className="model-docs-overlay">
@@ -28,14 +30,14 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
           <section className="docs-section">
             <h3>Overview</h3>
             <p>
-              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a 7-variable logistic regression 
-              model to estimate the probability of clinically significant prostate cancer (csPCa). This tool 
-              is designed for educational and screening prioritization purposes.
+              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a logistic regression model
+              to generate an educational estimate based on the information entered. It is intended to support
+              learning and conversations with a healthcare professional.
             </p>
             <div className="info-box warning">
-              <strong>Validation Status:</strong> This model was derived from a small cohort (n=100) and has 
-              not been prospectively validated. Results should be interpreted with physician review and 
-              used as an adjunct to standard screening protocols, not as a standalone diagnostic tool.
+              <strong>Validation Status:</strong> This is a <strong>Non-Validated Educational Risk Tool</strong>.
+              It is not a diagnostic test and not a clinical decision aid. Results should be interpreted with
+              clinician review and should not be used as a standalone basis for PSA, MRI, or biopsy decisions.
             </div>
           </section>
 
@@ -51,6 +53,12 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
                 &nbsp;&nbsp;{Number(w('exerciseCode')) >= 0 ? '+' : '-'} {Math.abs(Number(w('exerciseCode'))).toFixed(4)} × Exercise (0=regular, 1=some, 2=none)<br/>
                 &nbsp;&nbsp;{Number(w('fhBinary')) >= 0 ? '+' : '-'} {Math.abs(Number(w('fhBinary'))).toFixed(4)} × FH (1=yes, 0=no)<br/>
                 &nbsp;&nbsp;{Number(w('shimTotal')) >= 0 ? '+' : '-'} {Math.abs(Number(w('shimTotal'))).toFixed(4)} × SHIM ({shimVar.min ?? 0}–{shimVar.max ?? 25})
+                {hasInflammationVar ? (
+                  <>
+                    <br/>
+                    &nbsp;&nbsp;{Number(w('inflammationHx')) >= 0 ? '+' : '-'} {Math.abs(Number(w('inflammationHx'))).toFixed(4)} × InflammationHx (1=yes, 0=no)
+                  </>
+                ) : null}
               </code>
             </div>
             <p className="formula-note">
@@ -86,7 +94,7 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
                   <td>Binary</td>
                   <td>0 or 1</td>
                   <td>{Number(w('raceBlack')) >= 0 ? '+' : '-'}{Math.abs(Number(w('raceBlack'))).toFixed(4)}</td>
-                  <td>Backend encoding: 1 if Black/African American, 0 otherwise. UI still captures multiple race/ethnicity groups for patient-facing inclusivity.</td>
+                  <td>Encoding: 1 if Black/African American, 0 otherwise (config-driven list). The UI captures multiple race/ethnicity groups for patient-facing inclusivity.</td>
                 </tr>
                 <tr>
                   <td><strong>BMI</strong></td>
@@ -114,15 +122,24 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
                   <td>Ordinal</td>
                   <td>0, 1, 2</td>
                   <td>{Number(w('exerciseCode')) >= 0 ? '+' : '-'}{Math.abs(Number(w('exerciseCode'))).toFixed(4)}</td>
-                  <td>0=Regular (3+ days/week), 1=Some (1-2 days/week), 2=None. No exercise increases risk.</td>
+                  <td>0=Regular (3+ days/week), 1=Some (1-2 days/week), 2=None.</td>
                 </tr>
                 <tr>
                   <td><strong>Family History</strong></td>
                   <td>Binary</td>
                   <td>0 or 1</td>
                   <td>{Number(w('fhBinary')) >= 0 ? '+' : '-'}{Math.abs(Number(w('fhBinary'))).toFixed(4)}</td>
-                  <td>1 if any first-degree relative with prostate cancer, 0 otherwise. Family history significantly increases risk.</td>
+                  <td>1 if any first-degree relative with prostate cancer, 0 otherwise.</td>
                 </tr>
+                {hasInflammationVar ? (
+                  <tr>
+                    <td><strong>InflammationHx</strong></td>
+                    <td>Binary</td>
+                    <td>0 or 1</td>
+                    <td>{Number(w('inflammationHx')) >= 0 ? '+' : '-'}{Math.abs(Number(w('inflammationHx'))).toFixed(4)}</td>
+                    <td>History of inflammatory condition (e.g., UC, Crohn’s, chronic prostatitis). Optional if not collected.</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </section>
@@ -133,25 +150,25 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
               <div className="tier-card lower">
                 <h4>Lower Risk</h4>
                 <div className="tier-range">&lt; {pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)}</div>
-                <p>Continue routine screening as recommended for age group.</p>
-                <p className="tier-action">Action: Follow standard age-based screening guidelines.</p>
+                <p>Lower estimated likelihood relative to the model’s reference data.</p>
+                <p className="tier-action">Consider discussing routine screening with a clinician based on your age and preferences.</p>
               </div>
               <div className="tier-card moderate">
                 <h4>Moderate Risk</h4>
                 <div className="tier-range">{pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)} – {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
-                <p>Consider PSA blood testing for additional risk stratification.</p>
-                <p className="tier-action">Action: Discuss PSA blood test with your doctor.</p>
+                <p>Middle-range estimated likelihood relative to the model’s reference data.</p>
+                <p className="tier-action">Consider discussing whether PSA testing is appropriate with a clinician.</p>
               </div>
               <div className="tier-card higher">
                 <h4>Higher Risk</h4>
                 <div className="tier-range">≥ {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
-                <p>Elevated risk suggests need for comprehensive evaluation.</p>
-                <p className="tier-action">Action: Schedule PSA test and urology consultation.</p>
+                <p>Higher estimated likelihood relative to the model’s reference data.</p>
+                <p className="tier-action">Consider prioritizing discussion with a clinician about whether additional evaluation makes sense for you.</p>
               </div>
             </div>
             <p className="confidence-note">
-              <strong>Displayed Range:</strong> A ±10% uncertainty band is shown to patients 
-              (e.g., score of 15% displays as "5%–25%") to acknowledge model uncertainty.
+              <strong>Displayed Range:</strong> A ±10% display band is shown to reduce over-interpretation of small differences.
+              This is <strong>not</strong> a statistical confidence interval and should not be interpreted as measurement precision.
             </p>
           </section>
 
@@ -196,9 +213,8 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
                 large, independent population to confirm performance.
               </li>
               <li>
-                <strong>Counterintuitive coefficients:</strong> Some coefficients (e.g., negative for 
-                race and IPSS) may reflect specific characteristics of the derivation cohort rather 
-                than true biological relationships.
+                <strong>Coefficient stability:</strong> Coefficients may be sensitive to the cohort used for fitting.
+                They should not be interpreted as causal effects.
               </li>
               <li>
                 <strong>Not a diagnostic tool:</strong> This calculator estimates screening priority 

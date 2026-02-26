@@ -32,13 +32,14 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           <section className="docs-section">
             <h3>Overview</h3>
             <p>
-              The Risk Assessment stage combines your initial screening priority (Stage 1 ePSA score) 
-              with additional clinical data to produce a comprehensive risk evaluation. This two-stage 
-              approach provides more accurate risk stratification for prostate cancer screening decisions.
+              The Risk Assessment stage combines your initial educational estimate (Stage 1 ePSA score)
+              with additional information (PSA and optional MRI PI-RADS) to create an educational summary.
+              It is not a diagnosis and should not be used as a standalone basis for clinical decisions.
             </p>
             <div className="info-box warning">
-              <strong>Important:</strong> This assessment incorporates PSA levels and MRI findings when available. 
-              PIRADS 4 or 5 scores on MRI may significantly elevate risk regardless of other factors.
+              <strong>Important:</strong> This is a <strong>Non-Validated Educational Risk Tool</strong>.
+              PSA and MRI interpretation depends on clinical context (e.g., PSA trends, prostate size, infection/inflammation, medications),
+              and should be reviewed with a qualified healthcare professional.
             </div>
           </section>
 
@@ -114,9 +115,9 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
                 return (
                   <div key={`${name}-${index}`} className="tier-card">
                     <h4>{name} ({pointsLabel})</h4>
-                    <div className="tier-range">{toPct(category.riskPct)} probability</div>
+                    <div className="tier-range">{toPct(category.riskPct)} (educational display)</div>
                     <p className="tier-action">
-                      Category determined dynamically from total points.
+                      Category determined dynamically from total points. Consider discussing PSA/MRI follow-up questions with a clinician.
                     </p>
                   </div>
                 );
@@ -133,8 +134,8 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
                 </p>
               ))}
               <p style={{marginTop: '10px'}}>
-                This override reflects that MRI-detected suspicious lesions are strong independent 
-                predictors of clinically significant prostate cancer.
+                This override reflects that MRI-detected suspicious lesions can meaningfully change how risk is interpreted.
+                This is an educational simplification and should be reviewed with the clinician who interpreted the MRI.
               </p>
             </div>
           </section>
