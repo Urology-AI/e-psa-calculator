@@ -44,7 +44,45 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
     );
   }
 
-  const { score, scoreRange, confidenceRange, risk, color, action, ipssTotal, shimTotal, bmi, age } = result;
+  const { score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age } = result;
+  const displayRange = result.displayRange || result.confidenceRange;
+
+  const riskExplanationText =
+    'Your result is an educational estimate based on the information you entered. It describes how your answers compare with patterns the model was built from, but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.';
+
+  const displayRangeExplanationText =
+    'The display range is a visual buffer to help avoid over-interpreting small differences in a single number. It is not a statistical confidence interval and does not represent precision.';
+
+  const getTierDescription = (tier) => {
+    switch (tier) {
+      case 'LOWER':
+        return 'LOWER suggests a lower estimated likelihood relative to others in the model\'s reference data. Lower does not mean no risk, and it does not replace clinician guidance.';
+      case 'MODERATE':
+        return 'MODERATE suggests an estimated likelihood in the middle range of the model\'s reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.';
+      case 'HIGHER':
+        return 'HIGHER suggests a higher estimated likelihood relative to others in the model\'s reference data. Higher does not mean cancer is present. It may be a useful prompt to review screening options with a clinician.';
+      default:
+        return '';
+    }
+  };
+
+  const getSoftenedActionText = (tier, fallback) => {
+    if (typeof fallback === 'string' && fallback.trim().length > 0) return fallback;
+
+    switch (tier) {
+      case 'LOWER':
+        return 'Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.';
+      case 'MODERATE':
+        return 'Consider discussing this result with your healthcare provider. Together you can decide whether screening (such as PSA testing) makes sense based on your age, preferences, and prior results.';
+      case 'HIGHER':
+        return 'Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation (for example, PSA testing or follow-up) is appropriate for you.';
+      default:
+        return 'Consider discussing these results with your healthcare provider.';
+    }
+  };
+
+  const footerDisclaimerText =
+    'This is a Non-Validated Educational Risk Tool. It is not medical advice, not diagnostic, and not intended to guide treatment decisions. Screening and imaging decisions should be made with a qualified clinician.';
 
   const riskLevels = [
     { label: 'LOWER', range: '<8%' },
@@ -57,6 +95,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       <div className="results-header">
         <div className="results-logo">ePSA</div>
         <div className="results-subtitle">Prostate-Specific Awareness — Results</div>
+        <div className="results-subtitle">A Non-Validated Educational Risk Tool</div>
         {storageMode && (
           <div className="storage-indicator">
             {storageMode === 'cloud' ? 'Cloud Storage' : 'Self-Storage'}
@@ -82,9 +121,16 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
 
       <div className="recommendation-box" style={{ border: `2px solid ${color}` }}>
         <div className="rec-label" style={{ color }}>
-          RECOMMENDED NEXT STEP
+          CONSIDER DISCUSSING NEXT STEPS
         </div>
-        <p className="rec-text">{action}</p>
+        <p className="rec-text">{getSoftenedActionText(risk, action)}</p>
+      </div>
+
+      <div className="summary-box">
+        <div><strong>Risk explanation</strong></div>
+        <div style={{ marginTop: '6px' }}>{riskExplanationText}</div>
+        <div style={{ marginTop: '10px' }}><strong>What your tier means</strong></div>
+        <div style={{ marginTop: '6px' }}>{getTierDescription(risk)}</div>
       </div>
 
       <div className="risk-bar">
@@ -108,11 +154,20 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
 
       <div className="summary-box">
         <div>Score Tier: <strong>{scoreRange}</strong></div>
-        <div>Displayed Range (±10%): <strong>{confidenceRange}</strong></div>
+        {displayRange && (
+          <div>Displayed Range: <strong>{displayRange}</strong></div>
+        )}
         <div>Age: <strong>{age}</strong></div>
         <div>BMI: <strong>{bmi}</strong></div>
         <div>IPSS: <strong>{ipssTotal}/35</strong></div>
         <div>SHIM: <strong>{shimTotal}/25</strong></div>
+        {displayRange && (
+          <div style={{ marginTop: '10px', fontSize: '13px', color: '#666' }}>{displayRangeExplanationText}</div>
+        )}
+      </div>
+
+      <div className="summary-box">
+        <div style={{ fontSize: '13px', color: '#666' }}>{footerDisclaimerText}</div>
       </div>
 
       <div className="result-buttons">
