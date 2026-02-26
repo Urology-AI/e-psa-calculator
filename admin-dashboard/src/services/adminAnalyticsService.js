@@ -32,6 +32,24 @@ export const trackAdminEvent = async (eventType, data = {}) => {
 // Get insights data for admin dashboard
 export const getAdminInsightsData = async (timeRange = '30d') => {
   try {
+    // Get session-based users from users collection
+    let users = [];
+    try {
+      const usersQuery = query(
+        collection(adminDb, 'users'),
+        orderBy('lastLoginAt', 'desc'),
+        limit(1000)
+      );
+      
+      const usersSnapshot = await getDocs(usersQuery);
+      users = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (usersError) {
+      console.error('Error fetching users:', usersError);
+    }
+
     // Try to get calculator usage events
     let usageEvents = [];
     try {
@@ -50,7 +68,7 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
       // Continue with empty usage events
     }
 
-    // Try to get outcome events (note: main app stores in 'records', not 'events')
+    // Try to get outcome events
     let outcomeEvents = [];
     try {
       const outcomesQuery = query(
@@ -68,11 +86,28 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
       // Continue with empty outcome events
     }
 
+    // Calculate session-based insights
+    const sessionStats = {
+      totalSessions: users.length,
+      emailUsers: users.filter(u => u.email).length,
+      phoneUsers: users.filter(u => u.phone).length,
+      anonymousUsers: users.filter(u => !u.email && !u.phone).length,
+      firebaseUsers: users.filter(u => u.hasFirebaseUser).length,
+      activeUsers: users.filter(u => u.isActive !== false).length,
+      recentSessions: users.filter(u => {
+        const lastLogin = new Date(u.lastLoginAt);
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return lastLogin > weekAgo;
+      }).length
+    };
+
     // Calculate insights
     const insights = {
+      sessions: sessionStats,
       usage: {
         totalUses: usageEvents.length,
-        uniqueUsers: new Set(usageEvents.map(e => e.userId)).size,
+        uniqueUsers: new Set(usageEvents.map(e => e.userId || e.sessionId)).size,
         part1ToPart2Rate: calculateConversionRate(usageEvents),
         averageTimeSpent: calculateAverageTime(usageEvents)
       },
@@ -86,7 +121,7 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
         calibration: calculateCalibration(outcomeEvents),
         aucEstimate: estimateAUC(outcomeEvents)
       },
-      recommendations: generateRecommendations(usageEvents, outcomeEvents),
+      recommendations: generateRecommendations(users, usageEvents, outcomeEvents),
       lastUpdated: new Date().toISOString(),
       connectionStatus: 'connected'
     };
@@ -98,18 +133,33 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
     // Check if it's a network error and provide troubleshooting info
     const isNetworkError = error.message.includes('Network error') || 
                           error.message.includes('permission-denied') ||
-                          error.message.includes('unavailable') ||
-                          error.code === 'unavailable' ||
-                          error.code === 'network-request-failed';
+                          error.code === 'unavailable';
     
-    if (isNetworkError) {
-      return getMockInsightsData(error.message, {
-        isNetworkError: true
-      });
-    }
-    
-    // Return mock data with error information
-    return getMockInsightsData(error.message);
+    return {
+      error: error.message,
+      isNetworkError,
+      usage: { totalUses: 0, uniqueUsers: 0, part1ToPart2Rate: '0%' },
+      outcomes: { totalOutcomes: 0, cancerRate: 0 },
+      performance: { modelAccuracy: 'N/A', calibration: 'N/A' },
+      sessions: {
+        totalSessions: 0,
+        emailUsers: 0,
+        phoneUsers: 0,
+        anonymousUsers: 0,
+        firebaseUsers: 0,
+        activeUsers: 0,
+        recentSessions: 0
+      },
+      recommendations: [{
+        type: isNetworkError ? 'error' : 'warning',
+        priority: isNetworkError ? 'high' : 'medium',
+        message: isNetworkError ? 'Firebase connection failed' : 'Unable to fetch analytics data',
+        action: isNetworkError ? 
+          'Check Firebase configuration and network connectivity' : 
+          'Verify Firebase permissions and collection structure'
+      }],
+      connectionStatus: isNetworkError ? 'disconnected' : 'error'
+    };
   }
 };
 
@@ -153,24 +203,77 @@ const estimateAUC = (outcomes) => {
   return outcomes.length > 10 ? '0.89' : 'N/A';
 };
 
-const generateRecommendations = (usage, outcomes) => {
+const generateRecommendations = (users, usageEvents, outcomeEvents) => {
   const recommendations = [];
   
-  if (usage.length < 10) {
+  // Session-based recommendations
+  if (users.length > 0) {
+    const anonymousRatio = (users.filter(u => !u.email && !u.phone).length / users.length) * 100;
+    if (anonymousRatio > 70) {
+      recommendations.push({
+        type: 'info',
+        priority: 'medium',
+        message: `${Math.round(anonymousRatio)}% of users are anonymous`,
+        action: 'Consider encouraging users to add contact information for better follow-up'
+      });
+    }
+    
+    const firebaseRatio = (users.filter(u => u.hasFirebaseUser).length / users.length) * 100;
+    if (firebaseRatio < 50) {
+      recommendations.push({
+        type: 'warning',
+        priority: 'low',
+        message: 'Only ' + Math.round(firebaseRatio) + '% of sessions have Firebase users',
+        action: 'This is normal for anonymous sessions, but monitor if authentication issues occur'
+      });
+    }
+    
+    const recentUsers = users.filter(u => {
+      const lastLogin = new Date(u.lastLoginAt);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return lastLogin > weekAgo;
+    });
+    
+    if (recentUsers.length < users.length * 0.2) {
+      recommendations.push({
+        type: 'warning',
+        priority: 'medium',
+        message: 'Low recent user activity',
+        action: 'Consider user engagement strategies or check for technical issues'
+      });
+    }
+  }
+  
+  // Usage-based recommendations
+  if (usageEvents.length === 0) {
     recommendations.push({
-      type: 'info',
-      priority: 'low',
-      message: 'Low usage volume',
-      action: 'Consider promoting the calculator to increase data collection'
+      type: 'warning',
+      priority: 'high',
+      message: 'No usage events recorded',
+      action: 'Check if event tracking is properly configured in the main application'
     });
   }
   
-  if (outcomes.length < 5) {
+  // Outcome-based recommendations
+  if (outcomeEvents.length > 0) {
+    const cancerRate = calculateCancerRate(outcomeEvents);
+    if (cancerRate > 30) {
+      recommendations.push({
+        type: 'info',
+        priority: 'low',
+        message: `High cancer risk rate detected: ${cancerRate}%`,
+        action: 'This may indicate the risk assessment is working correctly for high-risk populations'
+      });
+    }
+  }
+  
+  if (recommendations.length === 0) {
     recommendations.push({
-      type: 'warning',
-      priority: 'medium',
-      message: 'Limited outcome data',
-      action: 'Encourage users to report biopsy results for better model validation'
+      type: 'success',
+      priority: 'low',
+      message: 'All systems operating normally',
+      action: 'Continue monitoring user activity and system performance'
     });
   }
   
