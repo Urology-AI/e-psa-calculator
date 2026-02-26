@@ -17,7 +17,7 @@ import Part2Results from './components/Part2Results.jsx';
 import ProfileManager from './components/ProfileManager.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
@@ -449,9 +449,9 @@ function App() {
       console.log('Firebase auth check failed:', error);
     }
     
-    // Create session in Firestore
+    // Create session in Firestore with complete structure
     try {
-      await setDoc(doc(db, 'users', newSessionId), {
+      const sessionData = {
         uid: newSessionId,
         sessionId: newSessionId,
         authMethod: 'anonymous',
@@ -461,7 +461,9 @@ function App() {
         email: null,
         phone: null,
         hasFirebaseUser: !!firebaseUser
-      });
+      };
+      
+      await setDoc(doc(db, 'users', newSessionId), sessionData);
     } catch (error) {
       console.error('Error creating session in Firestore:', error);
     }
@@ -473,7 +475,6 @@ function App() {
       sessionId: newSessionId
     };
     setUser(mockUser);
-    console.log('Created new anonymous session:', newSessionId, 'Firebase user:', !!firebaseUser);
   };
 
   const promptUserForAuthChoice = async () => {
@@ -1304,29 +1305,20 @@ function App() {
                 )
               )}
             </div>
-            <div className="header-controls">
-              <button 
-                className="test-panel-btn" 
-                onClick={() => setShowTestPanel(!showTestPanel)}
-                title="Toggle Firebase Test Panel"
-              >
-                🔬
-              </button>
-              {user && (
-                <div className="user-info">
-                  <div className="user-identifier">
-                    {appSessionId && (
-                      <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
-                        Session: {appSessionId}
-                      </span>
-                    )}
-                  </div>
-                  <button onClick={handleLogout} className="btn-logout">
-                    Logout
-                  </button>
+            {user && (
+              <div className="user-info">
+                <div className="user-identifier">
+                  {appSessionId && (
+                    <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
+                      Session: {appSessionId}
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
+                <button onClick={handleLogout} className="btn-logout">
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
