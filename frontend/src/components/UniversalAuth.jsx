@@ -233,14 +233,25 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         sessionId += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 
-      // Create anonymous user document
+      // Check if Firebase user exists
+      let firebaseUser = null;
+      try {
+        firebaseUser = auth.currentUser;
+      } catch (error) {
+        console.log('Firebase auth check failed:', error);
+      }
+
+      // Create complete anonymous user document
       const userDoc = {
         uid: sessionId,
         sessionId: sessionId,
         authMethod: 'anonymous',
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
-        isAnonymous: true
+        isAnonymous: true,
+        email: null,
+        phone: null,
+        hasFirebaseUser: !!firebaseUser
       };
 
       await setDoc(doc(db, 'users', sessionId), userDoc);
