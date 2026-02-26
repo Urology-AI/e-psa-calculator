@@ -2,9 +2,39 @@ import React, { useRef } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './ResultsPrint.css';
+import { downloadCsv, buildPart1CsvRows, buildPart2CsvRows } from '../utils/exportCsv';
 
 const ResultsPrint = ({ result, formData, onBack }) => {
   const resultsRef = useRef(null);
+
+  const handleExportCsv = () => {
+    const isPart2 = result.riskPct !== undefined;
+    let rows, filename;
+    if (isPart2) {
+      // For Part2, we need postData (PSA/PI-RADS) and preResult; formData includes combined data
+      const postData = {
+        psa: formData.psa,
+        knowPsa: formData.knowPsa,
+        onHormonalTherapy: formData.onHormonalTherapy,
+        hormonalTherapyType: formData.hormonalTherapyType,
+        knowPirads: formData.knowPirads,
+        pirads: formData.pirads
+      };
+      const preResult = {
+        score: formData.score,
+        risk: formData.risk,
+        scoreRange: formData.scoreRange,
+        confidenceRange: formData.displayRange || formData.confidenceRange
+      };
+      rows = buildPart2CsvRows(postData, preResult, result, {});
+      filename = `ePSA_Part2_Results_${new Date().toISOString().slice(0, 10)}.csv`;
+    } else {
+      // Part1
+      rows = buildPart1CsvRows(formData, result, {});
+      filename = `ePSA_Part1_Results_${new Date().toISOString().slice(0, 10)}.csv`;
+    }
+    downloadCsv(filename, rows);
+  };
 
   const handlePrint = async () => {
     if (!resultsRef.current) return;
@@ -146,6 +176,9 @@ const ResultsPrint = ({ result, formData, onBack }) => {
       <div className="print-actions">
         <button className="btn-back" onClick={onBack}>
           ← Back to Results
+        </button>
+        <button className="btn-export-csv" onClick={handleExportCsv}>
+          Export CSV
         </button>
         <button className="btn-print-results" onClick={handlePrint}>
           📄 Print Results PDF

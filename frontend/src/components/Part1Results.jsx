@@ -3,6 +3,7 @@ import './Part1Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
 import ResultsPrint from './ResultsPrint';
+import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import { 
   ArrowLeftIcon, 
   RefreshCwIcon, 
@@ -16,6 +17,11 @@ import {
 const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false }) => {
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
+  const handleExportCsv = () => {
+    const rows = buildPart1CsvRows(formData, result, {}); // config not needed for CSV
+    const filename = `ePSA_Part1_Results_${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsv(filename, rows);
+  };
 
   if (showPrintableForm) {
     return (
@@ -201,39 +207,45 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         
         {/* Export available for both storage modes */}
         {(storageMode === 'local' || storageMode === 'cloud') && (
-          <button className="btn-export" onClick={() => {
-            try {
-              console.log('Exporting data:', formData);
-              
-              // Check if formData exists and has content
-              if (!formData || Object.keys(formData).length === 0) {
-                throw new Error('No form data available to export');
+          <>
+            <button className="btn-export" onClick={() => {
+              try {
+                console.log('Exporting data:', formData);
+                
+                // Check if formData exists and has content
+                if (!formData || Object.keys(formData).length === 0) {
+                  throw new Error('No form data available to export');
+                }
+                
+                const exportData = {
+                  version: '1.0',
+                  exportDate: new Date().toISOString(),
+                  part: 'part1',
+                  formData: formData
+                };
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed. Please try again.');
               }
-              
-              const exportData = {
-                version: '1.0',
-                exportDate: new Date().toISOString(),
-                part: 'part1',
-                formData: formData
-              };
-              const dataStr = JSON.stringify(exportData, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            } catch (error) {
-              console.error('Export failed:', error);
-              alert('Export failed. Please try again.');
-            }
-          }}>
-            <DownloadIcon size={18} />
-            <span>Export Data</span>
-          </button>
+            }}>
+              <DownloadIcon size={18} />
+              <span>Export Data</span>
+            </button>
+            <button className="btn-export" onClick={handleExportCsv}>
+              <DownloadIcon size={18} />
+              <span>Export CSV</span>
+            </button>
+          </>
         )}
       </div>
     </div>

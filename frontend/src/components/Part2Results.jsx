@@ -3,6 +3,7 @@ import './Part2Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import ResultsPrint from './ResultsPrint';
 import PrintableForm from './PrintableForm';
+import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import { 
   ArrowLeftIcon, 
   RefreshCwIcon, 
@@ -16,6 +17,11 @@ import {
 const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+  const handleExportCsv = () => {
+    const rows = buildPart2CsvRows(postData, preResult, result, {}); // config not needed for CSV
+    const filename = `ePSA_Part2_Results_${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsv(filename, rows);
+  };
   const footerDisclaimerText =
     'This is a Non-Validated Educational Risk Tool and is not medical advice. PSA and MRI decisions (including whether to repeat PSA, order MRI, or consider biopsy) depend on individual factors and should be made with a qualified healthcare professional.';
 
@@ -231,35 +237,41 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
         
         {/* Export available for both storage modes */}
         {(storageMode === 'local' || storageMode === 'cloud') && (
-          <button className="btn-export" onClick={() => {
-            try {
-              const exportData = {
-                version: '1.0',
-                exportDate: new Date().toISOString(),
-                part: 'complete',
-                part1Data: preData || {},
-                part1Result: preResult || {},
-                part2Data: postData || {},
-                part2Result: result || {}
-              };
-              const dataStr = JSON.stringify(exportData, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            } catch (error) {
-              console.error('Export failed:', error);
-              alert('Export failed. Please try again.');
-            }
-          }}>
-            <DownloadIcon size={18} />
-            <span>Export Data</span>
-          </button>
+          <>
+            <button className="btn-export" onClick={() => {
+              try {
+                const exportData = {
+                  version: '1.0',
+                  exportDate: new Date().toISOString(),
+                  part: 'complete',
+                  part1Data: preData || {},
+                  part1Result: preResult || {},
+                  part2Data: postData || {},
+                  part2Result: result || {}
+                };
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed. Please try again.');
+              }
+            }}>
+              <DownloadIcon size={18} />
+              <span>Export Data</span>
+            </button>
+            <button className="btn-export" onClick={handleExportCsv}>
+              <DownloadIcon size={18} />
+              <span>Export CSV</span>
+            </button>
+          </>
         )}
       </div>
 
