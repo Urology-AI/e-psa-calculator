@@ -618,9 +618,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: 'balanced', label: 'Balanced / Mixed' },
-              { value: 'plant-forward', label: 'Plant-forward' },
-              { value: 'high-fat-red-meat', label: 'High fat / red meat heavy' },
+              { value: 'western', label: 'Western / Standard American' },
+              { value: 'mediterranean', label: 'Mediterranean' },
+              { value: 'dash', label: 'DASH-style' },
+              { value: 'plant-based', label: 'Plant-based (Vegetarian / Vegan)' },
+              { value: 'pescatarian', label: 'Pescatarian' },
+              { value: 'low-carb-keto', label: 'Low-carb / Keto' },
               { value: 'other', label: 'Other / Prefer not to say' },
             ].map(opt => (
               <button
