@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
 import { auth, db } from './config/firebase';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
@@ -436,17 +436,21 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
 
   const handleAuthSuccess = async (user, authInfo) => {
     setUser(user);
-    // Support both phone and email auth
+    // Support legacy and structured auth metadata
     if (typeof authInfo === 'string') {
       // Legacy phone auth
       setUserPhone(authInfo);
     } else if (authInfo && authInfo.phone) {
       setUserPhone(authInfo.phone);
+    } else if (authInfo && authInfo.email) {
+      setUserEmail(authInfo.email);
     } else if (user.email) {
       setUserEmail(user.email);
-    } else if (user.isAnonymous && user.sessionId) {
-      // Anonymous auth - set session ID
-      setAppSessionId(user.sessionId);
+    }
+
+    if ((authInfo && authInfo.sessionId) || user?.isAnonymous) {
+      // Anonymous auth tracks a display session ID separate from Firebase UID
+      setAppSessionId(authInfo?.sessionId || null);
     }
     
     // Check if user already has consent in Firestore
@@ -554,47 +558,30 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
   };
 
   const createNewAnonymousSession = async () => {
-    // Generate new session ID
+    // Generate new human-readable session ID
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let newSessionId = '';
     for (let i = 0; i < 8; i++) {
       newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
-    // Check if Firebase user exists
-    let firebaseUser = null;
-    try {
-      firebaseUser = auth.currentUser;
-    } catch (error) {
-      console.log('Firebase auth check failed:', error);
-    }
-    
-    // Create session in Firestore with complete structure
-    try {
-      const sessionData = {
-        uid: newSessionId,
-        sessionId: newSessionId,
-        authMethod: 'anonymous',
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
-        isAnonymous: true,
-        email: null,
-        phone: null,
-        hasFirebaseUser: !!firebaseUser
-      };
-      
-      await setDoc(doc(db, 'users', newSessionId), sessionData);
-    } catch (error) {
-      console.error('Error creating session in Firestore:', error);
-    }
-    
-    setAppSessionId(newSessionId);
-    const mockUser = {
-      uid: newSessionId,
+
+    const authResult = await signInAnonymously(auth);
+    const firebaseUser = authResult.user;
+
+    await setDoc(doc(db, 'users', firebaseUser.uid), {
+      uid: firebaseUser.uid,
+      sessionId: newSessionId,
+      authMethod: 'anonymous',
       isAnonymous: true,
-      sessionId: newSessionId
-    };
-    setUser(mockUser);
+      email: null,
+      phone: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      lastLoginAt: new Date().toISOString()
+    }, { merge: true });
+
+    setAppSessionId(newSessionId);
+    setUser(firebaseUser);
     return newSessionId;
   };
 
