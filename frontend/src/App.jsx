@@ -404,21 +404,29 @@ function App() {
     return { sessionId: sessionRef.id };
   };
 
-  const updateSession = async (id, stepData, result) => {
+const updateSession = async (id, stepData, result, phase = 'step2') => {
     if (!id) throw new Error('Session ID is required');
 
     const sessionRef = doc(db, 'sessions', id);
     const sessionSnap = await getDoc(sessionRef);
     const existing = sessionSnap.exists() ? sessionSnap.data() : {};
-    const hasStep1 = !!existing?.step1;
 
-    await setDoc(sessionRef, {
-      step1: hasStep1 ? existing.step1 : stepData,
-      step2: hasStep1 ? stepData : null,
+    const updates = {
       result,
-      status: hasStep1 ? 'STEP2_COMPLETE' : 'STEP1_COMPLETE',
       updatedAt: serverTimestamp()
-    }, { merge: true });
+    };
+
+    if (phase === 'step1') {
+      updates.step1 = stepData;
+      updates.status = 'STEP1_COMPLETE';
+      updates.step2 = existing?.step2 || null;
+    } else {
+      updates.step1 = existing?.step1 || null;
+      updates.step2 = stepData;
+      updates.status = 'STEP2_COMPLETE';
+    }
+
+    await setDoc(sessionRef, updates, { merge: true });
   };
 
   const deleteSession = async (id) => {
@@ -508,8 +516,34 @@ function App() {
     setShowProfile(false);
     
     // Clear form data
-    setPreData({});
-    setPostData({});
+    setPreData({
+      age: '',
+      race: null,
+      heightFt: '',
+      heightIn: '',
+      weight: '',
+      bmi: 0,
+      familyHistory: null,
+      brcaStatus: null,
+      heightUnit: 'imperial',
+      heightCm: '',
+      weightUnit: 'lbs',
+      weightKg: '',
+      ipss: Array(7).fill(null),
+      shim: Array(5).fill(null),
+      exercise: null,
+      smoking: null,
+      chemicalExposure: null,
+      dietPattern: '',
+    });
+    setPostData({
+      psa: '',
+      knowPsa: false,
+      onHormonalTherapy: false,
+      hormonalTherapyType: '',
+      knowPirads: false,
+      pirads: '0'
+    });
     setPreResult(null);
     setPostResult(null);
     setStage('pre');
@@ -991,7 +1025,7 @@ function App() {
         try {
           if (sessionId) {
             // Update existing session
-            await updateSession(sessionId, preData, result);
+            await updateSession(sessionId, preData, result, 'step1');
           } else {
             // Create new session
             const response = await createSession({
@@ -1056,7 +1090,7 @@ function App() {
         try {
           if (sessionId) {
             // Update existing session with Part 2 data
-            await updateSession(sessionId, postData, result);
+            await updateSession(sessionId, postData, result, 'step2');
           } else {
             // Create new session if missing (shouldn't happen, but handle gracefully)
             console.warn('No sessionId found, creating new session for step 2');
