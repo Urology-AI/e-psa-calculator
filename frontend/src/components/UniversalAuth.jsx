@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   RecaptchaVerifier, 
   signInWithPhoneNumber,
+  signInAnonymously,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import './UniversalAuth.css';
 
@@ -233,37 +234,22 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         sessionId += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 
-      // Check if Firebase user exists
-      let firebaseUser = null;
-      try {
-        firebaseUser = auth.currentUser;
-      } catch (error) {
-        console.log('Firebase auth check failed:', error);
-      }
+      const authResult = await signInAnonymously(auth);
+      const firebaseUser = authResult.user;
 
-      // Create complete anonymous user document
-      const userDoc = {
-        uid: sessionId,
-        sessionId: sessionId,
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        uid: firebaseUser.uid,
+        sessionId,
         authMethod: 'anonymous',
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
         isAnonymous: true,
         email: null,
         phone: null,
-        hasFirebaseUser: !!firebaseUser
-      };
+        lastLoginAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp()
+      }, { merge: true });
 
-      await setDoc(doc(db, 'users', sessionId), userDoc);
-
-      // Create mock user object
-      const mockUser = {
-        uid: sessionId,
-        isAnonymous: true,
-        sessionId: sessionId
-      };
-
-      onAuthSuccess(mockUser);
+      onAuthSuccess(firebaseUser, { method: 'anonymous', sessionId });
     } catch (err) {
       console.error('Anonymous auth error:', err);
       setError('Failed to create session. Please try again.');
