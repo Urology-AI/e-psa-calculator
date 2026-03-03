@@ -32,6 +32,10 @@ interface UnlockSectionData {
   adminReason: string;
 }
 
+interface AnonymousSessionLoginData {
+  sessionId: string;
+}
+
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -423,6 +427,146 @@ export const getUser = functions.https.onCall(async (data: { userId?: string }, 
     createdAt: userData?.createdAt,
     updatedAt: userData?.updatedAt,
   };
+});
+
+// ============================================
+// CLOUD FUNCTION: Restore Anonymous Session by Session ID
+// ============================================
+export const loginAnonymousBySessionId = functions.https.onCall(async (data: AnonymousSessionLoginData, context: functions.https.CallableContext) => {
+  try {
+    // Rate limiting
+    enforceRateLimit(context);
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+
+    const parsed = z.object({
+      sessionId: z.string().regex(/^[A-Z0-9]{8}$/, 'Session ID must be 8 uppercase alphanumeric characters')
+    }).safeParse({
+      sessionId: (data?.sessionId || '').toUpperCase().trim()
+    });
+
+    if (!parsed.success) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid session ID format');
+    }
+
+    const sessionId = parsed.data.sessionId;
+    const currentUserId = context.auth.uid;
+
+    // Locate the original anonymous user by human-readable session ID
+    const matchedUsers = await db.collection('users')
+      .where('sessionId', '==', sessionId)
+      .limit(1)
+      .get();
+
+    if (matchedUsers.empty) {
+      throw new functions.https.HttpsError('not-found', 'Session ID not found');
+    }
+
+    const matchedDoc = matchedUsers.docs[0];
+    const matchedUserId = matchedDoc.id;
+    const matchedData = matchedDoc.data();
+
+    if (matchedData?.isAnonymous !== true) {
+      throw new functions.https.HttpsError('failed-precondition', 'Session ID is not linked to an anonymous account');
+    }
+
+    const nowIso = new Date().toISOString();
+    const nowTs = admin.firestore.Timestamp.now();
+
+    // If this login is from a different anonymous UID, migrate ownership to current UID
+    if (matchedUserId !== currentUserId) {
+      const currentUserRef = db.collection('users').doc(currentUserId);
+      const migrateBatch = db.batch();
+
+      migrateBatch.set(currentUserRef, {
+        uid: currentUserId,
+        sessionId,
+        isAnonymous: true,
+        authMethod: 'anonymous',
+        email: matchedData.email ?? null,
+        phone: matchedData.phone ?? null,
+        consentToContact: matchedData.consentToContact ?? null,
+        consentTimestamp: matchedData.consentTimestamp ?? null,
+        currentSessionId: matchedData.currentSessionId ?? null,
+        lastLoginAt: nowIso,
+        updatedAt: nowTs,
+        migratedFromUid: matchedUserId
+      }, { merge: true });
+
+      migrateBatch.set(matchedDoc.ref, {
+        migratedToUid: currentUserId,
+        migratedAt: nowTs,
+        lastLoginAt: nowIso
+      }, { merge: true });
+
+      await migrateBatch.commit();
+
+      // Move all existing sessions to the current authenticated user.
+      while (true) {
+        const sessionsSnapshot = await db.collection('sessions')
+          .where('userId', '==', matchedUserId)
+          .limit(200)
+          .get();
+
+        if (sessionsSnapshot.empty) {
+          break;
+        }
+
+        const sessionBatch = db.batch();
+        sessionsSnapshot.docs.forEach((sessionDoc) => {
+          sessionBatch.set(sessionDoc.ref, {
+            userId: currentUserId,
+            updatedAt: nowTs
+          }, { merge: true });
+        });
+        await sessionBatch.commit();
+
+        if (sessionsSnapshot.size < 200) {
+          break;
+        }
+      }
+    } else {
+      await db.collection('users').doc(currentUserId).set({
+        sessionId,
+        isAnonymous: true,
+        authMethod: 'anonymous',
+        lastLoginAt: nowIso,
+        updatedAt: nowTs
+      }, { merge: true });
+    }
+
+    const finalUserDoc = await db.collection('users').doc(currentUserId).get();
+    const finalUserData = finalUserDoc.data() || {};
+
+    // Audit log
+    await logAudit('ANON_SESSION_RESTORE', currentUserId, 'user', currentUserId, {
+      sessionId,
+      matchedUserId
+    });
+
+    return {
+      success: true,
+      userId: currentUserId,
+      sessionId,
+      currentSessionId: finalUserData.currentSessionId || null,
+      consentToContact: finalUserData.consentToContact ?? null,
+      consentTimestamp: finalUserData.consentTimestamp || null,
+      email: finalUserData.email || null,
+      phone: finalUserData.phone || null
+    };
+  } catch (error: any) {
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+
+    functions.logger.error('loginAnonymousBySessionId failed', {
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack
+    });
+    throw new functions.https.HttpsError('internal', `Session restore failed: ${error?.message || 'unknown error'}`);
+  }
 });
 
 // ============================================

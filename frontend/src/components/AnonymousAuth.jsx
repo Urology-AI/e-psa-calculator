@@ -52,7 +52,7 @@ const AnonymousAuth = ({ onAuthSuccess }) => {
       onAuthSuccess(mockUser);
     } catch (err) {
       console.error('Anonymous session creation error:', err);
-      setError('Failed to create session. Please try again.');
+      setError(`${err.message || 'Failed to create session.'}${err.code ? ` (${err.code})` : ''}`);
     } finally {
       setLoading(false);
     }

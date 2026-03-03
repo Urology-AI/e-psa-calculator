@@ -4,7 +4,7 @@ import { db } from '../config/firebase';
 import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, LinkIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
 
-const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
+const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink }) => {
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
@@ -17,14 +17,14 @@ const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (sessionId) {
+    if (userDocId) {
       loadUserData();
     }
-  }, [sessionId]);
+  }, [userDocId]);
 
   const loadUserData = async () => {
-    try {
-      const userDoc = await getDoc(doc(db, 'users', sessionId));
+      try {
+      const userDoc = await getDoc(doc(db, 'users', userDocId));
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
@@ -60,7 +60,7 @@ const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
 
     try {
       // Delete session from Firestore
-      await deleteDoc(doc(db, 'users', sessionId));
+      await deleteDoc(doc(db, 'users', userDocId));
       
       setSuccess('Session unlinked successfully!');
       
@@ -99,7 +99,7 @@ const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
       }
 
       // Update Firestore document
-      await updateDoc(doc(db, 'users', sessionId), {
+      await updateDoc(doc(db, 'users', userDocId), {
         email: editForm.email || null,
         phone: editForm.phone || null,
         lastLoginAt: new Date().toISOString()
@@ -136,6 +136,22 @@ const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
+  };
+
+  const formatCreatedAt = (createdAt) => {
+    if (!createdAt) return 'Not available';
+
+    // Firestore Timestamp object
+    if (typeof createdAt?.toDate === 'function') {
+      return createdAt.toDate().toLocaleDateString();
+    }
+
+    // Milliseconds or ISO string fallback
+    const parsed = new Date(createdAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Not available';
+    }
+    return parsed.toLocaleDateString();
   };
 
   if (!userData) {
@@ -279,7 +295,7 @@ const ProfileManager = ({ sessionId, onProfileUpdate, onSessionUnlink }) => {
             <div className="info-item">
               <div className="info-label">Session Created</div>
               <div className="info-value">
-                {new Date(userData.createdAt).toLocaleDateString()}
+                {formatCreatedAt(userData.createdAt)}
               </div>
             </div>
           </div>
