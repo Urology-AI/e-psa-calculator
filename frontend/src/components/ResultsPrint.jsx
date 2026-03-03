@@ -112,6 +112,8 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
       case 'LOWER': return '#27AE60';
       case 'MODERATE': return '#F39C12';
       case 'HIGHER': return '#E74C3C';
+      case 'PSA_RECOMMENDED': return '#D4AF37';
+      case 'PSA_NOT_RECOMMENDED': return '#27AE60';
       case 'low-risk': return '#27AE60';
       case 'moderate-risk': return '#F39C12';
       case 'high-risk': return '#D35400';
@@ -137,6 +139,8 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
     risk: formData.risk || 'N/A',
     color: getRiskColor(formData.risk),
     action: formData.action || 'N/A',
+    recommendPSA: formData.recommendPSA,
+    tierRisk: formData.tierRisk || formData.risk || 'N/A',
     ipssTotal: formData.ipssTotal || 0,
     shimTotal: formData.shimTotal || 0,
     bmi: formData.bmi || 0,
@@ -146,8 +150,10 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
     scoreRange: result.scoreRange || 'N/A',
     displayRange: result.displayRange || result.confidenceRange || 'N/A',
     risk: result.risk || 'N/A',
-    color: getRiskColor(result.risk || 'N/A'),
+    color: result.color || getRiskColor(result.risk || 'N/A'),
     action: result.action || 'N/A',
+    recommendPSA: result.recommendPSA,
+    tierRisk: result.tierRisk || result.risk || 'N/A',
     ipssTotal: formData.ipssTotal || 0,
     shimTotal: formData.shimTotal || 0,
     bmi: formData.bmi || 0,
@@ -212,19 +218,23 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
                 {part1Data.score}%
               </div>
               <div className="risk-badge" style={{ background: part1Data.color }}>
-                {part1Data.risk} RISK
+                {part1Data.recommendPSA === true ? 'PSA RECOMMENDED' : part1Data.recommendPSA === false ? 'PSA NOT RECOMMENDED' : part1Data.risk}
               </div>
             </div>
           </div>
 
           <div className="result-details">
             <div className="detail-row">
-              <span className="detail-label">Risk Category:</span>
-              <span className="detail-value">{part1Data.risk}</span>
+              <span className="detail-label">Recommendation:</span>
+              <span className="detail-value">{part1Data.recommendPSA === true ? 'PSA Recommended' : part1Data.recommendPSA === false ? 'PSA Not Recommended' : part1Data.risk}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Score Range:</span>
               <span className="detail-value">{part1Data.scoreRange}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Risk Tier:</span>
+              <span className="detail-value">{part1Data.tierRisk}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Display Range:</span>
