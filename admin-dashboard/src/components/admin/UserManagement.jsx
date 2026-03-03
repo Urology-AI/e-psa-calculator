@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Activity, Settings, Eye, Lock, CheckCircle, Search, Filter, Download, Calendar, Mail, Phone, Key } from 'lucide-react';
+import { Users, Shield, Activity, Settings, Eye, Lock, CheckCircle, Search, Filter, Download, Calendar, Mail, Phone, Key, Send } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { adminDb } from '../../config/adminFirebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import adminApp, { adminDb } from '../../config/adminFirebase';
 import './UserManagement.css';
 
 const UserManagement = () => {
@@ -16,6 +17,13 @@ const UserManagement = () => {
   const [filterType, setFilterType] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [savingContact, setSavingContact] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+
+  const functions = getFunctions(adminApp);
+  const sendSessionAccessEmail = httpsCallable(functions, 'sendSessionAccessEmail');
 
   useEffect(() => {
     loadUsers();
@@ -60,6 +68,9 @@ const UserManagement = () => {
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
+    setEditEmail(user.email || '');
+    setEditPhone(user.phone || '');
+    setContactMessage('');
     setShowUserDetails(true);
   };
 
@@ -311,11 +322,21 @@ const UserManagement = () => {
                 <div className="detail-grid">
                   <div className="detail-item">
                     <label>Email:</label>
-                    <span>{selectedUser.email || 'Not provided'}</span>
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="patient@example.com"
+                    />
                   </div>
                   <div className="detail-item">
                     <label>Phone:</label>
-                    <span>{selectedUser.phone || 'Not provided'}</span>
+                    <input
+                      type="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                    />
                   </div>
                   <div className="detail-item">
                     <label>Firebase User:</label>
@@ -327,6 +348,66 @@ const UserManagement = () => {
                       {selectedUser.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
+                </div>
+
+                <div className="detail-section consent-note">
+                  <p>
+                    By adding an email or phone number here, you confirm that the contact belongs to the patient and that
+                    they have consented to receive secure links or messages related to their ePSA session.
+                  </p>
+                </div>
+
+                <div className="detail-section">
+                  <button
+                    className="action-btn send-link"
+                    disabled={savingContact || (!editEmail && !editPhone)}
+                    onClick={async () => {
+                      if (!selectedUser) return;
+                      setSavingContact(true);
+                      setContactMessage('');
+                      try {
+                        await updateDoc(doc(adminDb, 'users', selectedUser.id), {
+                          email: editEmail || null,
+                          phone: editPhone || null,
+                          lastModified: new Date().toISOString()
+                        });
+
+                        const updated = {
+                          ...selectedUser,
+                          email: editEmail || null,
+                          phone: editPhone || null
+                        };
+                        setSelectedUser(updated);
+                        setUsers(prev =>
+                          prev.map(u => (u.id === updated.id ? updated : u))
+                        );
+
+                        if (editEmail) {
+                          await sendSessionAccessEmail({
+                            email: editEmail,
+                            sessionId: selectedUser.sessionId || selectedUser.id,
+                            context: 'admin-added-contact'
+                          });
+                          setContactMessage('Saved and session access email sent.');
+                        } else {
+                          setContactMessage('Contact saved (no email provided to send link).');
+                        }
+                      } catch (error) {
+                        console.error('Error saving contact or sending email:', error);
+                        setContactMessage('Error saving contact or sending email. Check console for details.');
+                      } finally {
+                        setSavingContact(false);
+                      }
+                    }}
+                  >
+                    <Send size={16} />
+                    {savingContact ? 'Saving...' : 'Save & Send Access Email'}
+                  </button>
+                  {contactMessage && (
+                    <p className="contact-message">
+                      {contactMessage}
+                    </p>
+                  )}
                 </div>
               </div>
 
