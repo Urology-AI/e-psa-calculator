@@ -236,6 +236,13 @@
   padding: 4px 0;
 }
 
+.score-help-text {
+  margin: 0 0 6px;
+  font-size: 10px;
+  color: #4A5968;
+  line-height: 1.35;
+}
+
 /* Form rows for side-by-side layout */
 .form-row {
   display: flex;
