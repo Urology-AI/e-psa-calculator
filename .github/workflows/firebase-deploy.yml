@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -74,6 +76,10 @@ jobs:
         channelId: live
         projectId: epsa-30d0b
         target: admin
+
+    - name: Skip preview deploy for fork PRs
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+      run: echo 'Skipping Firebase preview deploy for fork PR because GITHUB_TOKEN cannot create check-runs/comments.'
 
     - name: Deploy app (preview)
       if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
