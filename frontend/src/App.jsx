@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
-import { auth, db } from './config/firebase';
+import { auth, db, functions } from './config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
@@ -323,8 +324,12 @@ function App() {
             setAuthStep('consent');
           }
         } else {
-          // No consent found - show consent screen
-          setAuthStep('consent');
+          // Anonymous users can proceed without consent until they link contact info.
+          if (currentUser.isAnonymous) {
+            setAuthStep('app');
+          } else {
+            setAuthStep('consent');
+          }
         }
       } else {
         // User logged out - go back to welcome screen
@@ -435,6 +440,11 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
   };
 
   const handleAuthSuccess = async (user, authInfo) => {
+    console.log('[AuthFlow] handleAuthSuccess invoked', {
+      uid: user?.uid,
+      isAnonymous: user?.isAnonymous,
+      authInfo
+    });
     setUser(user);
     // Support legacy and structured auth metadata
     if (typeof authInfo === 'string') {
@@ -451,6 +461,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
     if ((authInfo && authInfo.sessionId) || user?.isAnonymous) {
       // Anonymous auth tracks a display session ID separate from Firebase UID
       setAppSessionId(authInfo?.sessionId || null);
+      console.log('[AuthFlow] appSessionId set', { appSessionId: authInfo?.sessionId || null });
     }
     
     // Check if user already has consent in Firestore
@@ -462,8 +473,9 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
     }
     
     const consentExists = !!(userData && userData.consentToContact !== undefined);
-    
-    if (consentExists) {
+    const shouldBypassConsent = user?.isAnonymous === true;
+
+    if (consentExists || shouldBypassConsent) {
       // User already consented - skip consent screen
       let consent;
       if (userData) {
@@ -476,9 +488,11 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
         setConsentData(consent);
       }
       setAuthStep('app');
+      console.log('[AuthFlow] consent bypass/existing -> authStep=app', { uid: user?.uid, shouldBypassConsent });
     } else {
       // No consent found - show consent screen
       setAuthStep('consent');
+      console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
     }
   };
 
@@ -567,6 +581,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
 
     const authResult = await signInAnonymously(auth);
     const firebaseUser = authResult.user;
+    await firebaseUser.getIdToken();
 
     await setDoc(doc(db, 'users', firebaseUser.uid), {
       uid: firebaseUser.uid,
@@ -607,61 +622,63 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
     setImportedData(importedData);
     
     if (importType === 'session') {
-      // Handle session ID login - verify session exists and check for Firebase user
-      const { sessionId, userData, existingSession } = importedData;
+      // Handle session ID login through backend-assisted restoration.
+      const requestedSessionId = (importedData?.sessionId || '').toUpperCase().trim();
       
       try {
-        // Verify session exists in Firestore
-        const sessionDoc = await getDoc(doc(db, 'users', sessionId));
-        if (!sessionDoc.exists()) {
-          throw new Error('Session not found in database');
+        if (!/^[A-Z0-9]{8}$/.test(requestedSessionId)) {
+          throw new Error('Please enter a valid 8-character Session ID.');
         }
-        
-        const sessionData = sessionDoc.data();
-        
-        // Check if Firebase user exists for this session
-        let firebaseUser = null;
-        try {
-          // Try to get Firebase user by UID (session ID)
-          firebaseUser = auth.currentUser;
-          if (!firebaseUser || firebaseUser.uid !== sessionId) {
-            // No Firebase user or different user - create new anonymous Firebase user
-            console.log('Creating Firebase user for session:', sessionId);
-            // Note: Firebase doesn't allow creating users with custom UIDs directly
-            // We'll work with mock user object for session-based auth
-          }
-        } catch (authError) {
-          console.log('Firebase auth check failed, using session-based auth:', authError);
+
+        // Ensure there is an authenticated Firebase user before callable.
+        let firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          const authResult = await signInAnonymously(auth);
+          firebaseUser = authResult.user;
         }
-        
-        const mockUser = {
-          uid: sessionId,
-          isAnonymous: true,
-          sessionId: sessionId
-        };
-        
-        setUser(mockUser);
-        setAppSessionId(sessionId);
-        
-        // Update user state with contact info from session
-        if (sessionData?.email) setUserEmail(sessionData.email);
-        if (sessionData?.phone) setUserPhone(sessionData.phone);
-        
-        const consentExists = !!(sessionData && sessionData.consentToContact !== undefined);
-        
+
+        if (!functions) {
+          throw new Error('Firebase Functions is not initialized.');
+        }
+
+        const restoreAnonymousSessionFn = httpsCallable(functions, 'loginAnonymousBySessionId');
+        const restoreResult = await restoreAnonymousSessionFn({ sessionId: requestedSessionId });
+        const restored = restoreResult?.data || {};
+
+        setUser(firebaseUser);
+        setAppSessionId(requestedSessionId);
+
+        if (restored.email) {
+          setUserEmail(restored.email);
+        }
+        if (restored.phone) {
+          setUserPhone(restored.phone);
+        }
+
+        if (restored.currentSessionId) {
+          setSessionId(restored.currentSessionId);
+          localStorage.setItem(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
+        }
+
+        const consentExists = restored.consentToContact !== undefined && restored.consentToContact !== null;
         if (consentExists) {
           const consent = {
-            consentToContact: sessionData.consentToContact || false,
-            consentTimestamp: sessionData.consentTimestamp || new Date().toISOString()
+            consentToContact: restored.consentToContact || false,
+            consentTimestamp: restored.consentTimestamp || new Date().toISOString()
           };
           setConsentData(consent);
           setAuthStep('app');
         } else {
-          setAuthStep('consent');
+          setAuthStep('app');
         }
       } catch (error) {
-        console.error('Session login error:', error);
-        alert(`Failed to load session: ${error.message}`);
+        console.error('Session login error:', {
+          code: error?.code,
+          message: error?.message,
+          details: error?.details,
+          stack: error?.stack
+        });
+        alert(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
         return;
       }
       return;
@@ -751,7 +768,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
                 setConsentData(consent);
                 setAuthStep('app');
               } else {
-                setAuthStep('consent');
+                setAuthStep('app');
               }
               return;
             }
@@ -1440,10 +1457,16 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
             
             {showProfile && (
               <ProfileManager 
+                userDocId={user?.uid}
                 sessionId={appSessionId} 
                 onProfileUpdate={(updatedData) => {
                   setUserEmail(updatedData.email);
                   setUserPhone(updatedData.phone);
+                  const linkedContact = Boolean(updatedData?.email || updatedData?.phone);
+                  if (user?.isAnonymous && linkedContact && !consentData) {
+                    setShowProfile(false);
+                    setAuthStep('consent');
+                  }
                 }}
                 onSessionUnlink={handleSessionUnlink}
               />
@@ -1451,7 +1474,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
             
             {/* Part1Form handles its own navigation */}
             {/* Part2Form handles its own navigation */}
-            {renderAppContent()}
+            {stage === 'pre' ? renderPreStage() : renderPostStage()}
           </>
         )}
       </div>

@@ -96,22 +96,24 @@ ePSA is a two-stage risk assessment tool designed to help patients understand th
    ```bash
    cd frontend
    npm run dev
-   # Visit http://localhost:5173
+   # Visit http://localhost:3000
    ```
 
 2. **Start admin dashboard**
    ```bash
-   cd admin
+   cd admin-dashboard
    npm run dev
-   # Visit http://localhost:5174
+   # Visit http://localhost:3001
    ```
 
-3. **Start backend functions**
+3. **Start Firebase emulators (auth, firestore, functions, database, hosting)**
    ```bash
-   cd backend
-   npm run dev
-   # Functions will be available on localhost:5001
+   firebase emulators:start
    ```
+
+4. **Run frontend/admin against emulators**
+   - `frontend/.env.local` and `admin-dashboard/.env.local` enable local auth/firestore emulator usage.
+   - Frontend also enables Functions emulator via `VITE_USE_FUNCTIONS_EMULATOR=true`.
 
 ## 🚀 Deployment
 

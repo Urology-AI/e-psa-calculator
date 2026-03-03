@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Firebase configuration
@@ -37,6 +37,10 @@ const requiredFields = ['apiKey', 'projectId', 'appId'];
 const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
 
 const isDev = import.meta.env.DEV;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const useAuthEmulator = import.meta.env.VITE_USE_AUTH_EMULATOR === 'true';
+const useFunctionsEmulator = import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true';
+const useFirestoreEmulator = import.meta.env.VITE_USE_FIRESTORE_EMULATOR === 'true';
 
 if (!isFirebaseConfigured()) {
   if (isGitHubPages || isFirebaseDisabled) {
@@ -60,13 +64,16 @@ if (isFirebaseConfigured()) {
   db = getFirestore(app);
   functions = getFunctions(app);
   
-  // Initialize Analytics only if measurementId is available
-  if (firebaseConfig.measurementId) {
+  // Disable analytics for localhost to avoid CSP/noise during emulator testing.
+  const shouldInitAnalytics = Boolean(firebaseConfig.measurementId) && !isLocalhost;
+  if (shouldInitAnalytics) {
     analytics = getAnalytics(app);
+  } else if (isDev) {
+    console.log('📉 Analytics disabled for local/emulator run');
   }
 
   // Disable reCAPTCHA for development when using emulator
-  if (window.location.hostname === 'localhost' && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true') {
+  if (window.location.hostname === 'localhost' && useAuthEmulator) {
     app.automaticDataCollectionEnabled = false;
     if (isDev) {
       console.log('🚫 Automatic data collection disabled for emulator testing');
@@ -84,19 +91,25 @@ if (isFirebaseConfigured()) {
   analytics = undefined;
 }
 
-// Check if running on localhost
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+if (isDev) {
+  console.log('Firebase runtime mode:', {
+    localhost: isLocalhost,
+    useAuthEmulator,
+    useFunctionsEmulator,
+    useFirestoreEmulator
+  });
+}
 
 // Use Firebase Auth Emulator for local development (bypasses reCAPTCHA)
 // Run: firebase emulators:start --only auth
 // Or use test phone numbers with production auth
-if (isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true' && auth) {
+if (isLocalhost && useAuthEmulator && auth) {
   // IMPORTANT: Set emulator settings BEFORE connecting
   auth.settings.appVerificationDisabledForTesting = true;
   auth.tenantId = null;
   
   try {
-    connectAuthEmulator(auth, 'http://localhost:9099');
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
     if (isDev) {
       console.log('🔧 Using Firebase Auth Emulator (http://localhost:9099)');
     }
@@ -113,10 +126,18 @@ if (isLocalhost && import.meta.env.VITE_USE_AUTH_EMULATOR === 'true' && auth) {
 }
 
 // Use Firebase Functions Emulator for local development
-if (isLocalhost && import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true' && functions) {
-  connectFunctionsEmulator(functions, 'http://localhost:5001');
+if (isLocalhost && useFunctionsEmulator && functions) {
+  connectFunctionsEmulator(functions, 'localhost', 5001);
   if (isDev) {
-    console.log('🔧 Using Firebase Functions Emulator (http://localhost:5001)');
+    console.log('🔧 Using Firebase Functions Emulator (localhost:5001)');
+  }
+}
+
+// Use Firestore Emulator for local development
+if (isLocalhost && useFirestoreEmulator && db) {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  if (isDev) {
+    console.log('🔧 Using Firestore Emulator (localhost:8080)');
   }
 }
 

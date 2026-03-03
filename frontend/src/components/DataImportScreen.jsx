@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import './DataImportScreen.css';
 import { ArrowLeftIcon, UploadIcon, FileTextIcon, DatabaseIcon, KeyIcon } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
 
 const DataImportScreen = ({ onBack, onImportSuccess }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -90,37 +88,15 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
 
     try {
       // Validate session ID format (8 characters, alphanumeric)
-      if (!sessionId || !/^[A-Z0-9]{8}$/.test(sessionId.toUpperCase())) {
+      const normalizedSessionId = (sessionId || '').toUpperCase().trim();
+      if (!/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
         throw new Error('Please enter a valid 8-character Session ID (letters and numbers only)');
       }
 
-      // Look up session in Firestore
-      const sessionDoc = await getDoc(doc(db, 'users', sessionId.toUpperCase()));
-      if (!sessionDoc.exists()) {
-        throw new Error('Session ID not found. Please check your Session ID and try again.');
-      }
-
-      const sessionData = sessionDoc.data();
-      if (!sessionData.isAnonymous) {
-        throw new Error('This Session ID is not for an anonymous session.');
-      }
-
-      // Create mock user object for anonymous session
-      const mockUser = {
-        uid: sessionId.toUpperCase(),
-        isAnonymous: true,
-        sessionId: sessionId.toUpperCase(),
-        ...sessionData
-      };
-
-      // Trigger success callback with session data
+      // Resolve session through backend on the next screen.
       onImportSuccess({
-        sessionId: sessionId.toUpperCase(),
-        authMethod: 'anonymous',
-        existingSession: true,
-        userData: sessionData
+        sessionId: normalizedSessionId
       }, 'session');
-
     } catch (err) {
       setError(err.message || 'Failed to load session. Please try again.');
     } finally {

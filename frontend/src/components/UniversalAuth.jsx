@@ -42,6 +42,20 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
   const [message, setMessage] = useState('');
   const [linkSent, setLinkSent] = useState(false);
 
+  const getAnonymousAuthErrorMessage = (err) => {
+    if (!err) return 'Failed to create session. Please try again.';
+    if (err.code === 'auth/operation-not-allowed') {
+      return 'Anonymous sign-in is disabled. Enable Anonymous provider in Auth (or Auth Emulator) and retry.';
+    }
+    if (err.code === 'permission-denied' || err.code === 'firestore/permission-denied') {
+      return 'Session created but Firestore write was denied. Check Firestore rules/emulator and retry.';
+    }
+    if (err.code === 'unavailable' || err.code === 'firestore/unavailable') {
+      return 'Firestore is unavailable. Make sure the Firestore emulator is running.';
+    }
+    return `${err.message || 'Failed to create session.'}${err.code ? ` (${err.code})` : ''}`;
+  };
+
   // Check if user is arriving via email link
   useEffect(() => {
     if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -236,6 +250,15 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
 
       const authResult = await signInAnonymously(auth);
       const firebaseUser = authResult.user;
+      console.log('[AnonymousAuth] Firebase anonymous user created', {
+        uid: firebaseUser?.uid,
+        isAnonymous: firebaseUser?.isAnonymous
+      });
+      await firebaseUser.getIdToken();
+      console.log('[AnonymousAuth] ID token ready, writing session document', {
+        uid: firebaseUser?.uid,
+        sessionId
+      });
 
       await setDoc(doc(db, 'users', firebaseUser.uid), {
         uid: firebaseUser.uid,
@@ -248,11 +271,23 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp()
       }, { merge: true });
+      console.log('[AnonymousAuth] Session document write success', {
+        uid: firebaseUser?.uid,
+        sessionId
+      });
 
       onAuthSuccess(firebaseUser, { method: 'anonymous', sessionId });
+      console.log('[AnonymousAuth] onAuthSuccess dispatched', {
+        uid: firebaseUser?.uid,
+        sessionId
+      });
     } catch (err) {
-      console.error('Anonymous auth error:', err);
-      setError('Failed to create session. Please try again.');
+      console.error('[AnonymousAuth] failure', {
+        code: err?.code,
+        message: err?.message,
+        stack: err?.stack
+      });
+      setError(getAnonymousAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -285,6 +320,10 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
   };
 
   const handleSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('[AuthForm] submit', { authMethod });
+
     if (authMethod === 'phone') {
       handlePhoneSubmit(e);
     } else if (authMethod === 'email') {
@@ -331,18 +370,21 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         {step === 'input' && (
           <div className="auth-method-toggle">
             <button
+              type="button"
               className={`auth-method-btn ${authMethod === 'phone' ? 'active' : ''}`}
               onClick={() => setAuthMethod('phone')}
             >
               Phone
             </button>
             <button
+              type="button"
               className={`auth-method-btn ${authMethod === 'email' ? 'active' : ''}`}
               onClick={() => setAuthMethod('email')}
             >
               Email
             </button>
             <button
+              type="button"
               className={`auth-method-btn ${authMethod === 'anonymous' ? 'active' : ''}`}
               onClick={() => setAuthMethod('anonymous')}
             >
