@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { sendSessionAccessEmail } from '../services/phiBackendService';
 import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
 
@@ -101,6 +102,8 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
         throw new Error('Please enter a valid phone number');
       }
 
+      const prevEmail = userData?.email || null;
+
       // Update Firestore document for this same user/session record
       await updateDoc(doc(db, 'users', userDocId), {
         displayName: editForm.displayName?.trim() || null,
@@ -124,6 +127,15 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
       // Notify parent component
       if (onProfileUpdate) {
         onProfileUpdate(updatedData);
+      }
+
+      // If an email is now present and it changed, send an access email.
+      if (sessionId && updatedData.email && updatedData.email !== prevEmail) {
+        sendSessionAccessEmail({
+          email: updatedData.email,
+          sessionId,
+          context: prevEmail ? 'profile-email-updated' : 'profile-email-added'
+        });
       }
 
     } catch (err) {
@@ -268,6 +280,11 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
                 onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="+1 (555) 123-4567"
               />
+            </div>
+
+            <div className="consent-disclaimer">
+              By adding or updating your email or phone number, you confirm you are the owner of that contact
+              and you consent to receive secure links or messages related to your ePSA session.
             </div>
 
             {error && <div className="error-message">{error}</div>}

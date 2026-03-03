@@ -21,6 +21,7 @@ import BackButton from './components/BackButton.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
+import { sendSessionAccessEmail } from './services/phiBackendService';
 
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
@@ -585,25 +586,33 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
       newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    const authResult = await signInAnonymously(auth);
-    const firebaseUser = authResult.user;
-    await firebaseUser.getIdToken();
+    try {
+      const authResult = await signInAnonymously(auth);
+      const firebaseUser = authResult.user;
+      await firebaseUser.getIdToken();
 
-    await setDoc(doc(db, 'users', firebaseUser.uid), {
-      uid: firebaseUser.uid,
-      sessionId: newSessionId,
-      authMethod: 'anonymous',
-      isAnonymous: true,
-      email: null,
-      phone: null,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      lastLoginAt: new Date().toISOString()
-    }, { merge: true });
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        uid: firebaseUser.uid,
+        sessionId: newSessionId,
+        authMethod: 'anonymous',
+        isAnonymous: true,
+        email: null,
+        phone: null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastLoginAt: new Date().toISOString()
+      }, { merge: true });
 
-    setAppSessionId(newSessionId);
-    setUser(firebaseUser);
-    return newSessionId;
+      setAppSessionId(newSessionId);
+      setUser(firebaseUser);
+      return newSessionId;
+    } catch (err) {
+      console.error('anonymous sign-in failed', err);
+      if (err.code === 'auth/admin-restricted-operation') {
+        throw new Error('Anonymous sign-in is restricted; enable the provider in Firebase console.');
+      }
+      throw err;
+    }
   };
 
   const promptUserForAuthChoice = async () => {
@@ -802,6 +811,15 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
           if (phone) setUserPhone(phone);
           
           console.log('Created new session with contact info:', { email, phone });
+
+          // Send session access email when linking a new session to an email via import.
+          if (email) {
+            sendSessionAccessEmail({
+              email,
+              sessionId: newSessionId,
+              context: 'import-linked-to-email'
+            });
+          }
         } catch (error) {
           console.error('Error adding contact info to session:', error);
         }
