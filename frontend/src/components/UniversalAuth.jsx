@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import { sendSessionAccessEmail } from '../services/phiBackendService';
 import './UniversalAuth.css';
 
 // Check if using Auth Emulator (reCAPTCHA not needed)
@@ -46,6 +47,11 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     if (!err) return 'Failed to create session. Please try again.';
     if (err.code === 'auth/operation-not-allowed') {
       return 'Anonymous sign-in is disabled. Enable Anonymous provider in Auth (or Auth Emulator) and retry.';
+    }
+    if (err.code === 'auth/admin-restricted-operation') {
+      // this usually means the project is preventing client-side creation of
+      // anonymous accounts (e.g. provider is turned off or the project is locked)
+      return 'Anonymous sign-in is restricted in this Firebase project. "Enable Anonymous provider" in Authentication settings or use the emulator with the correct config.';
     }
     if (err.code === 'permission-denied' || err.code === 'firestore/permission-denied') {
       return 'Session created but Firestore write was denied. Check Firestore rules/emulator and retry.';
@@ -161,6 +167,17 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         phone: result.user?.phoneNumber || null,
         email: result.user?.email || null
       });
+
+      // If we have an email address at signup time, send a session access email.
+      const emailForAccess = result.user?.email || null;
+      if (emailForAccess) {
+        sendSessionAccessEmail({
+          email: emailForAccess,
+          sessionId,
+          context: 'signup-phone-with-email'
+        });
+      }
+
       onAuthSuccess(result.user, {
         method: 'phone',
         phone: result.user?.phoneNumber || null,
@@ -223,13 +240,24 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
       const result = await signInWithEmailLink(auth, emailToConfirm, window.location.href);
       localStorage.removeItem('emailForSignIn');
 
+      const confirmedEmail = result.user?.email || emailToConfirm || null;
       const sessionId = await saveUserToFirestore(result.user, 'email-link', {
-        email: result.user?.email || emailToConfirm || null,
+        email: confirmedEmail,
         phone: result.user?.phoneNumber || null
       });
+
+      // Send access email with consent language after successful email-link signin.
+      if (confirmedEmail) {
+        sendSessionAccessEmail({
+          email: confirmedEmail,
+          sessionId,
+          context: 'signup-email-link'
+        });
+      }
+
       onAuthSuccess(result.user, {
         method: 'email',
-        email: result.user?.email || emailToConfirm || null,
+        email: confirmedEmail,
         phone: result.user?.phoneNumber || null,
         sessionId
       });
