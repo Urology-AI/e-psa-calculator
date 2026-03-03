@@ -1,369 +1,191 @@
-import React, { useState } from 'react';
-import './App.css';
+import React, { useEffect, useMemo, useState } from 'react';
 
-// Import components (excluding Firebase-dependent ones)
-import WelcomeScreenGHPages from './components/WelcomeScreen.gh-pages.jsx';
-import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
-import Part1Form from './components/Part1Form.jsx';
-import Part2Form from './components/Part2Form.jsx';
-import Part1Results from './components/Part1Results.jsx';
-import Part2Results from './components/Part2Results.jsx';
-import PrintableForm from './components/PrintableForm.jsx';
-import ResultsPrint from './components/ResultsPrint.jsx';
-import DataImportScreen from './components/DataImportScreen.jsx';
-import ConsentScreen from './components/ConsentScreen.jsx';
-import GlobalBackButton from './components/GlobalBackButton.jsx';
+const STORAGE_KEY = 'epsa-gh-pages-records-v1';
 
-// Import unified calculator utilities (no Firebase dependencies)
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
+const SHIM_OPTIONS = [
+  { value: '0', label: '0 - No sexual activity' },
+  { value: '1', label: '1 - Very low / Almost never' },
+  { value: '2', label: '2 - Low / A few times' },
+  { value: '3', label: '3 - Moderate / Sometimes' },
+  { value: '4', label: '4 - Good / Most times' },
+  { value: '5', label: '5 - Very good / Almost always' }
+];
+
+const IPSS_OPTIONS = [
+  { value: '0', label: '0 - Not at all' },
+  { value: '1', label: '1 - Less than 1 time in 5' },
+  { value: '2', label: '2 - Less than half the time' },
+  { value: '3', label: '3 - About half the time' },
+  { value: '4', label: '4 - More than half the time' },
+  { value: '5', label: '5 - Almost always' }
+];
+
+const IPSS_QOL_OPTIONS = [
+  { value: '0', label: '0 - Delighted' },
+  { value: '1', label: '1 - Pleased' },
+  { value: '2', label: '2 - Mostly satisfied' },
+  { value: '3', label: '3 - Mixed (equally satisfied/dissatisfied)' },
+  { value: '4', label: '4 - Mostly dissatisfied' },
+  { value: '5', label: '5 - Unhappy' },
+  { value: '6', label: '6 - Terrible' }
+];
+
+const SHIM_QUESTIONS = [
+  { key: 'shim1', label: 'SHIM Q1: Confidence in getting and keeping an erection' },
+  { key: 'shim2', label: 'SHIM Q2: Erections hard enough for penetration' },
+  { key: 'shim3', label: 'SHIM Q3: Ability to maintain erection after penetration' },
+  { key: 'shim4', label: 'SHIM Q4: Difficulty maintaining erection to completion' },
+  { key: 'shim5', label: 'SHIM Q5: Satisfaction with sexual intercourse' }
+];
+
+const IPSS_QUESTIONS = [
+  { key: 'ipss1', label: 'IPSS Q1: Incomplete emptying sensation after urinating' },
+  { key: 'ipss2', label: 'IPSS Q2: Need to urinate again within 2 hours' },
+  { key: 'ipss3', label: 'IPSS Q3: Stopping and starting stream while urinating' },
+  { key: 'ipss4', label: 'IPSS Q4: Difficulty postponing urination' },
+  { key: 'ipss5', label: 'IPSS Q5: Weak urinary stream' },
+  { key: 'ipss6', label: 'IPSS Q6: Need to strain/push to begin urination' },
+  { key: 'ipss7', label: 'IPSS Q7: Nighttime urination frequency' }
+];
+
+const emptyForm = {
+  patientId: '',
+  assessmentDate: '',
+  age: '',
+  psaValue: '',
+  notes: '',
+  shim1: '', shim2: '', shim3: '', shim4: '', shim5: '',
+  ipss1: '', ipss2: '', ipss3: '', ipss4: '', ipss5: '', ipss6: '', ipss7: '',
+  ipssQol: ''
+};
 
 const App = () => {
-  const [authStep, setAuthStep] = useState('welcome');
-  const [stage, setStage] = useState('pre');
-  const [currentStep, setCurrentStep] = useState(1);
-  const [part1Step, setPart1Step] = useState(0);
+  const [formData, setFormData] = useState(emptyForm);
+  const [records, setRecords] = useState([]);
+  const [statusMessage, setStatusMessage] = useState('');
 
-  // Form data states
-  const [preData, setPreData] = useState({});
-  const [postData, setPostData] = useState({});
-  const [preResult, setPreResult] = useState(null);
-  const [postResult, setPostResult] = useState(null);
-
-  const [calculatorConfig] = useState(() => getCalculatorConfig());
-
-  // Handle local file import
-  const handleLocalImport = (event) => {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/json') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          
-          // Handle new export format
-          if (importedData.version && importedData.formData) {
-            if (importedData.part === 'part1') {
-              setPreData(importedData.formData);
-              const result = calculateDynamicEPsa(importedData.formData, calculatorConfig);
-              setPreResult(result);
-              setAuthStep('app');
-              setStage('pre');
-              setCurrentStep(3);
-              setPart1Step(4);
-            } else if (importedData.part === 'complete') {
-              setPreData(importedData.part1Data);
-              setPostData(importedData.part2Data || {});
-              const part1Result = calculateDynamicEPsa(importedData.part1Data, calculatorConfig);
-              setPreResult(part1Result);
-              if (importedData.part2Data) {
-                const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
-                setPostResult(part2Result);
-              }
-              setAuthStep('app');
-              setStage('post');
-              setCurrentStep(3);
-            }
-          } else {
-            // Legacy format
-            setPreData(importedData);
-            const result = calculateDynamicEPsa(importedData, calculatorConfig);
-            setPreResult(result);
-            setAuthStep('app');
-            setStage('pre');
-            setCurrentStep(3);
-            setPart1Step(4);
-          }
-        } catch (error) {
-          alert('Error importing file. Please make sure it\'s a valid ePSA JSON export file.');
-        }
-      };
-      reader.readAsText(file);
-    } else {
-      alert('Please select a valid JSON file. PDF import is not available in the demo version.');
-    }
-  };
-
-  // Handle Part1 form completion
-  const handlePart1Next = (stepData) => {
-    const updatedData = { ...preData, ...stepData };
-    setPreData(updatedData);
-    
-    if (part1Step < 3) {
-      setPart1Step(part1Step + 1);
-    } else {
-      // Calculate Part1 results
-      try {
-        const result = calculateDynamicEPsa(updatedData, calculatorConfig);
-        if (result) {
-          setPreResult(result);
-        } else {
-          console.error('calculateDynamicEPsa returned null/undefined');
-          setPreResult({ error: 'Calculation failed' });
-        }
-      } catch (error) {
-        console.error('Error in calculateDynamicEPsa:', error);
-        setPreResult({ error: 'Calculation failed' });
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (Array.isArray(saved.records)) setRecords(saved.records);
+      if (saved.currentDraft && typeof saved.currentDraft === 'object') {
+        setFormData({ ...emptyForm, ...saved.currentDraft });
       }
-      setCurrentStep(3);
+    } catch (error) {
+      console.error('Failed to load local data', error);
     }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      version: 2,
+      savedAt: new Date().toISOString(),
+      currentDraft: formData,
+      records
+    }));
+  }, [formData, records]);
+
+  const shimScore = useMemo(
+    () => SHIM_QUESTIONS.reduce((sum, question) => sum + Number(formData[question.key] || 0), 0),
+    [formData]
+  );
+
+  const ipssScore = useMemo(
+    () => IPSS_QUESTIONS.reduce((sum, question) => sum + Number(formData[question.key] || 0), 0),
+    [formData]
+  );
+
+  const onChange = ({ target: { name, value } }) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle Part2 form completion
-  const handlePostNext = (stepData) => {
-    const updatedData = { ...postData, ...stepData };
-    setPostData(updatedData);
-    
-    if (currentStep < 2) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Calculate Part2 results
-      const result = calculateDynamicEPsaPost(preResult, updatedData, calculatorConfig);
-      setPostResult(result);
-      setCurrentStep(3);
+  const handleSave = (event) => {
+    event.preventDefault();
+    if (!formData.patientId || !formData.assessmentDate || !formData.age || !formData.psaValue) {
+      setStatusMessage('Fill patient ID, assessment date, age, and PSA value before saving.');
+      return;
     }
+
+    const record = {
+      ...formData,
+      id: String(Date.now()),
+      createdAt: new Date().toISOString(),
+      shimScore,
+      ipssScore
+    };
+
+    setRecords((prev) => [record, ...prev]);
+    setStatusMessage('Record saved locally. Use Export JSON to download.');
   };
 
-  // Render welcome screen
-  const renderWelcome = () => {
-    return (
-      <div className="welcome-container">
-        <WelcomeScreenGHPages 
-          onBegin={() => {
-            // Skip storage choice for demo - go directly to app with local storage
-            setAuthStep('app');
-            setStage('pre');
-            setCurrentStep(1);
-          }}
-          onImport={() => {
-            // Trigger file import
-            document.getElementById('file-import').click();
-          }}
-        />
-        <input
-          id="file-import"
-          type="file"
-          accept=".json"
-          style={{ display: 'none' }}
-          onChange={handleLocalImport}
-        />
-      </div>
-    );
-  };
-
-  // Render pre-assessment stage
-  const renderPreStage = () => {
-    switch (currentStep) {
-      case 1:
-      case 2:
-        return (
-          <Part1Form
-            formData={preData}
-            setFormData={setPreData}
-            onNext={handlePart1Next}
-            onBack={() => {
-              if (part1Step > 0) {
-                setPart1Step(part1Step - 1);
-              } else {
-                setAuthStep('welcome');
-              }
-            }}
-            currentStep={part1Step}
-            totalSteps={7}
-          />
-        );
-
-      case 3:
-        return (
-          <div className="pre-results-step">
-            {preResult && !preResult.error ? (
-              <Part1Results
-                result={preResult}
-                formData={preData}
-                storageMode="local"
-                onEditAnswers={() => {
-                  setPart1Step(0);
-                  setCurrentStep(1);
-                }}
-                onStartOver={() => {
-                  if (window.confirm('Start over? This will clear all data.')) {
-                    setPreData({});
-                    setPreResult(null);
-                    setCurrentStep(1);
-                    setPart1Step(0);
-                  }
-                }}
-              />
-            ) : preResult?.error ? (
-              <div className="error-results">
-                <p>There was an error calculating your results. Please try again.</p>
-                <button onClick={() => {
-                  setPreResult(null);
-                  setCurrentStep(1);
-                  setPart1Step(0);
-                }}>
-                  Try Again
-                </button>
-              </div>
-            ) : (
-              <div className="loading-results">
-                <p>Loading your results...</p>
-              </div>
-            )}
-            <div className="stage-actions">
-              <button
-                onClick={() => {
-                  setStage('post');
-                  setCurrentStep(0);
-                }}
-                className="btn btn-primary"
-                disabled={!preResult || preResult.error}
-              >
-                Continue to Risk Assessment →
-              </button>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // Render post-assessment stage
-  const renderPostStage = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <WelcomeScreen2
-            preResult={preResult}
-            onBegin={() => setCurrentStep(1)}
-          />
-        );
-      
-      case 1:
-      case 2:
-        return (
-          <Part2Form
-            formData={postData}
-            setFormData={setPostData}
-            preResult={preResult}
-            onNext={handlePostNext}
-            onBack={() => {
-              if (currentStep === 1) {
-                setStage('pre');
-                setCurrentStep(3);
-              } else {
-                setCurrentStep(currentStep - 1);
-              }
-            }}
-            currentStep={currentStep}
-            totalSteps={2}
-          />
-        );
-
-      case 3:
-        return (
-          <div className="post-results-step">
-            {postResult && (
-              <Part2Results
-                result={postResult}
-                preResult={preResult}
-                postData={postData}
-                storageMode="local"
-                onEditAnswers={() => {
-                  setCurrentStep(1);
-                }}
-                onStartOver={() => {
-                  if (window.confirm('Start over? This will clear all data.')) {
-                    setAuthStep('welcome');
-                    setStage('pre');
-                    setCurrentStep(1);
-                    setPart1Step(0);
-                    setPreData({});
-                    setPostData({});
-                    setPreResult(null);
-                    setPostResult(null);
-                  }
-                }}
-              />
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // Check if global back button should show
-  const shouldShowBackButton = () => {
-    return authStep === 'app' && 
-           !(authStep === 'app' && stage === 'pre' && currentStep === 3);
-  };
-
-  const handleGlobalBack = () => {
-    if (authStep === 'app') {
-      if (stage === 'pre') {
-        if (currentStep === 1) {
-          setAuthStep('welcome');
-          setPart1Step(0);
-          setCurrentStep(1);
-        } else if (currentStep === 3) {
-          setPart1Step(0);
-          setCurrentStep(1);
-        }
-      } else if (stage === 'post') {
-        if (currentStep === 1) {
-          setCurrentStep(3);
-          setStage('pre');
-        } else if (currentStep === 3) {
-          setCurrentStep(1);
-        }
-      }
-    }
+  const handleExport = () => {
+    const payload = { exportedAt: new Date().toISOString(), version: 2, records };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `epsa-records-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="app" style={{ minHeight: '100vh', padding: '2rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-      <GlobalBackButton 
-        onBack={handleGlobalBack} 
-        show={shouldShowBackButton()} 
-      />
-      
-      <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem', background: '#fff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', border: '1px solid #E8ECF0', display: 'flex', flexDirection: 'column' }}>
-        <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`} style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div className="header-logo-container" style={{ textAlign: 'center', padding: '32px 20px 20px', background: 'white', borderRadius: '16px', border: '1px solid #E8ECF0', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img 
-              src="/e-psa-calculator/logo.png"
-              alt="ePSA Logo" 
-              className="logo"
-              style={{ display: 'block', margin: '0 auto 1.5rem', maxWidth: '200px', maxHeight: '120px', width: 'auto', height: 'auto', objectFit: 'contain', transition: 'transform 0.3s ease', visibility: 'visible', opacity: 1 }}
-              onError={(e) => {
-                console.error('Logo.png failed to load:', e.target.src);
-                const currentSrc = e.target.src;
-                if (currentSrc.includes('logo.png')) {
-                  e.target.src = "/e-psa-calculator/logo.jpg";
-                } else {
-                  console.warn('Both logo files failed to load');
-                  e.target.style.display = 'none';
-                }
-              }} 
-            />
-          </div>
-          <div className="header-text" style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px', textAlign: 'center' }}>ePSA</h1>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px', textAlign: 'center' }}>Prostate‑Specific Awareness</h2>
-            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0, textAlign: 'center' }}>A Non‑Validated Educational Risk Tool</p>
-          </div>
-        </header>
+    <main style={{ maxWidth: 960, margin: '0 auto', padding: 20, fontFamily: 'Arial, sans-serif' }}>
+      <h1>ePSA One-Page Intake (GitHub Pages)</h1>
+      <p>Single-page form for collecting data, print/PDF, and JSON export.</p>
 
-        <main className="app-main">
-          {authStep === 'welcome' && renderWelcome()}
-          {authStep === 'app' && stage === 'pre' && renderPreStage()}
-          {authStep === 'app' && stage === 'post' && renderPostStage()}
-        </main>
-      </div>
-    </div>
+      <form onSubmit={handleSave} style={{ display: 'grid', gap: 10 }}>
+        <h2>Patient Information</h2>
+        <input name="patientId" value={formData.patientId} onChange={onChange} placeholder="Patient ID" />
+        <input name="assessmentDate" type="date" value={formData.assessmentDate} onChange={onChange} />
+        <input name="age" type="number" value={formData.age} onChange={onChange} placeholder="Age" min="0" />
+        <input name="psaValue" type="number" step="0.01" min="0" value={formData.psaValue} onChange={onChange} placeholder="PSA Value (ng/mL)" />
+
+        <h2>SHIM Questions (0-5 each)</h2>
+        {SHIM_QUESTIONS.map((question) => (
+          <label key={question.key}>
+            {question.label}
+            <select name={question.key} value={formData[question.key]} onChange={onChange} style={{ marginLeft: 8 }}>
+              <option value="">Select score</option>
+              {SHIM_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+        ))}
+        <strong>SHIM Total: {shimScore} / 25</strong>
+
+        <h2>IPSS Questions (0-5 each)</h2>
+        {IPSS_QUESTIONS.map((question) => (
+          <label key={question.key}>
+            {question.label}
+            <select name={question.key} value={formData[question.key]} onChange={onChange} style={{ marginLeft: 8 }}>
+              <option value="">Select score</option>
+              {IPSS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+        ))}
+        <label>
+          IPSS Quality of Life: “If your urinary condition stays this way, how would you feel?”
+          <select name="ipssQol" value={formData.ipssQol} onChange={onChange} style={{ marginLeft: 8 }}>
+            <option value="">Select score</option>
+            {IPSS_QOL_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
+        <strong>IPSS Total: {ipssScore} / 35</strong>
+
+        <textarea name="notes" value={formData.notes} onChange={onChange} placeholder="Notes" rows={4} />
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="submit">Save Record</button>
+          <button type="button" onClick={handleExport} disabled={!records.length}>Export JSON</button>
+          <button type="button" onClick={() => window.print()}>Print / Save PDF</button>
+        </div>
+      </form>
+
+      {statusMessage && <p style={{ color: '#1f6f2a' }}>{statusMessage}</p>}
+      <h3>Saved Records: {records.length}</h3>
+    </main>
   );
 };
 
