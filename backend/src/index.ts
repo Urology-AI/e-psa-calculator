@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
+import nodemailer from 'nodemailer';
 
 // Type definitions for better type safety
 interface AdminLoginData {
@@ -78,9 +79,53 @@ const PostDataSchema = z.object({
   pirads: z.enum(['0', '1', '2', '3', '4', '5']),
 });
 
+const SessionAccessEmailSchema = z.object({
+  email: z.string().email(),
+  sessionId: z.string().min(4).max(64),
+  context: z.string().max(128).optional(),
+});
+
 // Utility: Hash phone number
 function hashPhone(phone: string): string {
   return CryptoJS.SHA256(phone).toString();
+}
+
+// ============================================
+// EMAIL TRANSPORT (Session Access Links)
+// ============================================
+
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = process.env.SMTP_PORT;
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
+const EPSA_APP_URL = process.env.EPSA_APP_URL || 'https://epsa-30d0b.web.app';
+const EPSA_FROM_EMAIL = process.env.EPSA_FROM_EMAIL || 'no-reply@epsa-30d0b.firebaseapp.com';
+
+let mailTransport: nodemailer.Transporter | null = null;
+
+function getMailTransport(): nodemailer.Transporter | null {
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    functions.logger.warn(
+      'SMTP environment variables not fully configured; sendSessionAccessEmail will be a no-op',
+      { hasHost: !!SMTP_HOST, hasUser: !!SMTP_USER, hasPass: !!SMTP_PASS }
+    );
+    return null;
+  }
+
+  if (!mailTransport) {
+    mailTransport = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT ? parseInt(SMTP_PORT, 10) : 587,
+      secure: SMTP_SECURE,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS,
+      },
+    });
+  }
+
+  return mailTransport;
 }
 
 // ============================================
@@ -193,6 +238,103 @@ export const upsertConsent = functions.https.onCall(async (data: { consentToCont
 
   return { success: true, userId };
 });
+
+// ============================================
+// CLOUD FUNCTION: Send Session Access Email
+// ============================================
+export const sendSessionAccessEmail = functions.https.onCall(
+  async (data: { email: string; sessionId: string; context?: string }, context: functions.https.CallableContext) => {
+    // Rate limiting
+    enforceRateLimit(context);
+
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+
+    const parsed = SessionAccessEmailSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid email payload', parsed.error);
+    }
+
+    const { email, sessionId, context: emailContext } = parsed.data;
+
+    const transport = getMailTransport();
+    if (!transport) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'Email service is not configured on the server.'
+      );
+    }
+
+    const isAdmin = await isAdminUser(context.auth.uid);
+
+    const subject = 'Your ePSA session access details';
+
+    const intro =
+      emailContext === 'signup-email-link'
+        ? 'Thank you for signing up to use the ePSA Prostate-Specific Awareness tool.'
+        : emailContext === 'signup-phone-with-email'
+        ? 'Thank you for confirming your contact information with the ePSA tool.'
+        : emailContext === 'profile-email-added' || emailContext === 'profile-email-updated'
+        ? 'Your ePSA contact information has been updated.'
+        : emailContext === 'import-linked-to-email'
+        ? 'An ePSA session has been created for you from imported data.'
+        : 'Here are your ePSA session access details.';
+
+    const consentText =
+      'By providing your email or phone number, you confirm that you are the owner of that contact and you consent to receive secure links or messages related to your ePSA session. ' +
+      'You can stop using the tool or contact your study team at any time if you wish to withdraw this consent.';
+
+    const disclaimerText =
+      'ePSA is a Non-Validated Educational Risk Tool. It does not provide medical advice, diagnosis, or treatment decisions. ' +
+      'Screening and imaging decisions should be made with a qualified clinician.';
+
+    const textBody = [
+      intro,
+      '',
+      `Session ID: ${sessionId}`,
+      `You can return to the tool at: ${EPSA_APP_URL}`,
+      '',
+      consentText,
+      '',
+      disclaimerText,
+      '',
+      'If you did not expect this message, you can ignore it.',
+    ].join('\n');
+
+    try {
+      await transport.sendMail({
+        from: EPSA_FROM_EMAIL,
+        to: email,
+        subject,
+        text: textBody,
+      });
+
+      await logAudit(
+        'SESSION_EMAIL_SEND',
+        context.auth.uid,
+        isAdmin ? 'admin' : 'user',
+        sessionId,
+        {
+          email,
+          context: emailContext || null,
+        }
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      functions.logger.error('sendSessionAccessEmail failed', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to send session access email.'
+      );
+    }
+  }
+);
 
 // ============================================
 // CLOUD FUNCTION: Create Session
