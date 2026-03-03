@@ -190,6 +190,8 @@ const PhoneAuth = ({ onAuthSuccess }) => {
       let errorMessage = 'Failed to send verification code. Please try again.';
       if (err.code === 'auth/billing-not-enabled') {
         errorMessage = 'Phone authentication requires a paid Firebase plan. Please enable billing in Firebase Console.';
+      } else if (err.code === 'auth/admin-restricted-operation') {
+        errorMessage = 'Phone authentication is currently restricted by your Firebase Auth settings. In Firebase Console, enable Phone as a sign-in provider and add this app domain under Authentication → Settings → Authorized domains.';
       } else if (err.code === 'auth/invalid-app-credential') {
         errorMessage = 'Invalid Firebase configuration. Please verify your Firebase project settings match the app configuration.';
       } else if (err.code === 'auth/invalid-phone-number') {

@@ -42,6 +42,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [userPhone, setUserPhone] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
+  const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'storage', 'import', 'login', 'consent', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
@@ -138,6 +139,10 @@ function App() {
         }
         
         // Handle anonymous users
+        if (userData?.displayName) {
+          setUserName(userData.displayName);
+        }
+
         if (userData && userData.isAnonymous && userData.sessionId) {
           setAppSessionId(userData.sessionId);
         }
@@ -336,6 +341,7 @@ function App() {
         setUser(null);
         setUserPhone(null);
         setUserEmail(null);
+        setUserName(null);
         setAppSessionId(null);
         setConsentData(null);
         setSessionId(null);
@@ -450,12 +456,11 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
     if (typeof authInfo === 'string') {
       // Legacy phone auth
       setUserPhone(authInfo);
-    } else if (authInfo && authInfo.phone) {
-      setUserPhone(authInfo.phone);
-    } else if (authInfo && authInfo.email) {
-      setUserEmail(authInfo.email);
-    } else if (user.email) {
-      setUserEmail(user.email);
+    } else {
+      if (authInfo?.phone) setUserPhone(authInfo.phone);
+      if (authInfo?.email) setUserEmail(authInfo.email);
+      if (authInfo?.displayName) setUserName(authInfo.displayName);
+      if (!authInfo?.email && user.email) setUserEmail(user.email);
     }
 
     if ((authInfo && authInfo.sessionId) || user?.isAnonymous) {
@@ -527,7 +532,8 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
     setUser(null);
     setUserPhone(null);
     setUserEmail(null);
-    setAppSessionId(null);
+    setUserName(null);
+      setAppSessionId(null);
     setConsentData(null);
     setSessionId(null);
     setAuthStep('welcome');
@@ -930,6 +936,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
       setUser(null);
       setUserPhone(null);
       setUserEmail(null);
+      setUserName(null);
       setAppSessionId(null);
       setConsentData(null);
       setSessionId(null);
@@ -978,6 +985,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
       setUser(null);
       setUserPhone(null);
       setUserEmail(null);
+      setUserName(null);
       setAppSessionId(null);
       setConsentData(null);
       setSessionId(null);
@@ -1437,6 +1445,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
             {user && (
               <div className="user-info">
                 <div className="user-identifier">
+                  {userName && <span className="user-name">{userName}</span>}
                   {appSessionId && (
                     <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
                       Session: {appSessionId}
@@ -1460,6 +1469,7 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
                 userDocId={user?.uid}
                 sessionId={appSessionId} 
                 onProfileUpdate={(updatedData) => {
+                  setUserName(updatedData.displayName || null);
                   setUserEmail(updatedData.email);
                   setUserPhone(updatedData.phone);
                   const linkedContact = Boolean(updatedData?.email || updatedData?.phone);
