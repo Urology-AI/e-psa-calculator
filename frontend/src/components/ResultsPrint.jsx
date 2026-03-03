@@ -36,6 +36,66 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
     downloadCsv(filename, rows);
   };
 
+  const handleExportJson = () => {
+    try {
+      const exportData = isPart2 ? {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        part: 'complete',
+        part1Data: {
+          score: formData.score,
+          risk: formData.risk,
+          scoreRange: formData.scoreRange,
+          confidenceRange: formData.displayRange || formData.confidenceRange,
+          action: formData.action,
+          recommendPSA: formData.recommendPSA
+        },
+        part2Data: {
+          psa: formData.psa,
+          knowPsa: formData.knowPsa,
+          onHormonalTherapy: formData.onHormonalTherapy,
+          hormonalTherapyType: formData.hormonalTherapyType,
+          knowPirads: formData.knowPirads,
+          pirads: formData.pirads
+        },
+        part2Result: result,
+        userInfo: {
+          email: userEmail || null,
+          phone: userPhone || null,
+          sessionId: sessionId || null
+        }
+      } : {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        part: 'part1',
+        formData,
+        result,
+        userInfo: {
+          email: userEmail || null,
+          phone: userPhone || null,
+          sessionId: sessionId || null
+        }
+      };
+
+      const fileName = isPart2
+        ? `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`
+        : `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`;
+
+      const dataBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting JSON:', error);
+      alert('Error exporting JSON. Please try again.');
+    }
+  };
+
   const handlePrint = async () => {
     if (!resultsRef.current) return;
 
@@ -185,6 +245,9 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
         </button>
         <button className="btn-export-csv" onClick={handleExportCsv}>
           Export CSV
+        </button>
+        <button className="btn-export-json" onClick={handleExportJson}>
+          Export JSON
         </button>
         <button className="btn-print-results" onClick={handlePrint}>
           📄 Print Results PDF
