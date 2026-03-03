@@ -28,12 +28,64 @@ const PrintableForm = ({ onBack, formData }) => {
     return formData[fieldName] ?? defaultValue;
   };
 
+  const getArrayTotal = (fieldName) => {
+    const values = formData?.[fieldName];
+    if (!Array.isArray(values)) return '';
+
+    const answeredValues = values.filter((value) => value !== null && value !== undefined && value !== '');
+    if (!answeredValues.length) return '';
+
+    return answeredValues.reduce((sum, value) => sum + Number(value), 0);
+  };
+
+  const ipssTotal = getFieldValue('ipssTotal', getArrayTotal('ipss'));
+  const shimTotal = getFieldValue('shimTotal', getArrayTotal('shim'));
+
+
+  const collectPrintableInputs = () => {
+    if (!formRef.current) return {};
+
+    const fields = Array.from(formRef.current.querySelectorAll('input, textarea, select'));
+    return fields.reduce((acc, field, index) => {
+      const type = (field.type || field.tagName || '').toLowerCase();
+      const nearestLabel = field.closest('label')?.textContent?.replace(/\s+/g, ' ').trim() || '';
+      const key = field.name || field.id || `field_${index + 1}`;
+
+      acc[key] = {
+        type,
+        label: nearestLabel.slice(0, 140),
+        value: type === 'checkbox' || type === 'radio' ? field.checked : field.value,
+      };
+
+      return acc;
+    }, {});
+  };
+
+  const handleDownloadJson = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      prefilledData: formData || {},
+      printableEdits: collectPrintableInputs(),
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ePSA-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const handlePrint = async () => {
     if (!formRef.current) return;
 
     try {
       // Show loading state
       const printButton = document.querySelector('.btn-print');
+      if (!printButton) return;
       const originalText = printButton.textContent;
       printButton.textContent = 'Generating PDF...';
       printButton.disabled = true;
@@ -52,26 +104,62 @@ const PrintableForm = ({ onBack, formData }) => {
         removeContainer: false,
       });
 
-      // Create PDF in landscape with margins
-      const pdfWidth = 11; // inches (landscape letter width)
-      const pdfHeight = 8.5; // inches (landscape letter height)
-      const margin = 0.2; // 0.2 inch margin on all sides
-      const contentWidth = pdfWidth - (margin * 2);
-      const contentHeight = pdfHeight - (margin * 2);
-      
-      // Calculate scaling to fit content within margins
-      const scaleX = contentWidth / canvas.width;
-      const scaleY = contentHeight / canvas.height;
-      const scale = Math.min(scaleX, scaleY);
-      
-      const imgWidth = canvas.width * scale;
-      const imgHeight = canvas.height * scale;
-      
-      const pdf = new jsPDF('landscape', 'in', 'letter');
-      
-      // Add image to PDF with margins
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      const pdf = new jsPDF('portrait', 'pt', 'letter');
+      const margin = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+
+      const fullImageHeight = (canvas.height * contentWidth) / canvas.width;
+
+      // If the form fits on one page, keep output simple.
+      if (fullImageHeight <= contentHeight) {
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, fullImageHeight, undefined, 'FAST');
+      } else {
+        // Split tall forms across pages so the PDF is fully readable.
+        const sourcePageHeight = Math.floor((contentHeight * canvas.width) / contentWidth);
+        let sourceOffsetY = 0;
+        let pageIndex = 0;
+
+        while (sourceOffsetY < canvas.height) {
+          const pageCanvas = document.createElement('canvas');
+          const remainingHeight = canvas.height - sourceOffsetY;
+          const thisSourceHeight = Math.min(sourcePageHeight, remainingHeight);
+
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = thisSourceHeight;
+
+          const pageContext = pageCanvas.getContext('2d');
+          if (!pageContext) break;
+
+          pageContext.fillStyle = '#ffffff';
+          pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pageContext.drawImage(
+            canvas,
+            0,
+            sourceOffsetY,
+            canvas.width,
+            thisSourceHeight,
+            0,
+            0,
+            canvas.width,
+            thisSourceHeight,
+          );
+
+          if (pageIndex > 0) {
+            pdf.addPage();
+          }
+
+          const pageImageHeight = (thisSourceHeight * contentWidth) / canvas.width;
+          const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+          pdf.addImage(pageImgData, 'PNG', margin, margin, contentWidth, pageImageHeight, undefined, 'FAST');
+
+          sourceOffsetY += thisSourceHeight;
+          pageIndex += 1;
+        }
+      }
       
       // Save PDF
       pdf.save('ePSA-Questionnaire.pdf');
@@ -96,16 +184,26 @@ const PrintableForm = ({ onBack, formData }) => {
             ← Back
           </button>
         )}
-        <button className="btn-print" onClick={handlePrint}>
-          Print PDF
-        </button>
+        <div className="form-actions-right">
+          <button className="btn-download" onClick={handleDownloadJson}>
+            Download JSON
+          </button>
+          <button className="btn-print" onClick={handlePrint}>
+            Print PDF
+          </button>
+        </div>
       </div>
       <div className="printable-form-content" ref={formRef}>
+        <div className="print-instructions">
+          <strong>How to use this form:</strong> Please review each section with the patient and fill in any blank fields.
+          If a value is already shown, confirm it is correct. Use the <strong>Notes</strong> box for details such as medications,
+          recent lab history, symptoms, or follow-up plans.
+        </div>
         <div className="printable-header">
         <div className="header-top-row">
           <div className="notes-box">
             <label className="notes-label">Notes:</label>
-            <textarea className="notes-input" placeholder="Enter notes here..." rows="2"></textarea>
+            <textarea className="notes-input" name="notes" placeholder="Enter notes here..." rows="2"></textarea>
           </div>
           <div className="header-center">
             <div className="printable-logo-container">
@@ -130,7 +228,7 @@ const PrintableForm = ({ onBack, formData }) => {
           </div>
           <div className="phone-box">
             <label className="phone-label">Phone Number:</label>
-            <input type="text" className="phone-input" placeholder="(___)-___-____" />
+            <input type="text" className="phone-input" name="phone" placeholder="(___)-___-____" />
           </div>
         </div>
       </div>
@@ -144,17 +242,17 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">1.</span> Age:
-              <input type="text" className="field-input-inline" placeholder="____" value={getFieldValue('age')} readOnly />
+              <input type="text" className="field-input-inline" placeholder="____" defaultValue={getFieldValue('age')} />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">2.</span> Race / Ethnicity:
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('race', 'white')} readOnly /> White</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('race', 'black')} readOnly /> Black</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('race', 'hispanic')} readOnly /> Hispanic</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('race', 'asian')} readOnly /> Asian</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('race', 'other')} readOnly /> Other</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'white')} /> White</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'black')} /> Black</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'hispanic')} /> Hispanic</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'asian')} /> Asian</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'other')} /> Other</label>
             </label>
           </div>
         </div>
@@ -167,9 +265,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">3.</span> Family History of prostate cancer:
-              <label className="checkbox-inline"><input type="radio" name="family" value="0" checked={isChecked('familyHistory', 0)} readOnly /> None</label>
-              <label className="checkbox-inline"><input type="radio" name="family" value="1" checked={isChecked('familyHistory', 1)} readOnly /> 1 relative</label>
-              <label className="checkbox-inline"><input type="radio" name="family" value="2" checked={isChecked('familyHistory', 2)} readOnly /> 2+ relatives</label>
+              <label className="checkbox-inline"><input type="radio" name="family" value="0" defaultChecked={isChecked('familyHistory', 0)} /> None</label>
+              <label className="checkbox-inline"><input type="radio" name="family" value="1" defaultChecked={isChecked('familyHistory', 1)} /> 1 relative</label>
+              <label className="checkbox-inline"><input type="radio" name="family" value="2" defaultChecked={isChecked('familyHistory', 2)} /> 2+ relatives</label>
             </label>
           </div>
         </div>
@@ -178,8 +276,8 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">4.</span> Previous History of Inflammation:
-              <label className="checkbox-inline"><input type="radio" name="inflammation" value="0" checked={isChecked('inflammationHistory', 0)} readOnly /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="inflammation" value="1" checked={isChecked('inflammationHistory', 1)} readOnly /> Yes</label>
+              <label className="checkbox-inline"><input type="radio" name="inflammation" value="0" defaultChecked={isChecked('inflammationHistory', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="inflammation" value="1" defaultChecked={isChecked('inflammationHistory', 1)} /> Yes</label>
               <div style={{ fontSize: '11px', fontStyle: 'italic', marginTop: '4px', marginLeft: '20px' }}>
                 (ex. Ulcerative Colitis, Crohn's disease, chronic prostatitis)
               </div>
@@ -191,9 +289,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">5.</span> Known BRCA1/BRCA2 mutation:
-              <label className="checkbox-inline"><input type="radio" name="brca" value="yes" checked={isChecked('brcaStatus', 'yes')} readOnly /> Yes</label>
-              <label className="checkbox-inline"><input type="radio" name="brca" value="no" checked={isChecked('brcaStatus', 'no')} readOnly /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" checked={isChecked('brcaStatus', 'unknown')} readOnly /> Unknown</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="yes" defaultChecked={isChecked('brcaStatus', 'yes')} /> Yes</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="no" defaultChecked={isChecked('brcaStatus', 'no')} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" defaultChecked={isChecked('brcaStatus', 'unknown')} /> Unknown</label>
             </label>
           </div>
         </div>
@@ -206,11 +304,11 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">6.</span> Height:
-              <label className="checkbox-inline"><input type="checkbox" checked={getFieldValue('heightUnit') === 'imperial'} readOnly /> Feet/Inches</label>
-              <input type="text" className="field-input-tiny" placeholder="__" value={getFieldValue('heightFt', '')} readOnly /> ft
-              <input type="text" className="field-input-tiny" placeholder="__" value={getFieldValue('heightIn', '')} readOnly /> in
-              <label className="checkbox-inline"><input type="checkbox" checked={getFieldValue('heightUnit') === 'metric'} readOnly /> Centimeters</label>
-              <input type="text" className="field-input-small" placeholder="___ cm" value={getFieldValue('heightCm', '')} readOnly />
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('heightUnit') === 'imperial'} /> Feet/Inches</label>
+              <input type="text" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightFt', '')} /> ft
+              <input type="text" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightIn', '')} /> in
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('heightUnit') === 'metric'} /> Centimeters</label>
+              <input type="text" className="field-input-small" placeholder="___ cm" defaultValue={getFieldValue('heightCm', '')} />
             </label>
           </div>
         </div>
@@ -219,11 +317,11 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">7.</span> Weight:
-              <label className="checkbox-inline"><input type="checkbox" checked={getFieldValue('weightUnit') === 'lbs'} readOnly /> lbs</label>
-              <input type="text" className="field-input-small" placeholder="____" value={getFieldValue('weight', '')} readOnly />
-              <label className="checkbox-inline"><input type="checkbox" checked={getFieldValue('weightUnit') === 'kg'} readOnly /> kg</label>
-              <input type="text" className="field-input-small" placeholder="____" value={getFieldValue('weightKg', '')} readOnly />
-              &nbsp;| BMI: <input type="text" className="field-input-tiny" placeholder="___" value={getFieldValue('bmi', '')} readOnly />
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('weightUnit') === 'lbs'} /> lbs</label>
+              <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weight', '')} />
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('weightUnit') === 'kg'} /> kg</label>
+              <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weightKg', '')} />
+              &nbsp;| BMI: <input type="text" className="field-input-tiny" placeholder="___" defaultValue={getFieldValue('bmi', '')} />
             </label>
           </div>
         </div>
@@ -236,9 +334,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">8.</span> Exercise level:
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" checked={isChecked('exercise', 0)} readOnly /> Regular</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" checked={isChecked('exercise', 1)} readOnly /> Some</label>
-              <label className="checkbox-inline"><input type="radio" name="exercise" value="2" checked={isChecked('exercise', 2)} readOnly /> None</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="0" defaultChecked={isChecked('exercise', 0)} /> Regular</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="1" defaultChecked={isChecked('exercise', 1)} /> Some</label>
+              <label className="checkbox-inline"><input type="radio" name="exercise" value="2" defaultChecked={isChecked('exercise', 2)} /> None</label>
             </label>
           </div>
         </div>
@@ -247,9 +345,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">9.</span> Smoking status:
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="current" checked={isChecked('smoking', 'current')} readOnly /> Current</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="former" checked={isChecked('smoking', 'former')} readOnly /> Former</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="never" checked={isChecked('smoking', 'never')} readOnly /> Never</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="current" defaultChecked={isChecked('smoking', 'current')} /> Current</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="former" defaultChecked={isChecked('smoking', 'former')} /> Former</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="never" defaultChecked={isChecked('smoking', 'never')} /> Never</label>
             </label>
           </div>
         </div>
@@ -258,8 +356,8 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">10.</span> Chemical exposure (Agent Orange/pesticides):
-              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" checked={isChecked('chemicalExposure', 'yes')} readOnly /> Yes</label>
-              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" checked={isChecked('chemicalExposure', 'no')} readOnly /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" defaultChecked={isChecked('chemicalExposure', 'yes')} /> Yes</label>
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" defaultChecked={isChecked('chemicalExposure', 'no')} /> No</label>
             </label>
           </div>
         </div>
@@ -268,7 +366,7 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">11.</span> Diet pattern:
-              <input type="text" className="field-input-inline" placeholder="________________" value={getFieldValue('dietPattern', '')} readOnly />
+              <input type="text" className="field-input-inline" placeholder="________________" defaultValue={getFieldValue('dietPattern', '')} />
             </label>
           </div>
         </div>
@@ -280,18 +378,19 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="section-divider">
           <span className="section-label">12. Urinary Symptoms (IPSS) — Rate 0-5:</span>
         </div>
+        <p className="score-help-text">IPSS scale reminder: 0 = Not at all, 1 = &lt; 1 in 5, 2 = &lt; Half, 3 = ~ Half, 4 = &gt; Half, 5 = Always.</p>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
               Incomplete emptying
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-0" value="0" checked={isChecked('ipss.0', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-0" value="1" checked={isChecked('ipss.0', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-0" value="2" checked={isChecked('ipss.0', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-0" value="3" checked={isChecked('ipss.0', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-0" value="4" checked={isChecked('ipss.0', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-0" value="5" checked={isChecked('ipss.0', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-0" value="0" defaultChecked={isChecked('ipss.0', 0)} />0</label>
+                <label><input type="radio" name="ipss-0" value="1" defaultChecked={isChecked('ipss.0', 1)} />1</label>
+                <label><input type="radio" name="ipss-0" value="2" defaultChecked={isChecked('ipss.0', 2)} />2</label>
+                <label><input type="radio" name="ipss-0" value="3" defaultChecked={isChecked('ipss.0', 3)} />3</label>
+                <label><input type="radio" name="ipss-0" value="4" defaultChecked={isChecked('ipss.0', 4)} />4</label>
+                <label><input type="radio" name="ipss-0" value="5" defaultChecked={isChecked('ipss.0', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -299,12 +398,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Frequency
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-1" value="0" checked={isChecked('ipss.1', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-1" value="1" checked={isChecked('ipss.1', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-1" value="2" checked={isChecked('ipss.1', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-1" value="3" checked={isChecked('ipss.1', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-1" value="4" checked={isChecked('ipss.1', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-1" value="5" checked={isChecked('ipss.1', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-1" value="0" defaultChecked={isChecked('ipss.1', 0)} />0</label>
+                <label><input type="radio" name="ipss-1" value="1" defaultChecked={isChecked('ipss.1', 1)} />1</label>
+                <label><input type="radio" name="ipss-1" value="2" defaultChecked={isChecked('ipss.1', 2)} />2</label>
+                <label><input type="radio" name="ipss-1" value="3" defaultChecked={isChecked('ipss.1', 3)} />3</label>
+                <label><input type="radio" name="ipss-1" value="4" defaultChecked={isChecked('ipss.1', 4)} />4</label>
+                <label><input type="radio" name="ipss-1" value="5" defaultChecked={isChecked('ipss.1', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -315,12 +414,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Intermittency
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-2" value="0" checked={isChecked('ipss.2', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-2" value="1" checked={isChecked('ipss.2', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-2" value="2" checked={isChecked('ipss.2', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-2" value="3" checked={isChecked('ipss.2', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-2" value="4" checked={isChecked('ipss.2', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-2" value="5" checked={isChecked('ipss.2', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-2" value="0" defaultChecked={isChecked('ipss.2', 0)} />0</label>
+                <label><input type="radio" name="ipss-2" value="1" defaultChecked={isChecked('ipss.2', 1)} />1</label>
+                <label><input type="radio" name="ipss-2" value="2" defaultChecked={isChecked('ipss.2', 2)} />2</label>
+                <label><input type="radio" name="ipss-2" value="3" defaultChecked={isChecked('ipss.2', 3)} />3</label>
+                <label><input type="radio" name="ipss-2" value="4" defaultChecked={isChecked('ipss.2', 4)} />4</label>
+                <label><input type="radio" name="ipss-2" value="5" defaultChecked={isChecked('ipss.2', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -328,12 +427,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Urgency
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-3" value="0" checked={isChecked('ipss.3', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-3" value="1" checked={isChecked('ipss.3', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-3" value="2" checked={isChecked('ipss.3', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-3" value="3" checked={isChecked('ipss.3', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-3" value="4" checked={isChecked('ipss.3', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-3" value="5" checked={isChecked('ipss.3', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-3" value="0" defaultChecked={isChecked('ipss.3', 0)} />0</label>
+                <label><input type="radio" name="ipss-3" value="1" defaultChecked={isChecked('ipss.3', 1)} />1</label>
+                <label><input type="radio" name="ipss-3" value="2" defaultChecked={isChecked('ipss.3', 2)} />2</label>
+                <label><input type="radio" name="ipss-3" value="3" defaultChecked={isChecked('ipss.3', 3)} />3</label>
+                <label><input type="radio" name="ipss-3" value="4" defaultChecked={isChecked('ipss.3', 4)} />4</label>
+                <label><input type="radio" name="ipss-3" value="5" defaultChecked={isChecked('ipss.3', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -344,12 +443,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Weak stream
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-4" value="0" checked={isChecked('ipss.4', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-4" value="1" checked={isChecked('ipss.4', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-4" value="2" checked={isChecked('ipss.4', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-4" value="3" checked={isChecked('ipss.4', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-4" value="4" checked={isChecked('ipss.4', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-4" value="5" checked={isChecked('ipss.4', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-4" value="0" defaultChecked={isChecked('ipss.4', 0)} />0</label>
+                <label><input type="radio" name="ipss-4" value="1" defaultChecked={isChecked('ipss.4', 1)} />1</label>
+                <label><input type="radio" name="ipss-4" value="2" defaultChecked={isChecked('ipss.4', 2)} />2</label>
+                <label><input type="radio" name="ipss-4" value="3" defaultChecked={isChecked('ipss.4', 3)} />3</label>
+                <label><input type="radio" name="ipss-4" value="4" defaultChecked={isChecked('ipss.4', 4)} />4</label>
+                <label><input type="radio" name="ipss-4" value="5" defaultChecked={isChecked('ipss.4', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -357,12 +456,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Straining
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-5" value="0" checked={isChecked('ipss.5', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-5" value="1" checked={isChecked('ipss.5', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-5" value="2" checked={isChecked('ipss.5', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-5" value="3" checked={isChecked('ipss.5', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-5" value="4" checked={isChecked('ipss.5', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-5" value="5" checked={isChecked('ipss.5', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-5" value="0" defaultChecked={isChecked('ipss.5', 0)} />0</label>
+                <label><input type="radio" name="ipss-5" value="1" defaultChecked={isChecked('ipss.5', 1)} />1</label>
+                <label><input type="radio" name="ipss-5" value="2" defaultChecked={isChecked('ipss.5', 2)} />2</label>
+                <label><input type="radio" name="ipss-5" value="3" defaultChecked={isChecked('ipss.5', 3)} />3</label>
+                <label><input type="radio" name="ipss-5" value="4" defaultChecked={isChecked('ipss.5', 4)} />4</label>
+                <label><input type="radio" name="ipss-5" value="5" defaultChecked={isChecked('ipss.5', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -373,18 +472,18 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Nocturia
               <div className="scale-compact">
-                <label><input type="radio" name="ipss-6" value="0" checked={isChecked('ipss.6', 0)} readOnly />0</label>
-                <label><input type="radio" name="ipss-6" value="1" checked={isChecked('ipss.6', 1)} readOnly />1</label>
-                <label><input type="radio" name="ipss-6" value="2" checked={isChecked('ipss.6', 2)} readOnly />2</label>
-                <label><input type="radio" name="ipss-6" value="3" checked={isChecked('ipss.6', 3)} readOnly />3</label>
-                <label><input type="radio" name="ipss-6" value="4" checked={isChecked('ipss.6', 4)} readOnly />4</label>
-                <label><input type="radio" name="ipss-6" value="5" checked={isChecked('ipss.6', 5)} readOnly />5</label>
+                <label><input type="radio" name="ipss-6" value="0" defaultChecked={isChecked('ipss.6', 0)} />0</label>
+                <label><input type="radio" name="ipss-6" value="1" defaultChecked={isChecked('ipss.6', 1)} />1</label>
+                <label><input type="radio" name="ipss-6" value="2" defaultChecked={isChecked('ipss.6', 2)} />2</label>
+                <label><input type="radio" name="ipss-6" value="3" defaultChecked={isChecked('ipss.6', 3)} />3</label>
+                <label><input type="radio" name="ipss-6" value="4" defaultChecked={isChecked('ipss.6', 4)} />4</label>
+                <label><input type="radio" name="ipss-6" value="5" defaultChecked={isChecked('ipss.6', 5)} />5</label>
               </div>
             </label>
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              IPSS Total: <input type="text" className="field-input-tiny" placeholder="___" value={getFieldValue('ipssTotal', '')} readOnly /> / 35
+              IPSS Total: <input type="text" className="field-input-tiny" placeholder="___" defaultValue={ipssTotal} /> / 35
             </label>
           </div>
         </div>
@@ -392,17 +491,18 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="section-divider">
           <span className="section-label">13. Sexual Health (SHIM):</span>
         </div>
+        <p className="score-help-text">SHIM scale reminder: choose one score per item (Q1 scores 1-5; Q2-Q5 score 0-5). Higher total = better erectile function.</p>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
             <label className="field-label-compact">
               Confidence
               <div className="scale-compact">
-                <label><input type="radio" name="shim-0" value="1" checked={isChecked('shim.0', 1)} readOnly />1</label>
-                <label><input type="radio" name="shim-0" value="2" checked={isChecked('shim.0', 2)} readOnly />2</label>
-                <label><input type="radio" name="shim-0" value="3" checked={isChecked('shim.0', 3)} readOnly />3</label>
-                <label><input type="radio" name="shim-0" value="4" checked={isChecked('shim.0', 4)} readOnly />4</label>
-                <label><input type="radio" name="shim-0" value="5" checked={isChecked('shim.0', 5)} readOnly />5</label>
+                <label><input type="radio" name="shim-0" value="1" defaultChecked={isChecked('shim.0', 1)} />1</label>
+                <label><input type="radio" name="shim-0" value="2" defaultChecked={isChecked('shim.0', 2)} />2</label>
+                <label><input type="radio" name="shim-0" value="3" defaultChecked={isChecked('shim.0', 3)} />3</label>
+                <label><input type="radio" name="shim-0" value="4" defaultChecked={isChecked('shim.0', 4)} />4</label>
+                <label><input type="radio" name="shim-0" value="5" defaultChecked={isChecked('shim.0', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -410,12 +510,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Hard enough
               <div className="scale-compact">
-                <label><input type="radio" name="shim-1" value="0" checked={isChecked('shim.1', 0)} readOnly />0</label>
-                <label><input type="radio" name="shim-1" value="1" checked={isChecked('shim.1', 1)} readOnly />1</label>
-                <label><input type="radio" name="shim-1" value="2" checked={isChecked('shim.1', 2)} readOnly />2</label>
-                <label><input type="radio" name="shim-1" value="3" checked={isChecked('shim.1', 3)} readOnly />3</label>
-                <label><input type="radio" name="shim-1" value="4" checked={isChecked('shim.1', 4)} readOnly />4</label>
-                <label><input type="radio" name="shim-1" value="5" checked={isChecked('shim.1', 5)} readOnly />5</label>
+                <label><input type="radio" name="shim-1" value="0" defaultChecked={isChecked('shim.1', 0)} />0</label>
+                <label><input type="radio" name="shim-1" value="1" defaultChecked={isChecked('shim.1', 1)} />1</label>
+                <label><input type="radio" name="shim-1" value="2" defaultChecked={isChecked('shim.1', 2)} />2</label>
+                <label><input type="radio" name="shim-1" value="3" defaultChecked={isChecked('shim.1', 3)} />3</label>
+                <label><input type="radio" name="shim-1" value="4" defaultChecked={isChecked('shim.1', 4)} />4</label>
+                <label><input type="radio" name="shim-1" value="5" defaultChecked={isChecked('shim.1', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -426,12 +526,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Maintain after
               <div className="scale-compact">
-                <label><input type="radio" name="shim-2" value="0" checked={isChecked('shim.2', 0)} readOnly />0</label>
-                <label><input type="radio" name="shim-2" value="1" checked={isChecked('shim.2', 1)} readOnly />1</label>
-                <label><input type="radio" name="shim-2" value="2" checked={isChecked('shim.2', 2)} readOnly />2</label>
-                <label><input type="radio" name="shim-2" value="3" checked={isChecked('shim.2', 3)} readOnly />3</label>
-                <label><input type="radio" name="shim-2" value="4" checked={isChecked('shim.2', 4)} readOnly />4</label>
-                <label><input type="radio" name="shim-2" value="5" checked={isChecked('shim.2', 5)} readOnly />5</label>
+                <label><input type="radio" name="shim-2" value="0" defaultChecked={isChecked('shim.2', 0)} />0</label>
+                <label><input type="radio" name="shim-2" value="1" defaultChecked={isChecked('shim.2', 1)} />1</label>
+                <label><input type="radio" name="shim-2" value="2" defaultChecked={isChecked('shim.2', 2)} />2</label>
+                <label><input type="radio" name="shim-2" value="3" defaultChecked={isChecked('shim.2', 3)} />3</label>
+                <label><input type="radio" name="shim-2" value="4" defaultChecked={isChecked('shim.2', 4)} />4</label>
+                <label><input type="radio" name="shim-2" value="5" defaultChecked={isChecked('shim.2', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -439,12 +539,12 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Difficulty maintain
               <div className="scale-compact">
-                <label><input type="radio" name="shim-3" value="0" checked={isChecked('shim.3', 0)} readOnly />0</label>
-                <label><input type="radio" name="shim-3" value="1" checked={isChecked('shim.3', 1)} readOnly />1</label>
-                <label><input type="radio" name="shim-3" value="2" checked={isChecked('shim.3', 2)} readOnly />2</label>
-                <label><input type="radio" name="shim-3" value="3" checked={isChecked('shim.3', 3)} readOnly />3</label>
-                <label><input type="radio" name="shim-3" value="4" checked={isChecked('shim.3', 4)} readOnly />4</label>
-                <label><input type="radio" name="shim-3" value="5" checked={isChecked('shim.3', 5)} readOnly />5</label>
+                <label><input type="radio" name="shim-3" value="0" defaultChecked={isChecked('shim.3', 0)} />0</label>
+                <label><input type="radio" name="shim-3" value="1" defaultChecked={isChecked('shim.3', 1)} />1</label>
+                <label><input type="radio" name="shim-3" value="2" defaultChecked={isChecked('shim.3', 2)} />2</label>
+                <label><input type="radio" name="shim-3" value="3" defaultChecked={isChecked('shim.3', 3)} />3</label>
+                <label><input type="radio" name="shim-3" value="4" defaultChecked={isChecked('shim.3', 4)} />4</label>
+                <label><input type="radio" name="shim-3" value="5" defaultChecked={isChecked('shim.3', 5)} />5</label>
               </div>
             </label>
           </div>
@@ -455,18 +555,18 @@ const PrintableForm = ({ onBack, formData }) => {
             <label className="field-label-compact">
               Satisfactory
               <div className="scale-compact">
-                <label><input type="radio" name="shim-4" value="0" checked={isChecked('shim.4', 0)} readOnly />0</label>
-                <label><input type="radio" name="shim-4" value="1" checked={isChecked('shim.4', 1)} readOnly />1</label>
-                <label><input type="radio" name="shim-4" value="2" checked={isChecked('shim.4', 2)} readOnly />2</label>
-                <label><input type="radio" name="shim-4" value="3" checked={isChecked('shim.4', 3)} readOnly />3</label>
-                <label><input type="radio" name="shim-4" value="4" checked={isChecked('shim.4', 4)} readOnly />4</label>
-                <label><input type="radio" name="shim-4" value="5" checked={isChecked('shim.4', 5)} readOnly />5</label>
+                <label><input type="radio" name="shim-4" value="0" defaultChecked={isChecked('shim.4', 0)} />0</label>
+                <label><input type="radio" name="shim-4" value="1" defaultChecked={isChecked('shim.4', 1)} />1</label>
+                <label><input type="radio" name="shim-4" value="2" defaultChecked={isChecked('shim.4', 2)} />2</label>
+                <label><input type="radio" name="shim-4" value="3" defaultChecked={isChecked('shim.4', 3)} />3</label>
+                <label><input type="radio" name="shim-4" value="4" defaultChecked={isChecked('shim.4', 4)} />4</label>
+                <label><input type="radio" name="shim-4" value="5" defaultChecked={isChecked('shim.4', 5)} />5</label>
               </div>
             </label>
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              SHIM Total: <input type="text" className="field-input-tiny" placeholder="___" value={getFieldValue('shimTotal', '')} readOnly /> / 25
+              SHIM Total: <input type="text" className="field-input-tiny" placeholder="___" defaultValue={shimTotal} /> / 25
             </label>
           </div>
         </div>
@@ -479,14 +579,14 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">12.</span> PSA Level (ng/mL):
-              <input type="text" className="field-input-small" placeholder="____" value={getFieldValue('psa', '')} readOnly />
+              <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('psa', '')} />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
               On hormonal therapy affecting PSA:
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('onHormonalTherapy', true)} readOnly /> Yes</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('onHormonalTherapy', false)} readOnly /> No</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('onHormonalTherapy', true)} /> Yes</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('onHormonalTherapy', false)} /> No</label>
             </label>
           </div>
         </div>
@@ -495,9 +595,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               Medication:
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'finasteride')} readOnly /> Finasteride</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'dutasteride')} readOnly /> Dutasteride</label>
-              <label className="checkbox-inline"><input type="checkbox" checked={isChecked('hormonalTherapyType', 'other')} readOnly /> Other</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('hormonalTherapyType', 'finasteride')} /> Finasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('hormonalTherapyType', 'dutasteride')} /> Dutasteride</label>
+              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('hormonalTherapyType', 'other')} /> Other</label>
             </label>
           </div>
         </div>
@@ -506,12 +606,12 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">13.</span> MRI PIRADS Score:
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="na" checked={!getFieldValue('knowPirads', false)} readOnly /> Not applicable</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="1" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '1')} readOnly /> 1</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="2" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '2')} readOnly /> 2</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="3" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '3')} readOnly /> 3</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="4" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '4')} readOnly /> 4</label>
-              <label className="checkbox-inline"><input type="radio" name="pirads" value="5" checked={getFieldValue('knowPirads', false) && isChecked('pirads', '5')} readOnly /> 5</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="na" defaultChecked={!getFieldValue('knowPirads', false)} /> Not applicable</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="1" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '1')} /> 1</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="2" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '2')} /> 2</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="3" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '3')} /> 3</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="4" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '4')} /> 4</label>
+              <label className="checkbox-inline"><input type="radio" name="pirads" value="5" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '5')} /> 5</label>
             </label>
           </div>
         </div>

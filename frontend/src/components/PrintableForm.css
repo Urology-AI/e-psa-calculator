@@ -38,7 +38,14 @@
   border-bottom: 1px solid #E8ECF0;
 }
 
+.form-actions-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .btn-back,
+.btn-download,
 .btn-print {
   padding: 10px 20px;
   border: none;
@@ -57,6 +64,16 @@
 
 .btn-back:hover {
   background: #E8ECF0;
+}
+
+.btn-download {
+  background: #F4F9FC;
+  color: #00578B;
+  border: 1px solid #CFE0EC;
+}
+
+.btn-download:hover {
+  background: #E8F3FA;
 }
 
 .btn-print {
@@ -92,8 +109,14 @@
   }
   
   .btn-back,
+  .btn-download,
   .btn-print {
     width: 100%;
+  }
+
+  .form-actions-right {
+    width: 100%;
+    flex-direction: column;
   }
 }
 
@@ -101,6 +124,17 @@
   margin-bottom: 8px;
   padding-bottom: 6px;
   border-bottom: 1px solid #E8ECF0;
+}
+
+.print-instructions {
+  border: 1px solid #CFE0EC;
+  background: #F4F9FC;
+  color: #1C2833;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .header-top-row {
@@ -223,6 +257,13 @@
 
 .printable-body {
   padding: 4px 0;
+}
+
+.score-help-text {
+  margin: 0 0 6px;
+  font-size: 10px;
+  color: #4A5968;
+  line-height: 1.35;
 }
 
 /* Form rows for side-by-side layout */
