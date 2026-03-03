@@ -1,38 +1,91 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const STORAGE_KEY = 'epsa-gh-pages-records-v2';
+const STORAGE_KEY = 'epsa-gh-pages-part1-v1';
 
-const RACE_OPTIONS = ['White', 'Black', 'Hispanic', 'Asian', 'Other'];
-const FAMILY_HISTORY_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'one', label: '1 relative' },
-  { value: 'twoPlus', label: '2+ relatives' }
+const RACE_OPTIONS = [
+  { value: 'white', label: 'White' },
+  { value: 'black', label: 'Black' },
+  { value: 'hispanic', label: 'Hispanic' },
+  { value: 'asian', label: 'Asian' },
+  { value: 'other', label: 'Other' }
 ];
-const YES_NO_UNKNOWN = ['yes', 'no', 'unknown'];
+const FAMILY_HISTORY_OPTIONS = [
+  { value: 0, label: 'None' },
+  { value: 1, label: '1 relative' },
+  { value: 2, label: '2+ relatives' }
+];
+const YES_NO_UNKNOWN = [
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
+  { value: 'unknown', label: 'Unknown' }
+];
+
+const EXERCISE_OPTIONS = [
+  { value: 0, label: 'None' },
+  { value: 1, label: 'Some activity' },
+  { value: 2, label: 'Regular exercise' }
+];
+
+const SMOKING_OPTIONS = [
+  { value: 0, label: 'Never' },
+  { value: 1, label: 'Former' },
+  { value: 2, label: 'Current' }
+];
+
+const CHEMICAL_EXPOSURE_OPTIONS = [
+  { value: 'no', label: 'No' },
+  { value: 'yes', label: 'Yes' }
+];
+
+const DIET_OPTIONS = [
+  { value: 'balanced', label: 'Balanced / Whole foods' },
+  { value: 'mixed', label: 'Mixed' },
+  { value: 'highProcessed', label: 'High processed foods' }
+];
 
 const IPSS_QUESTIONS = [
-  'Incomplete emptying',
-  'Frequency',
-  'Intermittency',
-  'Urgency',
-  'Weak stream',
-  'Straining',
-  'Nocturia'
+  'Over the last month, how often have you had a sensation of not emptying your bladder completely after urinating?',
+  'Over the last month, how often have you had to urinate again less than 2 hours after finishing urination?',
+  'Over the last month, how often have you found you stopped and started again several times when urinating?',
+  'Over the last month, how often have you found it difficult to postpone urination?',
+  'Over the last month, how often have you had a weak urinary stream?',
+  'Over the last month, how often have you had to push or strain to begin urination?',
+  'Over the last month, how many times did you typically get up at night to urinate?'
+];
+
+const IPSS_OPTIONS = [
+  { value: '0', label: '0 · Not at all' },
+  { value: '1', label: '1 · Less than 1 in 5 times' },
+  { value: '2', label: '2 · Less than half the time' },
+  { value: '3', label: '3 · About half the time' },
+  { value: '4', label: '4 · More than half the time' },
+  { value: '5', label: '5 · Almost always' }
 ];
 
 const SHIM_QUESTIONS = [
-  { label: 'Confidence', min: 1, max: 5 },
-  { label: 'Hard enough', min: 0, max: 5 },
-  { label: 'Maintain after', min: 0, max: 5 },
-  { label: 'Difficulty maintain', min: 0, max: 5 },
-  { label: 'Satisfactory', min: 0, max: 5 }
+  {
+    q: 'How do you rate your confidence that you could get and keep an erection?',
+    opts: [[1, 'Very low'], [2, 'Low'], [3, 'Moderate'], [4, 'High'], [5, 'Very high']]
+  },
+  {
+    q: 'When you had erections with sexual stimulation, how often were they hard enough for penetration?',
+    opts: [[0, 'No sexual activity'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+  },
+  {
+    q: 'During intercourse, how often were you able to maintain your erection after penetration?',
+    opts: [[0, 'Did not attempt intercourse'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+  },
+  {
+    q: 'During intercourse, how difficult was it to maintain your erection to completion?',
+    opts: [[0, 'Did not attempt intercourse'], [1, 'Extremely difficult'], [2, 'Very difficult'], [3, 'Difficult'], [4, 'Slightly difficult'], [5, 'Not difficult']]
+  },
+  {
+    q: 'When you attempted intercourse, how often was it satisfactory for you?',
+    opts: [[0, 'Did not attempt intercourse'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+  }
 ];
 
 const emptyForm = {
-  patientId: '',
-  assessmentDate: '',
-  phoneNumber: '',
-  notes: '',
   age: '',
   race: '',
   familyHistory: '',
@@ -51,21 +104,35 @@ const emptyForm = {
   dietPattern: '',
   ipss: Array(7).fill(''),
   shim: Array(5).fill(''),
-  psaValue: '',
-  medication: '',
-  pirads: '',
-  onHormonalTherapy: ''
+  bmi: 0
 };
 
-const sectionStyle = {
+const cardStyle = {
   background: '#fff',
-  border: '1px solid #d9e2ef',
-  borderRadius: 12,
+  border: '1px solid #d6e3f4',
+  borderRadius: 14,
   padding: 16,
-  boxShadow: '0 4px 14px rgba(31, 68, 115, 0.08)'
+  boxShadow: '0 4px 14px rgba(22, 62, 110, 0.08)'
 };
 
-const labelStyle = { display: 'block', fontWeight: 600, marginBottom: 6, color: '#10365c' };
+const buttonGroupStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  marginTop: 8
+};
+
+const choiceButton = (active) => ({
+  border: active ? '2px solid #1457a8' : '1px solid #b5c9e3',
+  background: active ? '#eaf3ff' : '#fff',
+  color: '#0f355d',
+  borderRadius: 999,
+  padding: '8px 12px',
+  cursor: 'pointer',
+  fontSize: 13,
+  fontWeight: 600
+});
+
 const inputStyle = {
   width: '100%',
   padding: '10px 12px',
@@ -75,7 +142,26 @@ const inputStyle = {
   boxSizing: 'border-box'
 };
 
+const ClickOptions = ({ options, value, onChange }) => (
+  <div style={buttonGroupStyle}>
+    {options.map((opt) => {
+      const option = typeof opt === 'string' ? { value: opt, label: opt } : opt;
+      return (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          style={choiceButton(value === option.value)}
+        >
+          {option.label}
+        </button>
+      );
+    })}
+  </div>
+);
+
 const App = () => {
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState(emptyForm);
   const [records, setRecords] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
@@ -94,7 +180,7 @@ const App = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      version: 3,
+      version: '1.0',
       savedAt: new Date().toISOString(),
       currentDraft: formData,
       records
@@ -129,9 +215,7 @@ const App = () => {
     return '';
   }, [formData.heightFt, formData.heightIn, formData.weight, formData.heightCm, formData.weightKg, formData.heightUnit]);
 
-  const onChange = ({ target: { name, value } }) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const onField = (name, value) => setFormData((prev) => ({ ...prev, [name]: value }));
 
   const onArrayChange = (arrayName, index, value) => {
     setFormData((prev) => {
@@ -143,26 +227,36 @@ const App = () => {
 
   const handleSave = (event) => {
     event.preventDefault();
-    if (!formData.age || !formData.race || !formData.psaValue) {
-      setStatusMessage('Please complete at least age, race/ethnicity, and PSA level before saving.');
+    if (!formData.age || !formData.race) {
+      setStatusMessage('Please complete at least age and race/ethnicity before saving.');
       return;
     }
 
-    const record = {
-      ...formData,
-      id: String(Date.now()),
-      createdAt: new Date().toISOString(),
-      shimScore,
-      ipssScore,
-      bmi
-    };
+    const record = { ...formData, bmi, id: String(Date.now()), createdAt: new Date().toISOString(), shimScore, ipssScore };
 
     setRecords((prev) => [record, ...prev]);
-    setStatusMessage('Record saved locally. You can export JSON or print to PDF.');
+    setStatusMessage('Record saved locally. Use JSON export/import to move data between Firebase and GitHub page versions.');
   };
 
   const handleExport = () => {
-    const payload = { exportedAt: new Date().toISOString(), version: 3, records };
+    const part1Data = {
+      ...formData,
+      bmi: Number(bmi || 0),
+      age: String(formData.age || ''),
+      heightFt: String(formData.heightFt || ''),
+      heightIn: String(formData.heightIn || ''),
+      heightCm: String(formData.heightCm || ''),
+      weight: String(formData.weight || ''),
+      weightKg: String(formData.weightKg || ''),
+      ipss: formData.ipss.map((v) => Number(v || 0)),
+      shim: formData.shim.map((v) => Number(v || 0))
+    };
+    const payload = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      part: 'part1',
+      formData: part1Data
+    };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -174,159 +268,118 @@ const App = () => {
     URL.revokeObjectURL(url);
   };
 
-  const scoreOptions = (start, end) => Array.from({ length: end - start + 1 }, (_, i) => String(i + start));
+  const handleImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw);
+      const imported = parsed?.formData && parsed?.part === 'part1' ? parsed.formData : parsed.currentDraft;
+      if (imported && typeof imported === 'object') {
+        setFormData({
+          ...emptyForm,
+          ...imported,
+          ipss: Array.isArray(imported.ipss) ? imported.ipss.map((v) => String(v)) : emptyForm.ipss,
+          shim: Array.isArray(imported.shim) ? imported.shim.map((v) => String(v)) : emptyForm.shim
+        });
+      }
+      setStatusMessage('JSON import complete.');
+    } catch (error) {
+      console.error(error);
+      setStatusMessage('Import failed. Please use a valid JSON export file.');
+    } finally {
+      event.target.value = '';
+    }
+  };
 
   return (
-    <main style={{ maxWidth: 1080, margin: '0 auto', padding: 20, fontFamily: 'Inter, Arial, sans-serif', background: '#f4f8ff' }}>
-      <div style={{ ...sectionStyle, marginBottom: 14, background: 'linear-gradient(135deg, #f7fbff, #eef5ff)' }}>
-        <h1 style={{ marginTop: 0, marginBottom: 6, color: '#0f2e4f' }}>MILLION STRONG MEN - ePSA Questionnaire</h1>
-        <p style={{ marginTop: 0, color: '#335277' }}>Prostate-Specific Awareness | A Non-Validated Educational Risk Tool</p>
+    <main style={{ maxWidth: 1100, margin: '0 auto', padding: 20, fontFamily: 'Inter, Arial, sans-serif', background: '#f4f8ff' }}>
+      <div style={{ ...cardStyle, marginBottom: 14, background: 'linear-gradient(135deg, #f7fbff, #eef5ff)' }}>
+        <h1 style={{ marginTop: 0, marginBottom: 6, color: '#0f2e4f' }}>ePSA Questionnaire (GitHub Single-Page)</h1>
+        <p style={{ marginTop: 0, color: '#335277' }}>Single-page part 1 flow aligned to Firebase fields and JSON format.</p>
         <p style={{ marginBottom: 0, fontSize: 14 }}>
-          <strong>How to use this form:</strong> Please review each section with the patient and fill in blank fields.
-          If a value is already shown, confirm it is correct. Use Notes for medications, recent lab history,
-          symptoms, and follow-up plans.
+          Most questions are click-only. Only age/height/weight use numeric inputs.
         </p>
       </div>
 
       <form onSubmit={handleSave} style={{ display: 'grid', gap: 14 }}>
-        <section style={sectionStyle}>
-          <h2 style={{ marginTop: 0 }}>Header Details</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
-            <div>
-              <label style={labelStyle}>Patient ID</label>
-              <input name="patientId" value={formData.patientId} onChange={onChange} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Assessment Date</label>
-              <input name="assessmentDate" type="date" value={formData.assessmentDate} onChange={onChange} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Phone Number</label>
-              <input name="phoneNumber" value={formData.phoneNumber} onChange={onChange} style={inputStyle} />
-            </div>
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <label style={labelStyle}>Notes</label>
-            <textarea name="notes" value={formData.notes} onChange={onChange} style={{ ...inputStyle, minHeight: 80 }} />
-          </div>
-        </section>
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>Part 1 - Personal and Risk Profile</h2>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div><strong>1. Age</strong><input name="age" type="number" min="18" max="120" value={formData.age} onChange={(e) => onField('age', e.target.value)} style={{ ...inputStyle, marginTop: 8, maxWidth: 200 }} /></div>
+            <div><strong>2. Race / Ethnicity</strong><ClickOptions options={RACE_OPTIONS} value={formData.race} onChange={(v) => onField('race', v)} /></div>
+            <div><strong>3. Family history of prostate cancer</strong><ClickOptions options={FAMILY_HISTORY_OPTIONS} value={formData.familyHistory} onChange={(v) => onField('familyHistory', v)} /></div>
+            <div><strong>4. Previous inflammation (Crohn's, ulcerative colitis, chronic prostatitis)</strong><ClickOptions options={[{ value: 0, label: 'No' }, { value: 1, label: 'Yes' }]} value={formData.inflammationHistory} onChange={(v) => onField('inflammationHistory', v)} /></div>
+            <div><strong>5. Known BRCA1/BRCA2 mutation</strong><ClickOptions options={YES_NO_UNKNOWN} value={formData.brcaStatus} onChange={(v) => onField('brcaStatus', v)} /></div>
 
-        <section style={sectionStyle}>
-          <h2 style={{ marginTop: 0 }}>Part 1 - About You, Family Risk, Body Metrics & Lifestyle</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-            <div><label style={labelStyle}>1. Age</label><input name="age" type="number" value={formData.age} onChange={onChange} style={inputStyle} /></div>
-            <div>
-              <label style={labelStyle}>2. Race / Ethnicity</label>
-              <select name="race" value={formData.race} onChange={onChange} style={inputStyle}>
-                <option value="">Select...</option>
-                {RACE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>3. Family History of prostate cancer</label>
-              <select name="familyHistory" value={formData.familyHistory} onChange={onChange} style={inputStyle}>
-                <option value="">Select...</option>
-                {FAMILY_HISTORY_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>4. Previous History of Inflammation</label>
-              <select name="inflammationHistory" value={formData.inflammationHistory} onChange={onChange} style={inputStyle}>
-                <option value="">Select...</option>
-                <option value="no">No</option>
-                <option value="yes">Yes (Ulcerative Colitis, Crohn&apos;s, chronic prostatitis)</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>5. Known BRCA1/BRCA2 mutation</label>
-              <select name="brcaStatus" value={formData.brcaStatus} onChange={onChange} style={inputStyle}>
-                <option value="">Select...</option>
-                {YES_NO_UNKNOWN.map((opt) => <option key={opt} value={opt}>{opt.toUpperCase()}</option>)}
-              </select>
-            </div>
-          </div>
+            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+              <div>
+                <strong>6. Height unit</strong>
+                <ClickOptions options={[{ value: 'imperial', label: 'Feet / Inches' }, { value: 'metric', label: 'Centimeters' }]} value={formData.heightUnit} onChange={(v) => onField('heightUnit', v)} />
+              </div>
+              {formData.heightUnit === 'imperial' ? (
+                <>
+                  <div><strong>Height (ft)</strong><input type="number" min="3" max="8" value={formData.heightFt} onChange={(e) => onField('heightFt', e.target.value)} style={{ ...inputStyle, marginTop: 8 }} /></div>
+                  <div><strong>Height (in)</strong><input type="number" min="0" max="11" value={formData.heightIn} onChange={(e) => onField('heightIn', e.target.value)} style={{ ...inputStyle, marginTop: 8 }} /></div>
+                </>
+              ) : (
+                <div><strong>Height (cm)</strong><input type="number" min="100" max="250" value={formData.heightCm} onChange={(e) => onField('heightCm', e.target.value)} style={{ ...inputStyle, marginTop: 8 }} /></div>
+              )}
 
-          <div style={{ marginTop: 12, display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <div>
-              <label style={labelStyle}>6. Height Unit</label>
-              <select name="heightUnit" value={formData.heightUnit} onChange={onChange} style={inputStyle}>
-                <option value="imperial">Feet/Inches</option>
-                <option value="metric">Centimeters</option>
-              </select>
+              <div>
+                <strong>7. Weight unit</strong>
+                <ClickOptions options={[{ value: 'lbs', label: 'lbs' }, { value: 'kg', label: 'kg' }]} value={formData.weightUnit} onChange={(v) => onField('weightUnit', v)} />
+              </div>
+              {formData.weightUnit === 'lbs' ? (
+                <div><strong>Weight (lbs)</strong><input type="number" min="50" max="500" value={formData.weight} onChange={(e) => onField('weight', e.target.value)} style={{ ...inputStyle, marginTop: 8 }} /></div>
+              ) : (
+                <div><strong>Weight (kg)</strong><input type="number" min="25" max="250" value={formData.weightKg} onChange={(e) => onField('weightKg', e.target.value)} style={{ ...inputStyle, marginTop: 8 }} /></div>
+              )}
+              <div><strong>BMI (auto)</strong><input value={bmi} readOnly style={{ ...inputStyle, marginTop: 8, background: '#f0f4fa' }} /></div>
             </div>
-            {formData.heightUnit === 'imperial' ? (
-              <>
-                <div><label style={labelStyle}>Height (ft)</label><input name="heightFt" value={formData.heightFt} onChange={onChange} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Height (in)</label><input name="heightIn" value={formData.heightIn} onChange={onChange} style={inputStyle} /></div>
-              </>
-            ) : (
-              <div><label style={labelStyle}>Height (cm)</label><input name="heightCm" value={formData.heightCm} onChange={onChange} style={inputStyle} /></div>
-            )}
 
-            <div>
-              <label style={labelStyle}>7. Weight Unit</label>
-              <select name="weightUnit" value={formData.weightUnit} onChange={onChange} style={inputStyle}>
-                <option value="lbs">lbs</option>
-                <option value="kg">kg</option>
-              </select>
-            </div>
-            {formData.weightUnit === 'lbs' ? (
-              <div><label style={labelStyle}>Weight (lbs)</label><input name="weight" value={formData.weight} onChange={onChange} style={inputStyle} /></div>
-            ) : (
-              <div><label style={labelStyle}>Weight (kg)</label><input name="weightKg" value={formData.weightKg} onChange={onChange} style={inputStyle} /></div>
-            )}
-            <div><label style={labelStyle}>BMI (auto)</label><input value={bmi} readOnly style={{ ...inputStyle, background: '#f0f4fa' }} /></div>
-            <div><label style={labelStyle}>8. Exercise level</label><input name="exercise" value={formData.exercise} onChange={onChange} placeholder="Regular / Some / None" style={inputStyle} /></div>
-            <div><label style={labelStyle}>9. Smoking status</label><input name="smoking" value={formData.smoking} onChange={onChange} placeholder="Current / Former / Never" style={inputStyle} /></div>
-            <div><label style={labelStyle}>10. Chemical exposure</label><input name="chemicalExposure" value={formData.chemicalExposure} onChange={onChange} placeholder="Yes / No" style={inputStyle} /></div>
-            <div><label style={labelStyle}>11. Diet pattern</label><input name="dietPattern" value={formData.dietPattern} onChange={onChange} style={inputStyle} /></div>
+            <div><strong>8. Exercise</strong><ClickOptions options={EXERCISE_OPTIONS} value={formData.exercise} onChange={(v) => onField('exercise', v)} /></div>
+            <div><strong>9. Smoking status</strong><ClickOptions options={SMOKING_OPTIONS} value={formData.smoking} onChange={(v) => onField('smoking', v)} /></div>
+            <div><strong>10. Chemical exposure</strong><ClickOptions options={CHEMICAL_EXPOSURE_OPTIONS} value={formData.chemicalExposure} onChange={(v) => onField('chemicalExposure', v)} /></div>
+            <div><strong>11. Diet pattern</strong><ClickOptions options={DIET_OPTIONS} value={formData.dietPattern} onChange={(v) => onField('dietPattern', v)} /></div>
           </div>
         </section>
 
-        <section style={sectionStyle}>
-          <h2 style={{ marginTop: 0 }}>Symptoms</h2>
-          <p style={{ marginTop: 0 }}>12. URINARY SYMPTOMS (IPSS) - Rate 0-5</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>Symptoms - IPSS</h2>
+          <div style={{ display: 'grid', gap: 10 }}>
             {IPSS_QUESTIONS.map((question, index) => (
-              <div key={question}>
-                <label style={labelStyle}>{question}</label>
-                <select value={formData.ipss[index]} onChange={(e) => onArrayChange('ipss', index, e.target.value)} style={inputStyle}>
-                  <option value="">Select...</option>
-                  {scoreOptions(0, 5).map((score) => <option key={score} value={score}>{score}</option>)}
-                </select>
+              <div key={question} style={{ border: '1px solid #e1ebf8', borderRadius: 12, padding: 12 }}>
+                <strong>{index + 1}. {question}</strong>
+                <ClickOptions options={IPSS_OPTIONS} value={formData.ipss[index]} onChange={(value) => onArrayChange('ipss', index, value)} />
               </div>
             ))}
           </div>
           <strong style={{ display: 'block', marginTop: 8 }}>IPSS Total: {ipssScore} / 35</strong>
+        </section>
 
-          <p style={{ marginBottom: 8, marginTop: 14 }}>13. SEXUAL HEALTH (SHIM)</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>Sexual Health - SHIM</h2>
+          <div style={{ display: 'grid', gap: 10 }}>
             {SHIM_QUESTIONS.map((question, index) => (
-              <div key={question.label}>
-                <label style={labelStyle}>{question.label}</label>
-                <select value={formData.shim[index]} onChange={(e) => onArrayChange('shim', index, e.target.value)} style={inputStyle}>
-                  <option value="">Select...</option>
-                  {scoreOptions(question.min, question.max).map((score) => <option key={score} value={score}>{score}</option>)}
-                </select>
+              <div key={question.q} style={{ border: '1px solid #e1ebf8', borderRadius: 12, padding: 12 }}>
+                <strong>{index + 1}. {question.q}</strong>
+                <ClickOptions
+                  options={question.opts.map(([value, label]) => ({ value: String(value), label: `${value} · ${label}` }))}
+                  value={formData.shim[index]}
+                  onChange={(value) => onArrayChange('shim', index, value)}
+                />
               </div>
             ))}
           </div>
           <strong style={{ display: 'block', marginTop: 8 }}>SHIM Total: {shimScore} / 25</strong>
         </section>
 
-        <section style={sectionStyle}>
-          <h2 style={{ marginTop: 0 }}>Part 2 - Clinical Data</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-            <div><label style={labelStyle}>12. PSA Level (ng/mL)</label><input name="psaValue" type="number" step="0.01" min="0" value={formData.psaValue} onChange={onChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Medication</label><input name="medication" value={formData.medication} onChange={onChange} placeholder="Finasteride / Dutasteride / Other" style={inputStyle} /></div>
-            <div><label style={labelStyle}>13. MRI PIRADS Score</label><input name="pirads" value={formData.pirads} onChange={onChange} placeholder="N/A or 1-5" style={inputStyle} /></div>
-            <div><label style={labelStyle}>On hormonal therapy affecting PSA</label><input name="onHormonalTherapy" value={formData.onHormonalTherapy} onChange={onChange} placeholder="Yes / No" style={inputStyle} /></div>
-          </div>
-        </section>
-
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="submit" style={{ padding: '10px 14px', borderRadius: 8, border: 0, background: '#1457a8', color: '#fff' }}>Save Record</button>
-          <button type="button" onClick={handleExport} disabled={!records.length} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#fff', color: '#1457a8' }}>Export JSON</button>
+          <button type="button" onClick={handleExport} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#fff', color: '#1457a8' }}>Export JSON</button>
+          <button type="button" onClick={() => fileInputRef.current?.click()} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#f2f7ff', color: '#1457a8' }}>Import JSON</button>
+          <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImport} style={{ display: 'none' }} />
           <button type="button" onClick={() => window.print()} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #9caec5', background: '#f7faff' }}>Print / Save PDF</button>
         </div>
       </form>
