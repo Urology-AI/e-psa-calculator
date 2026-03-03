@@ -21,7 +21,7 @@ import BackButton from './components/BackButton.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
-import { sendSessionAccessEmail } from './services/phiBackendService';
+import { sendSessionAccessEmail, createSession as backendCreateSession, updateSession as backendUpdateSession, deleteSession as backendDeleteSession } from './services/phiBackendService';
 
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
@@ -82,7 +82,8 @@ function App() {
     })();
   }, []);
   
-  const shouldTrackAnalytics = storageMode === 'cloud';
+  // Disable client-side analytics writes in patient app; keep admin analytics only.
+  const shouldTrackAnalytics = false;
   
   // ePSA-Pre form data (Part 1: 7-variable model inputs)
   const [preData, setPreData] = useState({
@@ -387,64 +388,7 @@ function App() {
     return { id: sessionSnap.id, ...sessionSnap.data() };
   };
 
-  const createSession = async (payload) => {
-    if (!user?.uid) {
-      throw new Error('Cannot create session without a logged in user/session');
-    }
-
-    const sessionRef = doc(collection(db, 'sessions'));
-    const status = payload?.step2 ? 'STEP2_COMPLETE' : 'STEP1_COMPLETE';
-
-    await setDoc(sessionRef, {
-      uid: user.uid,
-      step1: payload?.step1 || null,
-      step2: payload?.step2 || null,
-      result: payload?.result || null,
-      status,
-      version: 'epsa-v2',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-
-    await setDoc(doc(db, 'users', user.uid), {
-      currentSessionId: sessionRef.id,
-      lastLoginAt: new Date().toISOString(),
-      updatedAt: serverTimestamp(),
-      sessionType: user?.isAnonymous ? 'anonymous' : (userEmail ? 'email' : 'phone')
-    }, { merge: true });
-
-    return { sessionId: sessionRef.id };
-  };
-
-const updateSession = async (id, stepData, result, phase = 'step2') => {
-    if (!id) throw new Error('Session ID is required');
-
-    const sessionRef = doc(db, 'sessions', id);
-    const sessionSnap = await getDoc(sessionRef);
-    const existing = sessionSnap.exists() ? sessionSnap.data() : {};
-
-    const updates = {
-      result,
-      updatedAt: serverTimestamp()
-    };
-
-    if (phase === 'step1') {
-      updates.step1 = stepData;
-      updates.status = 'STEP1_COMPLETE';
-      updates.step2 = existing?.step2 || null;
-    } else {
-      updates.step1 = existing?.step1 || null;
-      updates.step2 = stepData;
-      updates.status = 'STEP2_COMPLETE';
-    }
-
-    await setDoc(sessionRef, updates, { merge: true });
-  };
-
-  const deleteSession = async (id) => {
-    if (!id) return;
-    await deleteDoc(doc(db, 'sessions', id));
-  };
+  // Session create/update/delete are handled by backend Cloud Functions (phiBackendService)
 
   const handleAuthSuccess = async (user, authInfo) => {
     console.log('[AuthFlow] handleAuthSuccess invoked', {
@@ -890,14 +834,13 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
   };
 
   const handleClearData = async () => {
-    // Delete current session from Firebase and clear user's session reference
+    // Delete current session via backend and clear user's session reference
     if (storageMode === 'cloud' && user && sessionId) {
       try {
-        // Delete the session via backend
-        await deleteSession(sessionId);
+        await backendDeleteSession(sessionId);
       } catch (error) {
-        console.error('Error deleting session from Firebase:', error);
-        // Continue clearing local data even if Firebase delete fails
+        console.error('Error deleting session from backend:', error);
+        // Continue clearing local data even if backend delete fails
       }
     }
     
@@ -1050,24 +993,18 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
         });
       }
       
-      // Save to Firestore
-      if (storageMode === 'cloud' && user) {
+      // Save Part 1 session via backend (cloud mode only)
+      if (storageMode === 'cloud' && user && !sessionId) {
         try {
-          if (sessionId) {
-            // Update existing session
-            await updateSession(sessionId, preData, result, 'step1');
-          } else {
-            // Create new session
-            const response = await createSession({
-              step1: preData,
-              result: result
-            });
-            const newSessionId = response.sessionId;
-            setSessionId(newSessionId);
-            localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
-          }
+          const response = await backendCreateSession({
+            step1: preData,
+            result: result
+          });
+          const newSessionId = response.sessionId;
+          setSessionId(newSessionId);
+          localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
         } catch (error) {
-          console.error('Error saving step 1:', error);
+          console.error('Error saving step 1 via backend:', error);
         }
       }
       
@@ -1115,26 +1052,12 @@ const updateSession = async (id, stepData, result, phase = 'step2') => {
         });
       }
       
-      // Save to Firestore
-      if (storageMode === 'cloud' && user) {
+      // Save Part 2 session via backend (cloud mode only)
+      if (storageMode === 'cloud' && user && sessionId) {
         try {
-          if (sessionId) {
-            // Update existing session with Part 2 data
-            await updateSession(sessionId, postData, result, 'step2');
-          } else {
-            // Create new session if missing (shouldn't happen, but handle gracefully)
-            console.warn('No sessionId found, creating new session for step 2');
-            const response = await createSession({
-              step1: preData || null,
-              step2: postData,
-              result: { score: result.score, risk: result.riskCat }
-            });
-            const newSessionId = response.sessionId;
-            setSessionId(newSessionId);
-            localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
-          }
+          await backendUpdateSession(sessionId, postData, result);
         } catch (error) {
-          console.error('Error saving step 2:', error);
+          console.error('Error saving step 2 via backend:', error);
         }
       }
       
