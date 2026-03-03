@@ -87,6 +87,16 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     return value;
   };
 
+
+  const generateSessionId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let sessionId = '';
+    for (let i = 0; i < 8; i++) {
+      sessionId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return sessionId;
+  };
+
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -124,6 +134,8 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
       console.error('Phone auth error:', err);
       if (err.code === 'auth/too-many-requests') {
         setError('Too many requests. Please try again later.');
+      } else if (err.code === 'auth/admin-restricted-operation') {
+        setError('Phone sign-in is restricted in this Firebase project. Enable Phone provider and add this domain in Authentication settings.');
       } else if (err.code === 'auth/invalid-phone-number') {
         setError('Invalid phone number format');
       } else {
@@ -145,8 +157,16 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
       }
 
       const result = await confirmationResult.confirm(code);
-      await saveUserToFirestore(result.user, 'phone');
-      onAuthSuccess(result.user);
+      const sessionId = await saveUserToFirestore(result.user, 'phone', {
+        phone: result.user?.phoneNumber || null,
+        email: result.user?.email || null
+      });
+      onAuthSuccess(result.user, {
+        method: 'phone',
+        phone: result.user?.phoneNumber || null,
+        email: result.user?.email || null,
+        sessionId
+      });
     } catch (err) {
       console.error('Code verification error:', err);
       if (err.code === 'auth/invalid-verification-code') {
@@ -203,8 +223,16 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
       const result = await signInWithEmailLink(auth, emailToConfirm, window.location.href);
       localStorage.removeItem('emailForSignIn');
 
-      await saveUserToFirestore(result.user, 'email-link');
-      onAuthSuccess(result.user);
+      const sessionId = await saveUserToFirestore(result.user, 'email-link', {
+        email: result.user?.email || emailToConfirm || null,
+        phone: result.user?.phoneNumber || null
+      });
+      onAuthSuccess(result.user, {
+        method: 'email',
+        email: result.user?.email || emailToConfirm || null,
+        phone: result.user?.phoneNumber || null,
+        sessionId
+      });
     } catch (err) {
       console.error('Email link confirmation error:', err);
       if (err.code === 'auth/invalid-action-code') {
@@ -219,21 +247,25 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     }
   };
 
-  const saveUserToFirestore = async (user, authMethod) => {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
-        uid: user.uid,
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
-        authMethod: authMethod
-      });
-    } else {
-      await setDoc(doc(db, 'users', user.uid), {
-        lastLoginAt: new Date().toISOString()
-      }, { merge: true });
-    }
+  const saveUserToFirestore = async (user, authMethod, overrides = {}) => {
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+    const existing = userDoc.exists() ? userDoc.data() : null;
+    const sessionId = existing?.sessionId || generateSessionId();
+
+    await setDoc(userRef, {
+      uid: user.uid,
+      sessionId,
+      authMethod,
+      isAnonymous: user.isAnonymous === true,
+      email: overrides.email ?? user.email ?? existing?.email ?? null,
+      phone: overrides.phone ?? user.phoneNumber ?? existing?.phone ?? null,
+      lastLoginAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(),
+      createdAt: existing?.createdAt || serverTimestamp()
+    }, { merge: true });
+
+    return sessionId;
   };
 
   const handleAnonymousAuth = async () => {
@@ -241,12 +273,7 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     setError('');
 
     try {
-      // Generate random 8-character session ID
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let sessionId = '';
-      for (let i = 0; i < 8; i++) {
-        sessionId += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
+      const sessionId = generateSessionId();
 
       const authResult = await signInAnonymously(auth);
       const firebaseUser = authResult.user;

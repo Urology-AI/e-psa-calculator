@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, LinkIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
+import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
 
 const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink }) => {
@@ -9,6 +9,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
   const [isEditing, setIsEditing] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [editForm, setEditForm] = useState({
+    displayName: '',
     email: '',
     phone: ''
   });
@@ -23,12 +24,13 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
   }, [userDocId]);
 
   const loadUserData = async () => {
-      try {
+    try {
       const userDoc = await getDoc(doc(db, 'users', userDocId));
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
         setEditForm({
+          displayName: data.displayName || '',
           email: data.email || '',
           phone: data.phone || ''
         });
@@ -47,6 +49,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
   const handleCancel = () => {
     setIsEditing(false);
     setEditForm({
+      displayName: userData?.displayName || '',
       email: userData?.email || '',
       phone: userData?.phone || ''
     });
@@ -98,8 +101,9 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
         throw new Error('Please enter a valid phone number');
       }
 
-      // Update Firestore document
+      // Update Firestore document for this same user/session record
       await updateDoc(doc(db, 'users', userDocId), {
+        displayName: editForm.displayName?.trim() || null,
         email: editForm.email || null,
         phone: editForm.phone || null,
         lastLoginAt: new Date().toISOString()
@@ -108,6 +112,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
       // Update local state
       const updatedData = {
         ...userData,
+        displayName: editForm.displayName?.trim() || null,
         email: editForm.email || null,
         phone: editForm.phone || null
       };
@@ -170,7 +175,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
         <div className="profile-actions">
           {!isEditing && !showUnlinkConfirm && (
             <>
-              <button className="link-session-btn" onClick={() => setIsEditing(true)}>
+              <button className="link-session-btn" onClick={handleEdit}>
                 <Edit2Icon size={14} />
                 Edit Profile
               </button>
@@ -228,6 +233,19 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
           <div className="profile-edit-form">
             <div className="form-group">
               <label>
+                <UserIcon size={16} />
+                Name
+              </label>
+              <input
+                type="text"
+                value={editForm.displayName}
+                onChange={(e) => setEditForm(prev => ({ ...prev, displayName: e.target.value }))}
+                placeholder="Your name"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>
                 <MailIcon size={16} />
                 Email Address
               </label>
@@ -272,6 +290,16 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
           </div>
         ) : (
           <div className="profile-display">
+            <div className="info-item">
+              <div className="info-label">
+                <UserIcon size={16} />
+                Name
+              </div>
+              <div className="info-value">
+                {userData.displayName ? userData.displayName : <span className="not-provided">Not provided</span>}
+              </div>
+            </div>
+
             <div className="info-item">
               <div className="info-label">
                 <MailIcon size={16} />
