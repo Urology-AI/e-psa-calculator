@@ -7,89 +7,42 @@
 export const DEFAULT_CALCULATOR_CONFIG = {
   version: '1.0.1',
   part1: {
-    intercept: -1.44968,
+    modelType: 'binned_v1',
+    intercept: 0.603314,
+    recommendThreshold: 0.647173,
     encodings: {
-      raceBlackValues: ['black', 'black or african american', 'african american', 'black/aa']
+      raceBlackValues: ['black', 'black or african american', 'african american', 'black/aa'],
+      ageBins: [
+        { min: 40, max: 49, label: '40-49' },
+        { min: 50, max: 59, label: '50-59' },
+        { min: 60, max: 69, label: '60-69' },
+        { min: 70, max: 120, label: '70+' }
+      ],
+      bmiBins: [
+        { min: 0, max: 24.999, label: '<25' },
+        { min: 25, max: 29.999, label: '25-29.9' },
+        { min: 30, max: 200, label: '>=30' }
+      ],
+      ipssSeverity: [
+        { min: 0, max: 7, label: 'mild' },
+        { min: 8, max: 19, label: 'moderate' },
+        { min: 20, max: 35, label: 'severe' }
+      ]
     },
     variables: [
-      {
-        id: 'age',
-        name: 'Age',
-        weight: 0.03879,
-        type: 'continuous',
-        min: 18,
-        max: 120,
-        unit: 'years',
-        description: 'Age in years (if only Age Group available, use midpoint)'
-      },
-      {
-        id: 'raceBlack',
-        name: 'Race (Black/African American)',
-        weight: 0.0,
-        type: 'binary',
-        description: 'Black race (1 if Black/AA, 0 otherwise)',
-        clinicalNote: 'Cohort-refit with non-negative constraint resulted in ~0 effect in this dataset'
-      },
-      {
-        id: 'bmi',
-        name: 'BMI',
-        weight: 0.01455,
-        type: 'continuous',
-        min: 15,
-        max: 60,
-        unit: 'kg/m²',
-        description: 'Body Mass Index'
-      },
-      {
-        id: 'ipssTotal',
-        name: 'IPSS Total Score',
-        weight: -0.03683,
-        type: 'continuous',
-        min: 0,
-        max: 35,
-        unit: 'points',
-        description: 'International Prostate Symptom Score (total 0–35)',
-        clinicalNote: 'In this cohort, higher LUTS burden associated with lower csPCa likelihood (likely BPH signal)'
-      },
-      {
-        id: 'exerciseCode',
-        name: 'Exercise Level',
-        weight: 0.0,
-        type: 'ordinal',
-        options: [
-          { value: 0, label: 'Regular (3+ days/week)' },
-          { value: 1, label: 'Some (1-2 days/week)' },
-          { value: 2, label: 'None' }
-        ],
-        description: 'Exercise frequency',
-        clinicalNote: 'Exercise_Score was constant in the cohort file used for refit; coefficient set to 0'
-      },
-      {
-        id: 'fhBinary',
-        name: 'Family History',
-        weight: 0.0,
-        type: 'binary',
-        description: 'Family history of prostate cancer (1 if yes, 0 if no)',
-        clinicalNote: 'Cohort-refit with non-negative constraint resulted in ~0 effect in this dataset'
-      },
-      {
-        id: 'shimTotal',
-        name: 'SHIM Total Score',
-        weight: 0.0,
-        type: 'continuous',
-        min: 0,
-        max: 25,
-        unit: 'points',
-        description: 'SHIM total (not present in refit cohort file; weight set to 0 until refit with SHIM data)'
-      },
-      {
-        id: 'inflammationHx',
-        name: 'History of Inflammatory Condition',
-        weight: 0.0,
-        type: 'binary',
-        required: false,
-        description: 'History of inflammatory condition (e.g., UC, Crohn’s, chronic prostatitis)'
-      }
+      { id: 'age_50_59', name: 'age_50_59', weight: 0.459708, type: 'binary' },
+      { id: 'age_60_69', name: 'age_60_69', weight: -0.075899, type: 'binary' },
+      { id: 'age_70_plus', name: 'age_70_plus', weight: 0.086897, type: 'binary' },
+      { id: 'bmi_25_29_9', name: 'bmi_25_29_9', weight: 0.961006, type: 'binary' },
+      { id: 'bmi_ge_30', name: 'bmi_ge_30', weight: 0.504846, type: 'binary' },
+      { id: 'ipss_moderate', name: 'ipss_moderate', weight: -0.621578, type: 'binary' },
+      { id: 'ipss_severe', name: 'ipss_severe', weight: -0.132488, type: 'binary' },
+      { id: 'exercise_some', name: 'exercise_some', weight: 0.018431, type: 'binary' },
+      { id: 'exercise_none', name: 'exercise_none', weight: 0.330688, type: 'binary' },
+      { id: 'raceBlack', name: 'raceBlack', weight: 0.370744, type: 'binary' },
+      { id: 'fhBinary', name: 'fhBinary', weight: 0.603314, type: 'binary' },
+      { id: 'age60plus_x_ipss_moderate', name: 'age60plus_x_ipss_moderate', weight: -0.176698, type: 'binary' },
+      { id: 'age60plus_x_ipss_severe', name: 'age60plus_x_ipss_severe', weight: -0.207412, type: 'binary' }
     ],
     riskCutoffs: {
       lower: { threshold: 0.08, label: 'Below 8%', color: '#27AE60' },

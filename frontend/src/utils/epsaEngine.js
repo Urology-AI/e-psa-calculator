@@ -124,42 +124,86 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : null;
 
   const variableValues = {};
-
-  part1.variables.forEach(variable => {
-    switch (variable.id) {
-      case 'age':
-        variableValues.age = parseInt(age, 10);
-        break;
-      case 'raceBlack':
-        if (raceBlackValues) {
-          variableValues.raceBlack = raceBlackValues.includes(normalizeRaceValue(race)) ? 1 : 0;
-        } else {
-          variableValues.raceBlack = race === 'black' ? 1 : 0;
-        }
-        break;
-      case 'bmi':
-        variableValues.bmi = parseFloat(bmi);
-        break;
-      case 'ipssTotal':
-        variableValues.ipssTotal = Array.isArray(ipss)
-          ? ipss.reduce((a, b) => a + (b ?? 0), 0)
-          : 0;
-        break;
-      case 'shimTotal':
-        variableValues.shimTotal = Array.isArray(shim)
-          ? shim.reduce((a, b) => a + (b ?? 0), 0)
-          : 0;
-        break;
-      case 'exerciseCode':
-        variableValues.exerciseCode = Number(exercise);
-        break;
-      case 'fhBinary':
-        variableValues.fhBinary = familyHistory > 0 ? 1 : 0;
-        break;
-      default:
-        variableValues[variable.id] = 0;
+  const pickBinLabel = (x, bins, fallback) => {
+    if (!Number.isFinite(x) || !Array.isArray(bins)) return fallback;
+    for (const b of bins) {
+      if (x >= b.min && x <= b.max) return b.label;
     }
-  });
+    return fallback;
+  };
+
+  const ipssTotal = Array.isArray(ipss)
+    ? ipss.reduce((a, b) => a + (b ?? 0), 0)
+    : 0;
+  const shimTotal = Array.isArray(shim)
+    ? shim.reduce((a, b) => a + (b ?? 0), 0)
+    : 0;
+
+  const isBlack = raceBlackValues
+    ? raceBlackValues.includes(normalizeRaceValue(race))
+    : normalizeRaceValue(race) === 'black';
+
+  const ageNum = parseInt(age, 10);
+  const bmiNum = parseFloat(bmi);
+  const exerciseCode = Number(exercise);
+  const fhBinary = familyHistory > 0 ? 1 : 0;
+
+  if (part1?.modelType === 'binned_v1') {
+    const ageBin = pickBinLabel(ageNum, part1?.encodings?.ageBins, '40-49');
+    const bmiBin = pickBinLabel(bmiNum, part1?.encodings?.bmiBins, '<25');
+    const ipssSev = pickBinLabel(ipssTotal, part1?.encodings?.ipssSeverity, 'mild');
+
+    variableValues.age_50_59 = ageBin === '50-59' ? 1 : 0;
+    variableValues.age_60_69 = ageBin === '60-69' ? 1 : 0;
+    variableValues.age_70_plus = ageBin === '70+' ? 1 : 0;
+
+    variableValues.bmi_25_29_9 = bmiBin === '25-29.9' ? 1 : 0;
+    variableValues.bmi_ge_30 = bmiBin === '>=30' ? 1 : 0;
+
+    variableValues.ipss_moderate = ipssSev === 'moderate' ? 1 : 0;
+    variableValues.ipss_severe = ipssSev === 'severe' ? 1 : 0;
+
+    variableValues.exercise_some = exerciseCode === 1 ? 1 : 0;
+    variableValues.exercise_none = exerciseCode === 2 ? 1 : 0;
+
+    variableValues.raceBlack = isBlack ? 1 : 0;
+    variableValues.fhBinary = fhBinary;
+
+    const isAge60Plus = variableValues.age_60_69 === 1 || variableValues.age_70_plus === 1;
+    variableValues.age60plus_x_ipss_moderate = isAge60Plus && variableValues.ipss_moderate === 1 ? 1 : 0;
+    variableValues.age60plus_x_ipss_severe = isAge60Plus && variableValues.ipss_severe === 1 ? 1 : 0;
+
+    variableValues.ipssTotal = ipssTotal;
+    variableValues.shimTotal = shimTotal;
+  } else {
+    part1.variables.forEach(variable => {
+      switch (variable.id) {
+        case 'age':
+          variableValues.age = ageNum;
+          break;
+        case 'raceBlack':
+          variableValues.raceBlack = isBlack ? 1 : 0;
+          break;
+        case 'bmi':
+          variableValues.bmi = bmiNum;
+          break;
+        case 'ipssTotal':
+          variableValues.ipssTotal = ipssTotal;
+          break;
+        case 'shimTotal':
+          variableValues.shimTotal = shimTotal;
+          break;
+        case 'exerciseCode':
+          variableValues.exerciseCode = exerciseCode;
+          break;
+        case 'fhBinary':
+          variableValues.fhBinary = fhBinary;
+          break;
+        default:
+          variableValues[variable.id] = 0;
+      }
+    });
+  }
 
   let logit = part1.intercept;
 
@@ -170,27 +214,59 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   const probability = 1 / (1 + Math.exp(-logit));
   const scorePercent = Math.round(probability * 100);
+  const recommendThreshold = typeof part1?.recommendThreshold === 'number'
+    ? part1.recommendThreshold
+    : null;
+  const recommendPSA = recommendThreshold != null
+    ? probability >= recommendThreshold
+    : null;
 
   const rangeLow = Math.max(0, Math.min(100, scorePercent - 10));
   const rangeHigh = Math.max(0, Math.min(100, scorePercent + 10));
 
-  let risk, color, action, scoreRange;
+  let tierRisk, tierColor, tierScoreRange;
 
   if (probability < part1.riskCutoffs.lower.threshold) {
-    risk = 'LOWER';
-    color = part1.riskCutoffs.lower.color;
-    scoreRange = part1.riskCutoffs.lower.label;
-    action = 'Routine screening. Follow standard age-based screening guidance.';
+    tierRisk = 'LOWER';
+    tierColor = part1.riskCutoffs.lower.color;
+    tierScoreRange = part1.riskCutoffs.lower.label;
   } else if (probability < part1.riskCutoffs.moderate.threshold) {
-    risk = 'MODERATE';
-    color = part1.riskCutoffs.moderate.color;
-    scoreRange = part1.riskCutoffs.moderate.label;
-    action = 'PSA blood testing recommended. Discuss PSA testing with your doctor.';
+    tierRisk = 'MODERATE';
+    tierColor = part1.riskCutoffs.moderate.color;
+    tierScoreRange = part1.riskCutoffs.moderate.label;
   } else {
-    risk = 'HIGHER';
-    color = part1.riskCutoffs.higher.color;
-    scoreRange = part1.riskCutoffs.higher.label;
-    action = 'PSA testing and urological evaluation are recommended.';
+    tierRisk = 'HIGHER';
+    tierColor = part1.riskCutoffs.higher.color;
+    tierScoreRange = part1.riskCutoffs.higher.label;
+  }
+
+  let risk;
+  let color;
+  let action;
+  let scoreRange;
+
+  if (recommendPSA === true) {
+    risk = 'PSA_RECOMMENDED';
+    color = '#D4AF37';
+    scoreRange = `≥ ${(recommendThreshold * 100).toFixed(0)}% threshold`;
+    action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
+  } else if (recommendPSA === false) {
+    risk = 'PSA_NOT_RECOMMENDED';
+    color = '#27AE60';
+    scoreRange = `< ${(recommendThreshold * 100).toFixed(0)}% threshold`;
+    action = 'Routine screening.\nFollow standard age-based screening guidance.';
+  } else {
+    risk = tierRisk;
+    color = tierColor;
+    scoreRange = tierScoreRange;
+
+    if (tierRisk === 'HIGHER') {
+      action = 'PSA testing and urological evaluation are recommended.';
+    } else if (tierRisk === 'MODERATE') {
+      action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
+    } else {
+      action = 'Routine screening.\nFollow standard age-based screening guidance.';
+    }
   }
 
   return {
@@ -199,6 +275,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     risk,
     color,
     action,
+    recommendPSA,
+    tierRisk,
+    tierColor,
+    tierScoreRange,
     confidenceRange: `${rangeLow}%–${rangeHigh}%`,
     confidenceLow: rangeLow,
     confidenceHigh: rangeHigh,
