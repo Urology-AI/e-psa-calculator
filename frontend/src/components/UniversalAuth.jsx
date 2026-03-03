@@ -315,21 +315,30 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
         sessionId
       });
 
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        uid: firebaseUser.uid,
-        sessionId,
-        authMethod: 'anonymous',
-        isAnonymous: true,
-        email: null,
-        phone: null,
-        lastLoginAt: new Date().toISOString(),
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp()
-      }, { merge: true });
-      console.log('[AnonymousAuth] Session document write success', {
-        uid: firebaseUser?.uid,
-        sessionId
-      });
+      try {
+        await setDoc(doc(db, 'users', firebaseUser.uid), {
+          uid: firebaseUser.uid,
+          sessionId,
+          authMethod: 'anonymous',
+          isAnonymous: true,
+          email: null,
+          phone: null,
+          lastLoginAt: new Date().toISOString(),
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp()
+        }, { merge: true });
+        console.log('[AnonymousAuth] Session document write success', {
+          uid: firebaseUser?.uid,
+          sessionId
+        });
+      } catch (writeErr) {
+        // If Firestore rules block direct user writes, continue with anonymous auth
+        // so the calculator can still be used; backend can manage user docs separately.
+        console.warn('[AnonymousAuth] user document write failed, continuing anyway', {
+          code: writeErr?.code,
+          message: writeErr?.message
+        });
+      }
 
       onAuthSuccess(firebaseUser, { method: 'anonymous', sessionId });
       console.log('[AnonymousAuth] onAuthSuccess dispatched', {
