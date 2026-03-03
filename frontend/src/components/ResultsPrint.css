@@ -32,6 +32,23 @@
   background: #5a6268;
 }
 
+
+.btn-export-csv,
+.btn-export-json {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-export-csv:hover,
+.btn-export-json:hover {
+  background: #138496;
+}
+
 .btn-print-results {
   background: #007bff;
   color: white;
