@@ -106,6 +106,15 @@ body {
   font-weight: 600;
 }
 
+
+.user-name {
+  display: block;
+  font-size: 13px;
+  color: #1C2833;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
 .user-session {
   font-size: 14px;
   color: #00578B;
