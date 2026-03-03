@@ -28,12 +28,26 @@ const PrintableForm = ({ onBack, formData }) => {
     return formData[fieldName] ?? defaultValue;
   };
 
+  const getArrayTotal = (fieldName) => {
+    const values = formData?.[fieldName];
+    if (!Array.isArray(values)) return '';
+
+    const answeredValues = values.filter((value) => value !== null && value !== undefined && value !== '');
+    if (!answeredValues.length) return '';
+
+    return answeredValues.reduce((sum, value) => sum + Number(value), 0);
+  };
+
+  const ipssTotal = getFieldValue('ipssTotal', getArrayTotal('ipss'));
+  const shimTotal = getFieldValue('shimTotal', getArrayTotal('shim'));
+
   const handlePrint = async () => {
     if (!formRef.current) return;
 
     try {
       // Show loading state
       const printButton = document.querySelector('.btn-print');
+      if (!printButton) return;
       const originalText = printButton.textContent;
       printButton.textContent = 'Generating PDF...';
       printButton.disabled = true;
@@ -52,26 +66,62 @@ const PrintableForm = ({ onBack, formData }) => {
         removeContainer: false,
       });
 
-      // Create PDF in landscape with margins
-      const pdfWidth = 11; // inches (landscape letter width)
-      const pdfHeight = 8.5; // inches (landscape letter height)
-      const margin = 0.2; // 0.2 inch margin on all sides
-      const contentWidth = pdfWidth - (margin * 2);
-      const contentHeight = pdfHeight - (margin * 2);
-      
-      // Calculate scaling to fit content within margins
-      const scaleX = contentWidth / canvas.width;
-      const scaleY = contentHeight / canvas.height;
-      const scale = Math.min(scaleX, scaleY);
-      
-      const imgWidth = canvas.width * scale;
-      const imgHeight = canvas.height * scale;
-      
-      const pdf = new jsPDF('landscape', 'in', 'letter');
-      
-      // Add image to PDF with margins
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      const pdf = new jsPDF('portrait', 'pt', 'letter');
+      const margin = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+
+      const fullImageHeight = (canvas.height * contentWidth) / canvas.width;
+
+      // If the form fits on one page, keep output simple.
+      if (fullImageHeight <= contentHeight) {
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, fullImageHeight, undefined, 'FAST');
+      } else {
+        // Split tall forms across pages so the PDF is fully readable.
+        const sourcePageHeight = Math.floor((contentHeight * canvas.width) / contentWidth);
+        let sourceOffsetY = 0;
+        let pageIndex = 0;
+
+        while (sourceOffsetY < canvas.height) {
+          const pageCanvas = document.createElement('canvas');
+          const remainingHeight = canvas.height - sourceOffsetY;
+          const thisSourceHeight = Math.min(sourcePageHeight, remainingHeight);
+
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = thisSourceHeight;
+
+          const pageContext = pageCanvas.getContext('2d');
+          if (!pageContext) break;
+
+          pageContext.fillStyle = '#ffffff';
+          pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          pageContext.drawImage(
+            canvas,
+            0,
+            sourceOffsetY,
+            canvas.width,
+            thisSourceHeight,
+            0,
+            0,
+            canvas.width,
+            thisSourceHeight,
+          );
+
+          if (pageIndex > 0) {
+            pdf.addPage();
+          }
+
+          const pageImageHeight = (thisSourceHeight * contentWidth) / canvas.width;
+          const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+          pdf.addImage(pageImgData, 'PNG', margin, margin, contentWidth, pageImageHeight, undefined, 'FAST');
+
+          sourceOffsetY += thisSourceHeight;
+          pageIndex += 1;
+        }
+      }
       
       // Save PDF
       pdf.save('ePSA-Questionnaire.pdf');
@@ -101,6 +151,11 @@ const PrintableForm = ({ onBack, formData }) => {
         </button>
       </div>
       <div className="printable-form-content" ref={formRef}>
+        <div className="print-instructions">
+          <strong>How to use this form:</strong> Please review each section with the patient and fill in any blank fields.
+          If a value is already shown, confirm it is correct. Use the <strong>Notes</strong> box for details such as medications,
+          recent lab history, symptoms, or follow-up plans.
+        </div>
         <div className="printable-header">
         <div className="header-top-row">
           <div className="notes-box">
@@ -280,6 +335,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="section-divider">
           <span className="section-label">12. Urinary Symptoms (IPSS) — Rate 0-5:</span>
         </div>
+        <p className="score-help-text">IPSS scale reminder: 0 = Not at all, 1 = &lt; 1 in 5, 2 = &lt; Half, 3 = ~ Half, 4 = &gt; Half, 5 = Always.</p>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
@@ -384,7 +440,7 @@ const PrintableForm = ({ onBack, formData }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              IPSS Total: <input type="text" className="field-input-tiny" placeholder="___" value={getFieldValue('ipssTotal', '')} readOnly /> / 35
+              IPSS Total: <input type="text" className="field-input-tiny" placeholder="___" value={ipssTotal} readOnly /> / 35
             </label>
           </div>
         </div>
@@ -392,6 +448,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="section-divider">
           <span className="section-label">13. Sexual Health (SHIM):</span>
         </div>
+        <p className="score-help-text">SHIM scale reminder: choose one score per item (Q1 scores 1-5; Q2-Q5 score 0-5). Higher total = better erectile function.</p>
 
         <div className="form-row-compact">
           <div className="form-field-compact">
@@ -466,7 +523,7 @@ const PrintableForm = ({ onBack, formData }) => {
           </div>
           <div className="form-field-compact">
             <label className="field-label-compact">
-              SHIM Total: <input type="text" className="field-input-tiny" placeholder="___" value={getFieldValue('shimTotal', '')} readOnly /> / 25
+              SHIM Total: <input type="text" className="field-input-tiny" placeholder="___" value={shimTotal} readOnly /> / 25
             </label>
           </div>
         </div>
