@@ -53,8 +53,32 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
     );
   }
 
-  const { score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age } = result;
+  const {
+    score,
+    scoreRange,
+    risk,
+    color,
+    action,
+    ipssTotal,
+    shimTotal,
+    bmi,
+    age,
+    recommendPSA,
+    tierRisk
+  } = result;
   const displayRange = result.displayRange || result.confidenceRange;
+  const activeTier = tierRisk || risk;
+  const recommendationLabel = recommendPSA === true
+    ? 'PSA Recommended'
+    : recommendPSA === false
+      ? 'PSA Not Recommended'
+      : 'Recommendation Unavailable';
+  const recommendationSubtitle = recommendPSA === true
+    ? 'Threshold-based recommendation from Part 1'
+    : recommendPSA === false
+      ? 'Below recommendation threshold in Part 1'
+      : 'Falling back to tier-based guidance';
+  const riskBadgeLabel = recommendPSA == null ? `${risk} RISK` : recommendationLabel.toUpperCase();
 
   const riskExplanationText =
     'Your result is an educational estimate based on the information you entered. It describes how your answers compare with patterns the model was built from, but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.';
@@ -126,27 +150,28 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
           {score}%
         </div>
         <div className="risk-badge" style={{ background: color }}>
-          {risk} RISK
+          {riskBadgeLabel}
         </div>
       </div>
 
       <div className="recommendation-box" style={{ border: `2px solid ${color}` }}>
         <div className="rec-label" style={{ color }}>
-          CONSIDER DISCUSSING NEXT STEPS
+          {recommendationLabel}
         </div>
-        <p className="rec-text">{getSoftenedActionText(risk, action)}</p>
+        <p className="rec-text">{getSoftenedActionText(activeTier, action)}</p>
+        <p className="rec-text" style={{ fontSize: '12px', marginTop: '6px', opacity: 0.8 }}>{recommendationSubtitle}</p>
       </div>
 
       <div className="summary-box">
         <div><strong>Risk explanation</strong></div>
         <div style={{ marginTop: '6px' }}>{riskExplanationText}</div>
         <div style={{ marginTop: '10px' }}><strong>What your tier means</strong></div>
-        <div style={{ marginTop: '6px' }}>{getTierDescription(risk)}</div>
+        <div style={{ marginTop: '6px' }}>{getTierDescription(activeTier)}</div>
       </div>
 
       <div className="risk-bar">
         {riskLevels.map(({ label, range }) => {
-          const isActive = label === risk;
+          const isActive = label === activeTier;
           return (
             <div
               key={label}
@@ -164,7 +189,8 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       </div>
 
       <div className="summary-box">
-        <div>Score Tier: <strong>{scoreRange}</strong></div>
+        <div>Recommendation Threshold: <strong>{scoreRange}</strong></div>
+        <div>Risk Tier: <strong>{activeTier || 'N/A'}</strong></div>
         {displayRange && (
           <div>Displayed Range: <strong>{displayRange}</strong></div>
         )}
