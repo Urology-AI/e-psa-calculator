@@ -103,6 +103,17 @@
   border-bottom: 1px solid #E8ECF0;
 }
 
+.print-instructions {
+  border: 1px solid #CFE0EC;
+  background: #F4F9FC;
+  color: #1C2833;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .header-top-row {
   display: flex;
   justify-content: space-between;
