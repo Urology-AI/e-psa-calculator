@@ -1,12 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const STORAGE_KEY = 'epsa-gh-pages-records-v3';
+const STORAGE_KEY = 'epsa-gh-pages-part1-v1';
 
-const RACE_OPTIONS = ['White', 'Black', 'Hispanic', 'Asian', 'Other'];
+const RACE_OPTIONS = [
+  { value: 'white', label: 'White' },
+  { value: 'black', label: 'Black' },
+  { value: 'hispanic', label: 'Hispanic' },
+  { value: 'asian', label: 'Asian' },
+  { value: 'other', label: 'Other' }
+];
 const FAMILY_HISTORY_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'one', label: '1 relative' },
-  { value: 'twoPlus', label: '2+ relatives' }
+  { value: 0, label: 'None' },
+  { value: 1, label: '1 relative' },
+  { value: 2, label: '2+ relatives' }
 ];
 const YES_NO_UNKNOWN = [
   { value: 'yes', label: 'Yes' },
@@ -15,15 +21,15 @@ const YES_NO_UNKNOWN = [
 ];
 
 const EXERCISE_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'some', label: 'Some activity' },
-  { value: 'regular', label: 'Regular exercise' }
+  { value: 0, label: 'None' },
+  { value: 1, label: 'Some activity' },
+  { value: 2, label: 'Regular exercise' }
 ];
 
 const SMOKING_OPTIONS = [
-  { value: 'never', label: 'Never' },
-  { value: 'former', label: 'Former' },
-  { value: 'current', label: 'Current' }
+  { value: 0, label: 'Never' },
+  { value: 1, label: 'Former' },
+  { value: 2, label: 'Current' }
 ];
 
 const CHEMICAL_EXPOSURE_OPTIONS = [
@@ -35,15 +41,6 @@ const DIET_OPTIONS = [
   { value: 'balanced', label: 'Balanced / Whole foods' },
   { value: 'mixed', label: 'Mixed' },
   { value: 'highProcessed', label: 'High processed foods' }
-];
-
-const PIRADS_OPTIONS = [
-  { value: 'unknown', label: 'Unknown / not done' },
-  { value: '1', label: 'PIRADS 1' },
-  { value: '2', label: 'PIRADS 2' },
-  { value: '3', label: 'PIRADS 3' },
-  { value: '4', label: 'PIRADS 4' },
-  { value: '5', label: 'PIRADS 5' }
 ];
 
 const IPSS_QUESTIONS = [
@@ -107,9 +104,7 @@ const emptyForm = {
   dietPattern: '',
   ipss: Array(7).fill(''),
   shim: Array(5).fill(''),
-  psaValue: '',
-  pirads: 'unknown',
-  onHormonalTherapy: ''
+  bmi: 0
 };
 
 const cardStyle = {
@@ -185,7 +180,7 @@ const App = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      version: 4,
+      version: '1.0',
       savedAt: new Date().toISOString(),
       currentDraft: formData,
       records
@@ -237,21 +232,31 @@ const App = () => {
       return;
     }
 
-    const record = {
-      ...formData,
-      id: String(Date.now()),
-      createdAt: new Date().toISOString(),
-      shimScore,
-      ipssScore,
-      bmi
-    };
+    const record = { ...formData, bmi, id: String(Date.now()), createdAt: new Date().toISOString(), shimScore, ipssScore };
 
     setRecords((prev) => [record, ...prev]);
     setStatusMessage('Record saved locally. Use JSON export/import to move data between Firebase and GitHub page versions.');
   };
 
   const handleExport = () => {
-    const payload = { exportedAt: new Date().toISOString(), version: 4, records, currentDraft: formData };
+    const part1Data = {
+      ...formData,
+      bmi: Number(bmi || 0),
+      age: String(formData.age || ''),
+      heightFt: String(formData.heightFt || ''),
+      heightIn: String(formData.heightIn || ''),
+      heightCm: String(formData.heightCm || ''),
+      weight: String(formData.weight || ''),
+      weightKg: String(formData.weightKg || ''),
+      ipss: formData.ipss.map((v) => Number(v || 0)),
+      shim: formData.shim.map((v) => Number(v || 0))
+    };
+    const payload = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      part: 'part1',
+      formData: part1Data
+    };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -269,9 +274,14 @@ const App = () => {
     try {
       const raw = await file.text();
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed.records)) setRecords(parsed.records);
-      if (parsed.currentDraft && typeof parsed.currentDraft === 'object') {
-        setFormData({ ...emptyForm, ...parsed.currentDraft });
+      const imported = parsed?.formData && parsed?.part === 'part1' ? parsed.formData : parsed.currentDraft;
+      if (imported && typeof imported === 'object') {
+        setFormData({
+          ...emptyForm,
+          ...imported,
+          ipss: Array.isArray(imported.ipss) ? imported.ipss.map((v) => String(v)) : emptyForm.ipss,
+          shim: Array.isArray(imported.shim) ? imported.shim.map((v) => String(v)) : emptyForm.shim
+        });
       }
       setStatusMessage('JSON import complete.');
     } catch (error) {
@@ -282,13 +292,11 @@ const App = () => {
     }
   };
 
-  const psaOptions = ['Unknown', ...Array.from({ length: 26 }, (_, idx) => `${(idx * 0.5).toFixed(1)}`)];
-
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: 20, fontFamily: 'Inter, Arial, sans-serif', background: '#f4f8ff' }}>
       <div style={{ ...cardStyle, marginBottom: 14, background: 'linear-gradient(135deg, #f7fbff, #eef5ff)' }}>
         <h1 style={{ marginTop: 0, marginBottom: 6, color: '#0f2e4f' }}>ePSA Questionnaire (GitHub Single-Page)</h1>
-        <p style={{ marginTop: 0, color: '#335277' }}>Single-page, click-first flow aligned to Firebase fields.</p>
+        <p style={{ marginTop: 0, color: '#335277' }}>Single-page part 1 flow aligned to Firebase fields and JSON format.</p>
         <p style={{ marginBottom: 0, fontSize: 14 }}>
           Most questions are click-only. Only age/height/weight use numeric inputs.
         </p>
@@ -301,7 +309,7 @@ const App = () => {
             <div><strong>1. Age</strong><input name="age" type="number" min="18" max="120" value={formData.age} onChange={(e) => onField('age', e.target.value)} style={{ ...inputStyle, marginTop: 8, maxWidth: 200 }} /></div>
             <div><strong>2. Race / Ethnicity</strong><ClickOptions options={RACE_OPTIONS} value={formData.race} onChange={(v) => onField('race', v)} /></div>
             <div><strong>3. Family history of prostate cancer</strong><ClickOptions options={FAMILY_HISTORY_OPTIONS} value={formData.familyHistory} onChange={(v) => onField('familyHistory', v)} /></div>
-            <div><strong>4. Previous inflammation (Crohn's, ulcerative colitis, chronic prostatitis)</strong><ClickOptions options={[{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }]} value={formData.inflammationHistory} onChange={(v) => onField('inflammationHistory', v)} /></div>
+            <div><strong>4. Previous inflammation (Crohn's, ulcerative colitis, chronic prostatitis)</strong><ClickOptions options={[{ value: 0, label: 'No' }, { value: 1, label: 'Yes' }]} value={formData.inflammationHistory} onChange={(v) => onField('inflammationHistory', v)} /></div>
             <div><strong>5. Known BRCA1/BRCA2 mutation</strong><ClickOptions options={YES_NO_UNKNOWN} value={formData.brcaStatus} onChange={(v) => onField('brcaStatus', v)} /></div>
 
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -367,18 +375,9 @@ const App = () => {
           <strong style={{ display: 'block', marginTop: 8 }}>SHIM Total: {shimScore} / 25</strong>
         </section>
 
-        <section style={cardStyle}>
-          <h2 style={{ marginTop: 0 }}>Part 2 - Clinical Data</h2>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div><strong>PSA Level (ng/mL)</strong><ClickOptions options={psaOptions.map((value) => ({ value, label: value }))} value={formData.psaValue} onChange={(v) => onField('psaValue', v)} /></div>
-            <div><strong>MRI PIRADS score</strong><ClickOptions options={PIRADS_OPTIONS} value={formData.pirads} onChange={(v) => onField('pirads', v)} /></div>
-            <div><strong>On hormonal therapy affecting PSA</strong><ClickOptions options={[{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }]} value={formData.onHormonalTherapy} onChange={(v) => onField('onHormonalTherapy', v)} /></div>
-          </div>
-        </section>
-
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="submit" style={{ padding: '10px 14px', borderRadius: 8, border: 0, background: '#1457a8', color: '#fff' }}>Save Record</button>
-          <button type="button" onClick={handleExport} disabled={!records.length} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#fff', color: '#1457a8' }}>Export JSON</button>
+          <button type="button" onClick={handleExport} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#fff', color: '#1457a8' }}>Export JSON</button>
           <button type="button" onClick={() => fileInputRef.current?.click()} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #1457a8', background: '#f2f7ff', color: '#1457a8' }}>Import JSON</button>
           <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImport} style={{ display: 'none' }} />
           <button type="button" onClick={() => window.print()} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #9caec5', background: '#f7faff' }}>Print / Save PDF</button>
