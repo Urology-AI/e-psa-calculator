@@ -203,9 +203,13 @@ e-psa-calculator/
 ## 📊 Features
 
 ### Assessment Tools
-- **Part 1**: Lifestyle factors, family history, symptoms
-- **Part 2**: Clinical data, PSA levels, risk calculations
-- **Results**: Detailed risk analysis with educational content
+- **Part 1**: Lifestyle factors, family history, symptoms — score from a **binned logistic model** with optional calibration; “PSA Recommended” uses a sensitivity-based threshold.
+- **Part 2**: Clinical data, PSA levels, optional PI-RADS — risk category from a **logistic model** (log PSA + PI-RADS dummies) with probability thresholds.
+- **Results**: Detailed risk analysis with educational content; results pages describe how each score is calculated.
+
+### Model training and results
+- **Training docs**: See [training/README.md](training/README.md) for how to refit Part 1 and Part 2 models, the new calculation approach, and where to paste coefficients.
+- **Result files** (gitignored; generate locally): `training_output_part1.txt`, `training_output_part2.txt`, `training_results_summary.txt`. The `data/` directory is also gitignored.
 
 ### Data Management
 - **Local Storage**: Browser-based storage for demo use

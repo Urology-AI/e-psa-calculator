@@ -165,6 +165,10 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       <div className="summary-box">
         <div><strong>Risk explanation</strong></div>
         <div style={{ marginTop: '6px' }}>{riskExplanationText}</div>
+        <div style={{ marginTop: '10px' }}><strong>How this score is calculated</strong></div>
+        <div style={{ marginTop: '6px' }}>
+          The ePSA score is computed using a logistic regression model based on binned age, BMI, IPSS severity, exercise, race, and family history. An optional calibration step can be applied. The &quot;PSA Recommended&quot; result is based on a sensitivity-based threshold from the model.
+        </div>
         <div style={{ marginTop: '10px' }}><strong>What your tier means</strong></div>
         <div style={{ marginTop: '6px' }}>{getTierDescription(activeTier)}</div>
       </div>

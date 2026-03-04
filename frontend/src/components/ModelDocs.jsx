@@ -2,21 +2,28 @@ import React from 'react';
 import './ModelDocs.css';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 
+const BINNED_VAR_DESCRIPTIONS = {
+  age_50_59: 'Age 50–59 (ref: 40–49)',
+  age_60_69: 'Age 60–69',
+  age_70_plus: 'Age 70+',
+  bmi_25_29_9: 'BMI 25–29.9 kg/m² (ref: <25)',
+  bmi_ge_30: 'BMI ≥30 kg/m²',
+  ipss_moderate: 'IPSS moderate (8–19) (ref: mild 0–7)',
+  ipss_severe: 'IPSS severe (20–35)',
+  exercise_some: 'Exercise some (1–2 days/week) (ref: regular 3+)',
+  exercise_none: 'Exercise none',
+  raceBlack: 'Black / African American (config-driven list)',
+  fhBinary: 'Family history of prostate cancer (first-degree)',
+  age60plus_x_ipss_moderate: 'Interaction: age 60+ × IPSS moderate',
+  age60plus_x_ipss_severe: 'Interaction: age 60+ × IPSS severe'
+};
+
 const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
   const part1 = activeConfig.part1 || DEFAULT_CALCULATOR_CONFIG.part1;
   const variables = part1.variables || [];
-
-  const getVar = (id) => variables.find(v => v.id === id) || {};
+  const isBinned = part1.modelType === 'binned_v1';
   const pct = (value) => `${Math.round(Number(value) * 100)}%`;
-  const w = (id) => Number(getVar(id).weight ?? 0).toFixed(4);
-
-  const ageVar = getVar('age');
-  const bmiVar = getVar('bmi');
-  const ipssVar = getVar('ipssTotal');
-  const shimVar = getVar('shimTotal');
-  const inflammationVar = getVar('inflammationHx');
-  const hasInflammationVar = Boolean(inflammationVar && inflammationVar.id);
 
   return (
     <div className="model-docs-overlay">
@@ -30,9 +37,9 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
           <section className="docs-section">
             <h3>Overview</h3>
             <p>
-              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a logistic regression model
-              to generate an educational estimate based on the information entered. It is intended to support
-              learning and conversations with a healthcare professional.
+              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a <strong>logistic regression model</strong> on
+              binned inputs (age, BMI, IPSS severity, exercise, race, family history) to generate an educational estimate
+              of the likelihood of PSA &gt; 4. It is intended to support learning and conversations with a healthcare professional.
             </p>
             <div className="info-box warning">
               <strong>Validation Status:</strong> This is a <strong>Non-Validated Educational Risk Tool</strong>.
@@ -43,26 +50,24 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
 
           <section className="docs-section">
             <h3>Model Formula</h3>
+            <p className="formula-note">
+              Model type: <strong>{part1.modelType || 'binned_v1'}</strong>. Logit = intercept + Σ (coefficient × dummy).
+            </p>
             <div className="formula-box">
               <code>
-                logit = {Number(part1.intercept ?? 0).toFixed(4)}<br/>
-                &nbsp;&nbsp;{Number(w('age')) >= 0 ? '+' : '-'} {Math.abs(Number(w('age'))).toFixed(4)} × Age (years)<br/>
-                &nbsp;&nbsp;{Number(w('raceBlack')) >= 0 ? '+' : '-'} {Math.abs(Number(w('raceBlack'))).toFixed(4)} × Race_Black (1=Black, 0=other)<br/>
-                &nbsp;&nbsp;{Number(w('bmi')) >= 0 ? '+' : '-'} {Math.abs(Number(w('bmi'))).toFixed(4)} × BMI (kg/m²)<br/>
-                &nbsp;&nbsp;{Number(w('ipssTotal')) >= 0 ? '+' : '-'} {Math.abs(Number(w('ipssTotal'))).toFixed(4)} × IPSS ({ipssVar.min ?? 0}–{ipssVar.max ?? 35})<br/>
-                &nbsp;&nbsp;{Number(w('exerciseCode')) >= 0 ? '+' : '-'} {Math.abs(Number(w('exerciseCode'))).toFixed(4)} × Exercise (0=regular, 1=some, 2=none)<br/>
-                &nbsp;&nbsp;{Number(w('fhBinary')) >= 0 ? '+' : '-'} {Math.abs(Number(w('fhBinary'))).toFixed(4)} × FH (1=yes, 0=no)<br/>
-                &nbsp;&nbsp;{Number(w('shimTotal')) >= 0 ? '+' : '-'} {Math.abs(Number(w('shimTotal'))).toFixed(4)} × SHIM ({shimVar.min ?? 0}–{shimVar.max ?? 25})
-                {hasInflammationVar ? (
-                  <>
-                    <br/>
-                    &nbsp;&nbsp;{Number(w('inflammationHx')) >= 0 ? '+' : '-'} {Math.abs(Number(w('inflammationHx'))).toFixed(4)} × InflammationHx (1=yes, 0=no)
-                  </>
-                ) : null}
+                logit = {Number(part1.intercept ?? 0).toFixed(4)}
+                {variables.slice(0, 8).map((v) => {
+                  const wv = Number(v.weight ?? 0);
+                  return <React.Fragment key={v.id}><br/>&nbsp;&nbsp;{wv >= 0 ? '+' : ''}{wv.toFixed(4)} × {v.id}</React.Fragment>;
+                })}
+                {variables.length > 8 ? <><br/>&nbsp;&nbsp;… + {variables.length - 8} more terms (see table)</> : null}
               </code>
             </div>
             <p className="formula-note">
-              Probability = 1 / (1 + e<sup>-logit</sup>)
+              Raw probability = 1 / (1 + e<sup>-logit</sup>). Optional calibration: <em>calibratedLogit = slope × logit + interceptShift</em>; then probability from calibrated logit. Displayed score is probability × 100%.
+            </p>
+            <p className="formula-note">
+              <strong>PSA Recommended</strong> is shown when probability ≥ {Number(part1.recommendThreshold ?? 0).toFixed(3)} (sensitivity-based threshold from training).
             </p>
             <p className="formula-note">
               Active model version: <strong>{activeConfig.version || 'unknown'}</strong>
@@ -76,70 +81,30 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
                 <tr>
                   <th>Variable</th>
                   <th>Type</th>
-                  <th>Range</th>
                   <th>Coefficient</th>
                   <th>Description</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td><strong>Age</strong></td>
-                  <td>Continuous</td>
-                  <td>{ageVar.min ?? 18}–{ageVar.max ?? 120} years</td>
-                  <td>{Number(w('age')) >= 0 ? '+' : '-'}{Math.abs(Number(w('age'))).toFixed(4)}</td>
-                  <td>Patient age in years. Higher age increases risk score.</td>
-                </tr>
-                <tr>
-                  <td><strong>Race_Black</strong></td>
-                  <td>Binary</td>
-                  <td>0 or 1</td>
-                  <td>{Number(w('raceBlack')) >= 0 ? '+' : '-'}{Math.abs(Number(w('raceBlack'))).toFixed(4)}</td>
-                  <td>Encoding: 1 if Black/African American, 0 otherwise (config-driven list). The UI captures multiple race/ethnicity groups for patient-facing inclusivity.</td>
-                </tr>
-                <tr>
-                  <td><strong>BMI</strong></td>
-                  <td>Continuous</td>
-                  <td>{bmiVar.min ?? 15}–{bmiVar.max ?? 60} kg/m²</td>
-                  <td>{Number(w('bmi')) >= 0 ? '+' : '-'}{Math.abs(Number(w('bmi'))).toFixed(4)}</td>
-                  <td>Body Mass Index (kg/m²). Auto-calculated from height and weight. Higher BMI increases risk.</td>
-                </tr>
-                <tr>
-                  <td><strong>IPSS</strong></td>
-                  <td>Sum (7 items)</td>
-                  <td>{ipssVar.min ?? 0}–{ipssVar.max ?? 35}</td>
-                  <td>{Number(w('ipssTotal')) >= 0 ? '+' : '-'}{Math.abs(Number(w('ipssTotal'))).toFixed(4)}</td>
-                  <td>International Prostate Symptom Score. Sum of 7 urinary symptom questions (0-5 each). Lower scores = fewer symptoms.</td>
-                </tr>
-                <tr>
-                  <td><strong>SHIM</strong></td>
-                  <td>Sum (5 items)</td>
-                  <td>{shimVar.min ?? 0}–{shimVar.max ?? 25}</td>
-                  <td>{Number(w('shimTotal')) >= 0 ? '+' : '-'}{Math.abs(Number(w('shimTotal'))).toFixed(4)}</td>
-                  <td>Sexual Health Inventory for Men. Sum of 5 sexual function questions. Higher scores = better function.</td>
-                </tr>
-                <tr>
-                  <td><strong>Exercise</strong></td>
-                  <td>Ordinal</td>
-                  <td>0, 1, 2</td>
-                  <td>{Number(w('exerciseCode')) >= 0 ? '+' : '-'}{Math.abs(Number(w('exerciseCode'))).toFixed(4)}</td>
-                  <td>0=Regular (3+ days/week), 1=Some (1-2 days/week), 2=None.</td>
-                </tr>
-                <tr>
-                  <td><strong>Family History</strong></td>
-                  <td>Binary</td>
-                  <td>0 or 1</td>
-                  <td>{Number(w('fhBinary')) >= 0 ? '+' : '-'}{Math.abs(Number(w('fhBinary'))).toFixed(4)}</td>
-                  <td>1 if any first-degree relative with prostate cancer, 0 otherwise.</td>
-                </tr>
-                {hasInflammationVar ? (
-                  <tr>
-                    <td><strong>InflammationHx</strong></td>
-                    <td>Binary</td>
-                    <td>0 or 1</td>
-                    <td>{Number(w('inflammationHx')) >= 0 ? '+' : '-'}{Math.abs(Number(w('inflammationHx'))).toFixed(4)}</td>
-                    <td>History of inflammatory condition (e.g., UC, Crohn’s, chronic prostatitis). Optional if not collected.</td>
-                  </tr>
-                ) : null}
+                {isBinned && variables.length > 0 ? (
+                  variables.map((v) => (
+                    <tr key={v.id}>
+                      <td><strong>{v.id}</strong></td>
+                      <td>{v.type || 'binary'}</td>
+                      <td>{(Number(v.weight) >= 0 ? '+' : '') + Number(v.weight).toFixed(4)}</td>
+                      <td>{BINNED_VAR_DESCRIPTIONS[v.id] || 'Binary dummy from binned encoding.'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  variables.map((v) => (
+                    <tr key={v.id}>
+                      <td><strong>{v.id}</strong></td>
+                      <td>{v.type || 'binary'}</td>
+                      <td>{(Number(v.weight) >= 0 ? '+' : '') + Number(v.weight).toFixed(4)}</td>
+                      <td>—</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </section>
@@ -177,27 +142,26 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
             <table className="metrics-table">
               <tbody>
                 <tr>
-                  <td>Derivation Cohort</td>
+                  <td>Derivation cohort (refit)</td>
                   <td>n = 100 patients</td>
                 </tr>
                 <tr>
-                  <td>ePSA AUC</td>
-                  <td>0.673</td>
+                  <td>Outcome</td>
+                  <td>PSA &gt; 4 (binary)</td>
                 </tr>
                 <tr>
-                  <td>Screening Prevalence</td>
-                  <td>Recalibrated to ~15%</td>
+                  <td>Out-of-fold AUC</td>
+                  <td>~0.51 (refit run)</td>
                 </tr>
                 <tr>
-                  <td>Primary Endpoint</td>
-                  <td>Clinically significant prostate cancer (csPCa)</td>
+                  <td>Recommendation threshold</td>
+                  <td>Sensitivity-based (e.g. 95% target); value in config</td>
                 </tr>
               </tbody>
             </table>
             <div className="info-box info">
-              <strong>Note on AUC:</strong> The Area Under the ROC Curve (AUC) measures discrimination 
-              (ability to distinguish high vs. low risk). An AUC of 0.673 indicates modest discrimination 
-              (better than chance at 0.5, but less than excellent at 0.8+).
+              <strong>Note on AUC:</strong> The Area Under the ROC Curve measures discrimination. 
+              Coefficients and threshold come from the training scripts; see <code>training/README.md</code> for refit details.
             </div>
           </section>
 

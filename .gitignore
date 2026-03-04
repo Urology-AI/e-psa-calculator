@@ -70,3 +70,9 @@ dist-ssr/
 *.temp
 tmp/
 temp/
+
+# Data and training outputs
+data/
+training_output_part1.txt
+training_output_part2.txt
+training_results_summary.txt
