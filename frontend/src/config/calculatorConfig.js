@@ -8,8 +8,8 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   version: '1.0.1',
   part1: {
     modelType: 'binned_v1',
-    intercept: 0.894785,
-    recommendThreshold: 0.514865,
+    intercept: 0.885134,
+    recommendThreshold: 0.533255,
     calibration: {
       slope: 1.0,
       interceptShift: 0.0
@@ -34,19 +34,17 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       ]
     },
     variables: [
-      { id: 'age_50_59',                   name: 'age_50_59',                   weight:  0.515273, type: 'binary' },
-      { id: 'age_60_69',                   name: 'age_60_69',                   weight:  0.267338, type: 'binary' },
-      { id: 'age_70_plus',                 name: 'age_70_plus',                 weight:  0.112174, type: 'binary' },
-      { id: 'bmi_25_29_9',                 name: 'bmi_25_29_9',                 weight:  1.109121, type: 'binary' },
-      { id: 'bmi_ge_30',                   name: 'bmi_ge_30',                   weight:  0.479419, type: 'binary' },
-      { id: 'ipss_moderate',               name: 'ipss_moderate',               weight: -0.572095, type: 'binary' },
-      { id: 'ipss_severe',                 name: 'ipss_severe',                 weight: -0.054009, type: 'binary' },
-      { id: 'exercise_some',               name: 'exercise_some',               weight:  0.040351, type: 'binary' },
-      { id: 'exercise_none',               name: 'exercise_none',               weight:  0.000000, type: 'binary' },
-      { id: 'raceBlack',                   name: 'raceBlack',                   weight:  0.744867, type: 'binary' },
-      { id: 'fhBinary',                    name: 'fhBinary',                    weight: -0.647446, type: 'binary' },
-      { id: 'age60plus_x_ipss_moderate',   name: 'age60plus_x_ipss_moderate',   weight: -0.105186, type: 'binary' },
-      { id: 'age60plus_x_ipss_severe',     name: 'age60plus_x_ipss_severe',     weight: -0.129447, type: 'binary' }
+      { id: 'age_50_59',   name: 'age_50_59',   weight:  0.545960, type: 'binary' },
+      { id: 'age_60_69',   name: 'age_60_69',   weight:  0.245399, type: 'binary' },
+      { id: 'age_70_plus', name: 'age_70_plus', weight:  0.093774, type: 'binary' },
+      { id: 'bmi_25_29_9', name: 'bmi_25_29_9', weight:  1.104407, type: 'binary' },
+      { id: 'bmi_ge_30',   name: 'bmi_ge_30',   weight:  0.476729, type: 'binary' },
+      { id: 'ipss_moderate', name: 'ipss_moderate', weight: -0.625037, type: 'binary' },
+      { id: 'ipss_severe',   name: 'ipss_severe',   weight: -0.122340, type: 'binary' },
+      { id: 'exercise_some', name: 'exercise_some', weight:  0.034183, type: 'binary' },
+      { id: 'exercise_none', name: 'exercise_none', weight:  0.000000, type: 'binary' },
+      { id: 'raceBlack',   name: 'raceBlack',   weight:  0.745285, type: 'binary' },
+      { id: 'fhBinary',    name: 'fhBinary',    weight: -0.650324, type: 'binary' }
     ],
     riskCutoffs: {
       lower: { threshold: 0.08, label: 'Below 8%', color: '#27AE60' },
