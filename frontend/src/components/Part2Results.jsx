@@ -73,6 +73,7 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
 
   const {
     riskPct,
+    riskPctRange,
     riskCat,
     riskClass,
     totalPoints,
@@ -83,11 +84,16 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     piradsOverridden
   } = result;
 
+  const useLogisticModel = totalPoints == null;
+
   const part2RiskExplanationText =
     'Part 2 combines your Part 1 result with PSA information (and optional MRI PI-RADS) to create an educational summary. It is not a diagnosis and should not be used to make decisions on its own. PSA and MRI findings often require careful interpretation (including PSA trends over time, prostate size, infections/inflammation, and medications).';
 
   const pointsExplanationText =
     'Points are used only to organize inputs (baseline estimate + PSA range + optional MRI category) into a simple educational category. Points are not a clinical scale and are not meant to imply exact probabilities or certainty.';
+
+  const logisticModelExplanationText =
+    'The risk category is from a logistic regression model that combines log(PSA) and PI-RADS (when provided) into a single probability, then maps it to Low / Moderate / High using set thresholds. This replaces the older points-based summary.';
 
   const piradsExplanationTextProvided =
     'PI-RADS is an MRI reporting category that can meaningfully change how risk is interpreted. When a PI-RADS value is provided, the tool may adjust the category to reflect typical patterns seen with MRI findings. This is an educational simplification and should be reviewed with the clinician who ordered or interpreted your MRI.';
@@ -121,6 +127,11 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
         <div className="score-big" style={{ color: riskColor }}>
           {riskPct}
         </div>
+        {riskPctRange && (
+          <div className="score-range" style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+            Display range: <strong>{riskPctRange}</strong>
+          </div>
+        )}
         <div className="risk-badge" style={{ background: riskColor }}>
           {riskCat.replace(/[🟢🟡🟠🔴]/g, '').trim()}
         </div>
@@ -188,8 +199,12 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       <div className="summary-box">
         <div><strong>Risk explanation</strong></div>
         <div style={{ marginTop: '6px' }}>{part2RiskExplanationText}</div>
-        <div style={{ marginTop: '10px' }}><strong>How the score is summarized (Points)</strong></div>
-        <div style={{ marginTop: '6px' }}>{pointsExplanationText}</div>
+        <div style={{ marginTop: '10px' }}>
+          <strong>{useLogisticModel ? 'How the score is summarized (logistic model)' : 'How the score is summarized (Points)'}</strong>
+        </div>
+        <div style={{ marginTop: '6px' }}>
+          {useLogisticModel ? logisticModelExplanationText : pointsExplanationText}
+        </div>
         <div style={{ marginTop: '10px' }}><strong>About PI-RADS</strong></div>
         <div style={{ marginTop: '6px' }}>
           {postData?.knowPirads ? piradsExplanationTextProvided : piradsExplanationTextNotProvided}
@@ -197,16 +212,33 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       </div>
 
       <div className="summary-box">
-        <div>Total Points: <strong>{totalPoints}</strong></div>
-        <div>Pre-score Points: <strong>{prePoints}</strong></div>
-        <div>PSA: <strong>{postData?.psa || 'N/A'} ng/mL</strong> ({psaPoints} pts)</div>
-        <div>
-          PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong> ({piradsPoints} pts{piradsOverridden ? ', override applied' : ''})
-        </div>
-        {preResult && (
+        {useLogisticModel ? (
           <>
-            <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
-            <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
+            <div><strong>Model inputs (logistic)</strong></div>
+            {riskPctRange && <div>Display range: <strong>{riskPctRange}</strong></div>}
+            <div>PSA: <strong>{postData?.psa != null ? `${postData.psa} ng/mL` : 'N/A'}</strong></div>
+            <div>PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong></div>
+            {preResult && (
+              <>
+                <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
+                <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <div>Total Points: <strong>{totalPoints}</strong></div>
+            <div>Pre-score Points: <strong>{prePoints}</strong></div>
+            <div>PSA: <strong>{postData?.psa || 'N/A'} ng/mL</strong> ({psaPoints} pts)</div>
+            <div>
+              PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong> ({piradsPoints} pts{piradsOverridden ? ', override applied' : ''})
+            </div>
+            {preResult && (
+              <>
+                <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
+                <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
+              </>
+            )}
           </>
         )}
       </div>

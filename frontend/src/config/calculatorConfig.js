@@ -8,10 +8,14 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   version: '1.0.1',
   part1: {
     modelType: 'binned_v1',
-    intercept: 0.603314,
-    recommendThreshold: 0.647173,
+    intercept: 0.894785,
+    recommendThreshold: 0.514865,
+    calibration: {
+      slope: 1.0,
+      interceptShift: 0.0
+    },
     encodings: {
-      raceBlackValues: ['black', 'black or african american', 'african american', 'black/aa'],
+      raceBlackValues: ['black', 'african american', 'black or african american', 'black/aa', 'black/african american'],
       ageBins: [
         { min: 40, max: 49, label: '40-49' },
         { min: 50, max: 59, label: '50-59' },
@@ -30,19 +34,19 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       ]
     },
     variables: [
-      { id: 'age_50_59', name: 'age_50_59', weight: 0.459708, type: 'binary' },
-      { id: 'age_60_69', name: 'age_60_69', weight: -0.075899, type: 'binary' },
-      { id: 'age_70_plus', name: 'age_70_plus', weight: 0.086897, type: 'binary' },
-      { id: 'bmi_25_29_9', name: 'bmi_25_29_9', weight: 0.961006, type: 'binary' },
-      { id: 'bmi_ge_30', name: 'bmi_ge_30', weight: 0.504846, type: 'binary' },
-      { id: 'ipss_moderate', name: 'ipss_moderate', weight: -0.621578, type: 'binary' },
-      { id: 'ipss_severe', name: 'ipss_severe', weight: -0.132488, type: 'binary' },
-      { id: 'exercise_some', name: 'exercise_some', weight: 0.018431, type: 'binary' },
-      { id: 'exercise_none', name: 'exercise_none', weight: 0.330688, type: 'binary' },
-      { id: 'raceBlack', name: 'raceBlack', weight: 0.370744, type: 'binary' },
-      { id: 'fhBinary', name: 'fhBinary', weight: 0.603314, type: 'binary' },
-      { id: 'age60plus_x_ipss_moderate', name: 'age60plus_x_ipss_moderate', weight: -0.176698, type: 'binary' },
-      { id: 'age60plus_x_ipss_severe', name: 'age60plus_x_ipss_severe', weight: -0.207412, type: 'binary' }
+      { id: 'age_50_59',                   name: 'age_50_59',                   weight:  0.515273, type: 'binary' },
+      { id: 'age_60_69',                   name: 'age_60_69',                   weight:  0.267338, type: 'binary' },
+      { id: 'age_70_plus',                 name: 'age_70_plus',                 weight:  0.112174, type: 'binary' },
+      { id: 'bmi_25_29_9',                 name: 'bmi_25_29_9',                 weight:  1.109121, type: 'binary' },
+      { id: 'bmi_ge_30',                   name: 'bmi_ge_30',                   weight:  0.479419, type: 'binary' },
+      { id: 'ipss_moderate',               name: 'ipss_moderate',               weight: -0.572095, type: 'binary' },
+      { id: 'ipss_severe',                 name: 'ipss_severe',                 weight: -0.054009, type: 'binary' },
+      { id: 'exercise_some',               name: 'exercise_some',               weight:  0.040351, type: 'binary' },
+      { id: 'exercise_none',               name: 'exercise_none',               weight:  0.000000, type: 'binary' },
+      { id: 'raceBlack',                   name: 'raceBlack',                   weight:  0.744867, type: 'binary' },
+      { id: 'fhBinary',                    name: 'fhBinary',                    weight: -0.647446, type: 'binary' },
+      { id: 'age60plus_x_ipss_moderate',   name: 'age60plus_x_ipss_moderate',   weight: -0.105186, type: 'binary' },
+      { id: 'age60plus_x_ipss_severe',     name: 'age60plus_x_ipss_severe',     weight: -0.129447, type: 'binary' }
     ],
     riskCutoffs: {
       lower: { threshold: 0.08, label: 'Below 8%', color: '#27AE60' },
@@ -51,36 +55,25 @@ export const DEFAULT_CALCULATOR_CONFIG = {
     }
   },
   part2: {
-    baselineCarryPoints: 15,
-    preScoreToPoints: {
-      ranges: [
-        { max: 21, multiplier: 40, divisor: 21 },      // 0-40 pts
-        { max: 31, base: 40, multiplier: 40, divisor: 10 },  // 41-80 pts
-        { max: 41, base: 80, multiplier: 40, divisor: 10 },  // 81-120 pts
-        { max: 100, base: 120, multiplier: 80, divisor: 59 }   // >120 pts
-      ]
+    modelType: 'logistic_v1',
+
+    intercept: 0.775395,
+    encodings: {
+      psaTransform: 'log'
     },
-    psaPoints: [
-      { max: 1, points: 0 },
-      { max: 2.5, points: 5 },
-      { max: 4, points: 10 },
-      { max: 10, points: 20 },
-      { max: Infinity, points: 40 }
+
+    variables: [
+      { id: 'logPSA', weight: 0.346553, type: 'continuous' },
+      { id: 'pirads_3', weight: -0.103374, type: 'binary' },
+      { id: 'pirads_4', weight: 0.469715, type: 'binary' },
+      { id: 'pirads_5', weight: 0.446978, type: 'binary' }
     ],
-    piradsPoints: [
-      { value: 2, points: 0 },
-      { value: 3, points: 10 }
-    ],
-    piradsOverrides: {
-      4: { riskPct: '52% (43–61%)', riskCat: '🟠 Very High-Risk', riskClass: 'very-high-risk' },
-      5: { riskPct: '89% (76–97%)', riskCat: '🔴 Very High-Risk', riskClass: 'very-high-risk' }
-    },
-    riskCategories: [
-      { maxPoints: 40, riskPct: '0–10%', riskCat: '🟢 Low', riskClass: 'low-risk' },
-      { maxPoints: 80, riskPct: '10–20%', riskCat: '🟡 Moderate', riskClass: 'moderate-risk' },
-      { maxPoints: 120, riskPct: '20–40%', riskCat: '🟠 High', riskClass: 'high-risk' },
-      { maxPoints: Infinity, riskPct: '40–70%', riskCat: '🔴 Very High', riskClass: 'very-high-risk' }
-    ]
+
+    thresholds: {
+      low: 0.79,
+      moderate: 0.84,
+      high: 0.87
+    }
   },
   validation: {
     minAge: 18,

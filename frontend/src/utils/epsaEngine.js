@@ -212,14 +212,27 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     logit += variable.weight * value;
   });
 
-  const probability = 1 / (1 + Math.exp(-logit));
+  // Optional calibration layer to adjust for population differences
+  let calibratedLogit = logit;
+  if (part1.calibration) {
+    const slope = typeof part1.calibration.slope === 'number' ? part1.calibration.slope : 1.0;
+    const interceptShift = typeof part1.calibration.interceptShift === 'number' ? part1.calibration.interceptShift : 0.0;
+    calibratedLogit = (logit * slope) + interceptShift;
+  }
+
+  const probability = 1 / (1 + Math.exp(-calibratedLogit));
   const scorePercent = Math.round(probability * 100);
-  const recommendThreshold = typeof part1?.recommendThreshold === 'number'
-    ? part1.recommendThreshold
-    : null;
-  const recommendPSA = recommendThreshold != null
-    ? probability >= recommendThreshold
-    : null;
+  // Recommend PSA unless "everything is perfect" (probability in lowest tier).
+  // Only don't recommend when probability < lower risk cutoff; otherwise recommend.
+  const lowerCutoff = part1?.riskCutoffs?.lower?.threshold ?? 0.08;
+  let recommendPSA = probability >= lowerCutoff;
+
+  // Clinical override: family history + age ≥ 40 always recommends PSA
+  // The trained fhBinary coefficient is negative due to selection bias in the training data,
+  // so we enforce the clinically correct behavior here instead.
+  if (fhBinary === 1 && parseInt(age, 10) >= 40) {
+    recommendPSA = true;
+  }
 
   const rangeLow = Math.max(0, Math.min(100, scorePercent - 10));
   const rangeHigh = Math.max(0, Math.min(100, scorePercent + 10));
@@ -248,12 +261,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   if (recommendPSA === true) {
     risk = 'PSA_RECOMMENDED';
     color = '#D4AF37';
-    scoreRange = `≥ ${(recommendThreshold * 100).toFixed(0)}% threshold`;
+    scoreRange = `≥ ${(lowerCutoff * 100).toFixed(0)}%`;
     action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
   } else if (recommendPSA === false) {
     risk = 'PSA_NOT_RECOMMENDED';
     color = '#27AE60';
-    scoreRange = `< ${(recommendThreshold * 100).toFixed(0)}% threshold`;
+    scoreRange = `< ${(lowerCutoff * 100).toFixed(0)}%`;
     action = 'Routine screening.\nFollow standard age-based screening guidance.';
   } else {
     risk = tierRisk;
@@ -307,6 +320,70 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   const { psa, pirads, knowPirads } = postData;
 
+  if (part2?.modelType === 'logistic_v1') {
+    // Logistic PSA+PIRADS model
+    const psaVal = Number(psa) || 0.1;
+    const logPSA = Math.log(psaVal);
+
+    const piradsVal = knowPirads ? Number(pirads) : 0;
+    const pirads_3 = piradsVal === 3 ? 1 : 0;
+    const pirads_4 = piradsVal === 4 ? 1 : 0;
+    const pirads_5 = piradsVal === 5 ? 1 : 0;
+
+    const vars = {
+      logPSA,
+      pirads_3,
+      pirads_4,
+      pirads_5
+    };
+
+    let logit = typeof part2.intercept === 'number' ? part2.intercept : 0;
+
+    (part2.variables || []).forEach(v => {
+      const value = vars[v.id] ?? 0;
+      logit += (v.weight || 0) * value;
+    });
+
+    const probability = 1 / (1 + Math.exp(-logit));
+
+    let riskClass;
+    if (probability < part2.thresholds.low) {
+      riskClass = 'low-risk';
+    } else if (probability < part2.thresholds.moderate) {
+      riskClass = 'moderate-risk';
+    } else if (probability < part2.thresholds.high) {
+      riskClass = 'high-risk';
+    } else {
+      riskClass = 'very-high-risk';
+    }
+
+    const pct = Math.round(probability * 100);
+    const rangeBand = 10;
+    const rangeLow = Math.max(0, pct - rangeBand);
+    const rangeHigh = Math.min(100, pct + rangeBand);
+
+    return {
+      riskPct: `${pct}%`,
+      riskPctRange: `${rangeLow}%–${rangeHigh}%`,
+      riskCat: riskClass,
+      riskClass,
+      totalPoints: null,
+      prePoints: null,
+      baselineCarryPoints: null,
+      psaPoints: null,
+      piradsPoints: null,
+      nextSteps: [],
+      piradsOverridden: false,
+      modelVersion: config.version,
+      calculationDetails: {
+        logit,
+        probability,
+        variables: vars
+      }
+    };
+  }
+
+  // Fallback: legacy points-based model (kept for safety if config not migrated)
   const preScore = preResult?.score || 0;
   let prePoints = 0;
 
