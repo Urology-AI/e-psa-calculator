@@ -13,9 +13,7 @@ const BINNED_VAR_DESCRIPTIONS = {
   exercise_some: 'Exercise some (1–2 days/week) (ref: regular 3+)',
   exercise_none: 'Exercise none',
   raceBlack: 'Black / African American (config-driven list)',
-  fhBinary: 'Family history of prostate cancer (first-degree)',
-  age60plus_x_ipss_moderate: 'Interaction: age 60+ × IPSS moderate',
-  age60plus_x_ipss_severe: 'Interaction: age 60+ × IPSS severe'
+  fhBinary: 'Family history of prostate cancer (first-degree)'
 };
 
 const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {

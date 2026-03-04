@@ -169,10 +169,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     variableValues.raceBlack = isBlack ? 1 : 0;
     variableValues.fhBinary = fhBinary;
 
-    const isAge60Plus = variableValues.age_60_69 === 1 || variableValues.age_70_plus === 1;
-    variableValues.age60plus_x_ipss_moderate = isAge60Plus && variableValues.ipss_moderate === 1 ? 1 : 0;
-    variableValues.age60plus_x_ipss_severe = isAge60Plus && variableValues.ipss_severe === 1 ? 1 : 0;
-
     variableValues.ipssTotal = ipssTotal;
     variableValues.shimTotal = shimTotal;
   } else {
