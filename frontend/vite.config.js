@@ -14,6 +14,11 @@ export default defineConfig({
     outDir: 'build',
     sourcemap: true,
   },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js', 'src/**/*.test.jsx'],
+    globals: false,
+  },
   server: {
     port: 3000,
     open: true,

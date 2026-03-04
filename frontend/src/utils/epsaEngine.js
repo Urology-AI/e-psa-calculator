@@ -1,4 +1,4 @@
-import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig.js';
 
 export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => {
   const errors = [];
