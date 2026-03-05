@@ -35,9 +35,10 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
           <section className="docs-section">
             <h3>Overview</h3>
             <p>
-              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a <strong>logistic regression model</strong> on
-              binned inputs (age, BMI, IPSS severity, exercise, race, family history) to generate an educational estimate
-              of the likelihood of PSA &gt; 4. It is intended to support learning and conversations with a healthcare professional.
+              The ePSA (Electronic Prostate-Specific Awareness) calculator uses a <strong>point-based educational score</strong> for Part 1.
+              Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, smoking, high red meat diet, Black race,
+              family history, BRCA, inflammation, Agent Orange/chemical exposure, and a low SHIM score) contributes a fixed
+              number of points. The total is normalized to a 0–100% scale and displayed with a ±5% range.
             </p>
             <div className="info-box warning">
               <strong>Validation Status:</strong> This is a <strong>Non-Validated Educational Risk Tool</strong>.
@@ -47,25 +48,19 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
           </section>
 
           <section className="docs-section">
-            <h3>Model Formula</h3>
-            <p className="formula-note">
-              Model type: <strong>{part1.modelType || 'binned_v1'}</strong>. Logit = intercept + Σ (coefficient × dummy).
-            </p>
+            <h3>Scoring Formula (Part 1)</h3>
             <div className="formula-box">
               <code>
-                logit = {Number(part1.intercept ?? 0).toFixed(4)}
-                {variables.slice(0, 8).map((v) => {
-                  const wv = Number(v.weight ?? 0);
-                  return <React.Fragment key={v.id}><br/>&nbsp;&nbsp;{wv >= 0 ? '+' : ''}{wv.toFixed(4)} × {v.id}</React.Fragment>;
-                })}
-                {variables.length > 8 ? <><br/>&nbsp;&nbsp;… + {variables.length - 8} more terms (see table)</> : null}
+                rawPoints = sum of risk-factor points<br/>
+                maxPoints = 128<br/>
+                percentScore = (rawPoints / maxPoints) × 100<br/>
+                displayRange = percentScore ± 5% (capped 0–100)
               </code>
             </div>
             <p className="formula-note">
-              Raw probability = 1 / (1 + e<sup>-logit</sup>). Optional calibration: <em>calibratedLogit = slope × logit + interceptShift</em>; then probability from calibrated logit. Displayed score is probability × 100%.
-            </p>
-            <p className="formula-note">
-              <strong>PSA Recommended</strong> is shown when probability ≥ {Number(part1.recommendThreshold ?? 0).toFixed(3)} (sensitivity-based threshold from training).
+              <strong>PSA Recommended</strong> is generally shown when the lower end of the display range is ≥ {(part1.recommendThreshold ?? 0.09) * 100}%.
+              If the range falls entirely below the threshold, PSA is not recommended; if it straddles the threshold, the recommendation is marked as borderline.
+              A clinical override is applied so that family history plus age ≥ 40 always recommends PSA.
             </p>
             <p className="formula-note">
               Active model version: <strong>{activeConfig.version || 'unknown'}</strong>
@@ -77,32 +72,72 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
             <table className="vars-table">
               <thead>
                 <tr>
-                  <th>Variable</th>
-                  <th>Type</th>
-                  <th>Coefficient</th>
-                  <th>Description</th>
+                  <th>Factor group</th>
+                  <th>Examples</th>
+                  <th>Point pattern</th>
                 </tr>
               </thead>
               <tbody>
-                {isBinned && variables.length > 0 ? (
-                  variables.map((v) => (
-                    <tr key={v.id}>
-                      <td><strong>{v.id}</strong></td>
-                      <td>{v.type || 'binary'}</td>
-                      <td>{(Number(v.weight) >= 0 ? '+' : '') + Number(v.weight).toFixed(4)}</td>
-                      <td>{BINNED_VAR_DESCRIPTIONS[v.id] || 'Binary dummy from binned encoding.'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  variables.map((v) => (
-                    <tr key={v.id}>
-                      <td><strong>{v.id}</strong></td>
-                      <td>{v.type || 'binary'}</td>
-                      <td>{(Number(v.weight) >= 0 ? '+' : '') + Number(v.weight).toFixed(4)}</td>
-                      <td>—</td>
-                    </tr>
-                  ))
-                )}
+                <tr>
+                  <td><strong>Age</strong></td>
+                  <td>&lt;50, 50–59, 60–69, 70+</td>
+                  <td>0 / 0 / 8 / 16 points</td>
+                </tr>
+                <tr>
+                  <td><strong>BMI</strong></td>
+                  <td>&lt;25, 25–29.9, ≥30</td>
+                  <td>0 / 0 / 8 points</td>
+                </tr>
+                <tr>
+                  <td><strong>IPSS</strong></td>
+                  <td>Mild (0–7), Moderate (8–19), Severe (20–35)</td>
+                  <td>8 / 4 / 0 points</td>
+                </tr>
+                <tr>
+                  <td><strong>Exercise</strong></td>
+                  <td>High, Some, None</td>
+                  <td>0 / 8 / 16 points</td>
+                </tr>
+                <tr>
+                  <td><strong>Smoking</strong></td>
+                  <td>Never, Former, Current</td>
+                  <td>0 / 8 / 16 points</td>
+                </tr>
+                <tr>
+                  <td><strong>Diet</strong></td>
+                  <td>Western vs other patterns</td>
+                  <td>8 points for Western / high red meat</td>
+                </tr>
+                <tr>
+                  <td><strong>Race</strong></td>
+                  <td>Black / African American</td>
+                  <td>8 points if Black / African American</td>
+                </tr>
+                <tr>
+                  <td><strong>Family history</strong></td>
+                  <td>First-degree relative with prostate cancer</td>
+                  <td>16 points if present</td>
+                </tr>
+                <tr>
+                  <td><strong>BRCA</strong></td>
+                  <td>Known BRCA mutation</td>
+                  <td>16 points if present</td>
+                </tr>
+                <tr>
+                  <td><strong>Inflammation</strong></td>
+                  <td>Biopsy-detected or prior inflammatory history</td>
+                  <td>4 points if present</td>
+                </tr>
+                <tr>
+                  <td><strong>Chemical exposure</strong></td>
+                  <td>Agent Orange or similar exposures</td>
+                  <td>4 points if present</td>
+                </tr>
+                <tr>
+                  <td><strong>SHIM</strong></td>
+                  <td>Sexual Health Inventory for Men</td>
+                  <td>8 points if SHIM &lt; 12</td>
+                </tr>
               </tbody>
             </table>
           </section>
@@ -112,25 +147,25 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
             <div className="tiers-grid">
               <div className="tier-card lower">
                 <h4>Lower Risk</h4>
-                <div className="tier-range">&lt; {pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)}</div>
-                <p>Lower estimated likelihood relative to the model’s reference data.</p>
+                <div className="tier-range">Fewer risk flags</div>
+                <p>Relatively fewer risk flags based on the point score.</p>
                 <p className="tier-action">Consider discussing routine screening with a clinician based on your age and preferences.</p>
               </div>
               <div className="tier-card moderate">
                 <h4>Moderate Risk</h4>
-                <div className="tier-range">{pct(part1.riskCutoffs?.lower?.threshold ?? 0.08)} – {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
-                <p>Middle-range estimated likelihood relative to the model’s reference data.</p>
+                <div className="tier-range">Some risk flags</div>
+                <p>Middle-range number of risk flags based on the point score.</p>
                 <p className="tier-action">Consider discussing whether PSA testing is appropriate with a clinician.</p>
               </div>
               <div className="tier-card higher">
                 <h4>Higher Risk</h4>
-                <div className="tier-range">≥ {pct(part1.riskCutoffs?.moderate?.threshold ?? 0.20)}</div>
-                <p>Higher estimated likelihood relative to the model’s reference data.</p>
+                <div className="tier-range">Many risk flags</div>
+                <p>More accumulated risk flags based on the point score.</p>
                 <p className="tier-action">Consider prioritizing discussion with a clinician about whether additional evaluation makes sense for you.</p>
               </div>
             </div>
             <p className="confidence-note">
-              <strong>Displayed Range:</strong> A ±10% display band is shown to reduce over-interpretation of small differences.
+              <strong>Displayed Range:</strong> A ±5% display band is shown to reduce over-interpretation of small differences.
               This is <strong>not</strong> a statistical confidence interval and should not be interpreted as measurement precision.
             </p>
           </section>

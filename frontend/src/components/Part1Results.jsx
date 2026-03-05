@@ -81,10 +81,10 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
   const riskBadgeLabel = recommendPSA == null ? `${risk} RISK` : recommendationLabel.toUpperCase();
 
   const riskExplanationText =
-    'Your result is an educational estimate based on the information you entered. It describes how your answers compare with patterns the model was built from, but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.';
+    'Your result is an educational estimate based on the information you entered. It summarizes how many prostate cancer risk flags you have (age, BMI, urinary symptoms, exercise, smoking, diet, family/genetic factors and others), but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.';
 
   const displayRangeExplanationText =
-    'The display range is a visual buffer to help avoid over-interpreting small differences in a single number. It is not a statistical confidence interval and does not represent precision.';
+    'The displayed range is a ±5% band around your score. It is there to avoid over-interpreting small differences between nearby scores. It is not a statistical confidence interval and does not represent measurement precision.';
 
   const getTierDescription = (tier) => {
     switch (tier) {
@@ -118,9 +118,9 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
     'This is a Non-Validated Educational Risk Tool. It is not medical advice, not diagnostic, and not intended to guide treatment decisions. Screening and imaging decisions should be made with a qualified clinician.';
 
   const riskLevels = [
-    { label: 'LOWER', range: '<8%' },
-    { label: 'MODERATE', range: '8%–20%' },
-    { label: 'HIGHER', range: '≥20%' },
+    { label: 'LOWER', range: 'Fewer risk flags' },
+    { label: 'MODERATE', range: 'Some risk flags' },
+    { label: 'HIGHER', range: 'Many risk flags' },
   ];
 
   return (
@@ -167,7 +167,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         <div style={{ marginTop: '6px' }}>{riskExplanationText}</div>
         <div style={{ marginTop: '10px' }}><strong>How this score is calculated</strong></div>
         <div style={{ marginTop: '6px' }}>
-          The ePSA score is computed using a logistic regression model based on binned age, BMI, IPSS severity, exercise, race, and family history. An optional calibration step can be applied. The &quot;PSA Recommended&quot; result is based on a sensitivity-based threshold from the model.
+          The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, BRCA, inflammation, Agent Orange/chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.
         </div>
         <div style={{ marginTop: '10px' }}><strong>What your tier means</strong></div>
         <div style={{ marginTop: '6px' }}>{getTierDescription(activeTier)}</div>
