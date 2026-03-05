@@ -8,8 +8,9 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   version: '1.0.1',
   part1: {
     modelType: 'binned_v1',
-    intercept: 0.885134,
-    recommendThreshold: 0.533255,
+    // Part 1 now uses a point-based score (no logistic weights); intercept/calibration are unused.
+    intercept: 0,
+    recommendThreshold: 0.09,
     calibration: {
       slope: 1.0,
       interceptShift: 0.0
@@ -17,7 +18,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
     encodings: {
       raceBlackValues: ['black', 'african american', 'black or african american', 'black/aa', 'black/african american'],
       ageBins: [
-        { min: 40, max: 49, label: '40-49' },
+        { min: 18, max: 49, label: '40-49' },
         { min: 50, max: 59, label: '50-59' },
         { min: 60, max: 69, label: '60-69' },
         { min: 70, max: 120, label: '70+' }
@@ -34,43 +35,49 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       ]
     },
     variables: [
-      { id: 'age_50_59',   name: 'age_50_59',   weight:  0.545960, type: 'binary' },
-      { id: 'age_60_69',   name: 'age_60_69',   weight:  0.245399, type: 'binary' },
-      { id: 'age_70_plus', name: 'age_70_plus', weight:  0.093774, type: 'binary' },
-      { id: 'bmi_25_29_9', name: 'bmi_25_29_9', weight:  1.104407, type: 'binary' },
-      { id: 'bmi_ge_30',   name: 'bmi_ge_30',   weight:  0.476729, type: 'binary' },
-      { id: 'ipss_moderate', name: 'ipss_moderate', weight: -0.625037, type: 'binary' },
-      { id: 'ipss_severe',   name: 'ipss_severe',   weight: -0.122340, type: 'binary' },
-      { id: 'exercise_some', name: 'exercise_some', weight:  0.034183, type: 'binary' },
-      { id: 'exercise_none', name: 'exercise_none', weight:  0.000000, type: 'binary' },
-      { id: 'raceBlack',   name: 'raceBlack',   weight:  0.745285, type: 'binary' },
-      { id: 'fhBinary',    name: 'fhBinary',    weight: -0.650324, type: 'binary' }
+      { id: 'age_50_59',                 name: 'age_50_59',                 weight:  0.515273, type: 'binary' },
+      { id: 'age_60_69',                 name: 'age_60_69',                 weight:  0.267338, type: 'binary' },
+      { id: 'age_70_plus',               name: 'age_70_plus',               weight:  0.112174, type: 'binary' },
+      { id: 'bmi_25_29_9',               name: 'bmi_25_29_9',               weight:  1.109121, type: 'binary' },
+      { id: 'bmi_ge_30',                 name: 'bmi_ge_30',                 weight:  0.479419, type: 'binary' },
+      { id: 'ipss_moderate',             name: 'ipss_moderate',             weight: -0.572095, type: 'binary' },
+      { id: 'ipss_severe',               name: 'ipss_severe',               weight: -0.054009, type: 'binary' },
+      { id: 'exercise_some',             name: 'exercise_some',             weight:  0.040351, type: 'binary' },
+      { id: 'exercise_none',             name: 'exercise_none',             weight:  0.000000, type: 'binary' },
+      { id: 'raceBlack',                 name: 'raceBlack',                 weight:  0.744867, type: 'binary' },
+      { id: 'fhBinary',                  name: 'fhBinary',                  weight: -0.647446, type: 'binary' },
+      { id: 'age60plus_x_ipss_moderate', name: 'age60plus_x_ipss_moderate', weight: -0.105186, type: 'binary' },
+      { id: 'age60plus_x_ipss_severe',   name: 'age60plus_x_ipss_severe',   weight: -0.129447, type: 'binary' }
     ],
     riskCutoffs: {
-      lower: { threshold: 0.08, label: 'Below 8%', color: '#27AE60' },
-      moderate: { threshold: 0.20, label: '8% – 20%', color: '#D4AF37' },
-      higher: { threshold: 1.0, label: 'Above 20%', color: '#C0392B' }
+      lower:    { threshold: 0.23, label: 'Below 23%', color: '#27AE60' },
+      moderate: { threshold: 0.39, label: '23%–39%',   color: '#D4AF37' },
+      higher:   { threshold: 1.0,  label: 'Above 39%', color: '#C0392B' }
     }
   },
   part2: {
-    modelType: 'logistic_v1',
+    modelType: 'unified_logistic_v1',
+    targetLabel: 'Higher-grade cancer risk (GG≥3)',
+    calibration: { slope: 1.0, interceptShift: 0.0 },
 
-    intercept: 0.775395,
-    encodings: {
-      psaTransform: 'log'
-    },
+    thresholds: { low: 0.2583, moderate: 0.2892, high: 0.2987 },
 
-    variables: [
-      { id: 'logPSA', weight: 0.346553, type: 'continuous' },
-      { id: 'pirads_3', weight: -0.103374, type: 'binary' },
-      { id: 'pirads_4', weight: 0.469715, type: 'binary' },
-      { id: 'pirads_5', weight: 0.446978, type: 'binary' }
-    ],
-
-    thresholds: {
-      low: 0.79,
-      moderate: 0.84,
-      high: 0.87
+    models: {
+      base: {
+        intercept: -1.438927,
+        variables: [
+          { id: 'logPSA', weight: +0.188130, type: 'continuous' }
+        ]
+      },
+      mri: {
+        intercept: -1.429457,
+        variables: [
+          { id: 'logPSA',   weight: +0.095942, type: 'continuous' },
+          { id: 'pirads_3', weight: -1.050051, type: 'binary' },
+          { id: 'pirads_4', weight: +0.368169, type: 'binary' },
+          { id: 'pirads_5', weight: +0.367806, type: 'binary' }
+        ]
+      }
     }
   },
   validation: {

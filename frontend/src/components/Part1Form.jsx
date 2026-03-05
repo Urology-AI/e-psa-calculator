@@ -852,7 +852,9 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
-  const totalQuestions = 22;
+  // Total distinct answerable items tracked in countAnswered:
+  // 11 core fields + 7 IPSS + 5 SHIM = 23
+  const totalQuestions = 23;
 
   return (
     <div className="part1-form-container">
