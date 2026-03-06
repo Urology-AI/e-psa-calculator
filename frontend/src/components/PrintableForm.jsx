@@ -6,6 +6,73 @@ import './PrintableForm.css';
 const PrintableForm = ({ onBack, formData }) => {
   const formRef = useRef(null);
 
+  // Collect current form values from the DOM (for Export JSON after filling out the form)
+  const getFormDataFromPrintForm = (container) => {
+    if (!container) return null;
+    const getRadio = (name) => {
+      const el = container.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : '';
+    };
+    const getInput = (selector) => {
+      const el = container.querySelector(selector);
+      return el ? el.value.trim() : '';
+    };
+    const ipss = [0, 1, 2, 3, 4, 5, 6].map((i) => {
+      const v = getRadio(`ipss-${i}`);
+      return v === '' ? null : parseInt(v, 10);
+    });
+    const shim = [0, 1, 2, 3, 4].map((i) => {
+      const v = getRadio(`shim-${i}`);
+      return v === '' ? null : parseInt(v, 10);
+    });
+    const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
+    const formDataOut = {
+      age: getInput('input[name="age"]'),
+      race: getRadio('race') || null,
+      familyHistory: num(getRadio('family')),
+      inflammationHistory: num(getRadio('inflammation')),
+      brcaStatus: getRadio('brca') || null,
+      heightUnit: getRadio('heightUnit') || 'imperial',
+      heightFt: getInput('input[name="heightFt"]'),
+      heightIn: getInput('input[name="heightIn"]'),
+      heightCm: getInput('input[name="heightCm"]'),
+      weightUnit: getRadio('weightUnit') || 'lbs',
+      weight: getInput('input[name="weight"]'),
+      weightKg: getInput('input[name="weightKg"]'),
+      bmi: num(getInput('input[name="bmi"]')) || null,
+      exercise: num(getRadio('exercise')),
+      smoking: num(getRadio('smoking')),
+      chemicalExposure: getRadio('chemicalExposure') || null,
+      dietPattern: getRadio('dietPattern') || null,
+      hypertension: num(getRadio('hypertension')),
+      hyperlipidemia: num(getRadio('hyperlipidemia')),
+      coronaryArteryDisease: num(getRadio('coronaryArteryDisease')),
+      diabetes: num(getRadio('diabetes')),
+      ipss,
+      shim,
+    };
+    return formDataOut;
+  };
+
+  const handleExportJson = () => {
+    const data = getFormDataFromPrintForm(formRef.current);
+    if (!data) return;
+    const payload = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      part: 'part1',
+      formData: data,
+      userInfo: { email: null, phone: null, sessionId: null },
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Helper function to check if a radio should be checked
   const isChecked = (fieldName, value) => {
     if (!formData) return false;
@@ -147,7 +214,10 @@ const PrintableForm = ({ onBack, formData }) => {
           </button>
         )}
         <button className="btn-print" onClick={handlePrint}>
-          Print PDF
+          Download PDF
+        </button>
+        <button type="button" className="btn-export-json" onClick={handleExportJson}>
+          Export JSON
         </button>
       </div>
       <div className="printable-form-content" ref={formRef}>
@@ -199,17 +269,17 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">1.</span> Age:
-              <input type="text" className="field-input-inline" placeholder="____" defaultValue={getFieldValue('age')} />
+              <input type="text" name="age" className="field-input-inline" placeholder="____" defaultValue={getFieldValue('age')} />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">2.</span> Race / Ethnicity:
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'white')} /> White</label>
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'black')} /> Black</label>
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'hispanic')} /> Hispanic</label>
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'asian')} /> Asian</label>
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={isChecked('race', 'other')} /> Other</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="white" defaultChecked={isChecked('race', 'white')} /> White</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="black" defaultChecked={isChecked('race', 'black')} /> Black</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="hispanic" defaultChecked={isChecked('race', 'hispanic')} /> Hispanic</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="asian" defaultChecked={isChecked('race', 'asian')} /> Asian</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="other" defaultChecked={isChecked('race', 'other')} /> Other</label>
             </label>
           </div>
         </div>
@@ -261,11 +331,11 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">6.</span> Height:
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('heightUnit') === 'imperial'} /> Feet/Inches</label>
-              <input type="text" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightFt', '')} /> ft
-              <input type="text" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightIn', '')} /> in
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('heightUnit') === 'metric'} /> Centimeters</label>
-              <input type="text" className="field-input-small" placeholder="___ cm" defaultValue={getFieldValue('heightCm', '')} />
+              <label className="checkbox-inline"><input type="radio" name="heightUnit" value="imperial" defaultChecked={getFieldValue('heightUnit') !== 'metric'} /> Feet/Inches</label>
+              <input type="text" name="heightFt" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightFt', '')} /> ft
+              <input type="text" name="heightIn" className="field-input-tiny" placeholder="__" defaultValue={getFieldValue('heightIn', '')} /> in
+              <label className="checkbox-inline"><input type="radio" name="heightUnit" value="metric" defaultChecked={getFieldValue('heightUnit') === 'metric'} /> Centimeters</label>
+              <input type="text" name="heightCm" className="field-input-small" placeholder="___ cm" defaultValue={getFieldValue('heightCm', '')} />
             </label>
           </div>
         </div>
@@ -274,11 +344,11 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">7.</span> Weight:
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('weightUnit') === 'lbs'} /> lbs</label>
-              <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weight', '')} />
-              <label className="checkbox-inline"><input type="checkbox" defaultChecked={getFieldValue('weightUnit') === 'kg'} /> kg</label>
-              <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weightKg', '')} />
-              &nbsp;| BMI: <input type="text" className="field-input-tiny" placeholder="___" defaultValue={getFieldValue('bmi', '')} />
+              <label className="checkbox-inline"><input type="radio" name="weightUnit" value="lbs" defaultChecked={getFieldValue('weightUnit') !== 'kg'} /> lbs</label>
+              <input type="text" name="weight" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weight', '')} />
+              <label className="checkbox-inline"><input type="radio" name="weightUnit" value="kg" defaultChecked={getFieldValue('weightUnit') === 'kg'} /> kg</label>
+              <input type="text" name="weightKg" className="field-input-small" placeholder="____" defaultValue={getFieldValue('weightKg', '')} />
+              &nbsp;| BMI: <input type="text" name="bmi" className="field-input-tiny" placeholder="___" defaultValue={getFieldValue('bmi', '')} />
             </label>
           </div>
         </div>
@@ -302,9 +372,9 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">9.</span> Smoking status:
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="current" defaultChecked={isChecked('smoking', 'current')} /> Current</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="former" defaultChecked={isChecked('smoking', 'former')} /> Former</label>
-              <label className="checkbox-inline"><input type="radio" name="smoking" value="never" defaultChecked={isChecked('smoking', 'never')} /> Never</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="0" defaultChecked={isChecked('smoking', 0)} /> Never</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="1" defaultChecked={isChecked('smoking', 1)} /> Former</label>
+              <label className="checkbox-inline"><input type="radio" name="smoking" value="2" defaultChecked={isChecked('smoking', 2)} /> Current</label>
             </label>
           </div>
         </div>
@@ -323,7 +393,51 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">11.</span> Diet pattern:
-              <input type="text" className="field-input-inline" placeholder="________________" defaultValue={getFieldValue('dietPattern', '')} />
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="western" defaultChecked={isChecked('dietPattern', 'western')} /> Western</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="mediterranean" defaultChecked={isChecked('dietPattern', 'mediterranean')} /> Mediterranean</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="indian" defaultChecked={isChecked('dietPattern', 'indian')} /> Indian</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="dash" defaultChecked={isChecked('dietPattern', 'dash')} /> DASH</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="plant-based" defaultChecked={isChecked('dietPattern', 'plant-based')} /> Plant-based</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="pescatarian" defaultChecked={isChecked('dietPattern', 'pescatarian')} /> Pescatarian</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="low-carb-keto" defaultChecked={isChecked('dietPattern', 'low-carb-keto')} /> Low-carb/Keto</label>
+              <label className="checkbox-inline"><input type="radio" name="dietPattern" value="other" defaultChecked={isChecked('dietPattern', 'other')} /> Other</label>
+            </label>
+          </div>
+        </div>
+
+        <div className="section-divider">
+          <span className="section-label">Comorbidities</span>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              <span className="field-number">12.</span> Hypertension (HTN):
+              <label className="checkbox-inline"><input type="radio" name="hypertension" value="0" defaultChecked={isChecked('hypertension', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="hypertension" value="1" defaultChecked={isChecked('hypertension', 1)} /> Yes</label>
+            </label>
+          </div>
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              Hyperlipidemia (HLD):
+              <label className="checkbox-inline"><input type="radio" name="hyperlipidemia" value="0" defaultChecked={isChecked('hyperlipidemia', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="hyperlipidemia" value="1" defaultChecked={isChecked('hyperlipidemia', 1)} /> Yes</label>
+            </label>
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              Coronary Artery Disease (CAD):
+              <label className="checkbox-inline"><input type="radio" name="coronaryArteryDisease" value="0" defaultChecked={isChecked('coronaryArteryDisease', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="coronaryArteryDisease" value="1" defaultChecked={isChecked('coronaryArteryDisease', 1)} /> Yes</label>
+            </label>
+          </div>
+          <div className="form-field-inline">
+            <label className="field-label-inline">
+              Diabetes:
+              <label className="checkbox-inline"><input type="radio" name="diabetes" value="0" defaultChecked={isChecked('diabetes', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="diabetes" value="1" defaultChecked={isChecked('diabetes', 1)} /> Yes</label>
             </label>
           </div>
         </div>
@@ -333,7 +447,7 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">12. Urinary Symptoms (IPSS) — Rate 0-5:</span>
+          <span className="section-label">13. Urinary Symptoms (IPSS) — Rate 0-5:</span>
         </div>
         <p className="score-help-text">IPSS scale reminder: 0 = Not at all, 1 = &lt; 1 in 5, 2 = &lt; Half, 3 = ~ Half, 4 = &gt; Half, 5 = Always.</p>
 
@@ -446,7 +560,7 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">13. Sexual Health (SHIM):</span>
+          <span className="section-label">14. Sexual Health (SHIM):</span>
         </div>
         <p className="score-help-text">SHIM scale reminder: choose one score per item (Q1 scores 1-5; Q2-Q5 score 0-5). Higher total = better erectile function.</p>
 
@@ -535,7 +649,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">12.</span> PSA Level (ng/mL):
+              <span className="field-number">15.</span> PSA Level (ng/mL):
               <input type="text" className="field-input-small" placeholder="____" defaultValue={getFieldValue('psa', '')} />
             </label>
           </div>
@@ -562,7 +676,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">13.</span> MRI PIRADS Score:
+              <span className="field-number">16.</span> MRI PIRADS Score:
               <label className="checkbox-inline"><input type="radio" name="pirads" value="na" defaultChecked={!getFieldValue('knowPirads', false)} /> Not applicable</label>
               <label className="checkbox-inline"><input type="radio" name="pirads" value="1" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '1')} /> 1</label>
               <label className="checkbox-inline"><input type="radio" name="pirads" value="2" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '2')} /> 2</label>

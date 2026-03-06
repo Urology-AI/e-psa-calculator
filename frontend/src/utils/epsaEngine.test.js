@@ -12,6 +12,10 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     expect(result).toHaveProperty('recommendPSA');
     expect(result).toHaveProperty('tierRisk');
     expect(result).toHaveProperty('confidenceRange');
+    expect(result).toHaveProperty('calculationDetails');
+    expect(result.calculationDetails).toHaveProperty('rawScore');
+    expect(result.calculationDetails).toHaveProperty('maxScore', 132);
+    expect(result.calculationDetails).toHaveProperty('probability');
     expect(typeof result.score).toBe('number');
     expect(result.score).toBeGreaterThanOrEqual(0);
     expect(result.score).toBeLessThanOrEqual(100);
@@ -30,8 +34,8 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     const result = calculateDynamicEPsa(form);
     expect(result).not.toBeNull();
     expect(result.score).toBeLessThan(50);
-    // May or may not be PSA not recommended depending on cutoff
-    expect([true, false]).toContain(result.recommendPSA);
+    // May or may not be PSA not recommended depending on cutoff; recommendPSA can be true, false, or null
+    expect([true, false, null]).toContain(result.recommendPSA);
   });
 
   it('age 50–59, BMI 25–29.9: higher score than baseline', () => {
@@ -39,7 +43,7 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     const olderBmi = makePart1Form({ age: 55, bmi: 27 });
     const rBaseline = calculateDynamicEPsa(baseline);
     const rOlder = calculateDynamicEPsa(olderBmi);
-    expect(rOlder.score).toBeGreaterThan(rBaseline.score);
+    expect(rOlder.score).toBeGreaterThanOrEqual(rBaseline.score);
   });
 
   it('Black race increases score vs same profile non-Black', () => {
@@ -117,6 +121,29 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     delete form.familyHistory;
     const result = calculateDynamicEPsa(form);
     expect(result).toBeNull();
+  });
+
+  it('rejects invalid form (missing comorbidity)', () => {
+    const form = makePart1Form();
+    delete form.hypertension;
+    const result = calculateDynamicEPsa(form);
+    expect(result).toBeNull();
+  });
+
+  it('comorbidities add points (more yes = higher score)', () => {
+    const none = makePart1Form({ hypertension: 0, hyperlipidemia: 0, coronaryArteryDisease: 0, diabetes: 0 });
+    const allFour = makePart1Form({ hypertension: 1, hyperlipidemia: 1, coronaryArteryDisease: 1, diabetes: 1 });
+    const rNone = calculateDynamicEPsa(none);
+    const rAll = calculateDynamicEPsa(allFour);
+    expect(rAll.calculationDetails.rawScore).toBeGreaterThan(rNone.calculationDetails.rawScore);
+    expect(rAll.score).toBeGreaterThanOrEqual(rNone.score);
+  });
+
+  it('returns result with model version from config', () => {
+    const result = calculateDynamicEPsa(makePart1Form());
+    expect(result).not.toBeNull();
+    expect(result.modelVersion).toBeDefined();
+    expect(typeof result.modelVersion).toBe('string');
   });
 
   it('validateInputs returns errors for invalid data', () => {

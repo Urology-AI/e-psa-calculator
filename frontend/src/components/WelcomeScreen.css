@@ -303,6 +303,71 @@
   transform: scale(0.98);
 }
 
+.welcome-storage-choice {
+  margin-bottom: 8px;
+}
+
+.welcome-storage-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1C2833;
+  margin: 0 0 12px 0;
+}
+
+.welcome-storage-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-begin-local,
+.btn-begin-cloud {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 2px solid transparent;
+}
+
+.btn-begin-local {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border-color: #2E7D32;
+}
+
+.btn-begin-local:hover {
+  background: #C8E6C9;
+  transform: translateY(-1px);
+}
+
+.btn-begin-cloud {
+  background: #00578B;
+  color: white;
+  border-color: #00578B;
+}
+
+.btn-begin-cloud:hover {
+  background: #004068;
+  transform: translateY(-1px);
+}
+
+.btn-begin-sub {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.btn-begin-local .btn-begin-sub {
+  color: #1B5E20;
+}
+
 .welcome-footer {
   color: #7F8C8D;
   font-size: 11px;

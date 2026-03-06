@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
-import { auth, db, functions } from './config/firebase';
+import { auth, db, functions, isFirebaseConfigured } from './config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
-import StorageChoiceScreen from './components/StorageChoiceScreen.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
@@ -45,9 +44,9 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'storage', 'import', 'login', 'consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
-  const [storageMode, setStorageMode] = useState('cloud'); // Force cloud-only mode
+  const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
@@ -86,7 +85,7 @@ function App() {
   const shouldTrackAnalytics = false;
   
   // ePSA-Pre form data (Part 1: 7-variable model inputs)
-  const [preData, setPreData] = useState({
+  const defaultPreData = {
     age: '',
     race: null,
     heightFt: '',
@@ -105,7 +104,12 @@ function App() {
     smoking: null,
     chemicalExposure: null,
     dietPattern: '',
-  });
+    hypertension: null,
+    hyperlipidemia: null,
+    coronaryArteryDisease: null,
+    diabetes: null,
+  };
+  const [preData, setPreData] = useState({ ...defaultPreData });
   
   const [part1Step, setPart1Step] = useState(0); // 0-4 for the 5 steps in Part 1
 
@@ -122,8 +126,9 @@ function App() {
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
 
-  // Check auth state on mount
+  // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
+    if (!auth) return () => {};
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
@@ -359,6 +364,7 @@ function App() {
     if (!user?.uid) {
       throw new Error('Cannot save consent without an authenticated user/session');
     }
+    if (!db) return { success: true };
 
     const consentToContact = consent?.consentToContact === true;
     await setDoc(doc(db, 'users', user.uid), {
@@ -375,14 +381,14 @@ function App() {
   };
 
   const getUser = async (uid) => {
-    if (!uid) return null;
+    if (!uid || !db) return null;
     const userSnap = await getDoc(doc(db, 'users', uid));
     if (!userSnap.exists()) return null;
     return { id: userSnap.id, ...userSnap.data() };
   };
 
   const getSession = async (id) => {
-    if (!id) return null;
+    if (!id || !db) return null;
     const sessionSnap = await getDoc(doc(db, 'sessions', id));
     if (!sessionSnap.exists()) return null;
     return { id: sessionSnap.id, ...sessionSnap.data() };
@@ -504,6 +510,10 @@ function App() {
       smoking: null,
       chemicalExposure: null,
       dietPattern: '',
+      hypertension: null,
+      hyperlipidemia: null,
+      coronaryArteryDisease: null,
+      diabetes: null,
     });
     setPostData({
       psa: '',
@@ -523,6 +533,7 @@ function App() {
   };
 
   const createNewAnonymousSession = async () => {
+    if (!auth || !db) throw new Error('Cloud storage is not available. Use Local Storage instead.');
     // Generate new human-readable session ID
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let newSessionId = '';
@@ -570,10 +581,16 @@ function App() {
     if (choice) {
       // User wants email/phone auth - go to auth screen
       setAuthStep('login');
-    } else {
-      // User wants anonymous session
-      await createNewAnonymousSession();
-    }
+      } else {
+        if (auth) {
+          await createNewAnonymousSession();
+        } else {
+          setStorageMode('local');
+          setUser({ uid: 'local', isAnonymous: true });
+          setAppSessionId('Local');
+          setAuthStep('app');
+        }
+      }
   };
 
   const handleImportSuccess = async (importedData, importType) => {
@@ -581,6 +598,11 @@ function App() {
     setImportedData(importedData);
     
     if (importType === 'session') {
+      // Session ID restore requires Firebase
+      if (!auth || !functions) {
+        alert('Session ID restore is only available with cloud storage. Use Import for a JSON file instead.');
+        return;
+      }
       // Handle session ID login through backend-assisted restoration.
       const requestedSessionId = (importedData?.sessionId || '').toUpperCase().trim();
       
@@ -661,8 +683,17 @@ function App() {
       targetStage = 'pre';
     }
     
-    // Check for user info in imported data
-    if (importedData.userInfo) {
+    // When Firebase is not available, use local storage and mock user for file import
+    if (!auth) {
+      setUser({ uid: 'local', isAnonymous: true });
+      setStorageMode('local');
+      setAppSessionId('Local');
+    }
+
+    // Only create cloud session when Firebase is available; local mode skips this
+    if (auth && db) {
+      // Check for user info in imported data (only when Firebase is available)
+      if (importedData.userInfo) {
       const { email, phone, sessionId: importedSessionId } = importedData.userInfo;
       
       if (importedSessionId) {
@@ -768,7 +799,7 @@ function App() {
           console.error('Error adding contact info to session:', error);
         }
       } else {
-        // No user info - create new session
+        // No user info - create new session (cloud only)
         const newSessionId = await createNewAnonymousSession();
         
         try {
@@ -782,34 +813,40 @@ function App() {
           console.error('Error saving imported data:', error);
         }
       }
-    } else {
-      // No user info - create new session
-      const newSessionId = await createNewAnonymousSession();
-      
-      try {
-        await updateDoc(doc(db, 'users', newSessionId), {
-          lastLoginAt: new Date().toISOString(),
-          importedData: dataToImport,
-          importDate: new Date().toISOString(),
-          sessionType: 'anonymous'
-        });
-      } catch (error) {
-        console.error('Error saving imported data:', error);
-      }
+    }
+    }
+    // Local mode or cloud without userInfo: no createNewAnonymousSession; fall through to setPreData
+
+    // Normalize imported data to form shape (merge with defaults so missing fields are empty; ensure ipss/shim are arrays)
+    const defaultShape = {
+      age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+      familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+      weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+      exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+      hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+    };
+    const normalizedImport = { ...defaultShape, ...dataToImport };
+    if (!Array.isArray(normalizedImport.ipss) || normalizedImport.ipss.length !== 7) {
+      const src = Array.isArray(normalizedImport.ipss) ? normalizedImport.ipss : [];
+      normalizedImport.ipss = [...Array(7)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
+    }
+    if (!Array.isArray(normalizedImport.shim) || normalizedImport.shim.length !== 5) {
+      const src = Array.isArray(normalizedImport.shim) ? normalizedImport.shim : [];
+      normalizedImport.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
     }
     
     // Set the imported data to appropriate state
     setPreData(prevData => ({
       ...prevData,
-      ...dataToImport
+      ...normalizedImport
     }));
     
-    // Calculate Part1 results immediately
-    const part1Result = calculateDynamicEPsa(dataToImport, calculatorConfig);
-    setPreResult(part1Result);
+    // Calculate Part1 results; if validation fails (missing required fields), go to form so user can fill gaps
+    const part1Result = calculateDynamicEPsa(normalizedImport, calculatorConfig);
+    setPreResult(part1Result || null);
     
     // Calculate Part2 results if this is complete import and post data exists
-    if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0) {
+    if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0 && part1Result) {
       const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
       setPostResult(part2Result);
     }
@@ -822,14 +859,21 @@ function App() {
       setStorageMode(importedData.storageMode || 'local');
     }
     
-    // Navigate to appropriate results screen
+    // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
     setAuthStep('app');
     setStage(targetStage);
-    if (targetStage === 'pre') {
-      setCurrentStep(3); // Go to Part1 results
-      setPart1Step(4);
+    if (part1Result) {
+      if (targetStage === 'pre') {
+        setCurrentStep(3); // Part1 results
+        setPart1Step(4);
+      } else {
+        setCurrentStep(3); // Part2 results
+      }
     } else {
-      setCurrentStep(3); // Go to Part2 results
+      // Missing or invalid data: open Part 1 form so user can complete
+      setCurrentStep(1);
+      setPart1Step(0);
+      setStage('pre');
     }
   };
 
@@ -867,6 +911,10 @@ function App() {
       smoking: null,
       chemicalExposure: null,
       dietPattern: '',
+      hypertension: null,
+      hyperlipidemia: null,
+      coronaryArteryDisease: null,
+      diabetes: null,
     });
     setPostData({
       psa: '',
@@ -892,9 +940,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      // Clear all user-related state
-      setUser(null);
+      if (auth) await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    // Clear all user-related state
+    setUser(null);
       setUserPhone(null);
       setUserEmail(null);
       setUserName(null);
@@ -923,6 +974,10 @@ function App() {
         smoking: null,
         chemicalExposure: null,
         dietPattern: '',
+        hypertension: null,
+        hyperlipidemia: null,
+        coronaryArteryDisease: null,
+        diabetes: null,
       });
       setPostData({
         psa: '',
@@ -940,18 +995,6 @@ function App() {
       if (storageMode === 'cloud' && user) {
         localStorage.removeItem(`sessionId_${user.uid}`);
       }
-    } catch (error) {
-      console.error('Error signing out:', error);
-      // Still clear state even if Firebase logout fails
-      setUser(null);
-      setUserPhone(null);
-      setUserEmail(null);
-      setUserName(null);
-      setAppSessionId(null);
-      setConsentData(null);
-      setSessionId(null);
-      setAuthStep('welcome');
-    }
   };
 
 
@@ -1112,14 +1155,11 @@ function App() {
     } else {
       // In auth flow, handle back based on auth step
       switch (authStep) {
-        case 'storage':
+        case 'import':
           setAuthStep('welcome');
           break;
-        case 'import':
-          setAuthStep('storage');
-          break;
         case 'login':
-          setAuthStep('storage');
+          setAuthStep('welcome');
           break;
         case 'consent':
           setAuthStep('login');
@@ -1136,7 +1176,8 @@ function App() {
   // Determine if back button should be shown
   const shouldShowBackButton = () => {
     if (authStep === 'welcome') return false;
-    if (authStep === 'app' && stage === 'pre' && currentStep === 1 && part1Step === 0) return false;
+    // Hide back on first form step only when in cloud; in local mode show back so user can return to welcome
+    if (authStep === 'app' && stage === 'pre' && currentStep === 1 && part1Step === 0 && storageMode !== 'local') return false;
     return true;
   };
 
@@ -1148,14 +1189,29 @@ function App() {
           <>
             <WelcomeScreen 
               onBegin={() => {
-                if (urlEmail) {
-                  // Skip storage choice for email links, go directly to login
+                if (isFirebaseConfigured()) {
+                  setStorageMode('cloud');
                   setAuthStep('login');
                 } else {
-                  setAuthStep('storage');
+                  setStorageMode('local');
+                  setUser({ uid: 'local', isAnonymous: true });
+                  setAppSessionId('Local');
+                  setAuthStep('app');
                 }
-              }} 
-              formData={{}} 
+              }}
+              cloudAvailable={isFirebaseConfigured()}
+              onBeginLocal={() => {
+                setStorageMode('local');
+                setUser({ uid: 'local', isAnonymous: true });
+                setAppSessionId('Local');
+                setAuthStep('app');
+              }}
+              onBeginCloud={() => {
+                setStorageMode('cloud');
+                setAuthStep('login');
+              }}
+              onImport={() => setAuthStep('import')} 
+              formData={{}}
               urlEmail={urlEmail}
             />
             <footer className="app-footer">
@@ -1174,22 +1230,11 @@ function App() {
             </footer>
           </>
         );
-      case 'storage':
-        return (
-          <StorageChoiceScreen 
-            onChoice={(mode) => {
-              // Force cloud mode - ignore mode parameter
-              setStorageMode('cloud');
-              setAuthStep('login');
-            }}
-            onImport={() => setAuthStep('import')}
-          />
-        );
       case 'import':
         return (
           <DataImportScreen 
             onImportSuccess={handleImportSuccess}
-            onBack={() => setAuthStep('storage')}
+            onBack={() => setAuthStep('welcome')}
           />
         );
       case 'login':
@@ -1383,7 +1428,66 @@ function App() {
                 )
               )}
             </div>
-            {user && (
+            {authStep === 'app' && (
+              <div className="storage-toggle" title={storageMode === 'cloud' ? 'Data saved to cloud' : 'Data on this device only'}>
+                <button
+                  type="button"
+                  className={`storage-toggle-btn ${storageMode === 'local' ? 'active' : ''}`}
+                  onClick={() => {
+                    setStorageMode('local');
+                    if (user && user.uid !== 'local') {
+                      setUser({ uid: 'local', isAnonymous: true });
+                      setAppSessionId('Local');
+                    }
+                  }}
+                  title="Store data on this device only"
+                >
+                  Local
+                </button>
+                <button
+                  type="button"
+                  className={`storage-toggle-btn ${storageMode === 'cloud' ? 'active' : ''} ${!isFirebaseConfigured() ? 'disabled' : ''}`}
+                  onClick={() => {
+                    if (!isFirebaseConfigured()) return;
+                    if (!user || user.uid === 'local') {
+                      setStorageMode('cloud');
+                      setAuthStep('login');
+                    } else {
+                      setStorageMode('cloud');
+                    }
+                  }}
+                  title={isFirebaseConfigured() ? 'Store data in cloud (sign in required)' : 'Cloud not available'}
+                >
+                  Cloud
+                </button>
+              </div>
+            )}
+            {(authStep === 'login') && (
+              <div className="storage-toggle" title="Switch to local storage to skip sign-in">
+                <button
+                  type="button"
+                  className="storage-toggle-btn active"
+                  onClick={() => {
+                    setStorageMode('local');
+                    setUser({ uid: 'local', isAnonymous: true });
+                    setAppSessionId('Local');
+                    setAuthStep('app');
+                  }}
+                  title="Use this device only (no sign-in)"
+                >
+                  Use this device only
+                </button>
+                <button
+                  type="button"
+                  className="storage-toggle-btn"
+                  disabled
+                  title="Sign in to save to cloud"
+                >
+                  Cloud (sign in below)
+                </button>
+              </div>
+            )}
+            {user && (storageMode !== 'local' && user.uid !== 'local') && (
               <div className="user-info">
                 <div className="user-identifier">
                   {userName && <span className="user-name">{userName}</span>}
@@ -1405,7 +1509,7 @@ function App() {
           <>
             {showTestPanel && <FirebaseTestPanel />}
             
-            {showProfile && (
+            {showProfile && storageMode === 'cloud' && user?.uid !== 'local' && (
               <ProfileManager 
                 userDocId={user?.uid}
                 sessionId={appSessionId} 

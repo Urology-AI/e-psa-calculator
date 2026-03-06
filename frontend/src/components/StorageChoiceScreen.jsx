@@ -2,11 +2,12 @@ import React from 'react';
 import './StorageChoiceScreen.css';
 import { CloudIcon, HardDriveIcon, UploadIcon, CheckIcon, LockIcon } from 'lucide-react';
 
-const StorageChoiceScreen = ({ onChoice, onImport }) => {
+const StorageChoiceScreen = ({ onChoice, onImport, cloudAvailable = true }) => {
   return (
     <div className="storage-choice-container">
       <div className="storage-options">
-        <div className="storage-card" onClick={() => onChoice('cloud')}>
+        {cloudAvailable && (
+          <div className="storage-card" onClick={() => onChoice('cloud')}>
           <div className="storage-icon">
             <CloudIcon size={48} />
           </div>
@@ -23,6 +24,25 @@ const StorageChoiceScreen = ({ onChoice, onImport }) => {
           </ul>
           <button className="storage-btn primary">
             Continue with Cloud Storage
+          </button>
+        </div>
+        )}
+        <div className="storage-card" onClick={() => onChoice('local')}>
+          <div className="storage-icon">
+            <HardDriveIcon size={48} />
+          </div>
+          <h3>Local Storage</h3>
+          <p className="storage-description">
+            Store your data only on this device. No account or phone number required. Use import/export to save or move your data.
+          </p>
+          <ul className="storage-features">
+            <li><CheckIcon size={16} className="feature-check-icon" /> No sign-in required</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> Same questionnaire &amp; results</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> Export to JSON or print</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> Privacy on this device</li>
+          </ul>
+          <button className={`storage-btn ${cloudAvailable ? 'secondary' : 'primary'}`}>
+            Continue with Local Storage
           </button>
         </div>
       </div>

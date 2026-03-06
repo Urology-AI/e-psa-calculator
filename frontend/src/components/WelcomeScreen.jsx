@@ -6,10 +6,11 @@ import {
   ClipboardListIcon, 
   ClockIcon, 
   LockIcon, 
-  ArrowRightIcon 
+  ArrowRightIcon,
+  UploadIcon
 } from 'lucide-react';
 
-const WelcomeScreen = ({ onBegin, formData, urlEmail }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData, urlEmail, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
 
   const handleViewForm = () => {
@@ -21,13 +22,12 @@ const WelcomeScreen = ({ onBegin, formData, urlEmail }) => {
   };
 
   const handleBegin = () => {
-    // If URL email is present, skip storage choice and go directly to login
-    if (urlEmail) {
-      onBegin(); // This will trigger login step directly
-    } else {
-      onBegin(); // Normal flow
-    }
+    if (onBegin) return onBegin();
+    if (cloudAvailable && onBeginCloud) return onBeginCloud();
+    if (onBeginLocal) return onBeginLocal();
   };
+
+  const showStorageChoice = cloudAvailable && onBeginLocal && onBeginCloud;
 
   if (showForm) {
     return <PrintableForm onBack={handleBack} formData={formData} />;
@@ -56,10 +56,33 @@ const WelcomeScreen = ({ onBegin, formData, urlEmail }) => {
             </div>
           </div>
 
-          <button className="btn-begin-assessment" onClick={handleBegin}>
-            <span>Begin Assessment</span>
-            <ArrowRightIcon size={18} />
-          </button>
+          {showStorageChoice ? (
+            <div className="welcome-storage-choice">
+              <p className="welcome-storage-label">Where should we store your answers?</p>
+              <div className="welcome-storage-buttons">
+                <button type="button" className="btn-begin-local" onClick={onBeginLocal}>
+                  <span>This device only</span>
+                  <span className="btn-begin-sub">No sign-in · data stays here</span>
+                </button>
+                <button type="button" className="btn-begin-cloud" onClick={onBeginCloud}>
+                  <span>Save to cloud</span>
+                  <span className="btn-begin-sub">Sign in with phone or email</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="btn-begin-assessment" onClick={handleBegin}>
+              <span>Begin Assessment</span>
+              <ArrowRightIcon size={18} />
+            </button>
+          )}
+
+          {onImport && (
+            <button type="button" className="btn-import-json" onClick={onImport}>
+              <UploadIcon size={16} />
+              <span>Import Previous Data</span>
+            </button>
+          )}
 
           <button className="btn-view-form-bottom" onClick={handleViewForm} title="View Offline Form">
             <FileTextIcon size={16} />

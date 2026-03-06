@@ -58,6 +58,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     smoking: formData.smoking ?? null,
     chemicalExposure: formData.chemicalExposure ?? null,
     dietPattern: formData.dietPattern || '',
+    hypertension: formData.hypertension ?? null,
+    hyperlipidemia: formData.hyperlipidemia ?? null,
+    coronaryArteryDisease: formData.coronaryArteryDisease ?? null,
+    diabetes: formData.diabetes ?? null,
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
   });
@@ -197,6 +201,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (localData.smoking !== null && localData.smoking !== undefined) count++;
     if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
     if (localData.dietPattern !== '') count++;
+    if (localData.hypertension !== null && localData.hypertension !== undefined) count++;
+    if (localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined) count++;
+    if (localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined) count++;
+    if (localData.diabetes !== null && localData.diabetes !== undefined) count++;
 
     localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
     localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
@@ -218,11 +226,15 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
     const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
     const hasDiet = localData.dietPattern !== '';
+    const hasHypertension = localData.hypertension !== null && localData.hypertension !== undefined;
+    const hasHyperlipidemia = localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined;
+    const hasCAD = localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined;
+    const hasDiabetes = localData.diabetes !== null && localData.diabetes !== undefined;
 
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
 
-    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && ipssComplete && shimComplete;
+    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasHypertension && hasHyperlipidemia && hasCAD && hasDiabetes && ipssComplete && shimComplete;
   };
 
   const renderStep0 = () => {
@@ -603,6 +615,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const renderStep4 = () => {
     const dietValid = !!localData.dietPattern;
+    const htnValid = localData.hypertension !== null && localData.hypertension !== undefined;
+    const hldValid = localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined;
+    const cadValid = localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined;
+    const diabetesValid = localData.diabetes !== null && localData.diabetes !== undefined;
+    const comorbiditiesValid = htnValid && hldValid && cadValid && diabetesValid;
     
     return (
     <div className="part1-step">
@@ -620,6 +637,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             {[
               { value: 'western', label: 'Western / Standard American' },
               { value: 'mediterranean', label: 'Mediterranean' },
+              { value: 'indian', label: 'Indian' },
               { value: 'dash', label: 'DASH-style' },
               { value: 'plant-based', label: 'Plant-based (Vegetarian / Vegan)' },
               { value: 'pescatarian', label: 'Pescatarian' },
@@ -638,6 +656,50 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {attemptedNext && !dietValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
               Please select an option
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="question-card" style={{ borderColor: comorbiditiesValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">12</div>
+          <div className="question-text">Comorbidities</div>
+          <InfoIcon {...fieldReferences.comorbidities} />
+          {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+            Have you been diagnosed with any of the following? (Each &quot;Yes&quot; adds 1 point. Source [130].)
+          </div>
+          {[
+            { key: 'hypertension', label: 'Hypertension (HTN)' },
+            { key: 'hyperlipidemia', label: 'Hyperlipidemia (HLD)' },
+            { key: 'coronaryArteryDisease', label: 'Coronary Artery Disease (CAD)' },
+            { key: 'diabetes', label: 'Diabetes' },
+          ].map(({ key, label }) => (
+            <div key={key} style={{ marginBottom: '12px' }}>
+              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{label}</div>
+              <div className="option-grid c2">
+                {[
+                  { value: 'yes', label: 'Yes' },
+                  { value: 'no', label: 'No' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`option-btn ${localData[key] === opt.value ? 'selected' : ''}`}
+                    onClick={() => updateField(key, opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {attemptedNext && !comorbiditiesValid && (
+            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+              Please answer all four comorbidity questions
             </div>
           )}
         </div>
@@ -794,6 +856,18 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       if (!localData.dietPattern) {
         errors.push('Please select your diet pattern');
       }
+      if (localData.hypertension === null || localData.hypertension === undefined) {
+        errors.push('Please answer Hypertension (HTN)');
+      }
+      if (localData.hyperlipidemia === null || localData.hyperlipidemia === undefined) {
+        errors.push('Please answer Hyperlipidemia (HLD)');
+      }
+      if (localData.coronaryArteryDisease === null || localData.coronaryArteryDisease === undefined) {
+        errors.push('Please answer Coronary Artery Disease (CAD)');
+      }
+      if (localData.diabetes === null || localData.diabetes === undefined) {
+        errors.push('Please answer Diabetes');
+      }
     }
     
     if (step === 5) {
@@ -852,9 +926,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
-  // Total distinct answerable items tracked in countAnswered:
-  // 11 core fields + 7 IPSS + 5 SHIM = 23
-  const totalQuestions = 23;
+  // Total distinct answerable items: 11 core + 4 comorbidities + 7 IPSS + 5 SHIM = 27
+  const totalQuestions = 27;
 
   return (
     <div className="part1-form-container">
