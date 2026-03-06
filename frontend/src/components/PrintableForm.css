@@ -31,6 +31,8 @@
 
 .form-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
@@ -39,7 +41,8 @@
 }
 
 .btn-back,
-.btn-print {
+.btn-print,
+.btn-export-json {
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
@@ -77,6 +80,21 @@
 .btn-print:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-export-json {
+  background: #2E7D32;
+  color: white;
+}
+
+.btn-export-json:hover {
+  background: #1B5E20;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-export-json:active {
+  transform: translateY(0);
 }
 
 @media print {
@@ -325,6 +343,16 @@
   width: 25px;
   background: transparent;
   text-align: center;
+}
+
+.field-select-inline {
+  margin-left: 6px;
+  padding: 2px 6px;
+  font-size: 10px;
+  border: 1px solid #1C2833;
+  border-radius: 4px;
+  background: white;
+  min-width: 120px;
 }
 
 .field-input-inline:focus,

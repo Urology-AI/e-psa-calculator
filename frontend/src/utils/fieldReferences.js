@@ -100,6 +100,13 @@ export const fieldReferences = {
     sources: [
       { name: "Mayo Clinic", url: "https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087" }
     ]
+  },
+  comorbidities: {
+    field: "Comorbidities (HTN, HLD, CAD, Diabetes)",
+    description: "Hypertension (HTN), Hyperlipidemia (HLD), Coronary Artery Disease (CAD), and Diabetes are associated with increased prostate cancer risk. Each \"Yes\" adds 1 point (0–4 total).",
+    sources: [
+      { name: "[130]", url: "https://pubmed.ncbi.nlm.nih.gov/" }
+    ]
   }
 };
 

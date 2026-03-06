@@ -68,6 +68,41 @@ body {
   gap: 12px;
 }
 
+.storage-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E8ECF0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #F8FAFB;
+}
+
+.storage-toggle-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #5D6D7E;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.storage-toggle-btn:hover:not(.disabled) {
+  background: #E8ECF0;
+  color: #1C2833;
+}
+
+.storage-toggle-btn.active {
+  background: #00578B;
+  color: white;
+}
+
+.storage-toggle-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .test-panel-btn {
   background: transparent;
   color: #00578B;

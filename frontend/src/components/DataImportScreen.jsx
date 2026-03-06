@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './DataImportScreen.css';
-import { ArrowLeftIcon, UploadIcon, FileTextIcon, DatabaseIcon, KeyIcon } from 'lucide-react';
+import { ArrowLeftIcon, UploadIcon, KeyIcon } from 'lucide-react';
 
 const DataImportScreen = ({ onBack, onImportSuccess }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -40,39 +40,15 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
     setError('');
 
     try {
-      // Check file type
-      if (file.type === 'application/json') {
-        // Handle JSON import
+      const name = (file.name || '').toLowerCase();
+      const isJson = file.type === 'application/json' || name.endsWith('.json');
+
+      if (isJson) {
         const text = await file.text();
         const data = JSON.parse(text);
         onImportSuccess(data, 'json');
-      } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        // Handle PDF import (simplified - would need PDF parsing library)
-        // For now, we'll simulate PDF data extraction
-        const simulatedData = {
-          age: '65',
-          race: 'black',
-          heightFt: '5',
-          heightIn: '10',
-          weight: '180',
-          bmi: 25.8,
-          familyHistory: 'yes',
-          inflammationHistory: 'no',
-          brcaStatus: 'no',
-          heightUnit: 'imperial',
-          heightCm: '',
-          weightUnit: 'lbs',
-          weightKg: '',
-          ipss: [2, 3, 1, 2, 1, 3, 2],
-          shim: [4, 3, 4, 3, 4],
-          exercise: 'regular',
-          smoking: 'never',
-          chemicalExposure: 'no',
-          dietPattern: 'mediterranean'
-        };
-        onImportSuccess(simulatedData, 'pdf');
       } else {
-        throw new Error('Please upload a JSON or PDF file');
+        throw new Error('Please upload a JSON file (from Export Data).');
       }
     } catch (err) {
       setError(err.message || 'Failed to import file. Please check the file format.');
@@ -147,47 +123,13 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
           </form>
         </div>
 
-        {/* File Upload */}
+        {/* Upload JSON */}
         <div className="import-section">
           <h3>
-            <FileTextIcon size={20} />
-            Upload PDF Form
+            <UploadIcon size={20} />
+            Upload JSON data
           </h3>
-          <p>Upload your pre-filled ePSA form PDF</p>
-          
-          <div 
-            className={`file-drop-zone ${dragActive ? 'active' : ''}`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <div className="drop-content">
-              <div className="drop-icon">
-                <UploadIcon size={48} />
-              </div>
-              <p>Drag and drop your PDF file here</p>
-              <p className="drop-text">or</p>
-              <input
-                type="file"
-                id="pdf-upload"
-                accept=".pdf,application/pdf"
-                onChange={handleFileInput}
-                style={{ display: 'none' }}
-              />
-              <label htmlFor="pdf-upload" className="file-select-btn">
-                Choose PDF File
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="import-section">
-          <h3>
-            <DatabaseIcon size={20} />
-            Upload JSON Data
-          </h3>
-          <p>Upload your exported assessment data file</p>
+          <p>Upload your exported assessment data file (JSON from Export Data).</p>
           
           <div 
             className={`file-drop-zone ${dragActive ? 'active' : ''}`}
@@ -204,13 +146,13 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
               <p className="drop-text">or</p>
               <input
                 type="file"
-                id="json-upload"
+                id="data-upload"
                 accept=".json,application/json"
                 onChange={handleFileInput}
                 style={{ display: 'none' }}
               />
-              <label htmlFor="json-upload" className="file-select-btn">
-                Choose JSON File
+              <label htmlFor="data-upload" className="file-select-btn">
+                Choose JSON file
               </label>
             </div>
           </div>
@@ -231,12 +173,11 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
       )}
 
       <div className="import-help">
-        <h3>How to Import</h3>
+        <h3>How to import</h3>
         <ul>
-          <li><strong>PDF Import:</strong> Upload the pre-filled form you printed earlier</li>
-          <li><strong>JSON Import:</strong> Upload the data file you exported previously</li>
-          <li>Your data will be restored and you can continue from where you left off</li>
-          <li>All features will be available regardless of how you choose to store your data</li>
+          <li><strong>Upload JSON:</strong> Use the JSON file from Export Data on your results screen.</li>
+          <li>Your data will be restored and you can complete or edit any missing fields.</li>
+          <li>Works with both local and cloud storage.</li>
         </ul>
       </div>
     </div>

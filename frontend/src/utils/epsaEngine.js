@@ -71,6 +71,19 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     errors.push('Family history is required');
   }
 
+  const comorbidityLabels = {
+    hypertension: 'Hypertension (HTN)',
+    hyperlipidemia: 'Hyperlipidemia (HLD)',
+    coronaryArteryDisease: 'Coronary Artery Disease (CAD)',
+    diabetes: 'Diabetes'
+  };
+  for (const key of Object.keys(comorbidityLabels)) {
+    if (formData?.[key] === undefined || formData?.[key] === null || formData?.[key] === '') {
+      errors.push(`${comorbidityLabels[key]} is required`);
+      break;
+    }
+  }
+
   const ipssTotal = validateOrdinalArray('IPSS', formData?.ipss, 7, 0, 5);
   const shimTotal = validateOrdinalArray('SHIM', formData?.shim, 5, 0, 5);
 
@@ -157,6 +170,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const inflammationHistory = formData.inflammationHistory;
   const chemicalExposure = formData.chemicalExposure;
   const dietPattern = formData.dietPattern;
+  const hypertension = formData.hypertension;
+  const hyperlipidemia = formData.hyperlipidemia;
+  const coronaryArteryDisease = formData.coronaryArteryDisease;
+  const diabetes = formData.diabetes;
 
   if (part1?.modelType === 'binned_v1') {
     const ageBin = pickBinLabel(ageNum, part1?.encodings?.ageBins, '40-49');
@@ -196,9 +213,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     });
   }
 
-  // Point-based Part 1 scoring (max 128 points)
+  // Point-based Part 1 scoring (max 132 points; 0–4 from comorbidities)
   let rawScore = 0;
-  const MAX_POINTS = 128;
+  const MAX_POINTS = 132;
 
   // Age
   if (ageNum >= 70) {
@@ -267,6 +284,13 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   if (shimTotal > 0 && shimTotal < 12) {
     rawScore += 8;
   }
+
+  // Comorbidities: 1 point per Yes (HTN, HLD, CAD, Diabetes)
+  const isYes = (v) => v === 'yes' || v === true || v === 1;
+  if (isYes(hypertension)) rawScore += 1;
+  if (isYes(hyperlipidemia)) rawScore += 1;
+  if (isYes(coronaryArteryDisease)) rawScore += 1;
+  if (isYes(diabetes)) rawScore += 1;
 
   // Normalize to 0–1 and 0–100%
   const probability = Math.max(0, Math.min(1, rawScore / MAX_POINTS));

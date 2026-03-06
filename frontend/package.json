@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:demo": "vite --config vite.config.demo.js",
     "test": "vitest run",
     "test:patients": "node src/runPatientTests.mjs",
     "test:watch": "vitest",
@@ -25,6 +26,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
     "lucide-react": "^0.575.0",
+    "pdfjs-dist": "^5.5.207",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-is": "^19.2.4",

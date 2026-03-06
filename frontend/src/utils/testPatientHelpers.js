@@ -10,7 +10,11 @@ export function makePart1Form(overrides = {}) {
     ipss: [0, 0, 0, 0, 0, 0, 0], // total 0 = mild
     shim: [5, 5, 5, 5, 5],       // total 25
     exercise: 0,                  // regular
-    familyHistory: 0
+    familyHistory: 0,
+    hypertension: 0,
+    hyperlipidemia: 0,
+    coronaryArteryDisease: 0,
+    diabetes: 0
   };
   return { ...defaults, ...overrides };
 }
