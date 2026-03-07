@@ -30,6 +30,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
 
   const contactInfo = email || phone;
   const isEmail = !!email;
+  const hasContact = !!contactInfo;
 
   return (
     <div className="consent-container">
@@ -37,18 +38,23 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
         <div className="consent-header">
           <h2>Follow-Up Communication Consent</h2>
           <p className="consent-intro">
-            Your {isEmail ? 'email address' : 'phone number'} <strong>{contactInfo}</strong> will be used for:
+            {hasContact
+              ? <>Your {isEmail ? 'email address' : 'phone number'} <strong>{contactInfo}</strong> will be used for:</>
+              : <>Your session is stored by key only. No contact info is collected. You may still choose:</>
+            }
           </p>
         </div>
 
         <div className="consent-reasons">
           <ul>
+            {hasContact && (
+              <li>
+                <ShieldIcon size={16} />
+                Account login and verification
+              </li>
+            )}
             <li>
-              <ShieldIcon size={16} />
-              Account login and verification
-            </li>
-            <li>
-              {isEmail ? <MailIcon size={16} /> : <SmartphoneIcon size={16} />}
+              {hasContact ? (isEmail ? <MailIcon size={16} /> : <SmartphoneIcon size={16} />) : <ShieldIcon size={16} />}
               Screening results follow-up
             </li>
             <li>
@@ -103,9 +109,11 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
 
           <div className="consent-disclaimer">
             <p>
-              <strong>Note:</strong> You can still use the ePSA tool regardless of your choice. 
-              If you decline, we will not contact you for follow-up, but you can access your results 
-              anytime by logging in.
+              <strong>Note:</strong> You can still use the ePSA tool regardless of your choice.
+              {hasContact
+                ? ' If you decline, we will not contact you for follow-up, but you can access your results anytime by logging in.'
+                : ' If you decline, we will not contact you. Use your session key to load your data from cloud anytime.'
+              }
             </p>
           </div>
 

@@ -14,7 +14,7 @@ import {
   DownloadIcon
 } from 'lucide-react';
 
-const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null, userEmail = null, userPhone = null }) => {
+const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null, userEmail = null, userPhone = null, onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null }) => {
   const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const handleExportCsv = () => {
@@ -117,7 +117,29 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       <div className="results-header">
         {sessionId && (
           <div className="session-id-display">
-            Session ID: <strong>{sessionId}</strong>
+            Session key: <strong>{sessionId}</strong>
+          </div>
+        )}
+        {storageMode === 'cloud' && sessionId && (
+          <div className="saved-to-cloud-badge">
+            <CloudIcon size={16} />
+            <span>Saved to cloud</span>
+          </div>
+        )}
+        {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
+          <div className="move-to-cloud-row">
+            <button
+              type="button"
+              className="btn-move-to-cloud"
+              onClick={onSaveToCloud}
+              disabled={saveToCloudPending}
+            >
+              <CloudIcon size={18} />
+              {saveToCloudPending ? 'Saving...' : 'Move to cloud'}
+            </button>
+            {saveToCloudError && (
+              <span className="save-to-cloud-error">{saveToCloudError}</span>
+            )}
           </div>
         )}
       </div>
@@ -260,17 +282,6 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
           <FileTextIcon size={18} />
           <span>Print Form</span>
         </button>
-        
-        {/* Storage mode specific actions */}
-        {storageMode === 'cloud' && (
-          <button className="btn-save" onClick={() => {
-            // TODO: Implement save to cloud functionality
-            console.log('Save to cloud functionality coming soon');
-          }}>
-            <CloudIcon size={18} />
-            <span>Save to Cloud</span>
-          </button>
-        )}
         
         {/* Export available for both storage modes */}
         {(storageMode === 'local' || storageMode === 'cloud') && (

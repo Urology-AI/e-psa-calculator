@@ -45,7 +45,7 @@ const WelcomeScreenGHPages = ({ onBegin, onImport, formData }) => {
           <div className="welcome-features">
             <div className="feature-item">
               <ClipboardListIcon size={20} className="feature-icon" />
-              <span className="feature-text">23 questions</span>
+              <span className="feature-text">27 questions</span>
             </div>
             <div className="feature-item">
               <ClockIcon size={20} className="feature-icon" />

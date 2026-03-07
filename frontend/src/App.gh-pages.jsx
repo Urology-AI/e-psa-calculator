@@ -1,222 +1,310 @@
+/**
+ * GitHub Pages app — same as Firebase app but without cloud options.
+ * No Firebase imports; local storage only. Same UI: welcome, import, form, results, Model Docs, HIPAA popup.
+ */
 import React, { useState } from 'react';
 import './App.css';
-
+import WelcomeScreen from './components/WelcomeScreen.jsx';
+import DataImportScreen from './components/DataImportScreen.jsx';
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
+import ModelDocs from './components/ModelDocs.jsx';
+import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
+import BackButton from './components/BackButton.jsx';
+import { BookIcon, ShieldCheckIcon } from 'lucide-react';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
 
-import { calculateDynamicEPsa, getCalculatorConfig } from './utils/dynamicCalculator';
+const defaultPreData = {
+  age: '',
+  race: null,
+  heightFt: '',
+  heightIn: '',
+  weight: '',
+  bmi: 0,
+  familyHistory: null,
+  brcaStatus: null,
+  heightUnit: 'imperial',
+  heightCm: '',
+  weightUnit: 'lbs',
+  weightKg: '',
+  ipss: Array(7).fill(null),
+  shim: Array(5).fill(null),
+  exercise: null,
+  smoking: null,
+  chemicalExposure: null,
+  dietPattern: '',
+  hypertension: null,
+  hyperlipidemia: null,
+  coronaryArteryDisease: null,
+  diabetes: null,
+};
 
-const App = () => {
+const defaultPostData = {
+  psa: '',
+  knowPsa: false,
+  onHormonalTherapy: false,
+  hormonalTherapyType: '',
+  knowPirads: false,
+  pirads: '0',
+};
+
+function App() {
+  const [step, setStep] = useState('welcome'); // 'welcome' | 'import' | 'app'
   const [view, setView] = useState('form'); // 'form' | 'results'
   const [part1Step, setPart1Step] = useState(0);
-
-  // Part 1 data and results (local only for GitHub Pages)
-  const [preData, setPreData] = useState({});
+  const [currentStep, setCurrentStep] = useState(1);
+  const [preData, setPreData] = useState({ ...defaultPreData });
   const [preResult, setPreResult] = useState(null);
+  const [postData, setPostData] = useState({ ...defaultPostData });
+  const [postResult, setPostResult] = useState(null);
+  const [showModelDocs, setShowModelDocs] = useState(false);
+  const [showHipaaPopup, setShowHipaaPopup] = useState(false);
 
   const [calculatorConfig] = useState(() => getCalculatorConfig());
 
-  const handlePart1Next = () => {
-    if (part1Step < 6) {
-      setPart1Step((step) => step + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleBeginLocal = () => {
+    setStep('app');
+    setView('form');
+    setPart1Step(0);
+    setCurrentStep(1);
+    setPreData({ ...defaultPreData });
+    setPreResult(null);
+    setPostData({ ...defaultPostData });
+    setPostResult(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleImportSuccess = (importedData, importType) => {
+    if (importType === 'session') {
+      alert('Load from cloud is not available in this demo. Use the full app with Firebase to use your session key.');
       return;
     }
 
+    let dataToImport;
+    let targetStage = 'pre';
+
+    if (importedData.version && (importedData.formData || importedData.part1Data)) {
+      if (importedData.part === 'part1' && importedData.formData) {
+        dataToImport = importedData.formData;
+      } else if (importedData.part === 'complete' && importedData.part1Data) {
+        dataToImport = importedData.part1Data;
+        setPostData((prev) => ({ ...prev, ...(importedData.part2Data || {}) }));
+        targetStage = 'post';
+      } else if (importedData.formData) {
+        dataToImport = importedData.formData;
+      } else {
+        dataToImport = importedData.part1Data || importedData;
+        if (importedData.part2Data) setPostData((prev) => ({ ...prev, ...importedData.part2Data }));
+        if (importedData.part === 'complete') targetStage = 'post';
+      }
+    } else {
+      dataToImport = importedData;
+    }
+
+    const defaultShape = {
+      age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+      familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+      weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+      exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+      hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+    };
+    const normalizedImport = { ...defaultShape, ...dataToImport };
+    if (!Array.isArray(normalizedImport.ipss) || normalizedImport.ipss.length !== 7) {
+      const src = Array.isArray(normalizedImport.ipss) ? normalizedImport.ipss : [];
+      normalizedImport.ipss = [...Array(7)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
+    }
+    if (!Array.isArray(normalizedImport.shim) || normalizedImport.shim.length !== 5) {
+      const src = Array.isArray(normalizedImport.shim) ? normalizedImport.shim : [];
+      normalizedImport.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
+    }
+
+    setPreData((prev) => ({ ...prev, ...normalizedImport }));
+
+    const part1Result = calculateDynamicEPsa(normalizedImport, calculatorConfig);
+    setPreResult(part1Result || null);
+
+    if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0 && part1Result) {
+      const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
+      setPostResult(part2Result);
+    } else {
+      setPostResult(null);
+    }
+
+    setStep('app');
+    if (part1Result) {
+      setView('results');
+      setPart1Step(4);
+      setCurrentStep(3);
+    } else {
+      setView('form');
+      setPart1Step(0);
+      setCurrentStep(1);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePart1Next = () => {
+    if (part1Step < 6) {
+      setPart1Step((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     try {
       const result = calculateDynamicEPsa(preData, calculatorConfig);
-
       if (!result) {
-        console.error('calculateDynamicEPsa returned null/undefined', preData);
         alert('Please complete all required fields before calculating the score.');
         return;
       }
-
       setPreResult(result);
       setView('results');
+      setCurrentStep(3);
+      setPart1Step(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (error) {
-      console.error('Error in calculateDynamicEPsa:', error);
-      alert('Calculation failed. Please check the answers and try again.');
+    } catch (err) {
+      console.error(err);
+      alert('Calculation failed. Please check your answers and try again.');
     }
   };
 
   const handlePart1Back = () => {
     if (part1Step > 0) {
-      setPart1Step((step) => step - 1);
+      setPart1Step((s) => s - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleStartOver = () => {
-    if (!window.confirm('Start over? This will clear all data for this patient.')) return;
-    setPreData({});
+    if (!window.confirm('Start over? This will clear all data.')) return;
+    setPreData({ ...defaultPreData });
     setPreResult(null);
+    setPostData({ ...defaultPostData });
+    setPostResult(null);
     setPart1Step(0);
+    setCurrentStep(1);
     setView('form');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleBackToWelcome = () => {
+    if (step === 'import') {
+      setStep('welcome');
+      return;
+    }
+    if (step === 'app' && view === 'form' && part1Step === 0) {
+      setStep('welcome');
+      setView('form');
+      setPreData({ ...defaultPreData });
+      setPreResult(null);
+      return;
+    }
+    if (view === 'results') {
+      setView('form');
+      setPart1Step(0);
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (part1Step > 0) {
+      setPart1Step((s) => s - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const showBack = step === 'app' && (view === 'form' ? part1Step > 0 : true);
+
   return (
-    <div
-      className="app"
-      style={{
-        minHeight: '100vh',
-        padding: '2rem 1rem',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-      }}
-    >
-      <div
-        className="container"
-        style={{
-          maxWidth: '900px',
-          margin: '0 auto',
-          padding: '2.5rem',
-          background: '#fff',
-          borderRadius: '16px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #E8ECF0',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <header
-          className="app-header"
-          style={{ textAlign: 'center', marginBottom: '2rem' }}
-        >
-          <div
-            className="header-logo-container"
-            style={{
-              textAlign: 'center',
-              padding: '32px 20px 20px',
-              background: 'white',
-              borderRadius: '16px',
-              border: '1px solid #E8ECF0',
-              marginBottom: '20px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-              minHeight: '120px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+    <div className="App">
+      <div className="container">
+        <BackButton onBack={handleBackToWelcome} show={showBack} />
+
+        <header className="app-header">
+          <div className="header-logo-container">
             <img
               src="/e-psa-calculator/logo.png"
               alt="ePSA Logo"
               className="logo"
-              style={{
-                display: 'block',
-                margin: '0 auto 1.5rem',
-                maxWidth: '200px',
-                maxHeight: '120px',
-                width: 'auto',
-                height: 'auto',
-                objectFit: 'contain',
-                transition: 'transform 0.3s ease',
-                visibility: 'visible',
-                opacity: 1,
-              }}
               onError={(e) => {
-                console.error('Logo.png failed to load:', e.target.src);
                 const currentSrc = e.target.src;
-                if (currentSrc.includes('logo.png')) {
-                  e.target.src = '/e-psa-calculator/logo.jpg';
-                } else {
-                  console.warn('Both logo files failed to load');
-                  e.target.style.display = 'none';
-                }
+                if (currentSrc.includes('logo.png')) e.target.src = '/e-psa-calculator/logo.jpg';
+                else e.target.style.display = 'none';
               }}
             />
           </div>
-          <div className="header-text" style={{ textAlign: 'center' }}>
-            <h1
-              style={{
-                fontSize: '42px',
-                fontWeight: 800,
-                color: '#2E7D32',
-                margin: '0 0 4px',
-                letterSpacing: '-1px',
-                textAlign: 'center',
-              }}
-            >
-              ePSA
-            </h1>
-            <h2
-              style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#1C2833',
-                margin: '0 0 6px',
-                textAlign: 'center',
-              }}
-            >
-              Prostate‑Specific Awareness
-            </h2>
-            <p
-              className="subtitle"
-              style={{
-                fontSize: '14px',
-                color: '#7F8C8D',
-                fontStyle: 'italic',
-                margin: 0,
-                textAlign: 'center',
-              }}
-            >
-              A Non‑Validated Educational Risk Tool
-            </p>
+          <div className="header-text">
+            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>Prostate‑Specific Awareness</h2>
+            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>A Non‑Validated Educational Risk Tool</p>
           </div>
         </header>
 
-        <main className="app-main">
-          <section
-            style={{
-              marginBottom: '1.5rem',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              border: '1px solid #E8ECF0',
-              background: '#F8FAFC',
-              fontSize: '14px',
-              color: '#34495E',
+        {step === 'welcome' && (
+          <>
+            <WelcomeScreen
+              onBegin={handleBeginLocal}
+              onBeginLocal={handleBeginLocal}
+              onBeginCloud={undefined}
+              cloudAvailable={false}
+              onImport={() => setStep('import')}
+              formData={{}}
+              urlEmail={null}
+            />
+            <footer className="app-footer">
+              <div className="footer-content">
+                <p className="footer-text">ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool</p>
+                <button type="button" className="btn-model-docs" onClick={() => setShowModelDocs(true)}>
+                  <BookIcon size={16} />
+                  <span>Model Documentation</span>
+                </button>
+                <button type="button" className="btn-model-docs btn-hipaa" onClick={() => setShowHipaaPopup(true)}>
+                  <ShieldCheckIcon size={16} />
+                  <span>HIPAA Compliant</span>
+                </button>
+              </div>
+            </footer>
+          </>
+        )}
+
+        {step === 'import' && (
+          <DataImportScreen
+            onBack={() => setStep('welcome')}
+            onImportSuccess={handleImportSuccess}
+            hideCloudSection={true}
+          />
+        )}
+
+        {step === 'app' && view === 'form' && (
+          <Part1Form
+            formData={preData}
+            setFormData={setPreData}
+            onNext={handlePart1Next}
+            onBack={handlePart1Back}
+            currentStep={part1Step}
+          />
+        )}
+
+        {step === 'app' && view === 'results' && preResult && (
+          <Part1Results
+            result={preResult}
+            formData={preData}
+            storageMode="local"
+            sessionId={null}
+            userEmail={null}
+            userPhone={null}
+            onSaveToCloud={undefined}
+            cloudAvailable={false}
+            onEditAnswers={() => {
+              setView('form');
+              setPart1Step(0);
+              setCurrentStep(1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-          >
-            <strong style={{ display: 'block', marginBottom: '6px' }}>
-              Quick workflow for live use
-            </strong>
-            <ol style={{ margin: 0, paddingLeft: '18px' }}>
-              <li>Complete the Part 1 questionnaire together with the patient.</li>
-              <li>Review the ePSA result on the next screen.</li>
-              <li>Use <strong>Export Data</strong> (JSON) and/or <strong>Export CSV</strong> to save this patient&apos;s responses.</li>
-            </ol>
-          </section>
-          {view === 'form' && (
-            <Part1Form
-              formData={preData}
-              setFormData={setPreData}
-              onNext={handlePart1Next}
-              onBack={handlePart1Back}
-              currentStep={part1Step}
-              totalSteps={7}
-            />
-          )}
-          {view === 'results' && (
-            <Part1Results
-              result={preResult}
-              formData={preData}
-              storageMode="local"
-              onEditAnswers={() => {
-                setView('form');
-                setPart1Step(0);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onStartOver={handleStartOver}
-            />
-          )}
-        </main>
+            onStartOver={handleStartOver}
+          />
+        )}
       </div>
+
+      {showModelDocs && <ModelDocs config={calculatorConfig} onClose={() => setShowModelDocs(false)} />}
+      {showHipaaPopup && <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />}
     </div>
   );
-};
+}
 
 export default App;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './DataImportScreen.css';
 import { ArrowLeftIcon, UploadIcon, KeyIcon } from 'lucide-react';
 
-const DataImportScreen = ({ onBack, onImportSuccess }) => {
+const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false }) => {
   const [dragActive, setDragActive] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
@@ -66,16 +66,16 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
       // Validate session ID format (8 characters, alphanumeric)
       const normalizedSessionId = (sessionId || '').toUpperCase().trim();
       if (!/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
-        throw new Error('Please enter a valid 8-character Session ID (letters and numbers only)');
+        throw new Error('Please enter a valid 8-character session key (letters and numbers only)');
       }
 
       // Resolve session through backend on the next screen.
       onImportSuccess({
         sessionId: normalizedSessionId
       }, 'session');
-    } catch (err) {
-      setError(err.message || 'Failed to load session. Please try again.');
-    } finally {
+      } catch (err) {
+        setError(err.message || 'Failed to load from cloud. Please try again.');
+      } finally {
       setLoadingSession(false);
     }
   };
@@ -92,13 +92,13 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
       </div>
 
       <div className="import-methods">
-        {/* Session ID Login */}
+        {!hideCloudSection && (
         <div className="import-section">
           <h3>
             <KeyIcon size={20} />
-            Login with Session ID
+            Load from cloud
           </h3>
-          <p>Enter your 8-character Session ID to continue your anonymous assessment</p>
+          <p>Enter your anonymous session key to load your saved assessment data</p>
           
           <form onSubmit={handleSessionLogin} className="session-login-form">
             <div className="session-input-group">
@@ -106,7 +106,7 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
                 type="text"
                 value={sessionId}
                 onChange={(e) => setSessionId(e.target.value.toUpperCase())}
-                placeholder="A1B2C3D4"
+                placeholder="e.g. A1B2C3D4"
                 className="session-input"
                 maxLength={8}
                 style={{ textTransform: 'uppercase' }}
@@ -116,12 +116,13 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
                 disabled={loadingSession || sessionId.length !== 8}
                 className="session-login-btn"
               >
-                {loadingSession ? 'Loading...' : 'Login'}
+                {loadingSession ? 'Loading...' : 'Load'}
               </button>
             </div>
             {error && <div className="import-error">{error}</div>}
           </form>
         </div>
+        )}
 
         {/* Upload JSON */}
         <div className="import-section">
@@ -177,7 +178,7 @@ const DataImportScreen = ({ onBack, onImportSuccess }) => {
         <ul>
           <li><strong>Upload JSON:</strong> Use the JSON file from Export Data on your results screen.</li>
           <li>Your data will be restored and you can complete or edit any missing fields.</li>
-          <li>Works with both local and cloud storage.</li>
+          {!hideCloudSection && <li>Works with both local and cloud storage.</li>}
         </ul>
       </div>
     </div>

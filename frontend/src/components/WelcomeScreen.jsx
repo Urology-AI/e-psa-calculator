@@ -44,7 +44,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
           <div className="welcome-features">
             <div className="feature-item">
               <ClipboardListIcon size={20} className="feature-icon" />
-              <span className="feature-text">23 questions</span>
+              <span className="feature-text">27 questions</span>
             </div>
             <div className="feature-item">
               <ClockIcon size={20} className="feature-icon" />
@@ -66,7 +66,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
                 </button>
                 <button type="button" className="btn-begin-cloud" onClick={onBeginCloud}>
                   <span>Save to cloud</span>
-                  <span className="btn-begin-sub">Sign in with phone or email</span>
+                  <span className="btn-begin-sub">Get an anonymous session key · no phone or email</span>
                 </button>
               </div>
             </div>
