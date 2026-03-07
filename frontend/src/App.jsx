@@ -8,19 +8,20 @@ import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
-import { BookIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon } from 'lucide-react';
+import ModelDocs from './components/ModelDocs.jsx';
+import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
-import ProfileManager from './components/ProfileManager.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
-import { sendSessionAccessEmail, createSession as backendCreateSession, updateSession as backendUpdateSession, deleteSession as backendDeleteSession } from './services/phiBackendService';
+import { createSession as backendCreateSession, updateSession as backendUpdateSession, deleteSession as backendDeleteSession, getSession as backendGetSession } from './services/phiBackendService';
 
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
@@ -48,22 +49,22 @@ function App() {
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
+  const [showHipaaPopup, setShowHipaaPopup] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [currentStep, setCurrentStep] = useState(1);
   const [appSessionId, setAppSessionId] = useState(null);
-  const [showProfile, setShowProfile] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [importedData, setImportedData] = useState(null);
+  const [saveToCloudPending, setSaveToCloudPending] = useState(false);
+  const [saveToCloudError, setSaveToCloudError] = useState(null);
   
-  // Detect email from URL params for unique links
+  // Detect email from URL params (legacy; we no longer collect email)
   const [urlEmail, setUrlEmail] = useState(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setUrlEmail(email);
-      setUserEmail(email);
-      // Force cloud mode and skip storage choice for email links
       setStorageMode('cloud');
     }
   }, []);
@@ -372,9 +373,7 @@ function App() {
       consentTimestamp: consent?.consentTimestamp || new Date().toISOString(),
       updatedAt: serverTimestamp(),
       lastLoginAt: new Date().toISOString(),
-      email: userEmail || null,
-      phone: userPhone || null,
-      sessionType: user?.isAnonymous ? 'anonymous' : (userEmail ? 'email' : 'phone')
+      sessionType: 'anonymous',
     }, { merge: true });
 
     return { success: true };
@@ -403,21 +402,10 @@ function App() {
       authInfo
     });
     setUser(user);
-    // Support legacy and structured auth metadata
     if (typeof authInfo === 'string') {
-      // Legacy phone auth
       setUserPhone(authInfo);
     } else {
-      if (authInfo?.phone) setUserPhone(authInfo.phone);
-      if (authInfo?.email) setUserEmail(authInfo.email);
-      if (authInfo?.displayName) setUserName(authInfo.displayName);
-      if (!authInfo?.email && user.email) setUserEmail(user.email);
-    }
-
-    if ((authInfo && authInfo.sessionId) || user?.isAnonymous) {
-      // Anonymous auth tracks a display session ID separate from Firebase UID
-      setAppSessionId(authInfo?.sessionId || null);
-      console.log('[AuthFlow] appSessionId set', { appSessionId: authInfo?.sessionId || null });
+      if (authInfo?.sessionId) setAppSessionId(authInfo.sessionId);
     }
     
     // Check if user already has consent in Firestore
@@ -571,26 +559,54 @@ function App() {
   };
 
   const promptUserForAuthChoice = async () => {
-    const choice = confirm(
-      'No user identification found in imported data.\n\n' +
-      'Choose your authentication method:\n' +
-      'Click OK for Email/Phone authentication\n' +
-      'Click Cancel for Anonymous session'
-    );
-    
-    if (choice) {
-      // User wants email/phone auth - go to auth screen
-      setAuthStep('login');
-      } else {
-        if (auth) {
-          await createNewAnonymousSession();
-        } else {
-          setStorageMode('local');
-          setUser({ uid: 'local', isAnonymous: true });
-          setAppSessionId('Local');
-          setAuthStep('app');
-        }
+    if (auth) {
+      await createNewAnonymousSession();
+    } else {
+      setStorageMode('local');
+      setUser({ uid: 'local', isAnonymous: true });
+      setAppSessionId('Local');
+      setAuthStep('app');
+    }
+  };
+
+  const handleSaveLocalToCloud = async () => {
+    if (!isFirebaseConfigured() || !auth || !functions || !preData || !preResult) {
+      setSaveToCloudError('Cloud save is not available or no data to save.');
+      return;
+    }
+    setSaveToCloudPending(true);
+    setSaveToCloudError(null);
+    try {
+      let firebaseUser = auth.currentUser;
+      if (!firebaseUser || firebaseUser.uid === 'local') {
+        await createNewAnonymousSession();
+        firebaseUser = auth.currentUser;
       }
+      if (!firebaseUser) {
+        throw new Error('Could not create session.');
+      }
+      const response = await backendCreateSession({
+        step1: preData,
+        result: preResult,
+      });
+      const newSessionId = response?.sessionId;
+      if (newSessionId) {
+        setSessionId(newSessionId);
+        localStorage.setItem(`sessionId_${firebaseUser.uid}`, newSessionId);
+      }
+      if (postData && postResult) {
+        await backendUpdateSession(newSessionId, postData, {
+          riskCat: postResult.riskClass || postResult.riskCat || 'unknown',
+          score: postResult.riskPct ?? postResult.score ?? 0,
+        });
+      }
+      setStorageMode('cloud');
+    } catch (err) {
+      console.error('Save to cloud error:', err);
+      setSaveToCloudError(err?.message || 'Failed to save to cloud.');
+    } finally {
+      setSaveToCloudPending(false);
+    }
   };
 
   const handleImportSuccess = async (importedData, importType) => {
@@ -629,16 +645,44 @@ function App() {
         setUser(firebaseUser);
         setAppSessionId(requestedSessionId);
 
-        if (restored.email) {
-          setUserEmail(restored.email);
-        }
-        if (restored.phone) {
-          setUserPhone(restored.phone);
-        }
-
         if (restored.currentSessionId) {
           setSessionId(restored.currentSessionId);
           localStorage.setItem(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
+
+          // Load session JSON from Firebase so user continues where they left off
+          try {
+            const sessionData = await backendGetSession(restored.currentSessionId);
+            if (sessionData?.step1) {
+              const defaultShape = {
+                age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+                familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+                weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+                exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+                hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+              };
+              const step1 = { ...defaultShape, ...sessionData.step1 };
+              if (!Array.isArray(step1.ipss) || step1.ipss.length !== 7) {
+                const src = Array.isArray(step1.ipss) ? step1.ipss : [];
+                step1.ipss = [...Array(7)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
+              }
+              if (!Array.isArray(step1.shim) || step1.shim.length !== 5) {
+                const src = Array.isArray(step1.shim) ? step1.shim : [];
+                step1.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
+              }
+              setPreData(step1);
+              if (sessionData.result) {
+                setPreResult(sessionData.result);
+              }
+              if (sessionData.step2) {
+                setPostData(sessionData.step2);
+              }
+              if (sessionData.step2 && sessionData.finalCategory != null) {
+                setPostResult({ riskCat: sessionData.finalCategory, score: sessionData.finalScore ?? 0 });
+              }
+            }
+          } catch (loadErr) {
+            console.warn('Could not load session data:', loadErr);
+          }
         }
 
         const consentExists = restored.consentToContact !== undefined && restored.consentToContact !== null;
@@ -666,17 +710,26 @@ function App() {
     }
     
     // Handle file import (JSON or PDF)
+    // HIPAA: We do not link file imports to any existing cloud session (no lookup by sessionId in the file).
+    // Imported data is loaded locally only; user may later choose "Move to cloud" to create a new session.
     let dataToImport, targetStage = 'pre';
     
-    // Handle new export format
-    if (importedData.version && importedData.formData) {
-      if (importedData.part === 'part1') {
+    // Handle new export format (part1: formData; complete: part1Data + part2Data)
+    if (importedData.version && (importedData.formData || importedData.part1Data)) {
+      if (importedData.part === 'part1' && importedData.formData) {
         dataToImport = importedData.formData;
         targetStage = 'pre';
-      } else if (importedData.part === 'complete') {
+      } else if (importedData.part === 'complete' && importedData.part1Data) {
         dataToImport = importedData.part1Data;
         setPostData(importedData.part2Data || {});
         targetStage = 'post';
+      } else if (importedData.formData) {
+        dataToImport = importedData.formData;
+        targetStage = 'pre';
+      } else {
+        dataToImport = importedData.part1Data || importedData;
+        if (importedData.part2Data) setPostData(importedData.part2Data || {});
+        if (importedData.part === 'complete') targetStage = 'post';
       }
     } else {
       dataToImport = importedData;
@@ -690,132 +743,8 @@ function App() {
       setAppSessionId('Local');
     }
 
-    // Only create cloud session when Firebase is available; local mode skips this
-    if (auth && db) {
-      // Check for user info in imported data (only when Firebase is available)
-      if (importedData.userInfo) {
-      const { email, phone, sessionId: importedSessionId } = importedData.userInfo;
-      
-      if (importedSessionId) {
-        // Check if this session ID exists in Firestore
-        try {
-          const existingDoc = await getDoc(doc(db, 'users', importedSessionId));
-          if (existingDoc.exists()) {
-            const existingData = existingDoc.data();
-            const confirmMessage = `Found existing session: ${importedSessionId}\n` +
-              `Created: ${new Date(existingData.createdAt).toLocaleDateString()}\n` +
-              `Has ${existingData.email ? 'email' : 'no email'} and ${existingData.phone ? 'phone' : 'no phone'}\n\n` +
-              `Do you want to:\n` +
-              `1. Link to this existing session and import data\n` +
-              `2. Create new session with imported data`;
-            
-            const userChoice = confirm(confirmMessage + '\n\nClick OK for existing session, Cancel for new session');
-            
-            if (userChoice) {
-              // Link to existing session - check for Firebase user
-              let firebaseUser = null;
-              try {
-                firebaseUser = auth.currentUser;
-                if (!firebaseUser || firebaseUser.uid !== importedSessionId) {
-                  console.log('No Firebase user found for session, using session-based auth');
-                }
-              } catch (authError) {
-                console.log('Firebase auth check failed:', authError);
-              }
-              
-              setAppSessionId(importedSessionId);
-              const mockUser = {
-                uid: importedSessionId,
-                isAnonymous: true,
-                sessionId: importedSessionId
-              };
-              setUser(mockUser);
-              
-              if (existingData?.email) setUserEmail(existingData.email);
-              if (existingData?.phone) setUserPhone(existingData.phone);
-              
-              // Update session with imported data
-              await updateDoc(doc(db, 'users', importedSessionId), {
-                lastLoginAt: new Date().toISOString(),
-                importedData: dataToImport,
-                importDate: new Date().toISOString(),
-                hasFirebaseUser: !!firebaseUser
-              });
-              
-              // Set the imported data to state
-              setPreData(prevData => ({
-                ...prevData,
-                ...dataToImport
-              }));
-              
-              // Check consent and proceed
-              const consentExists = !!(existingData && existingData.consentToContact !== undefined);
-              if (consentExists) {
-                const consent = {
-                  consentToContact: existingData.consentToContact || false,
-                  consentTimestamp: existingData.consentTimestamp || new Date().toISOString()
-                };
-                setConsentData(consent);
-                setAuthStep('app');
-              } else {
-                setAuthStep('app');
-              }
-              return;
-            }
-          }
-        } catch (error) {
-          console.log('Error checking existing session:', error);
-        }
-      }
-      
-      if (email || phone) {
-        // Create new session and add contact info
-        const newSessionId = await createNewAnonymousSession();
-        
-        try {
-          await updateDoc(doc(db, 'users', newSessionId), {
-            email: email || null,
-            phone: phone || null,
-            lastLoginAt: new Date().toISOString(),
-            importedData: dataToImport,
-            importDate: new Date().toISOString(),
-            sessionType: email ? 'email' : phone ? 'phone' : 'anonymous'
-          });
-          
-          if (email) setUserEmail(email);
-          if (phone) setUserPhone(phone);
-          
-          console.log('Created new session with contact info:', { email, phone });
-
-          // Send session access email when linking a new session to an email via import.
-          if (email) {
-            sendSessionAccessEmail({
-              email,
-              sessionId: newSessionId,
-              context: 'import-linked-to-email'
-            });
-          }
-        } catch (error) {
-          console.error('Error adding contact info to session:', error);
-        }
-      } else {
-        // No user info - create new session (cloud only)
-        const newSessionId = await createNewAnonymousSession();
-        
-        try {
-          await updateDoc(doc(db, 'users', newSessionId), {
-            lastLoginAt: new Date().toISOString(),
-            importedData: dataToImport,
-            importDate: new Date().toISOString(),
-            sessionType: email ? 'email' : phone ? 'phone' : 'anonymous'
-          });
-        } catch (error) {
-          console.error('Error saving imported data:', error);
-        }
-      }
-    }
-    }
-    // Local mode or cloud without userInfo: no createNewAnonymousSession; fall through to setPreData
+    // JSON file import: keep data local so user can review then "Move to cloud" if they want.
+    // Do not create a cloud session here; that happens when they click "Move to cloud" on results.
 
     // Normalize imported data to form shape (merge with defaults so missing fields are empty; ensure ipss/shim are arrays)
     const defaultShape = {
@@ -855,8 +784,14 @@ function App() {
     if (importType === 'pdf') {
       setStorageMode('local'); // PDF import defaults to local storage
     } else {
-      // For JSON, preserve the storage mode or default to local
+      // For JSON, default to local so user can then "Move to cloud" from results
       setStorageMode(importedData.storageMode || 'local');
+    }
+
+    // File import: ensure we're in local mode so "Move to cloud" is available on results
+    if (importType !== 'session') {
+      setUser({ uid: 'local', isAnonymous: true });
+      setAppSessionId('Local');
     }
     
     // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
@@ -1226,6 +1161,13 @@ function App() {
                   <BookIcon size={16} />
                   <span>Model Documentation</span>
                 </button>
+                <button 
+                  className="btn-model-docs btn-hipaa"
+                  onClick={() => setShowHipaaPopup(true)}
+                >
+                  <ShieldCheckIcon size={16} />
+                  <span>HIPAA Compliant</span>
+                </button>
               </div>
             </footer>
           </>
@@ -1241,10 +1183,10 @@ function App() {
         return <UniversalAuth onAuthSuccess={handleAuthSuccess} initialEmail={urlEmail} />;
       case 'consent':
         return (
-          <ConsentScreen 
-            phone={userPhone} 
-            email={userEmail} 
-            onConsentComplete={handleConsentComplete} 
+          <ConsentScreen
+            phone={null}
+            email={null}
+            onConsentComplete={handleConsentComplete}
           />
         );
       default:
@@ -1280,6 +1222,10 @@ function App() {
                 sessionId={appSessionId}
                 userEmail={userEmail}
                 userPhone={userPhone}
+                onSaveToCloud={handleSaveLocalToCloud}
+                cloudAvailable={isFirebaseConfigured()}
+                saveToCloudPending={saveToCloudPending}
+                saveToCloudError={saveToCloudError}
                 onEditAnswers={() => {
                   setPart1Step(0);
                   setCurrentStep(1);
@@ -1371,6 +1317,10 @@ function App() {
                 sessionId={appSessionId}
                 userEmail={userEmail}
                 userPhone={userPhone}
+                onSaveToCloud={handleSaveLocalToCloud}
+                cloudAvailable={isFirebaseConfigured()}
+                saveToCloudPending={saveToCloudPending}
+                saveToCloudError={saveToCloudError}
                 onEditAnswers={() => {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1428,111 +1378,26 @@ function App() {
                 )
               )}
             </div>
-            {authStep === 'app' && (
-              <div className="storage-toggle" title={storageMode === 'cloud' ? 'Data saved to cloud' : 'Data on this device only'}>
-                <button
-                  type="button"
-                  className={`storage-toggle-btn ${storageMode === 'local' ? 'active' : ''}`}
-                  onClick={() => {
-                    setStorageMode('local');
-                    if (user && user.uid !== 'local') {
-                      setUser({ uid: 'local', isAnonymous: true });
-                      setAppSessionId('Local');
-                    }
-                  }}
-                  title="Store data on this device only"
-                >
-                  Local
-                </button>
-                <button
-                  type="button"
-                  className={`storage-toggle-btn ${storageMode === 'cloud' ? 'active' : ''} ${!isFirebaseConfigured() ? 'disabled' : ''}`}
-                  onClick={() => {
-                    if (!isFirebaseConfigured()) return;
-                    if (!user || user.uid === 'local') {
-                      setStorageMode('cloud');
-                      setAuthStep('login');
-                    } else {
-                      setStorageMode('cloud');
-                    }
-                  }}
-                  title={isFirebaseConfigured() ? 'Store data in cloud (sign in required)' : 'Cloud not available'}
-                >
-                  Cloud
-                </button>
-              </div>
-            )}
-            {(authStep === 'login') && (
-              <div className="storage-toggle" title="Switch to local storage to skip sign-in">
-                <button
-                  type="button"
-                  className="storage-toggle-btn active"
-                  onClick={() => {
-                    setStorageMode('local');
-                    setUser({ uid: 'local', isAnonymous: true });
-                    setAppSessionId('Local');
-                    setAuthStep('app');
-                  }}
-                  title="Use this device only (no sign-in)"
-                >
-                  Use this device only
-                </button>
-                <button
-                  type="button"
-                  className="storage-toggle-btn"
-                  disabled
-                  title="Sign in to save to cloud"
-                >
-                  Cloud (sign in below)
-                </button>
-              </div>
-            )}
-            {user && (storageMode !== 'local' && user.uid !== 'local') && (
-              <div className="user-info">
-                <div className="user-identifier">
-                  {userName && <span className="user-name">{userName}</span>}
-                  {appSessionId && (
-                    <span className="user-session" onClick={() => setShowProfile(!showProfile)}>
-                      Session: {appSessionId}
-                    </span>
-                  )}
-                </div>
-                <button onClick={handleLogout} className="btn-logout">
-                  Logout
-                </button>
-              </div>
-            )}
           </div>
         </header>
 
         {authStep !== 'app' ? renderAuthScreen() : (
           <>
             {showTestPanel && <FirebaseTestPanel />}
-            
-            {showProfile && storageMode === 'cloud' && user?.uid !== 'local' && (
-              <ProfileManager 
-                userDocId={user?.uid}
-                sessionId={appSessionId} 
-                onProfileUpdate={(updatedData) => {
-                  setUserName(updatedData.displayName || null);
-                  setUserEmail(updatedData.email);
-                  setUserPhone(updatedData.phone);
-                  const linkedContact = Boolean(updatedData?.email || updatedData?.phone);
-                  if (user?.isAnonymous && linkedContact && !consentData) {
-                    setShowProfile(false);
-                    setAuthStep('consent');
-                  }
-                }}
-                onSessionUnlink={handleSessionUnlink}
-              />
-            )}
-            
-            {/* Part1Form handles its own navigation */}
-            {/* Part2Form handles its own navigation */}
             {stage === 'pre' ? renderPreStage() : renderPostStage()}
           </>
         )}
       </div>
+
+      {showModelDocs && (
+        <ModelDocs
+          config={calculatorConfig}
+          onClose={() => setShowModelDocs(false)}
+        />
+      )}
+      {showHipaaPopup && (
+        <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />
+      )}
     </div>
   );
 }

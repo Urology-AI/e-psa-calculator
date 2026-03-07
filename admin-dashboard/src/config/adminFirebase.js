@@ -6,6 +6,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const useAuthEmulator = import.meta.env.VITE_USE_AUTH_EMULATOR === 'true';
@@ -26,6 +27,7 @@ const adminFirebaseConfig = {
 const adminApp = initializeApp(adminFirebaseConfig, 'admin-app');
 export const adminDb = getFirestore(adminApp);
 export const adminAuth = getAuth(adminApp);
+export const adminFunctions = getFunctions(adminApp);
 
 if (isLocalhost && useAuthEmulator) {
   adminAuth.settings.appVerificationDisabledForTesting = true;

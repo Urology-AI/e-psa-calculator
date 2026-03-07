@@ -433,6 +433,16 @@ body {
   color: white;
 }
 
+.btn-model-docs.btn-hipaa {
+  border-color: #15803d;
+  color: #15803d;
+}
+
+.btn-model-docs.btn-hipaa:hover {
+  background: #15803d;
+  color: white;
+}
+
 @media (max-width: 768px) {
   .footer-content {
     flex-direction: column;

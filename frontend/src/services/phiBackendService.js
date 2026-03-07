@@ -14,7 +14,6 @@ const deleteSessionFn = httpsCallable(functions, 'deleteSession');
 const getUserFn = httpsCallable(functions, 'getUser');
 const getUserSessionsFn = httpsCallable(functions, 'getUserSessions');
 const getSessionFn = httpsCallable(functions, 'getSession');
-const sendSessionAccessEmailFn = httpsCallable(functions, 'sendSessionAccessEmail');
 
 // Section lock functions
 const lockSectionFn = httpsCallable(functions, 'lockSection');
@@ -112,26 +111,6 @@ export const getSession = async (sessionId) => {
   } catch (error) {
     console.error('getSession error:', error);
     throw error;
-  }
-};
-
-/**
- * Send a session access email to the user.
- * Backend function is responsible for template, consent language, and auditing.
- */
-export const sendSessionAccessEmail = async ({ email, sessionId, context = 'signup' }) => {
-  if (!email || !sessionId) {
-    console.warn('sendSessionAccessEmail called without email or sessionId', { email, sessionId, context });
-    return;
-  }
-
-  try {
-    const result = await sendSessionAccessEmailFn({ email, sessionId, context });
-    return result.data;
-  } catch (error) {
-    console.error('sendSessionAccessEmail error:', error);
-    // Do not surface to user; email failure should not block app flow
-    return null;
   }
 };
 

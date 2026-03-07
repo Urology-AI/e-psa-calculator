@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { sendSessionAccessEmail } from '../services/phiBackendService';
-import { UserIcon, MailIcon, PhoneIcon, Edit2Icon, SaveIcon, XIcon, UnlinkIcon, AlertTriangleIcon } from 'lucide-react';
+import { UserIcon, UnlinkIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
 
 const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink }) => {
   const [userData, setUserData] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
-  const [editForm, setEditForm] = useState({
-    displayName: '',
-    email: '',
-    phone: ''
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -28,34 +21,11 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
     try {
       const userDoc = await getDoc(doc(db, 'users', userDocId));
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        setUserData(data);
-        setEditForm({
-          displayName: data.displayName || '',
-          email: data.email || '',
-          phone: data.phone || ''
-        });
+        setUserData(userDoc.data());
       }
     } catch (err) {
       console.error('Error loading user data:', err);
     }
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditForm({
-      displayName: userData?.displayName || '',
-      email: userData?.email || '',
-      phone: userData?.phone || ''
-    });
-    setError('');
-    setSuccess('');
   };
 
   const handleUnlinkSession = async () => {
@@ -63,116 +33,37 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
     setError('');
 
     try {
-      // Delete session from Firestore
       await deleteDoc(doc(db, 'users', userDocId));
-      
-      setSuccess('Session unlinked successfully!');
-      
-      // Notify parent component to handle unlink
+
+      setSuccess('Session deleted successfully.');
+
       if (onSessionUnlink) {
         onSessionUnlink();
       }
-      
-      // Close profile manager after unlink
+
       setTimeout(() => {
         setShowUnlinkConfirm(false);
       }, 1500);
-      
     } catch (err) {
-      console.error('Error unlinking session:', err);
-      setError('Failed to unlink session. Please try again.');
+      console.error('Error deleting session:', err);
+      setError('Failed to delete session. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      // Validate email format if provided
-      if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      // Validate phone format if provided
-      if (editForm.phone && !/^\+?[\d\s\-\(\)]+$/.test(editForm.phone)) {
-        throw new Error('Please enter a valid phone number');
-      }
-
-      const prevEmail = userData?.email || null;
-
-      // Update Firestore document for this same user/session record
-      await updateDoc(doc(db, 'users', userDocId), {
-        displayName: editForm.displayName?.trim() || null,
-        email: editForm.email || null,
-        phone: editForm.phone || null,
-        lastLoginAt: new Date().toISOString()
-      });
-
-      // Update local state
-      const updatedData = {
-        ...userData,
-        displayName: editForm.displayName?.trim() || null,
-        email: editForm.email || null,
-        phone: editForm.phone || null
-      };
-      setUserData(updatedData);
-
-      setIsEditing(false);
-      setSuccess('Profile updated successfully!');
-      
-      // Notify parent component
-      if (onProfileUpdate) {
-        onProfileUpdate(updatedData);
-      }
-
-      // If an email is now present and it changed, send an access email.
-      if (sessionId && updatedData.email && updatedData.email !== prevEmail) {
-        sendSessionAccessEmail({
-          email: updatedData.email,
-          sessionId,
-          context: prevEmail ? 'profile-email-updated' : 'profile-email-added'
-        });
-      }
-
-    } catch (err) {
-      setError(err.message || 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatPhoneNumber = (phone) => {
-    if (!phone) return '';
-    // Simple phone formatting
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone;
   };
 
   const formatCreatedAt = (createdAt) => {
     if (!createdAt) return 'Not available';
-
-    // Firestore Timestamp object
     if (typeof createdAt?.toDate === 'function') {
       return createdAt.toDate().toLocaleDateString();
     }
-
-    // Milliseconds or ISO string fallback
     const parsed = new Date(createdAt);
-    if (Number.isNaN(parsed.getTime())) {
-      return 'Not available';
-    }
+    if (Number.isNaN(parsed.getTime())) return 'Not available';
     return parsed.toLocaleDateString();
   };
 
   if (!userData) {
-    return <div className="profile-loading">Loading profile...</div>;
+    return <div className="profile-loading">Loading...</div>;
   }
 
   return (
@@ -181,21 +72,15 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
         <div className="profile-info">
           <div className="session-display">
             <UserIcon size={16} />
-            <span className="session-id">Session: {sessionId}</span>
+            <span className="session-id">Session key: {sessionId}</span>
           </div>
         </div>
         <div className="profile-actions">
-          {!isEditing && !showUnlinkConfirm && (
-            <>
-              <button className="link-session-btn" onClick={handleEdit}>
-                <Edit2Icon size={14} />
-                Edit Profile
-              </button>
-              <button className="unlink-session-btn" onClick={() => setShowUnlinkConfirm(true)}>
-                <UnlinkIcon size={14} />
-                Unlink Session
-              </button>
-            </>
+          {!showUnlinkConfirm && (
+            <button className="unlink-session-btn" onClick={() => setShowUnlinkConfirm(true)}>
+              <UnlinkIcon size={14} />
+              Delete session
+            </button>
           )}
         </div>
       </div>
@@ -205,34 +90,34 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
           <div className="unlink-confirm">
             <div className="unlink-warning">
               <AlertTriangleIcon size={24} />
-              <h3>Unlink Session</h3>
+              <h3>Delete session</h3>
               <p>
-                This will permanently delete your session "{sessionId}" and all associated data. 
+                This will permanently delete session &quot;{sessionId}&quot; and all associated data.
                 This action cannot be undone.
               </p>
               <div className="warning-details">
                 <ul>
                   <li>All assessment data will be deleted</li>
-                  <li>Session ID will no longer work</li>
-                  <li>You will need to create a new session</li>
+                  <li>This session key will no longer work</li>
+                  <li>You will need to create a new session to save to cloud again</li>
                 </ul>
               </div>
             </div>
-            
+
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
-            
+
             <div className="form-actions">
-              <button 
-                className="unlink-confirm-btn" 
+              <button
+                className="unlink-confirm-btn"
                 onClick={handleUnlinkSession}
                 disabled={loading}
               >
                 <UnlinkIcon size={14} />
-                {loading ? 'Unlinking...' : 'Unlink Session'}
+                {loading ? 'Deleting...' : 'Delete session'}
               </button>
-              <button 
-                className="cancel-btn" 
+              <button
+                className="cancel-btn"
                 onClick={() => setShowUnlinkConfirm(false)}
                 disabled={loading}
               >
@@ -241,104 +126,14 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
               </button>
             </div>
           </div>
-        ) : isEditing ? (
-          <div className="profile-edit-form">
-            <div className="form-group">
-              <label>
-                <UserIcon size={16} />
-                Name
-              </label>
-              <input
-                type="text"
-                value={editForm.displayName}
-                onChange={(e) => setEditForm(prev => ({ ...prev, displayName: e.target.value }))}
-                placeholder="Your name"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>
-                <MailIcon size={16} />
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="your@email.com"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>
-                <PhoneIcon size={16} />
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-
-            <div className="consent-disclaimer">
-              By adding or updating your email or phone number, you confirm you are the owner of that contact
-              and you consent to receive secure links or messages related to your ePSA session.
-            </div>
-
-            {error && <div className="error-message">{error}</div>}
-            {success && <div className="success-message">{success}</div>}
-
-            <div className="form-actions">
-              <button 
-                className="save-btn" 
-                onClick={handleSave}
-                disabled={loading}
-              >
-                <SaveIcon size={14} />
-                {loading ? 'Saving...' : 'Save'}
-              </button>
-              <button className="cancel-btn" onClick={handleCancel}>
-                <XIcon size={14} />
-                Cancel
-              </button>
-            </div>
-          </div>
         ) : (
           <div className="profile-display">
             <div className="info-item">
-              <div className="info-label">
-                <UserIcon size={16} />
-                Name
-              </div>
-              <div className="info-value">
-                {userData.displayName ? userData.displayName : <span className="not-provided">Not provided</span>}
-              </div>
+              <div className="info-label">Session key</div>
+              <div className="info-value session-key-value">{sessionId}</div>
             </div>
-
             <div className="info-item">
-              <div className="info-label">
-                <MailIcon size={16} />
-                Email
-              </div>
-              <div className="info-value">
-                {userData.email ? userData.email : <span className="not-provided">Not provided</span>}
-              </div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">
-                <PhoneIcon size={16} />
-                Phone
-              </div>
-              <div className="info-value">
-                {userData.phone ? formatPhoneNumber(userData.phone) : <span className="not-provided">Not provided</span>}
-              </div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-label">Session Created</div>
+              <div className="info-label">Created</div>
               <div className="info-value">
                 {formatCreatedAt(userData.createdAt)}
               </div>

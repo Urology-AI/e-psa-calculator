@@ -31,6 +31,26 @@
   letter-spacing: -0.025em;
 }
 
+.hipaa-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem 0;
+}
+
+.hipaa-note svg {
+  flex-shrink: 0;
+  color: #6366f1;
+}
+
+.error-message {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
 .user-management-content {
   display: flex;
   flex-direction: column;

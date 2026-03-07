@@ -1,9 +1,10 @@
 /**
  * Admin Analytics Service
- * Handles analytics data fetching and event tracking for admin dashboard
+ * HIPAA compliant: session stats from backend only (no PHI). Usage/outcomes from analytics collections.
  */
 
-import { adminDb } from '../config/adminFirebase';
+import { adminDb, adminFunctions } from '../config/adminFirebase';
+import { httpsCallable } from 'firebase/functions';
 import { collection, getDocs, query, orderBy, limit, addDoc, Timestamp } from 'firebase/firestore';
 
 // Analytics event types
@@ -29,28 +30,25 @@ export const trackAdminEvent = async (eventType, data = {}) => {
   }
 };
 
-// Get insights data for admin dashboard
+// Get insights data for admin dashboard (HIPAA: no PHI from users collection)
 export const getAdminInsightsData = async (timeRange = '30d') => {
   try {
-    // Get session-based users from users collection
-    let users = [];
+    // Session stats from backend only — no PHI, HIPAA compliant
+    let sessionStats = { totalSessions: 0, recentSessions: 0 };
     try {
-      const usersQuery = query(
-        collection(adminDb, 'users'),
-        orderBy('lastLoginAt', 'desc'),
-        limit(1000)
-      );
-      
-      const usersSnapshot = await getDocs(usersQuery);
-      users = usersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (usersError) {
-      console.error('Error fetching users:', usersError);
+      const getStats = httpsCallable(adminFunctions, 'getSessionStatsForAdmin');
+      const result = await getStats({});
+      if (result.data && result.data.success) {
+        sessionStats = {
+          totalSessions: result.data.totalSessions ?? 0,
+          recentSessions: result.data.recentSessions ?? 0,
+        };
+      }
+    } catch (sessionError) {
+      console.error('Error fetching session stats:', sessionError);
     }
 
-    // Try to get calculator usage events
+    // Try to get calculator usage events (aggregate/de-identified)
     let usageEvents = [];
     try {
       const usageQuery = query(
@@ -86,25 +84,20 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
       // Continue with empty outcome events
     }
 
-    // Calculate session-based insights
-    const sessionStats = {
-      totalSessions: users.length,
-      emailUsers: users.filter(u => u.email).length,
-      phoneUsers: users.filter(u => u.phone).length,
-      anonymousUsers: users.filter(u => !u.email && !u.phone).length,
-      firebaseUsers: users.filter(u => u.hasFirebaseUser).length,
-      activeUsers: users.filter(u => u.isActive !== false).length,
-      recentSessions: users.filter(u => {
-        const lastLogin = new Date(u.lastLoginAt);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return lastLogin > weekAgo;
-      }).length
+    // Session stats are HIPAA-safe (backend returns only counts)
+    const sessionsForInsights = {
+      ...sessionStats,
+      emailUsers: 0,
+      phoneUsers: 0,
+      anonymousUsers: sessionStats.totalSessions,
+      firebaseUsers: sessionStats.totalSessions,
+      activeUsers: sessionStats.totalSessions,
+      recentSessions: sessionStats.recentSessions,
     };
 
     // Calculate insights
     const insights = {
-      sessions: sessionStats,
+      sessions: sessionsForInsights,
       usage: {
         totalUses: usageEvents.length,
         uniqueUsers: new Set(usageEvents.map(e => e.userId || e.sessionId)).size,
@@ -121,7 +114,7 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
         calibration: calculateCalibration(outcomeEvents),
         aucEstimate: estimateAUC(outcomeEvents)
       },
-      recommendations: generateRecommendations(users, usageEvents, outcomeEvents),
+      recommendations: generateRecommendations(sessionStats, usageEvents, outcomeEvents),
       lastUpdated: new Date().toISOString(),
       connectionStatus: 'connected'
     };
@@ -143,12 +136,12 @@ export const getAdminInsightsData = async (timeRange = '30d') => {
       performance: { modelAccuracy: 'N/A', calibration: 'N/A' },
       sessions: {
         totalSessions: 0,
+        recentSessions: 0,
         emailUsers: 0,
         phoneUsers: 0,
         anonymousUsers: 0,
         firebaseUsers: 0,
         activeUsers: 0,
-        recentSessions: 0
       },
       recommendations: [{
         type: isNetworkError ? 'error' : 'warning',
@@ -203,49 +196,21 @@ const estimateAUC = (outcomes) => {
   return outcomes.length > 10 ? '0.89' : 'N/A';
 };
 
-const generateRecommendations = (users, usageEvents, outcomeEvents) => {
+const generateRecommendations = (sessionStats, usageEvents, outcomeEvents) => {
   const recommendations = [];
-  
-  // Session-based recommendations
-  if (users.length > 0) {
-    const anonymousRatio = (users.filter(u => !u.email && !u.phone).length / users.length) * 100;
-    if (anonymousRatio > 70) {
-      recommendations.push({
-        type: 'info',
-        priority: 'medium',
-        message: `${Math.round(anonymousRatio)}% of users are anonymous`,
-        action: 'Consider encouraging users to add contact information for better follow-up'
-      });
-    }
-    
-    const firebaseRatio = (users.filter(u => u.hasFirebaseUser).length / users.length) * 100;
-    if (firebaseRatio < 50) {
-      recommendations.push({
-        type: 'warning',
-        priority: 'low',
-        message: 'Only ' + Math.round(firebaseRatio) + '% of sessions have Firebase users',
-        action: 'This is normal for anonymous sessions, but monitor if authentication issues occur'
-      });
-    }
-    
-    const recentUsers = users.filter(u => {
-      const lastLogin = new Date(u.lastLoginAt);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return lastLogin > weekAgo;
-    });
-    
-    if (recentUsers.length < users.length * 0.2) {
+  const totalSessions = sessionStats?.totalSessions ?? 0;
+  const recentSessions = sessionStats?.recentSessions ?? 0;
+
+  if (totalSessions > 0) {
+    if (recentSessions < totalSessions * 0.2) {
       recommendations.push({
         type: 'warning',
         priority: 'medium',
-        message: 'Low recent user activity',
-        action: 'Consider user engagement strategies or check for technical issues'
+        message: 'Low recent session activity',
+        action: 'Consider engagement or check for technical issues'
       });
     }
   }
-  
-  // Usage-based recommendations
   if (usageEvents.length === 0) {
     recommendations.push({
       type: 'warning',
