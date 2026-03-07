@@ -103,9 +103,9 @@ export const fieldReferences = {
   },
   comorbidities: {
     field: "Comorbidities (HTN, HLD, CAD, Diabetes)",
-    description: "Hypertension (HTN), Hyperlipidemia (HLD), Coronary Artery Disease (CAD), and Diabetes are associated with increased prostate cancer risk. Each \"Yes\" adds 1 point (0–4 total).",
+    description: "Hypertension (HTN), Hyperlipidemia (HLD), Coronary Artery Disease (CAD), and Diabetes. Two questions: (1) Have you had any? No / Yes. (2) If yes: One or Two or more?",
     sources: [
-      { name: "[130]", url: "https://pubmed.ncbi.nlm.nih.gov/" }
+      { name: "Tiruye et al. (2024) – Impact of comorbidities on prostate cancer-specific mortality", url: "https://pubmed.ncbi.nlm.nih.gov/38798040/" }
     ]
   }
 };

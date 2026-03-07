@@ -14,7 +14,7 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     expect(result).toHaveProperty('confidenceRange');
     expect(result).toHaveProperty('calculationDetails');
     expect(result.calculationDetails).toHaveProperty('rawScore');
-    expect(result.calculationDetails).toHaveProperty('maxScore', 132);
+    expect(result.calculationDetails).toHaveProperty('maxScore', 130);
     expect(result.calculationDetails).toHaveProperty('probability');
     expect(typeof result.score).toBe('number');
     expect(result.score).toBeGreaterThanOrEqual(0);
@@ -125,18 +125,25 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
 
   it('rejects invalid form (missing comorbidity)', () => {
     const form = makePart1Form();
+    delete form.comorbidityScore;
     delete form.hypertension;
+    delete form.hyperlipidemia;
+    delete form.coronaryArteryDisease;
+    delete form.diabetes;
     const result = calculateDynamicEPsa(form);
     expect(result).toBeNull();
   });
 
-  it('comorbidities add points (more yes = higher score)', () => {
-    const none = makePart1Form({ hypertension: 0, hyperlipidemia: 0, coronaryArteryDisease: 0, diabetes: 0 });
-    const allFour = makePart1Form({ hypertension: 1, hyperlipidemia: 1, coronaryArteryDisease: 1, diabetes: 1 });
+  it('comorbidities add points (0, 1, 2)', () => {
+    const none = makePart1Form({ comorbidityScore: 0 });
+    const one = makePart1Form({ comorbidityScore: 1 });
+    const two = makePart1Form({ comorbidityScore: 2 });
     const rNone = calculateDynamicEPsa(none);
-    const rAll = calculateDynamicEPsa(allFour);
-    expect(rAll.calculationDetails.rawScore).toBeGreaterThan(rNone.calculationDetails.rawScore);
-    expect(rAll.score).toBeGreaterThanOrEqual(rNone.score);
+    const rOne = calculateDynamicEPsa(one);
+    const rTwo = calculateDynamicEPsa(two);
+    expect(rOne.calculationDetails.rawScore).toBeGreaterThan(rNone.calculationDetails.rawScore);
+    expect(rTwo.calculationDetails.rawScore).toBeGreaterThan(rOne.calculationDetails.rawScore);
+    expect(rTwo.score).toBeGreaterThanOrEqual(rNone.score);
   });
 
   it('returns result with model version from config', () => {
