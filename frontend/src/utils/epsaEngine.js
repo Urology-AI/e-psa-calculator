@@ -77,10 +77,19 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     coronaryArteryDisease: 'Coronary Artery Disease (CAD)',
     diabetes: 'Diabetes'
   };
-  for (const key of Object.keys(comorbidityLabels)) {
-    if (formData?.[key] === undefined || formData?.[key] === null || formData?.[key] === '') {
-      errors.push(`${comorbidityLabels[key]} is required`);
-      break;
+  // Accept either comorbidityScore (0, 1, 2) or the four separate fields (backward compat)
+  const hasComorbidityScore = formData?.comorbidityScore !== undefined && formData?.comorbidityScore !== null;
+  if (hasComorbidityScore) {
+    const s = Number(formData.comorbidityScore);
+    if (s !== 0 && s !== 1 && s !== 2) {
+      errors.push('Comorbidities must be 0, 1, or 2');
+    }
+  } else {
+    for (const key of Object.keys(comorbidityLabels)) {
+      if (formData?.[key] === undefined || formData?.[key] === null || formData?.[key] === '') {
+        errors.push(`${comorbidityLabels[key]} is required`);
+        break;
+      }
     }
   }
 
@@ -174,6 +183,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const hyperlipidemia = formData.hyperlipidemia;
   const coronaryArteryDisease = formData.coronaryArteryDisease;
   const diabetes = formData.diabetes;
+  const comorbidityScore = formData.comorbidityScore;
 
   if (part1?.modelType === 'binned_v1') {
     const ageBin = pickBinLabel(ageNum, part1?.encodings?.ageBins, '40-49');
@@ -213,9 +223,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     });
   }
 
-  // Point-based Part 1 scoring (max 132 points; 0–4 from comorbidities)
+  // Point-based Part 1 scoring (max 130 points; 0–2 from comorbidities)
   let rawScore = 0;
-  const MAX_POINTS = 132;
+  const MAX_POINTS = 130;
 
   // Age
   if (ageNum >= 70) {
@@ -285,12 +295,16 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     rawScore += 8;
   }
 
-  // Comorbidities: 1 point per Yes (HTN, HLD, CAD, Diabetes)
+  // Comorbidities: 0, 1, or 2 points. Use comorbidityScore if present, else derive from four Yes/No and cap at 2.
   const isYes = (v) => v === 'yes' || v === true || v === 1;
-  if (isYes(hypertension)) rawScore += 1;
-  if (isYes(hyperlipidemia)) rawScore += 1;
-  if (isYes(coronaryArteryDisease)) rawScore += 1;
-  if (isYes(diabetes)) rawScore += 1;
+  let comorbidityPoints = 0;
+  if (comorbidityScore !== undefined && comorbidityScore !== null) {
+    comorbidityPoints = Math.min(2, Math.max(0, Number(comorbidityScore)));
+  } else {
+    const n = [hypertension, hyperlipidemia, coronaryArteryDisease, diabetes].filter(isYes).length;
+    comorbidityPoints = n >= 2 ? 2 : n;
+  }
+  rawScore += comorbidityPoints;
 
   // Normalize to 0–1 and 0–100%
   const probability = Math.max(0, Math.min(1, rawScore / MAX_POINTS));

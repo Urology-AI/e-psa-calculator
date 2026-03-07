@@ -58,6 +58,14 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     smoking: formData.smoking ?? null,
     chemicalExposure: formData.chemicalExposure ?? null,
     dietPattern: formData.dietPattern || '',
+    comorbidityScore: formData.comorbidityScore ?? (() => {
+      const h = formData.hypertension; const hld = formData.hyperlipidemia; const cad = formData.coronaryArteryDisease; const d = formData.diabetes;
+      const isY = (v) => v === 'yes' || v === true || v === 1;
+      const n = [h, hld, cad, d].filter(isY).length;
+      if (n > 0) return n >= 2 ? 2 : 1;
+      if (h === 'no' || h === false || h === 0) return 0;
+      return null;
+    })(),
     hypertension: formData.hypertension ?? null,
     hyperlipidemia: formData.hyperlipidemia ?? null,
     coronaryArteryDisease: formData.coronaryArteryDisease ?? null,
@@ -201,10 +209,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (localData.smoking !== null && localData.smoking !== undefined) count++;
     if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
     if (localData.dietPattern !== '') count++;
-    if (localData.hypertension !== null && localData.hypertension !== undefined) count++;
-    if (localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined) count++;
-    if (localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined) count++;
-    if (localData.diabetes !== null && localData.diabetes !== undefined) count++;
+    if (localData.comorbidityScore !== null && localData.comorbidityScore !== undefined) count++;
 
     localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
     localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
@@ -226,15 +231,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
     const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
     const hasDiet = localData.dietPattern !== '';
-    const hasHypertension = localData.hypertension !== null && localData.hypertension !== undefined;
-    const hasHyperlipidemia = localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined;
-    const hasCAD = localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined;
-    const hasDiabetes = localData.diabetes !== null && localData.diabetes !== undefined;
+    const hasComorbidityScore = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
 
     const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
     const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
 
-    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasHypertension && hasHyperlipidemia && hasCAD && hasDiabetes && ipssComplete && shimComplete;
+    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
   };
 
   const renderStep0 = () => {
@@ -619,7 +621,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     const hldValid = localData.hyperlipidemia !== null && localData.hyperlipidemia !== undefined;
     const cadValid = localData.coronaryArteryDisease !== null && localData.coronaryArteryDisease !== undefined;
     const diabetesValid = localData.diabetes !== null && localData.diabetes !== undefined;
-    const comorbiditiesValid = htnValid && hldValid && cadValid && diabetesValid;
+    const comorbiditiesValid = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
     
     return (
     <div className="part1-step">
@@ -670,36 +672,51 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
         <div className="question-body">
           <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            Have you been diagnosed with any of the following? (Each &quot;Yes&quot; adds 1 point. Source [130].)
+            Have you been diagnosed with any of the following? (Hypertension, Hyperlipidemia, Coronary Artery Disease, Diabetes).
           </div>
-          {[
-            { key: 'hypertension', label: 'Hypertension (HTN)' },
-            { key: 'hyperlipidemia', label: 'Hyperlipidemia (HLD)' },
-            { key: 'coronaryArteryDisease', label: 'Coronary Artery Disease (CAD)' },
-            { key: 'diabetes', label: 'Diabetes' },
-          ].map(({ key, label }) => (
-            <div key={key} style={{ marginBottom: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{label}</div>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>Have you had any of these conditions?</div>
+            <div className="option-grid c2">
+              <button
+                type="button"
+                className={`option-btn ${localData.comorbidityScore === 0 ? 'selected' : ''}`}
+                onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 0 }))}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                className={`option-btn ${localData.comorbidityScore === 1 || localData.comorbidityScore === 2 ? 'selected' : ''}`}
+                onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: prev.comorbidityScore === 1 || prev.comorbidityScore === 2 ? prev.comorbidityScore : 1 }))}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+          {(localData.comorbidityScore === 1 || localData.comorbidityScore === 2) && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>How many of these conditions do you have?</div>
               <div className="option-grid c2">
-                {[
-                  { value: 'yes', label: 'Yes' },
-                  { value: 'no', label: 'No' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={`option-btn ${localData[key] === opt.value ? 'selected' : ''}`}
-                    onClick={() => updateField(key, opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  className={`option-btn ${localData.comorbidityScore === 1 ? 'selected' : ''}`}
+                  onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 1 }))}
+                >
+                  One
+                </button>
+                <button
+                  type="button"
+                  className={`option-btn ${localData.comorbidityScore === 2 ? 'selected' : ''}`}
+                  onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 2 }))}
+                >
+                  Two or more
+                </button>
               </div>
             </div>
-          ))}
+          )}
           {attemptedNext && !comorbiditiesValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please answer all four comorbidity questions
+              Please answer the comorbidity questions
             </div>
           )}
         </div>
@@ -856,17 +873,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       if (!localData.dietPattern) {
         errors.push('Please select your diet pattern');
       }
-      if (localData.hypertension === null || localData.hypertension === undefined) {
-        errors.push('Please answer Hypertension (HTN)');
-      }
-      if (localData.hyperlipidemia === null || localData.hyperlipidemia === undefined) {
-        errors.push('Please answer Hyperlipidemia (HLD)');
-      }
-      if (localData.coronaryArteryDisease === null || localData.coronaryArteryDisease === undefined) {
-        errors.push('Please answer Coronary Artery Disease (CAD)');
-      }
-      if (localData.diabetes === null || localData.diabetes === undefined) {
-        errors.push('Please answer Diabetes');
+      if (localData.comorbidityScore === null || localData.comorbidityScore === undefined) {
+        errors.push('Please answer the comorbidity questions');
       }
     }
     

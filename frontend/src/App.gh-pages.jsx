@@ -33,6 +33,7 @@ const defaultPreData = {
   smoking: null,
   chemicalExposure: null,
   dietPattern: '',
+  comorbidityScore: null,
   hypertension: null,
   hyperlipidemia: null,
   coronaryArteryDisease: null,
@@ -106,7 +107,7 @@ function App() {
       familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
       weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
       exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-      hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+      comorbidityScore: null, hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
     };
     const normalizedImport = { ...defaultShape, ...dataToImport };
     if (!Array.isArray(normalizedImport.ipss) || normalizedImport.ipss.length !== 7) {

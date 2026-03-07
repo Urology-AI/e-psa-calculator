@@ -57,6 +57,7 @@ export const buildPart1CsvRows = (formData, result, config) => {
     hyperlipidemia: fd.hyperlipidemia ?? '',
     coronaryArteryDisease: fd.coronaryArteryDisease ?? '',
     diabetes: fd.diabetes ?? '',
+    comorbidityScore: fd.comorbidityScore ?? '',
     ipss: ipssStr,
     shim: shimStr,
     score: result?.score ?? '',

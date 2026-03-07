@@ -11,6 +11,7 @@ export function makePart1Form(overrides = {}) {
     shim: [5, 5, 5, 5, 5],       // total 25
     exercise: 0,                  // regular
     familyHistory: 0,
+    comorbidityScore: 0,
     hypertension: 0,
     hyperlipidemia: 0,
     coronaryArteryDisease: 0,

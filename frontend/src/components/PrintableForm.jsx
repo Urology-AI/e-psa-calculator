@@ -44,6 +44,10 @@ const PrintableForm = ({ onBack, formData }) => {
       smoking: num(getRadio('smoking')),
       chemicalExposure: getRadio('chemicalExposure') || null,
       dietPattern: getRadio('dietPattern') || null,
+      comorbidityScore: (() => {
+        const v = getRadio('comorbidityScore');
+        return v === '' ? null : Math.min(2, Math.max(0, parseInt(v, 10)));
+      })(),
       hypertension: num(getRadio('hypertension')),
       hyperlipidemia: num(getRadio('hyperlipidemia')),
       coronaryArteryDisease: num(getRadio('coronaryArteryDisease')),
@@ -76,6 +80,16 @@ const PrintableForm = ({ onBack, formData }) => {
   // Helper function to check if a radio should be checked
   const isChecked = (fieldName, value) => {
     if (!formData) return false;
+    
+    if (fieldName === 'comorbidityScore') {
+      const s = formData.comorbidityScore;
+      if (s !== undefined && s !== null) return Number(s) === Number(value);
+      const h = formData.hypertension; const hld = formData.hyperlipidemia; const cad = formData.coronaryArteryDisease; const d = formData.diabetes;
+      const isY = (v) => v === 'yes' || v === true || v === 1;
+      const n = [h, hld, cad, d].filter(isY).length;
+      const derived = n >= 2 ? 2 : n;
+      return Number(derived) === Number(value);
+    }
     
     // Handle array fields like ipss and shim
     if (fieldName.includes('.')) {
@@ -406,38 +420,23 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">Comorbidities</span>
+          <span className="section-label">Comorbidities.</span>
         </div>
 
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">12.</span> Hypertension (HTN):
-              <label className="checkbox-inline"><input type="radio" name="hypertension" value="0" defaultChecked={isChecked('hypertension', 0)} /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="hypertension" value="1" defaultChecked={isChecked('hypertension', 1)} /> Yes</label>
-            </label>
-          </div>
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              Hyperlipidemia (HLD):
-              <label className="checkbox-inline"><input type="radio" name="hyperlipidemia" value="0" defaultChecked={isChecked('hyperlipidemia', 0)} /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="hyperlipidemia" value="1" defaultChecked={isChecked('hyperlipidemia', 1)} /> Yes</label>
+              <span className="field-number">12.</span> Have you been diagnosed with any of these? (Hypertension, Hyperlipidemia, CAD, Diabetes)
             </label>
           </div>
         </div>
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              Coronary Artery Disease (CAD):
-              <label className="checkbox-inline"><input type="radio" name="coronaryArteryDisease" value="0" defaultChecked={isChecked('coronaryArteryDisease', 0)} /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="coronaryArteryDisease" value="1" defaultChecked={isChecked('coronaryArteryDisease', 1)} /> Yes</label>
-            </label>
-          </div>
-          <div className="form-field-inline">
-            <label className="field-label-inline">
-              Diabetes:
-              <label className="checkbox-inline"><input type="radio" name="diabetes" value="0" defaultChecked={isChecked('diabetes', 0)} /> No</label>
-              <label className="checkbox-inline"><input type="radio" name="diabetes" value="1" defaultChecked={isChecked('diabetes', 1)} /> Yes</label>
+              Have you had any of these conditions?
+              <label className="checkbox-inline"><input type="radio" name="comorbidityScore" value="0" defaultChecked={isChecked('comorbidityScore', 0)} /> No</label>
+              <label className="checkbox-inline"><input type="radio" name="comorbidityScore" value="1" defaultChecked={isChecked('comorbidityScore', 1)} /> Yes, one</label>
+              <label className="checkbox-inline"><input type="radio" name="comorbidityScore" value="2" defaultChecked={isChecked('comorbidityScore', 2)} /> Yes, two or more</label>
             </label>
           </div>
         </div>

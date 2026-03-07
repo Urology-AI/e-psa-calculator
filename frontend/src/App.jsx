@@ -105,6 +105,7 @@ function App() {
     smoking: null,
     chemicalExposure: null,
     dietPattern: '',
+    comorbidityScore: null,
     hypertension: null,
     hyperlipidemia: null,
     coronaryArteryDisease: null,
@@ -498,6 +499,7 @@ function App() {
       smoking: null,
       chemicalExposure: null,
       dietPattern: '',
+      comorbidityScore: null,
       hypertension: null,
       hyperlipidemia: null,
       coronaryArteryDisease: null,
@@ -658,7 +660,7 @@ function App() {
                 familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
                 weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
                 exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-                hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+                comorbidityScore: null, hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
               };
               const step1 = { ...defaultShape, ...sessionData.step1 };
               if (!Array.isArray(step1.ipss) || step1.ipss.length !== 7) {
@@ -752,7 +754,7 @@ function App() {
       familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
       weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
       exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-      hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+      comorbidityScore: null, hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
     };
     const normalizedImport = { ...defaultShape, ...dataToImport };
     if (!Array.isArray(normalizedImport.ipss) || normalizedImport.ipss.length !== 7) {
@@ -846,6 +848,7 @@ function App() {
       smoking: null,
       chemicalExposure: null,
       dietPattern: '',
+      comorbidityScore: null,
       hypertension: null,
       hyperlipidemia: null,
       coronaryArteryDisease: null,
@@ -909,6 +912,7 @@ function App() {
         smoking: null,
         chemicalExposure: null,
         dietPattern: '',
+        comorbidityScore: null,
         hypertension: null,
         hyperlipidemia: null,
         coronaryArteryDisease: null,
