@@ -384,6 +384,51 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     }
   }
 
+  // ePSA Risk Tier mapping (Component 1) based on rawScore
+  const EPSA_TIER_DEFS = [
+    {
+      key: 'low',
+      label: '🟢 Low Risk',
+      psaEquivalent: '< 1.0 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8–10 years if under 55, or as directed by your physician.'
+    },
+    {
+      key: 'intermediate-low',
+      label: '🟡 Intermediate-Low Risk',
+      psaEquivalent: '1.0–2.9 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of 1.0–2.9 ng/mL. Guidelines recommend rescreening every 2–4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
+    },
+    {
+      key: 'intermediate-high',
+      label: '🟠 Intermediate-High Risk',
+      psaEquivalent: '3.0–9.9 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of 3.0–9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
+    },
+    {
+      key: 'high',
+      label: '🔴 High Risk',
+      psaEquivalent: '≥ 10 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of ≥ 10 ng/mL. Guidelines from AUA, NCCN, and EAU strongly recommend urology referral and biopsy discussion. Prompt evaluation is advised.'
+    }
+  ];
+
+  let epsaTierIndex;
+  if (rawScore <= 15) {
+    epsaTierIndex = 0;
+  } else if (rawScore <= 31) {
+    epsaTierIndex = 1;
+  } else if (rawScore <= 63) {
+    epsaTierIndex = 2;
+  } else {
+    epsaTierIndex = 3;
+  }
+
+  const epsaTierDef = EPSA_TIER_DEFS[epsaTierIndex];
+
   return {
     score: scorePercent,
     scoreRange,
@@ -405,6 +450,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     isBlack,
     fhBinary,
     brcaStatus,
+    // Component 1: ePSA Risk Tier (raw-score based)
+    epsaTierIndex,
+    epsaTierKey: epsaTierDef.key,
+    epsaTierLabel: epsaTierDef.label,
+    epsaPsaEquivalent: epsaTierDef.psaEquivalent,
+    epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,
     displayRange: `${rangeLow}%–${rangeHigh}%`,
     confidenceRange: `${rangeLow}%–${rangeHigh}%`,

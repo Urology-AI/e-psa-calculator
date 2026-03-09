@@ -64,7 +64,10 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
     bmi,
     age,
     recommendPSA,
-    tierRisk
+    tierRisk,
+    epsaTierLabel,
+    epsaPsaEquivalent,
+    epsaGuidelineText
   } = result;
   const displayRange = result.displayRange || result.confidenceRange;
   const activeTier = tierRisk || risk;
@@ -183,6 +186,21 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         </div>
         <p className="rec-text">{getSoftenedActionText(activeTier, action)}</p>
         <p className="rec-text" style={{ fontSize: '12px', marginTop: '6px', opacity: 0.8 }}>{recommendationSubtitle}</p>
+      </div>
+
+      <div className="summary-box">
+        <div><strong>Component 1 — ePSA Risk Tier</strong></div>
+        <div style={{ marginTop: '6px' }}>
+          <strong>{epsaTierLabel || 'ePSA Tier not available'}</strong>
+          {epsaPsaEquivalent && (
+            <> — PSA-equivalent: <strong>{epsaPsaEquivalent}</strong></>
+          )}
+        </div>
+        {epsaGuidelineText && (
+          <div style={{ marginTop: '8px', fontSize: '13px' }}>
+            {epsaGuidelineText}
+          </div>
+        )}
       </div>
 
       <div className="summary-box">
