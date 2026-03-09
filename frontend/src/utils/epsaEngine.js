@@ -401,6 +401,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     shimTotal: variableValues.shimTotal,
     bmi: Number(bmi).toFixed(1),
     age: parseInt(age, 10),
+    // Part 2 integration helpers
+    isBlack,
+    fhBinary,
+    brcaStatus,
     modelVersion: config.version,
     displayRange: `${rangeLow}%–${rangeHigh}%`,
     confidenceRange: `${rangeLow}%–${rangeHigh}%`,
@@ -416,148 +420,179 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
-  const { part2 } = config;
+  const { psa, pirads, knowPirads } = postData || {};
 
-  const { psa, pirads, knowPirads } = postData;
+  // Base raw score from Part 1 (original variables only)
+  const preScorePct = Number(preResult?.score) || 0;
+  let baseRawScore = preResult?.calculationDetails?.rawScore;
+  let baseMaxScore = preResult?.calculationDetails?.maxScore;
 
-  if (part2?.modelType === 'unified_logistic_v1') {
-    const psaVal = Math.max(Number(psa) || 0.1, 0.1);
-    const logPSA = Math.log(psaVal);
-    const piradsVal = knowPirads ? Number(pirads) : 0;
-
-    const modelDef = (knowPirads && piradsVal >= 2)
-      ? part2.models.mri
-      : part2.models.base;
-
-    const vars = {
-      logPSA,
-      pirads_3: piradsVal === 3 ? 1 : 0,
-      pirads_4: piradsVal === 4 ? 1 : 0,
-      pirads_5: piradsVal === 5 ? 1 : 0
-    };
-
-    let logit = modelDef.intercept;
-    (modelDef.variables || []).forEach(v => {
-      logit += (v.weight || 0) * (vars[v.id] ?? 0);
-    });
-
-    if (part2.calibration) {
-      logit = logit * (part2.calibration.slope ?? 1)
-                  + (part2.calibration.interceptShift ?? 0);
-    }
-
-    const probability = 1 / (1 + Math.exp(-logit));
-    const pct = Math.round(probability * 100);
-    const rangeBand = 10;
-    const rangeLow = Math.max(0, pct - rangeBand);
-    const rangeHigh = Math.min(100, pct + rangeBand);
-
-    let riskClass;
-    if (probability < part2.thresholds.low) {
-      riskClass = 'low-risk';
-    } else if (probability < part2.thresholds.moderate) {
-      riskClass = 'moderate-risk';
-    } else if (probability < part2.thresholds.high) {
-      riskClass = 'high-risk';
-    } else {
-      riskClass = 'very-high-risk';
-    }
-
-    const riskCat = riskClass.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-    return {
-      riskPct: `${pct}%`,
-      riskPctRange: `${rangeLow}%–${rangeHigh}%`,
-      riskCat,
-      riskClass,
-      totalPoints: null,
-      prePoints: null,
-      baselineCarryPoints: null,
-      psaPoints: null,
-      piradsPoints: null,
-      nextSteps: [],
-      piradsOverridden: false,
-      modelVersion: config.version,
-      calculationDetails: {
-        logit,
-        probability,
-        vars
-      }
-    };
+  if (!Number.isFinite(baseRawScore)) {
+    baseMaxScore = 128;
+    baseRawScore = Math.round((preScorePct / 100) * baseMaxScore);
   }
 
-  // Fallback: legacy points-based model (kept for safety if config not migrated)
-  const preScore = preResult?.score || 0;
-  let prePoints = 0;
-
-  const ranges = part2.preScoreToPoints.ranges;
-  if (preScore < ranges[0].max) {
-    prePoints = Math.round((preScore / ranges[0].divisor) * ranges[0].multiplier);
-  } else if (preScore < ranges[1].max) {
-    prePoints = ranges[1].base + Math.round(((preScore - 21) / ranges[1].divisor) * ranges[1].multiplier);
-  } else if (preScore < ranges[2].max) {
-    prePoints = ranges[2].base + Math.round(((preScore - 31) / ranges[2].divisor) * ranges[2].multiplier);
-  } else {
-    prePoints = ranges[3].base + Math.round(((preScore - 41) / ranges[3].divisor) * ranges[3].multiplier);
-  }
-
-  const psaValue = parseFloat(psa) || 0;
+  // PSA scoring
+  const psaVal = psa === '' || psa === null || psa === undefined ? null : Number(psa);
   let psaPoints = 0;
-  for (const range of part2.psaPoints) {
-    if (psaValue <= range.max) {
-      psaPoints = range.points;
-      break;
+  if (psaVal != null && !Number.isNaN(psaVal)) {
+    if (psaVal < 1.0) {
+      psaPoints = 0;
+    } else if (psaVal < 3.0) {
+      psaPoints = 10;
+    } else if (psaVal < 10.0) {
+      psaPoints = 25;
+    } else {
+      psaPoints = 45;
     }
   }
 
-  const piradsValue = knowPirads ? parseInt(pirads) : 0;
-  const baselineCarryPoints = part2.baselineCarryPoints;
+  // PI-RADS scoring
+  const piradsVal = knowPirads ? (pirads === '' || pirads === null || pirads === undefined ? null : Number(pirads)) : null;
   let piradsPoints = 0;
-  let totalPoints = prePoints + baselineCarryPoints + psaPoints;
-  let riskPct, riskCat, riskClass, nextSteps, piradsOverridden = false;
-
-  if (knowPirads && part2.piradsOverrides[piradsValue]) {
-    const override = part2.piradsOverrides[piradsValue];
-    riskPct = override.riskPct;
-    riskCat = override.riskCat;
-    riskClass = override.riskClass;
-    nextSteps = [];
-    piradsOverridden = true;
+  let piradsOverridden = false;
+  if (piradsVal != null && !Number.isNaN(piradsVal)) {
+    if (piradsVal === 3) {
+      piradsPoints = 15;
+    } else if (piradsVal === 4) {
+      piradsPoints = 30;
+    } else if (piradsVal === 5) {
+      piradsPoints = 45;
+      piradsOverridden = true; // hard override to High tier
+    }
   }
 
-  if (!piradsOverridden) {
-    for (const p of part2.piradsPoints) {
-      if (piradsValue === p.value) {
-        piradsPoints = p.points;
-        break;
-      }
-    }
+  // High-risk features for Low-PSA bonus and warning
+  const isBlack = !!preResult?.isBlack;
+  const fhBinary = preResult?.fhBinary ?? 0;
+  const hasFamilyHistory = fhBinary === 1 || preResult?.familyHistory === 1;
+  const brcaStatus = preResult?.brcaStatus;
+  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
+  const hasHighRiskFeature =
+    isBlack ||
+    hasFamilyHistory ||
+    brcaPositive ||
+    (piradsVal != null && piradsVal >= 3);
 
-    totalPoints += piradsPoints;
-
-    for (const category of part2.riskCategories) {
-      if (totalPoints <= category.maxPoints) {
-        riskPct = category.riskPct;
-        riskCat = category.riskCat;
-        riskClass = category.riskClass;
-        break;
-      }
-    }
-
-    nextSteps = [];
+  let psaBonusLow = 0;
+  let lowPsaWarning = false;
+  let lowPsaWarningText = null;
+  if (psaVal != null && !Number.isNaN(psaVal) && psaVal < 2.0 && hasHighRiskFeature) {
+    psaBonusLow = 15;
+    lowPsaWarning = true;
+    lowPsaWarningText =
+      '🚨 Important: Low PSA Does Not Rule Out Risk Your PSA level is below 2.0 ng/mL, which is often considered reassuring. However, your risk profile includes one or more high-risk features (race, family history, genetic mutations, or MRI findings) that are associated with clinically significant prostate cancer even at low PSA levels. Standard guidelines do not currently account for these factors when interpreting PSA thresholds. Early evaluation with a urologist is recommended regardless of your PSA value.';
   }
+
+  const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints;
+
+  // Map total points to ePSA tier
+  const TIER_DEFS = [
+    {
+      key: 'low',
+      label: '🟢 Low Risk',
+      psaEquivalent: '< 1.0 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8–10 years if under 55, or as directed by your physician.'
+    },
+    {
+      key: 'intermediate-low',
+      label: '🟡 Intermediate-Low Risk',
+      psaEquivalent: '1.0–2.9 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of 1.0–2.9 ng/mL. Guidelines recommend rescreening every 2–4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
+    },
+    {
+      key: 'intermediate-high',
+      label: '🟠 Intermediate-High Risk',
+      psaEquivalent: '3.0–9.9 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of 3.0–9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
+    },
+    {
+      key: 'high',
+      label: '🔴 High Risk',
+      psaEquivalent: '≥ 10 ng/mL',
+      guideline:
+        'Your risk profile is consistent with a PSA equivalent of ≥ 10 ng/mL. Guidelines from AUA, NCCN, and EAU strongly recommend urology referral and biopsy discussion. Prompt evaluation is advised.'
+    }
+  ];
+
+  let tierIndex;
+  if (piradsOverridden) {
+    tierIndex = 3; // High regardless of score
+  } else if (totalPoints <= 28) {
+    tierIndex = 0;
+  } else if (totalPoints <= 58) {
+    tierIndex = 1;
+  } else if (totalPoints <= 116) {
+    tierIndex = 2;
+  } else {
+    tierIndex = 3;
+  }
+
+  const tierDef = TIER_DEFS[tierIndex];
+
+  // Map to existing riskClass bands for color mapping
+  const RISK_CLASSES = ['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk'];
+  const riskClass = RISK_CLASSES[tierIndex];
+
+  // Actual PSA tier for discordance flag
+  let psaTierIndex = null;
+  let psaTierLabel = null;
+  if (psaVal != null && !Number.isNaN(psaVal)) {
+    if (psaVal < 1.0) {
+      psaTierIndex = 0;
+      psaTierLabel = 'Low';
+    } else if (psaVal < 3.0) {
+      psaTierIndex = 1;
+      psaTierLabel = 'Intermediate-Low';
+    } else if (psaVal < 10.0) {
+      psaTierIndex = 2;
+      psaTierLabel = 'Intermediate-High';
+    } else {
+      psaTierIndex = 3;
+      psaTierLabel = 'High';
+    }
+  }
+
+  let discordanceFlag = null;
+  if (psaTierIndex != null) {
+    const diff = tierIndex - psaTierIndex;
+    if (diff > 0) {
+      const severity = diff === 1 ? 'yellow' : 'orange';
+      const discordanceText = `⚠️ Risk Discordance Detected Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`;
+      discordanceFlag = {
+        severity,
+        text: discordanceText
+      };
+    }
+  }
+
+  const riskCat = tierDef.label;
+  const riskPct = tierDef.psaEquivalent;
+  const nextSteps = [tierDef.guideline];
 
   return {
     riskPct,
+    riskPctRange: null,
     riskCat,
     riskClass,
     totalPoints,
-    prePoints,
-    baselineCarryPoints,
+    prePoints: baseRawScore,
+    baselineCarryPoints: null,
     psaPoints,
     piradsPoints,
     nextSteps,
     piradsOverridden,
+    psaTier: psaTierLabel,
+    psaValue: psaVal,
+    epsaTierIndex: tierIndex,
+    epsaTierKey: tierDef.key,
+    guidelineText: tierDef.guideline,
+    discordanceFlag,
+    lowPsaWarning,
+    lowPsaWarningText,
     modelVersion: config.version
   };
 };

@@ -186,9 +186,20 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
   const isPart2 = result.riskPct !== undefined; // Part2 has riskPct, Part1 has score
   
   // Extract Part2 data if available
-  let riskPct = 'N/A', riskCat = 'N/A', riskClass = 'N/A', totalPoints = 0, nextSteps = [];
+  let riskPct = 'N/A', riskCat = 'N/A', riskClass = 'N/A', totalPoints = 0, nextSteps = [], psaValue = null, psaTier = null, discordanceFlag = null, lowPsaWarning = false, lowPsaWarningText = null;
   if (isPart2) {
-    ({ riskPct, riskCat, riskClass, totalPoints, nextSteps } = result);
+    ({
+      riskPct,
+      riskCat,
+      riskClass,
+      totalPoints,
+      nextSteps,
+      psaValue,
+      psaTier,
+      discordanceFlag,
+      lowPsaWarning,
+      lowPsaWarningText
+    } = result);
   }
   
   // Part1 data structure
@@ -347,14 +358,36 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
                   <span className="detail-value">{riskCat}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="detail-label">Total Points:</span>
-                  <span className="detail-value">{totalPoints}</span>
+                  <span className="detail-label">PSA-Equivalent Range:</span>
+                  <span className="detail-value">{riskPct}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Actual PSA:</span>
+                  <span className="detail-value">{psaValue != null ? `${psaValue} ng/mL` : (formData.psa || 'Not answered')}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">PSA Tier:</span>
+                  <span className="detail-value">{psaTier || 'N/A'}</span>
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Next Steps:</span>
                   <span className="detail-value">{Array.isArray(nextSteps) && nextSteps.length ? nextSteps.join(' | ') : 'Discuss with physician'}</span>
                 </div>
               </div>
+
+              {lowPsaWarning && (
+                <div className="recommendation-box" style={{ borderColor: '#C0392B' }}>
+                  <h3>Low-PSA Warning</h3>
+                  <p className="recommendation-text">{lowPsaWarningText}</p>
+                </div>
+              )}
+
+              {discordanceFlag && (
+                <div className="recommendation-box">
+                  <h3>Risk Discordance</h3>
+                  <p className="recommendation-text">{discordanceFlag.text}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -473,8 +506,13 @@ const ResultsPrint = ({ result, formData, onBack, sessionId = null, userEmail = 
         {/* Footer */}
         <div className="print-footer">
           <div className="footer-disclaimer">
-            <p><strong>Important Disclaimer:</strong> This is a Non-Validated Educational Risk Tool. It is not medical advice, not diagnostic, and not intended to guide treatment decisions. PSA and MRI decisions (including whether to repeat PSA, order MRI, or consider biopsy) depend on individual factors and should be made with a qualified healthcare professional.</p>
-            <p>Please consult with a qualified healthcare provider for any medical concerns or before making any decisions related to your health.</p>
+            <p>
+              <strong>Important Disclaimer:</strong> ePSA is a non-validated educational risk assessment tool.
+              Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU.
+              In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend.
+              This tool does not replace physician judgment and is not intended for clinical decision-making without physician review.
+              — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai
+            </p>
           </div>
           <div className="footer-info">
             <p>Million Strong Men — ePSA Tool</p>

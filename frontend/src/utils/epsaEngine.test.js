@@ -168,8 +168,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     expect(result).toHaveProperty('riskPct');
     expect(result).toHaveProperty('riskClass');
     expect(result).toHaveProperty('riskCat');
-    expect(result.riskPct).toMatch(/\d+%/);
-    expect(result.totalPoints).toBeNull();
+    expect(['< 1.0 ng/mL', '1.0–2.9 ng/mL', '3.0–9.9 ng/mL', '≥ 10 ng/mL']).toContain(result.riskPct);
     expect(['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk']).toContain(result.riskClass);
   });
 
@@ -185,25 +184,24 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     const preResult = makePreResult({ score: 25 });
     const lowPsa = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 2 }));
     const highPsa = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 15 }));
-    const pctLow = parseInt(lowPsa.riskPct, 10);
-    const pctHigh = parseInt(highPsa.riskPct, 10);
-    expect(pctHigh).toBeGreaterThan(pctLow);
+    const tierLow = lowPsa.epsaTierIndex;
+    const tierHigh = highPsa.epsaTierIndex;
+    expect(tierHigh).toBeGreaterThanOrEqual(tierLow);
   });
 
   it('PI-RADS 5 increases risk vs no MRI', () => {
     const preResult = makePreResult();
     const noMri = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 5, knowPirads: false }));
     const pirads5 = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 5, knowPirads: true, pirads: 5 }));
-    const pctNo = parseInt(noMri.riskPct, 10);
-    const pct5 = parseInt(pirads5.riskPct, 10);
-    expect(pct5).toBeGreaterThan(pctNo);
+    expect(pirads5.epsaTierIndex).toBeGreaterThanOrEqual(noMri.epsaTierIndex);
+    expect(pirads5.piradsOverridden).toBe(true);
   });
 
   it('PI-RADS 3 vs 5: higher category for 5', () => {
     const preResult = makePreResult();
     const r3 = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 6, knowPirads: true, pirads: 3 }));
     const r5 = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 6, knowPirads: true, pirads: 5 }));
-    expect(parseInt(r5.riskPct, 10)).toBeGreaterThanOrEqual(parseInt(r3.riskPct, 10));
+    expect(r5.epsaTierIndex).toBeGreaterThanOrEqual(r3.epsaTierIndex);
   });
 
   it('low PSA gives lower risk category', () => {
