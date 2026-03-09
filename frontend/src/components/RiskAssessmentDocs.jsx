@@ -41,9 +41,11 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
               It is not a diagnosis and should not be used as a standalone basis for clinical decisions.
             </p>
             <div className="info-box warning">
-              <strong>Important:</strong> This is a <strong>Non-Validated Educational Risk Tool</strong>.
+              <strong>Important:</strong> ePSA is a <strong>non-validated educational risk assessment tool</strong>.
+              Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU.
+              In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend.
               PSA and MRI interpretation depends on clinical context (e.g., PSA trends, prostate size, infection/inflammation, medications),
-              and should be reviewed with a qualified healthcare professional.
+              and should always be reviewed with a qualified healthcare professional.
             </div>
           </section>
 
@@ -264,6 +266,12 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
             <p className="reference-note">
               For questions about the risk assessment model, please contact the 
               Department of Urology, Mount Sinai Health System.
+            </p>
+            <p className="reference-note">
+              This tool is documented as a non-validated educational instrument developed within the Mount Sinai Urology ecosystem.
+              It references AUA/SUO 2026 Early Detection of Prostate Cancer Guidelines for contextual framing only.
+              Risk stratification outputs may recommend earlier evaluation than current guideline thresholds for high-risk demographic profiles.
+              This divergence is intentional and should be discussed with a urologist or primary care provider.
             </p>
           </section>
         </div>

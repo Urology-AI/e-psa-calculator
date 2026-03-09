@@ -86,6 +86,12 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
   const displayRangeExplanationText =
     'The displayed range is a ±5% band around your score. It is there to avoid over-interpreting small differences between nearby scores. It is not a statistical confidence interval and does not represent measurement precision.';
 
+  const guidelineContextText =
+    'Screening should begin at age 40–45 for people at increased risk — specifically those with Black ancestry, germline mutations, or strong family history of prostate cancer. For average-risk individuals, a baseline PSA can be offered between ages 45–50, with regular screening every 2–4 years for those aged 50–69. Age-based PSA thresholds used clinically are approximately: 2.5 ng/mL (ages 40–49), 3.5 (50–59), 4.5 (60–69), and 6.5 (70–79).';
+
+  const guidelineDivergenceText =
+    'Current guidelines do not adjust screening thresholds for race, family history, or age under 50 as standalone triggers. The ePSA tool intentionally flags these high-risk profiles for earlier evaluation, which is the clinical gap this project is designed to address.';
+
   const getTierDescription = (tier) => {
     switch (tier) {
       case 'LOWER':
@@ -115,7 +121,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
   };
 
   const footerDisclaimerText =
-    'This is a Non-Validated Educational Risk Tool. It is not medical advice, not diagnostic, and not intended to guide treatment decisions. Screening and imaging decisions should be made with a qualified clinician.';
+    'ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai';
 
   const riskLevels = [
     { label: 'LOWER', range: 'Fewer risk flags' },
@@ -188,6 +194,12 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         </div>
         <div style={{ marginTop: '10px' }}><strong>What your tier means</strong></div>
         <div style={{ marginTop: '6px' }}>{getTierDescription(activeTier)}</div>
+      </div>
+
+      <div className="summary-box">
+        <div><strong>Guideline context (AUA/SUO 2026)</strong></div>
+        <div style={{ marginTop: '6px' }}>{guidelineContextText}</div>
+        <div style={{ marginTop: '10px', fontStyle: 'italic' }}>{guidelineDivergenceText}</div>
       </div>
 
       <div className="risk-bar">

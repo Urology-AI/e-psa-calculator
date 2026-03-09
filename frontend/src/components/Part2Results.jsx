@@ -23,7 +23,7 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     downloadCsv(filename, rows);
   };
   const footerDisclaimerText =
-    'This is a Non-Validated Educational Risk Tool and is not medical advice. PSA and MRI decisions (including whether to repeat PSA, order MRI, or consider biopsy) depend on individual factors and should be made with a qualified healthcare professional.';
+    'ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai';
 
   const combinedFormData = {
     ...(preData || {}),
@@ -76,28 +76,20 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     riskPctRange,
     riskCat,
     riskClass,
-    totalPoints,
     nextSteps,
-    prePoints,
-    psaPoints,
-    piradsPoints,
-    piradsOverridden
+    psaValue,
+    psaTier,
+    discordanceFlag,
+    lowPsaWarning,
+    lowPsaWarningText
   } = result;
 
-  const useLogisticModel = totalPoints == null;
-
   const part2RiskExplanationText =
-    'Part 2 combines your Part 1 result with PSA information (and optional MRI PI-RADS) to create an educational summary. It is not a diagnosis and should not be used to make decisions on its own. PSA and MRI findings often require careful interpretation (including PSA trends over time, prostate size, infections/inflammation, and medications).';
-
-  const pointsExplanationText =
-    'Points are used only to organize inputs (baseline estimate + PSA range + optional MRI category) into a simple educational category. Points are not a clinical scale and are not meant to imply exact probabilities or certainty.';
-
-  const logisticModelExplanationText =
-    'The risk category is from a logistic regression model that combines log(PSA) and PI-RADS (when provided) into a single probability, then maps it to Low / Moderate / High using set thresholds. This replaces the older points-based summary.';
+    'Part 2 combines your ePSA risk profile with your PSA level and (if available) MRI PI-RADS score to provide an educational risk tier. PSA levels and PI-RADS scores entered here are used solely for educational risk stratification. PSA-based screening in combination with shared decision-making is the recommended standard — this tool is intended to supplement, not replace, that conversation with your clinician. A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or further workup is pursued.';
 
   const piradsExplanationTextProvided =
-    'PI-RADS is an MRI reporting category that can meaningfully change how risk is interpreted. When a PI-RADS value is provided, the tool may adjust the category to reflect typical patterns seen with MRI findings. This is an educational simplification and should be reviewed with the clinician who ordered or interpreted your MRI.';
-
+    'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.';
+  
   const piradsExplanationTextNotProvided =
     'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.';
 
@@ -158,6 +150,24 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
           {riskCat.replace(/[🟢🟡🟠🔴]/g, '').trim()}
         </div>
       </div>
+
+      {lowPsaWarning && (
+        <div className="summary-box low-psa-warning-banner">
+          <div style={{ color: '#C0392B', fontWeight: 600, marginBottom: '4px' }}>Low-PSA Warning</div>
+          <div style={{ fontSize: '13px' }}>
+            {lowPsaWarningText}
+          </div>
+        </div>
+      )}
+
+      {discordanceFlag && (
+        <div className={`summary-box discordance-flag discordance-${discordanceFlag.severity}`}>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Risk Discordance Detected</div>
+          <div style={{ fontSize: '13px' }}>
+            {discordanceFlag.text}
+          </div>
+        </div>
+      )}
 
       {preResult && (
         <div className="part1-reference-box">
@@ -222,10 +232,10 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
         <div><strong>Risk explanation</strong></div>
         <div style={{ marginTop: '6px' }}>{part2RiskExplanationText}</div>
         <div style={{ marginTop: '10px' }}>
-          <strong>{useLogisticModel ? 'How the score is summarized (logistic model)' : 'How the score is summarized (Points)'}</strong>
+          <strong>How the risk tier is summarized</strong>
         </div>
         <div style={{ marginTop: '6px' }}>
-          {useLogisticModel ? logisticModelExplanationText : pointsExplanationText}
+          {pointsExplanationText}
         </div>
         <div style={{ marginTop: '10px' }}><strong>About PI-RADS</strong></div>
         <div style={{ marginTop: '6px' }}>
@@ -234,35 +244,24 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
       </div>
 
       <div className="summary-box">
-        {useLogisticModel ? (
-          <>
-            <div><strong>Model inputs (logistic)</strong></div>
-            {riskPctRange && <div>Display range: <strong>{riskPctRange}</strong></div>}
-            <div>PSA: <strong>{postData?.psa != null ? `${postData.psa} ng/mL` : 'N/A'}</strong></div>
-            <div>PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong></div>
-            {preResult && (
-              <>
-                <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
-                <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <div>Total Points: <strong>{totalPoints}</strong></div>
-            <div>Pre-score Points: <strong>{prePoints}</strong></div>
-            <div>PSA: <strong>{postData?.psa || 'N/A'} ng/mL</strong> ({psaPoints} pts)</div>
-            <div>
-              PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong> ({piradsPoints} pts{piradsOverridden ? ', override applied' : ''})
-            </div>
-            {preResult && (
-              <>
-                <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
-                <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
-              </>
-            )}
-          </>
-        )}
+        <>
+          <div><strong>Key clinical inputs</strong></div>
+          <div>PSA: <strong>{psaValue != null ? `${psaValue} ng/mL` : (postData?.psa != null ? `${postData.psa} ng/mL` : 'N/A')}</strong></div>
+          <div>PSA Tier: <strong>{psaTier || 'N/A'}</strong></div>
+          <div>PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong></div>
+          {preResult && (
+            <>
+              <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
+              <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
+            </>
+          )}
+        </>
+      </div>
+
+      <div className="summary-box">
+        <div style={{ fontSize: '13px', color: '#666' }}>
+          {footerDisclaimerText}
+        </div>
       </div>
 
       <div className="result-buttons">

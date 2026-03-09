@@ -28,7 +28,8 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
               It is <strong>not a diagnosis</strong> and does not replace clinical judgment.
             </p>
             <div className="info-box warning">
-              <strong>Non-Validated Educational Tool.</strong> Screening decisions should be made with a qualified healthcare provider.
+              <strong>Non-validated educational tool.</strong> Screening decisions should be made with a qualified healthcare provider.
+              Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU, and may recommend earlier evaluation than current thresholds for high-risk demographic profiles. This divergence is intentional and should be interpreted in the context of shared decision-making.
             </div>
           </section>
 
