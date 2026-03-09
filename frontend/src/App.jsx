@@ -387,11 +387,16 @@ function App() {
     return { id: userSnap.id, ...userSnap.data() };
   };
 
+  // Session data is stored via HIPAA-compliant Cloud Functions; always fetch via backend
   const getSession = async (id) => {
-    if (!id || !db) return null;
-    const sessionSnap = await getDoc(doc(db, 'sessions', id));
-    if (!sessionSnap.exists()) return null;
-    return { id: sessionSnap.id, ...sessionSnap.data() };
+    if (!id) return null;
+    try {
+      const session = await backendGetSession(id);
+      return session || null;
+    } catch (error) {
+      console.warn('Could not load session via backendGetSession:', error);
+      return null;
+    }
   };
 
   // Session create/update/delete are handled by backend Cloud Functions (phiBackendService)

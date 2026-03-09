@@ -1,16 +1,17 @@
 .part1-results-container {
-  max-width: 480px;
+  max-width: 520px;
   margin: 0 auto;
-  padding: 20px 16px;
+  padding: 24px 16px 32px;
 }
 
 .results-header {
-  background: #00578B;
+  background: linear-gradient(135deg, #00578B, #0074A2);
   color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 16px 20px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .results-logo {
@@ -28,11 +29,12 @@
 
 .score-card {
   background: white;
-  border-radius: 16px;
-  padding: 28px;
+  border-radius: 20px;
+  padding: 24px 22px 22px;
   border: 1px solid #E8ECF0;
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 .results-header {
@@ -114,10 +116,10 @@
 }
 
 .score-big {
-  font-size: 56px;
+  font-size: 34px;
   font-weight: 800;
   line-height: 1;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .risk-badge {
@@ -132,9 +134,10 @@
 
 .recommendation-box {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .rec-label {
@@ -174,13 +177,12 @@
 
 .summary-box {
   background: white;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 20px;
   margin-bottom: 16px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: block;
   font-size: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
 
 .summary-box div {

@@ -171,10 +171,23 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       </div>
 
       <div className="score-card">
-        <div className="score-label">YOUR ePSA SCORE</div>
+        <div className="score-label">YOUR ePSA RISK TIER</div>
         <div className="score-big" style={{ color }}>
-          {score}%
+          {epsaTierLabel || 'ePSA Tier'}
         </div>
+        {epsaPsaEquivalent && (
+          <div className="score-range" style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+            PSA-equivalent: <strong>{epsaPsaEquivalent}</strong>
+          </div>
+        )}
+        {epsaGuidelineText && (
+          <p
+            className="score-guideline-text"
+            style={{ marginTop: '10px', fontSize: '13px', color: '#444', lineHeight: 1.5 }}
+          >
+            {epsaGuidelineText}
+          </p>
+        )}
         <div className="risk-badge" style={{ background: color }}>
           {riskBadgeLabel}
         </div>
@@ -186,21 +199,6 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
         </div>
         <p className="rec-text">{getSoftenedActionText(activeTier, action)}</p>
         <p className="rec-text" style={{ fontSize: '12px', marginTop: '6px', opacity: 0.8 }}>{recommendationSubtitle}</p>
-      </div>
-
-      <div className="summary-box">
-        <div><strong>Component 1 — ePSA Risk Tier</strong></div>
-        <div style={{ marginTop: '6px' }}>
-          <strong>{epsaTierLabel || 'ePSA Tier not available'}</strong>
-          {epsaPsaEquivalent && (
-            <> — PSA-equivalent: <strong>{epsaPsaEquivalent}</strong></>
-          )}
-        </div>
-        {epsaGuidelineText && (
-          <div style={{ marginTop: '8px', fontSize: '13px' }}>
-            {epsaGuidelineText}
-          </div>
-        )}
       </div>
 
       <div className="summary-box">
