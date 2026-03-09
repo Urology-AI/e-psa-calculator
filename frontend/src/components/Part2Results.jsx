@@ -1,7 +1,6 @@
 import React from 'react';
 import './Part2Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
-import ResultsPrint from './ResultsPrint';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import { 
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 
 const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null, userEmail = null, userPhone = null, onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null }) => {
-  const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {}); // config not needed for CSV
@@ -25,37 +23,22 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
   const footerDisclaimerText =
     'ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai';
 
-  const combinedFormData = {
-    ...(preData || {}),
-    ...(postData || {}),
-    ipssTotal: preResult?.ipssTotal,
-    shimTotal: preResult?.shimTotal,
-    score: preResult?.score,
-    scoreRange: preResult?.scoreRange,
-    confidenceRange: preResult?.confidenceRange,
-    risk: preResult?.risk,
-    action: preResult?.action,
-    bmi: preResult?.bmi ?? preData?.bmi,
-    age: preResult?.age ?? preData?.age
-  };
-
-  if (showResultsPrint) {
-    return (
-      <ResultsPrint 
-        result={result} 
-        formData={combinedFormData}
-        sessionId={sessionId}
-        userEmail={userEmail}
-        userPhone={userPhone}
-        onBack={() => setShowResultsPrint(false)} 
-      />
-    );
-  }
-
   if (showPrintableForm) {
     return (
       <PrintableForm 
-        formData={combinedFormData}
+        formData={{
+          ...(preData || {}),
+          ...(postData || {}),
+          ipssTotal: preResult?.ipssTotal,
+          shimTotal: preResult?.shimTotal,
+          score: preResult?.score,
+          scoreRange: preResult?.scoreRange,
+          confidenceRange: preResult?.confidenceRange,
+          risk: preResult?.risk,
+          action: preResult?.action,
+          bmi: preResult?.bmi ?? preData?.bmi,
+          age: preResult?.age ?? preData?.age
+        }}
         onBack={() => setShowPrintableForm(false)} 
       />
     );
@@ -273,7 +256,7 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
           <RefreshCwIcon size={18} />
           <span>Start Over</span>
         </button>
-        <button className="btn-print" onClick={() => setShowResultsPrint(true)}>
+        <button className="btn-print" onClick={() => window.print()}>
           <PrinterIcon size={18} />
           <span>Print Results</span>
         </button>
