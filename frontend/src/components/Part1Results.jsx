@@ -2,7 +2,6 @@ import React from 'react';
 import './Part1Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
-import ResultsPrint from './ResultsPrint';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import { 
   ArrowLeftIcon, 
@@ -16,7 +15,6 @@ import {
 
 const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMode, hideBackButton = false, sessionId = null, userEmail = null, userPhone = null, onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null }) => {
   const [showPrintableForm, setShowPrintableForm] = React.useState(false);
-  const [showResultsPrint, setShowResultsPrint] = React.useState(false);
   const handleExportCsv = () => {
     const rows = buildPart1CsvRows(formData, result, {}); // config not needed for CSV
     const filename = `ePSA_Part1_Results_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -28,19 +26,6 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
       <PrintableForm 
         formData={formData} 
         onBack={() => setShowPrintableForm(false)} 
-      />
-    );
-  }
-
-  if (showResultsPrint) {
-    return (
-      <ResultsPrint 
-        result={result} 
-        formData={formData} 
-        sessionId={sessionId}
-        userEmail={userEmail}
-        userPhone={userPhone}
-        onBack={() => setShowResultsPrint(false)} 
       />
     );
   }
@@ -265,7 +250,7 @@ const Part1Results = ({ result, onEditAnswers, onStartOver, formData, storageMod
           <RefreshCwIcon size={18} />
           <span>Start Over</span>
         </button>
-        <button className="btn-print" onClick={() => setShowResultsPrint(true)}>
+        <button className="btn-print" onClick={() => window.print()}>
           <PrinterIcon size={18} />
           <span>Print Results</span>
         </button>
