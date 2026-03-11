@@ -25,7 +25,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
       <section className="ws-hero">
         <div className="ws-hero-kicker">Prostate-Specific Awareness · Risk Assessment Tool</div>
         <h1 className="ws-hero-title">
-          Understand your prostate<br />cancer risk before your<br />next appointment.
+          Find out if you should discuss<br />PSA testing with your doctor.
         </h1>
         <p className="ws-hero-body">
           ePSA is an evidence-informed questionnaire developed at Mount Sinai that summarises
