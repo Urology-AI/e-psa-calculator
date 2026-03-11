@@ -23,10 +23,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
 
       {/* ── Hero ── */}
       <section className="ws-hero">
-        <div className="ws-hero-kicker">
-          educational Prostate&#8209;Specific Awareness<br />
-          A Non&#8209;Validated Electronic Risk Tool
-        </div>
         <h1 className="ws-hero-title">
           Find out if you should discuss<br />PSA testing with your doctor.
         </h1>
@@ -102,10 +98,10 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
       {/* ── Footer strip ── */}
       <footer className="ws-footer">
         <span className="ws-footer-inst">
-          Icahn School of Medicine at Mount Sinai · Urology AI
+          Icahn School of Medicine at Mount Sinai · Urology Department
         </span>
         <span className="ws-footer-sep" aria-hidden="true">·</span>
-        <span className="ws-footer-guidelines">Informed by AUA · NCCN · EAU · SUO</span>
+        <span className="ws-footer-guidelines">Based on guidance by: AUA · NCCN · EAU · SUO</span>
         <p className="ws-footer-disclaimer">
           Educational use only. Not a clinical diagnostic. Does not replace guidance from a licensed healthcare professional.
         </p>
