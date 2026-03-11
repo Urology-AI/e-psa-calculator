@@ -23,7 +23,10 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
 
       {/* ── Hero ── */}
       <section className="ws-hero">
-        <div className="ws-hero-kicker">Prostate-Specific Awareness · Risk Assessment Tool</div>
+        <div className="ws-hero-kicker">
+          educational Prostate&#8209;Specific Awareness<br />
+          A Non&#8209;Validated Electronic Risk Tool
+        </div>
         <h1 className="ws-hero-title">
           Find out if you should discuss<br />PSA testing with your doctor.
         </h1>
