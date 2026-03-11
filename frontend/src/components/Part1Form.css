@@ -251,3 +251,152 @@
     padding: 12px;
   }
 }
+
+/* Professional flow polish */
+.part1-form-container {
+  max-width: 700px;
+  padding: 16px 16px 110px;
+}
+
+.flow-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.flow-step-chip {
+  align-self: flex-start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eaf4fd;
+  color: #1f5f8a;
+  border: 1px solid #cfe2f3;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.flow-step-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #1a354b;
+}
+
+.progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #edf2f7;
+  border: 1px solid #dde7f0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #1b6494 0%, #28a4d9 100%);
+}
+
+.answer-counter {
+  font-weight: 600;
+  color: #50677c;
+}
+
+.section-header {
+  border-radius: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #134f79 0%, #1f6ea3 100%);
+  box-shadow: 0 6px 16px rgba(19, 79, 121, 0.22);
+}
+
+.question-card {
+  border-radius: 14px;
+  border: 1px solid #d9e4ee;
+  box-shadow: 0 6px 14px rgba(14, 43, 64, 0.06);
+}
+
+.question-number {
+  background: linear-gradient(135deg, #155886 0%, #1f6ea3 100%);
+}
+
+.question-text {
+  font-weight: 600;
+  color: #20384b;
+}
+
+.option-btn {
+  border: 1px solid #d6e2ee;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.option-btn:hover,
+.option-btn.selected {
+  border-color: #1f6ea3;
+  background: #f1f8ff;
+  box-shadow: inset 0 0 0 1px #c5e0f5;
+}
+
+.input-field {
+  border: 1px solid #cfdcea;
+  border-radius: 10px;
+  background: #fdfefe;
+}
+
+.input-field:focus {
+  border-color: #1f6ea3;
+  box-shadow: 0 0 0 3px rgba(31, 110, 163, 0.15);
+}
+
+.form-navigation {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #dce6ef;
+  padding: 14px 16px;
+}
+
+.form-navigation-inner {
+  max-width: 700px;
+}
+
+.btn-back,
+.btn-next,
+.btn-calculate {
+  border-radius: 12px;
+  font-weight: 700;
+  transition: all .2s ease;
+}
+
+.btn-next {
+  background: linear-gradient(135deg, #155886 0%, #1f6ea3 100%);
+}
+
+.btn-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(21, 88, 134, .25);
+}
+
+.btn-calculate {
+  background: linear-gradient(135deg, #1f7a44 0%, #28a35a 100%);
+}
+
+.step-error-box {
+  background: #fff6f6;
+  border: 1px solid #efb3b3;
+  border-left: 4px solid #d84f4f;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.step-error-title {
+  color: #b83a3a;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.step-error-list {
+  color: #b83a3a;
+  margin: 0;
+  padding-left: 20px;
+}
