@@ -1254,7 +1254,7 @@ function App() {
             <footer className="app-footer">
               <div className="footer-content">
                 <p className="footer-text">
-                  ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool
+                  Learn more about the documentation for this tool.
                 </p>
                 <button 
                   className="btn-model-docs" 
@@ -1467,8 +1467,8 @@ function App() {
           </div>
           <div className="header-text">
             <h1>ePSA</h1>
-            <h2>Prostate‑Specific Awareness</h2>
-            <p className="subtitle">A Non‑Validated Educational Risk Tool</p>
+            <h2>educational Prostate‑Specific Awareness</h2>
+            <p className="subtitle">A Non‑Validated Electronic Risk Tool</p>
           </div>
           <div className="header-actions">
             <div className="stage-indicator">
