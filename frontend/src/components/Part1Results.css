@@ -390,3 +390,44 @@
   margin-top: 16px;
   line-height: 1.6;
 }
+
+/* Professional results polish */
+.part1-results-container {
+  max-width: 760px;
+  padding-top: 28px;
+}
+
+.results-header {
+  border-radius: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #0f4f7a 0%, #1d79ab 100%);
+}
+
+.score-card,
+.recommendation-box,
+.summary-box,
+.part1-reference-box {
+  border: 1px solid #e3ebf3;
+  box-shadow: 0 6px 20px rgba(15, 40, 62, 0.08);
+}
+
+.score-label,
+.reference-label,
+.rec-label {
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rec-text {
+  color: #30485a;
+  line-height: 1.6;
+}
+
+.result-buttons {
+  padding: 0;
+}
+
+.result-buttons button {
+  border-radius: 12px;
+  min-height: 46px;
+}
