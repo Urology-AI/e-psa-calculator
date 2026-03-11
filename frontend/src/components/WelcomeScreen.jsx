@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import {
-  FileTextIcon,
-  ClipboardListIcon,
-  ClockIcon,
-  LockIcon,
-  ArrowRightIcon,
-  UploadIcon,
-  ShieldCheckIcon,
-  StethoscopeIcon,
-  CheckCircle2Icon,
-  ActivityIcon,
-  HeartPulseIcon,
-  UserCheckIcon,
-  ChevronRightIcon,
-} from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon } from 'lucide-react';
 
 const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
@@ -32,187 +18,96 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
     return <PrintableForm onBack={() => setShowForm(false)} formData={formData} />;
   }
 
-  const assessmentSteps = [
-    {
-      number: '01',
-      icon: <ClipboardListIcon size={20} />,
-      title: 'Part 1 — Risk Profile',
-      description: 'Answer 27 questions covering demographics, lifestyle, family history, and urinary symptoms.',
-      time: '~4 min',
-    },
-    {
-      number: '02',
-      icon: <ActivityIcon size={20} />,
-      title: 'Part 2 — Clinical Data',
-      description: 'Optionally enter your PSA level and MRI PI-RADS score to refine your risk estimate.',
-      time: '~1 min',
-    },
-    {
-      number: '03',
-      icon: <HeartPulseIcon size={20} />,
-      title: 'Results & Next Steps',
-      description: 'Receive a personalized ePSA risk tier with evidence-based guidance for clinician discussion.',
-      time: 'Instant',
-    },
-  ];
-
-  const trustSignals = [
-    { icon: <ShieldCheckIcon size={15} />, label: 'No account required' },
-    { icon: <LockIcon size={15} />, label: 'Privacy by design' },
-    { icon: <StethoscopeIcon size={15} />, label: 'Built for clinician conversations' },
-    { icon: <CheckCircle2Icon size={15} />, label: 'AUA / NCCN / EAU guidelines' },
-    { icon: <UserCheckIcon size={15} />, label: 'Evidence-informed scoring' },
-    { icon: <FileTextIcon size={15} />, label: 'Exportable PDF & CSV results' },
-  ];
-
   return (
-    <div className="welcome-screen">
-      {/* Clinical credibility bar */}
-      <div className="welcome-cred-bar">
-        <span className="welcome-cred-tag">Educational Clinical Support Tool</span>
-        <span className="welcome-cred-divider" aria-hidden="true">·</span>
-        <span className="welcome-cred-inst">
-          Developed at Icahn School of Medicine at Mount Sinai · Urology AI
-        </span>
-      </div>
+    <div className="ws-root">
 
-      {/* Hero section */}
-      <section className="welcome-hero" aria-labelledby="hero-heading">
-        <div className="welcome-hero-eyebrow">
-          <span className="welcome-ribbon-dot" aria-hidden="true" />
-          Prostate-Specific Awareness
-        </div>
-        <h1 id="hero-heading" className="welcome-hero-title">
-          Know Your Prostate Cancer Risk
+      {/* ── Hero ── */}
+      <section className="ws-hero">
+        <div className="ws-hero-kicker">Prostate-Specific Awareness · Risk Assessment Tool</div>
+        <h1 className="ws-hero-title">
+          Understand your prostate<br />cancer risk before your<br />next appointment.
         </h1>
-        <p className="welcome-hero-desc">
-          Complete an evidence-informed questionnaire to generate a personalized ePSA estimate —
-          designed for shared decision-making with your clinician.
+        <p className="ws-hero-body">
+          ePSA is an evidence-informed questionnaire developed at Mount Sinai that summarises
+          your personal risk factors — age, family history, PSA, lifestyle, and symptoms — into
+          a single structured report designed to support your conversation with a clinician.
         </p>
 
-        <div className="welcome-quick-stats" role="list">
-          <div className="welcome-stat" role="listitem">
-            <ClipboardListIcon size={16} className="welcome-stat-icon" />
-            <span>27 guided questions</span>
-          </div>
-          <div className="welcome-stat" role="listitem">
-            <ClockIcon size={16} className="welcome-stat-icon" />
-            <span>~5 minutes total</span>
-          </div>
-          <div className="welcome-stat" role="listitem">
-            <LockIcon size={16} className="welcome-stat-icon" />
-            <span>Private by design</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Assessment flow preview */}
-      <section className="welcome-steps-section" aria-labelledby="steps-heading">
-        <h2 id="steps-heading" className="welcome-section-heading">How It Works</h2>
-        <div className="welcome-steps-grid">
-          {assessmentSteps.map((step, i) => (
-            <div className="welcome-step-card" key={i}>
-              <div className="welcome-step-header">
-                <div className="welcome-step-num">{step.number}</div>
-                <div className="welcome-step-icon">{step.icon}</div>
-              </div>
-              <div className="welcome-step-title">{step.title}</div>
-              <p className="welcome-step-desc">{step.description}</p>
-              <div className="welcome-step-time">
-                <ClockIcon size={12} />
-                <span>{step.time}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Action section */}
-      <section className="welcome-action-section">
-        {showStorageChoice ? (
-          <>
-            <p className="welcome-storage-label">Choose how to save your progress</p>
-            <div className="welcome-storage-grid">
-              <button
-                type="button"
-                className="btn-storage-local"
-                onClick={onBeginLocal}
-              >
-                <span className="btn-storage-main">Use this device only</span>
-                <span className="btn-storage-sub">No sign-in · data stays on this browser</span>
+        {/* CTA */}
+        <div className="ws-cta">
+          {showStorageChoice ? (
+            <div className="ws-storage-choice">
+              <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
+                <span>Start Assessment</span>
+                <ArrowRightIcon size={18} />
               </button>
-              <button
-                type="button"
-                className="btn-storage-cloud"
-                onClick={onBeginCloud}
-              >
-                <span className="btn-storage-main">
-                  Save to cloud
-                  <span className="btn-storage-badge">Recommended</span>
-                </span>
-                <span className="btn-storage-sub">Get a session key · no email required</span>
+              <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>
+                Continue without saving
               </button>
             </div>
-          </>
-        ) : (
-          <button
-            className="btn-begin-primary"
-            onClick={handleBegin}
-            aria-label="Start the ePSA risk assessment"
-          >
-            <span>Start Assessment</span>
-            <ArrowRightIcon size={20} />
-          </button>
-        )}
-
-        <div className="welcome-secondary-actions">
-          {onImport && (
-            <button type="button" className="btn-secondary-action" onClick={onImport}>
-              <UploadIcon size={15} />
-              <span>Import Previous Session</span>
+          ) : (
+            <button className="ws-btn-primary" onClick={handleBegin}>
+              <span>Start Assessment</span>
+              <ArrowRightIcon size={18} />
             </button>
           )}
-          <button
-            type="button"
-            className="btn-secondary-action"
-            onClick={() => setShowForm(true)}
-            title="View Offline Paper Form"
-          >
-            <FileTextIcon size={15} />
-            <span>View Printable Form</span>
+          <p className="ws-cta-note">~5 minutes · No account required · Private by design</p>
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section className="ws-flow">
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">1</span>
+          <div>
+            <strong>Risk Profile</strong>
+            <span> — 27 questions covering demographics, lifestyle, family history, and urinary symptoms.</span>
+          </div>
+        </div>
+        <div className="ws-flow-connector" aria-hidden="true" />
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">2</span>
+          <div>
+            <strong>Clinical Data</strong>
+            <span> — Optionally add your PSA level and MRI PI-RADS score to refine the estimate.</span>
+          </div>
+        </div>
+        <div className="ws-flow-connector" aria-hidden="true" />
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">3</span>
+          <div>
+            <strong>Personalised Results</strong>
+            <span> — Receive an ePSA risk tier with printable guidance for your clinician discussion.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Secondary actions ── */}
+      <div className="ws-secondary">
+        {onImport && (
+          <button type="button" className="ws-btn-text" onClick={onImport}>
+            <UploadIcon size={14} />
+            <span>Import previous session</span>
           </button>
-        </div>
-      </section>
+        )}
+        <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
+          <FileTextIcon size={14} />
+          <span>View printable form</span>
+        </button>
+      </div>
 
-      {/* Trust signals */}
-      <section className="welcome-trust-section" aria-label="Trust and credibility signals">
-        <div className="welcome-trust-grid">
-          {trustSignals.map((signal, i) => (
-            <div className="welcome-trust-item" key={i}>
-              <span className="welcome-trust-icon" aria-hidden="true">{signal.icon}</span>
-              <span>{signal.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ── Footer strip ── */}
+      <footer className="ws-footer">
+        <span className="ws-footer-inst">
+          Icahn School of Medicine at Mount Sinai · Urology AI
+        </span>
+        <span className="ws-footer-sep" aria-hidden="true">·</span>
+        <span className="ws-footer-guidelines">Informed by AUA · NCCN · EAU · SUO</span>
+        <p className="ws-footer-disclaimer">
+          Educational use only. Not a clinical diagnostic. Does not replace guidance from a licensed healthcare professional.
+        </p>
+      </footer>
 
-      {/* Guideline badges */}
-      <section className="welcome-guidelines" aria-label="Clinical guideline sources">
-        <span className="welcome-guidelines-label">Informed by</span>
-        <div className="welcome-guideline-badges">
-          <span className="welcome-guideline-badge">AUA 2026</span>
-          <span className="welcome-guideline-badge">NCCN</span>
-          <span className="welcome-guideline-badge">EAU</span>
-          <span className="welcome-guideline-badge">SUO 2026</span>
-        </div>
-      </section>
-
-      {/* Legal disclaimer */}
-      <p className="welcome-disclaimer" role="note">
-        <strong>Educational use only.</strong> This tool is not a clinical diagnostic and has not been independently
-        validated for standalone clinical decision-making. It is intended to supplement — not replace — guidance
-        from a licensed healthcare professional.
-      </p>
     </div>
   );
 };

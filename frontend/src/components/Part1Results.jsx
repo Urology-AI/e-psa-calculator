@@ -20,7 +20,9 @@ import {
 
 /* ─── SVG Risk Gauge ─── */
 const RiskGauge = ({ score, risk }) => {
-  const cx = 140, cy = 142, r = 108, strokeW = 26;
+  // cy=130, r=100, strokeW=22 → bottom of arc at y=130, stroke edge at 141
+  // viewBox height=145 gives 4px clearance; no SVG text to clip
+  const cx = 140, cy = 130, r = 100, strokeW = 22;
   const toRad = (deg) => (deg * Math.PI) / 180;
 
   const arcPath = (startDeg, endDeg) => {
@@ -32,109 +34,56 @@ const RiskGauge = ({ score, risk }) => {
     return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
   };
 
-  // Needle angle: score 0→100 maps from 180°→0°
   const clampedScore = Math.min(100, Math.max(0, score || 0));
   const needleAngle = 180 - (clampedScore / 100) * 180;
-  const needleLen = r - strokeW - 4;
+  const needleLen = r - strokeW - 2;
   const needleTipX = cx + needleLen * Math.cos(toRad(needleAngle));
   const needleTipY = cy - needleLen * Math.sin(toRad(needleAngle));
 
-  // Zone colors with slight transparency for depth
   const colors = {
-    lower: '#16a34a',
+    lower:    '#16a34a',
     moderate: '#d97706',
-    higher: '#dc2626',
-    track: '#e2eaf2',
+    higher:   '#dc2626',
+    track:    '#e2eaf2',
   };
 
   const activeColor =
-    risk === 'LOWER' ? colors.lower :
+    risk === 'LOWER'  ? colors.lower  :
     risk === 'HIGHER' ? colors.higher :
     colors.moderate;
 
   return (
-    <figure className="risk-gauge-figure" aria-label={`Risk gauge showing ${risk} risk`}>
+    <figure className="risk-gauge-figure" aria-label={`Risk gauge: ${risk} risk, score ${clampedScore}%`}>
+      {/* SVG arc + needle only — no text nodes inside SVG to avoid clipping */}
       <svg
-        viewBox="0 0 280 160"
+        viewBox="0 0 280 145"
         xmlns="http://www.w3.org/2000/svg"
         className="risk-gauge-svg"
-        role="img"
-        aria-label={`Risk level: ${risk}, Score: ${clampedScore}%`}
+        aria-hidden="true"
       >
         {/* Background track */}
-        <path
-          d={arcPath(182, -2)}
-          fill="none"
-          stroke={colors.track}
-          strokeWidth={strokeW + 6}
-          strokeLinecap="butt"
-        />
-        {/* LOWER zone — green (180°→122°) */}
-        <path
-          d={arcPath(180, 122)}
-          fill="none"
-          stroke={colors.lower}
-          strokeWidth={strokeW}
-          strokeLinecap="butt"
-          opacity={risk === 'LOWER' ? '1' : '0.35'}
-        />
-        {/* MODERATE zone — amber (118°→62°) */}
-        <path
-          d={arcPath(118, 62)}
-          fill="none"
-          stroke={colors.moderate}
-          strokeWidth={strokeW}
-          strokeLinecap="butt"
-          opacity={risk === 'MODERATE' ? '1' : '0.35'}
-        />
-        {/* HIGHER zone — red (58°→0°) */}
-        <path
-          d={arcPath(58, 0)}
-          fill="none"
-          stroke={colors.higher}
-          strokeWidth={strokeW}
-          strokeLinecap="butt"
-          opacity={risk === 'HIGHER' ? '1' : '0.35'}
-        />
-
+        <path d={arcPath(182, -2)} fill="none" stroke={colors.track} strokeWidth={strokeW + 6} strokeLinecap="butt" />
+        {/* LOWER — green */}
+        <path d={arcPath(180, 122)} fill="none" stroke={colors.lower}    strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'LOWER'    ? '1' : '0.3'} />
+        {/* MODERATE — amber */}
+        <path d={arcPath(118,  62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'MODERATE' ? '1' : '0.3'} />
+        {/* HIGHER — red */}
+        <path d={arcPath( 58,   0)} fill="none" stroke={colors.higher}   strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'HIGHER'   ? '1' : '0.3'} />
         {/* Needle shadow */}
-        <line
-          x1={cx} y1={cy + 2}
-          x2={needleTipX} y2={needleTipY + 2}
-          stroke="rgba(0,0,0,0.12)"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
+        <line x1={cx} y1={cy+2} x2={needleTipX} y2={needleTipY+2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
         {/* Needle */}
-        <line
-          x1={cx} y1={cy}
-          x2={needleTipX} y2={needleTipY}
-          stroke="#1e3a5f"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
-        {/* Needle base ring */}
-        <circle cx={cx} cy={cy} r="9" fill="#1e3a5f" />
-        <circle cx={cx} cy={cy} r="5" fill="#fff" />
-
-        {/* Zone labels */}
-        <text x="8"  y="153" fontSize="9.5" fill={colors.lower}    fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.04em">LOWER</text>
-        <text x="110" y="22"  fontSize="9.5" fill={colors.moderate} fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.04em">MODERATE</text>
-        <text x="218" y="153" fontSize="9.5" fill={colors.higher}   fontWeight="800" fontFamily="Inter, sans-serif" letterSpacing="0.04em">HIGHER</text>
-
-        {/* Score display under needle */}
-        <text
-          x={cx} y={cy + 24}
-          fontSize="13"
-          fill={activeColor}
-          fontWeight="800"
-          fontFamily="Inter, sans-serif"
-          textAnchor="middle"
-          letterSpacing="-0.02em"
-        >
-          {clampedScore}%
-        </text>
+        <line x1={cx} y1={cy}   x2={needleTipX} y2={needleTipY}   stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
+        {/* Hub */}
+        <circle cx={cx} cy={cy} r="8"  fill="#1e3a5f" />
+        <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
       </svg>
+
+      {/* Labels rendered in HTML — zero clipping risk */}
+      <div className="risk-gauge-labels">
+        <span style={{ color: colors.lower }}>Lower</span>
+        <span className="risk-gauge-score" style={{ color: activeColor }}>{clampedScore}%</span>
+        <span style={{ color: colors.higher }}>Higher</span>
+      </div>
       <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>
         {risk} RISK
       </figcaption>
