@@ -37,12 +37,12 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
         <div className="ws-cta">
           {showStorageChoice ? (
             <div className="ws-storage-choice">
-              <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
+              <button type="button" className="ws-btn-primary" onClick={onBeginLocal}>
                 <span>Start Assessment</span>
                 <ArrowRightIcon size={18} />
               </button>
-              <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>
-                Continue without saving
+              <button type="button" className="ws-btn-ghost" onClick={onBeginCloud}>
+                Save to cloud instead
               </button>
             </div>
           ) : (
