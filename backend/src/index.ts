@@ -228,24 +228,26 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
     }
   }
 
-  // Create session document
+  // Create session document with 30-day expiry
   const sessionRef = db.collection('sessions').doc();
+  const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const sessionData = {
     userId,
     status: 'STEP1_COMPLETE',
     step1: step1Data,
     result: data.result || null,
+    expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
   await sessionRef.set(sessionData);
 
-  // Update user's current session
-  await db.collection('users').doc(userId).update({
+  // Update user's current session (use set+merge so it works even if user doc doesn't exist)
+  await db.collection('users').doc(userId).set({
     currentSessionId: sessionRef.id,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
+  }, { merge: true });
 
   // Audit log
   const resultData = data.result as { score?: number } | undefined;
@@ -419,6 +421,10 @@ export const getUser = functions.https.onCall(async (data: { userId?: string }, 
   // Return user data (more fields for admin use)
   return {
     userId,
+    isAnonymous: userData?.isAnonymous ?? false,
+    sessionId: userData?.sessionId ?? null,
+    authMethod: userData?.authMethod ?? null,
+    displayName: userData?.displayName ?? null,
     consentToContact: userData?.consentToContact,
     consentTimestamp: userData?.consentTimestamp,
     researchConsent: userData?.researchConsent,
@@ -426,6 +432,7 @@ export const getUser = functions.https.onCall(async (data: { userId?: string }, 
     currentSessionId: userData?.currentSessionId,
     createdAt: userData?.createdAt,
     updatedAt: userData?.updatedAt,
+    expiresAt: userData?.expiresAt ?? null,
   };
 });
 
@@ -469,6 +476,17 @@ export const loginAnonymousBySessionId = functions.https.onCall(async (data: Ano
 
     if (matchedData?.isAnonymous !== true) {
       throw new functions.https.HttpsError('failed-precondition', 'Session ID is not linked to an anonymous account');
+    }
+
+    // Check if the user account has expired (no activity for 30+ days)
+    const userUpdatedAt = matchedData?.updatedAt as admin.firestore.Timestamp | undefined;
+    const userCreatedAt = matchedData?.createdAt as admin.firestore.Timestamp | undefined;
+    const lastActivity = userUpdatedAt || userCreatedAt;
+    if (lastActivity) {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      if (lastActivity.toDate() < thirtyDaysAgo) {
+        throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days. Please start a new session.');
+      }
     }
 
     const nowIso = new Date().toISOString();
@@ -768,6 +786,14 @@ export const getSession = functions.https.onCall(async (data: { sessionId: strin
     throw new functions.https.HttpsError('permission-denied', 'Session does not belong to user');
   }
 
+  // Check if session has expired
+  if (sessionData?.expiresAt) {
+    const expiresAt = sessionData.expiresAt as admin.firestore.Timestamp;
+    if (expiresAt.toDate() < new Date()) {
+      throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days.');
+    }
+  }
+
   // Audit log
   await logAudit('SESSION_READ', userId, 'session', sessionId);
 
@@ -784,44 +810,76 @@ export const getSession = functions.https.onCall(async (data: { sessionId: strin
 export const cleanupOldSessions = functions.pubsub.schedule('0 2 * * *') // 2 AM daily
   .timeZone('America/New_York')
   .onRun(async (_context) => {
-    const RETENTION_DAYS = 90; // 90 day retention
+    const now = admin.firestore.Timestamp.now();
+    let deletedCount = 0;
+    const batchOps: admin.firestore.WriteBatch[] = [];
+
+    // 1. Delete sessions that have passed their explicit expiresAt timestamp (30-day anonymous sessions)
+    const expiredQuery = await db.collection('sessions')
+      .where('expiresAt', '<', now)
+      .limit(500)
+      .get();
+
+    if (!expiredQuery.empty) {
+      const batch = db.batch();
+      for (const doc of expiredQuery.docs) {
+        batch.delete(doc.ref);
+        deletedCount++;
+        const sessionData = doc.data();
+        const auditRef = db.collection('auditLogs').doc();
+        batch.set(auditRef, {
+          action: 'SESSION_AUTO_DELETE',
+          userId: sessionData.userId,
+          resourceType: 'session',
+          resourceId: doc.id,
+          details: { reason: 'session_expired', expiresAt: sessionData.expiresAt },
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          ip: 'system-cron',
+        });
+      }
+      batchOps.push(batch);
+    }
+
+    // 2. Also clean up legacy sessions (no expiresAt) older than 90 days as fallback
+    const RETENTION_DAYS = 90;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - RETENTION_DAYS);
 
-    // Query old sessions
     const oldSessionsQuery = await db.collection('sessions')
       .where('updatedAt', '<', cutoffDate)
       .limit(500)
       .get();
 
-    if (oldSessionsQuery.empty) {
+    if (!oldSessionsQuery.empty) {
+      const batch = db.batch();
+      for (const doc of oldSessionsQuery.docs) {
+        // Skip if already handled by expiresAt query
+        if (expiredQuery.docs.some(d => d.id === doc.id)) continue;
+        batch.delete(doc.ref);
+        deletedCount++;
+        const sessionData = doc.data();
+        const auditRef = db.collection('auditLogs').doc();
+        batch.set(auditRef, {
+          action: 'SESSION_AUTO_DELETE',
+          userId: sessionData.userId,
+          resourceType: 'session',
+          resourceId: doc.id,
+          details: { reason: 'retention_policy', retentionDays: RETENTION_DAYS },
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          ip: 'system-cron',
+        });
+      }
+      batchOps.push(batch);
+    }
+
+    if (deletedCount === 0) {
       console.log('No old sessions to cleanup');
       return { deleted: 0 };
     }
 
-    // Delete in batches
-    const batch = db.batch();
-    let deletedCount = 0;
-
-    for (const doc of oldSessionsQuery.docs) {
-      batch.delete(doc.ref);
-      deletedCount++;
-      
-      // Log deletion for audit
-      const sessionData = doc.data();
-      const auditRef = db.collection('auditLogs').doc();
-      batch.set(auditRef, {
-        action: 'SESSION_AUTO_DELETE',
-        userId: sessionData.userId,
-        resourceType: 'session',
-        resourceId: doc.id,
-        details: { reason: 'retention_policy', retentionDays: RETENTION_DAYS },
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        ip: 'system-cron',
-      });
+    for (const batch of batchOps) {
+      await batch.commit();
     }
-
-    await batch.commit();
     console.log(`Cleaned up ${deletedCount} old sessions`);
     
     return { deleted: deletedCount };
