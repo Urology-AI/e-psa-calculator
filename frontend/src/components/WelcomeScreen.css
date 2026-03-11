@@ -1,488 +1,240 @@
-/* ─── WelcomeScreen ─── */
-.welcome-screen {
+/* ─── Welcome Screen ─── */
+
+.ws-root {
   width: 100%;
-  max-width: 780px;
+  max-width: 680px;
   margin: 0 auto;
+  padding: 4px 0 0;
+}
+
+/* ── Hero ── */
+.ws-hero {
+  padding: 28px 0 32px;
+  border-bottom: 1px solid #dde8f2;
+  margin-bottom: 28px;
+}
+
+.ws-hero-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4a85ab;
+  margin-bottom: 20px;
+}
+
+.ws-hero-title {
+  margin: 0 0 20px;
+  font-size: clamp(1.65rem, 5vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #0d2438;
+}
+
+.ws-hero-body {
+  margin: 0 0 28px;
+  font-size: clamp(0.93rem, 2.5vw, 1.05rem);
+  line-height: 1.7;
+  color: #3d5568;
+  max-width: 560px;
+}
+
+/* CTA block */
+.ws-cta {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-/* ─── Clinical credibility bar ─── */
-.welcome-cred-bar {
+.ws-storage-choice {
   display: flex;
   align-items: center;
+  gap: 14px;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #f0f8ff 0%, #e6f4fb 100%);
-  border: 1px solid #c8dff0;
+}
+
+.ws-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  background: #0f4f7a;
+  color: #fff;
+  border: none;
   border-radius: 10px;
-  margin-bottom: 14px;
-  font-size: 11.5px;
-  color: #2e5c7e;
-}
-
-.welcome-cred-tag {
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #1b5a84;
-}
-
-.welcome-cred-divider {
-  color: #8aafc8;
-  font-size: 14px;
-}
-
-.welcome-cred-inst {
-  font-weight: 500;
-  color: #4a7290;
-}
-
-/* ─── Hero Section ─── */
-.welcome-hero {
-  background: linear-gradient(145deg, #0c3354 0%, #154d7a 42%, #1b6498 100%);
-  color: #fff;
-  border-radius: 18px;
-  padding: 32px 30px 28px;
-  border: 1px solid #1e5f90;
-  box-shadow: 0 16px 36px rgba(8, 30, 52, 0.22);
-  margin-bottom: 14px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Subtle awareness ribbon watermark */
-.welcome-hero::after {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(100, 200, 255, 0.07) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.welcome-hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #a8d8f0;
-  margin-bottom: 12px;
-}
-
-.welcome-ribbon-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #59b5e8, #3592cc);
-  box-shadow: 0 0 6px rgba(89, 181, 232, 0.7);
-}
-
-.welcome-hero-title {
-  margin: 0 0 12px;
-  font-size: clamp(1.5rem, 4vw, 2.1rem);
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-
-.welcome-hero-desc {
-  margin: 0 0 20px;
-  color: #cde8f7;
-  font-size: clamp(0.92rem, 2.5vw, 1.05rem);
-  line-height: 1.6;
-  max-width: 580px;
-}
-
-/* Quick stats row */
-.welcome-quick-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.welcome-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 13px;
-  font-weight: 600;
-  color: #e8f5ff;
-  backdrop-filter: blur(4px);
-}
-
-.welcome-stat-icon {
-  color: #8fd4f7;
-  flex-shrink: 0;
-}
-
-/* ─── How It Works ─── */
-.welcome-steps-section {
-  margin-bottom: 14px;
-}
-
-.welcome-section-heading {
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #5a7690;
-}
-
-.welcome-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.welcome-step-card {
-  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
-  border: 1px solid #dde8f2;
-  border-radius: 14px;
-  padding: 16px 14px 14px;
-  box-shadow: 0 4px 14px rgba(15, 38, 60, 0.06);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.welcome-step-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(15, 38, 60, 0.10);
-}
-
-.welcome-step-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.welcome-step-num {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  color: #1a6090;
-  background: #e8f3fb;
-  border-radius: 6px;
-  padding: 3px 7px;
-  flex-shrink: 0;
-}
-
-.welcome-step-icon {
-  color: #1d6da0;
-  flex-shrink: 0;
-}
-
-.welcome-step-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #162c3e;
-  margin-bottom: 6px;
-  line-height: 1.3;
-}
-
-.welcome-step-desc {
-  margin: 0 0 10px;
-  font-size: 12px;
-  color: #5d7689;
-  line-height: 1.55;
-}
-
-.welcome-step-time {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #4a85ab;
-  background: #edf5fb;
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-
-/* ─── Action Section ─── */
-.welcome-action-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  border: 1px solid #dce7f2;
-  border-radius: 16px;
-  padding: 22px 20px;
-  box-shadow: 0 8px 24px rgba(11, 42, 67, 0.07);
-  margin-bottom: 12px;
-}
-
-.welcome-storage-label {
-  margin: 0 0 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1b3a52;
-  text-align: center;
-}
-
-.welcome-storage-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-/* Primary Begin button */
-.btn-begin-primary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #145582 0%, #1d72ab 100%);
-  color: #fff;
-  border: 1px solid #135080;
-  border-radius: 13px;
-  font-size: 16px;
-  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
   letter-spacing: -0.01em;
-  margin-bottom: 12px;
+  transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 14px rgba(15, 79, 122, 0.28);
 }
 
-.btn-begin-primary:hover {
-  background: linear-gradient(135deg, #0f4164 0%, #1868a0 100%);
+.ws-btn-primary:hover {
+  background: #0a3d60;
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(20, 85, 130, 0.3);
+  box-shadow: 0 8px 20px rgba(15, 79, 122, 0.35);
 }
 
-.btn-begin-primary:active {
+.ws-btn-primary:active {
   transform: translateY(0);
 }
 
-/* Storage choice buttons */
-.btn-storage-local,
-.btn-storage-cloud {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 14px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.btn-storage-local {
-  border: 1.5px solid #2a7f48;
-  background: linear-gradient(180deg, #f4fbf6 0%, #eaf7ef 100%);
-  color: #1f6f3c;
-}
-
-.btn-storage-local:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(42, 127, 72, 0.2);
-}
-
-.btn-storage-cloud {
-  border: 1.5px solid #1e6ea3;
-  background: linear-gradient(135deg, #145582 0%, #1c6ea4 100%);
-  color: #fff;
-}
-
-.btn-storage-cloud:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(20, 85, 130, 0.28);
-}
-
-.btn-storage-main {
+.ws-btn-ghost {
+  background: none;
+  border: none;
+  color: #4a7a9b;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.ws-btn-ghost:hover {
+  color: #0f4f7a;
+  text-decoration-color: currentColor;
+}
+
+.ws-cta-note {
+  margin: 0;
+  font-size: 12px;
+  color: #7a96aa;
+  font-weight: 500;
+}
+
+/* ── How it works ── */
+.ws-flow {
+  margin-bottom: 24px;
+  padding: 0 2px;
+}
+
+.ws-flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 4px 0;
+  font-size: 14.5px;
+  color: #2a3e4f;
+  line-height: 1.55;
+}
+
+.ws-flow-step strong {
+  color: #0d2438;
   font-weight: 700;
+}
+
+.ws-flow-num {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e6f0f8;
+  color: #1a5c86;
+  font-size: 12px;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
   justify-content: center;
+  margin-top: 1px;
+  border: 1.5px solid #ccdde8;
 }
 
-.btn-storage-sub {
-  font-size: 11px;
-  font-weight: 500;
-  opacity: 0.88;
-  line-height: 1.4;
+.ws-flow-connector {
+  width: 1.5px;
+  height: 14px;
+  background: #d0e0ed;
+  margin-left: 12px; /* aligns with center of the circle (26/2 - 1px) */
 }
 
-.btn-storage-badge {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 2px 7px;
-  border-radius: 999px;
-}
-
-/* Secondary actions */
-.welcome-secondary-actions {
+/* ── Secondary actions ── */
+.ws-secondary {
   display: flex;
-  gap: 8px;
+  gap: 20px;
   flex-wrap: wrap;
-  justify-content: center;
+  margin-bottom: 28px;
 }
 
-.btn-secondary-action {
+.ws-btn-text {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 14px;
-  border: 1px solid #c2d5e8;
-  background: #fff;
-  color: #2a6087;
-  border-radius: 10px;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #5a7a92;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-.btn-secondary-action:hover {
-  background: #f0f7ff;
-  border-color: #2a6087;
-  transform: translateY(-1px);
+.ws-btn-text:hover {
+  color: #0f4f7a;
+  text-decoration-color: currentColor;
 }
 
-/* ─── Trust Signals ─── */
-.welcome-trust-section {
-  margin-bottom: 10px;
-}
-
-.welcome-trust-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.welcome-trust-item {
+/* ── Footer strip ── */
+.ws-footer {
+  border-top: 1px solid #dde8f2;
+  padding-top: 18px;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: #f8fbff;
-  border: 1px solid #dce8f4;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #365d7a;
-}
-
-.welcome-trust-icon {
-  color: #1d6ea3;
-  flex-shrink: 0;
-}
-
-/* ─── Guideline Badges ─── */
-.welcome-guidelines {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  background: #f6faff;
-  border: 1px solid #dce8f4;
-  border-radius: 10px;
+  align-items: center;
+  gap: 6px 10px;
 }
 
-.welcome-guidelines-label {
-  font-size: 11px;
+.ws-footer-inst {
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #607a90;
+  color: #3a5a72;
+  letter-spacing: 0.01em;
 }
 
-.welcome-guideline-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+.ws-footer-sep {
+  color: #aac0d0;
+  font-size: 13px;
 }
 
-.welcome-guideline-badge {
+.ws-footer-guidelines {
+  font-size: 11.5px;
+  color: #6a8ea8;
+  font-weight: 500;
+}
+
+.ws-footer-disclaimer {
+  width: 100%;
+  margin: 8px 0 0;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #1d5e8a;
-  background: #ddeeff;
-  border: 1px solid #b8d4ee;
-  border-radius: 6px;
-  padding: 3px 8px;
+  color: #8aaccb;
+  line-height: 1.55;
 }
 
-/* ─── Disclaimer ─── */
-.welcome-disclaimer {
-  margin: 0 4px;
-  color: #5f7387;
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-/* ─── Print ─── */
-@media print {
-  .btn-secondary-action,
-  .btn-begin-primary,
-  .btn-storage-local,
-  .btn-storage-cloud,
-  .welcome-action-section { display: none; }
-}
-
-/* ─── Responsive ─── */
-@media (max-width: 700px) {
-  .welcome-steps-grid {
-    grid-template-columns: 1fr;
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  .ws-hero-title {
+    font-size: 1.6rem;
   }
 
-  .welcome-storage-grid {
-    grid-template-columns: 1fr;
+  .ws-hero {
+    padding-top: 12px;
   }
 
-  .welcome-trust-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .welcome-hero {
-    padding: 22px 18px 20px;
-  }
-
-  .welcome-action-section {
-    padding: 18px 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .welcome-trust-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-cred-bar {
+  .ws-storage-choice {
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
   }
 
-  .welcome-cred-divider {
-    display: none;
+  .ws-btn-primary {
+    width: 100%;
+    justify-content: center;
   }
 }
