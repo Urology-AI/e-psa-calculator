@@ -261,6 +261,13 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   return (
     <div className="part2-form-container">
+      <div className="flow-header">
+        <div className="flow-step-chip">Step {currentStep} of 2</div>
+        <h3 className="flow-step-title">{steps[currentStep - 1]?.label}</h3>
+      </div>
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${(currentStep / 2) * 100}%` }}></div>
+      </div>
       <div className="part1-summary-box">
         <div className="summary-label">Part 1 Results:</div>
         <div className="summary-content">
