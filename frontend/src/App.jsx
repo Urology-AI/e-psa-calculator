@@ -1373,9 +1373,9 @@ function App() {
             />
           </div>
           <div className="header-text">
-            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>Prostate‑Specific Awareness</h2>
-            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>A Non‑Validated Educational Risk Tool</p>
+            <h1>ePSA</h1>
+            <h2>Prostate‑Specific Awareness</h2>
+            <p className="subtitle">A Non‑Validated Educational Risk Tool</p>
           </div>
           <div className="header-actions">
             <div className="stage-indicator">

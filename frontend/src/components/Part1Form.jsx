@@ -911,19 +911,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   const renderStepErrors = () => {
     const errors = stepErrors[part1Step];
     if (!errors || errors.length === 0) return null;
-    
+
     return (
-      <div style={{ 
-        background: '#FDEAEA', 
-        border: '1px solid #E74C3C', 
-        borderRadius: '8px', 
-        padding: '12px 16px', 
-        marginBottom: '16px' 
-      }}>
-        <div style={{ color: '#E74C3C', fontWeight: '600', marginBottom: '8px' }}>
-          Please complete the following before continuing:
-        </div>
-        <ul style={{ color: '#E74C3C', margin: 0, paddingLeft: '20px' }}>
+      <div className="step-error-box">
+        <div className="step-error-title">Please complete the following before continuing:</div>
+        <ul className="step-error-list">
           {errors.map((error, idx) => (
             <li key={idx}>{error}</li>
           ))}
@@ -939,6 +931,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   return (
     <div className="part1-form-container">
+      <div className="flow-header">
+        <div className="flow-step-chip">Step {part1Step + 1} of {steps.length}</div>
+        <h3 className="flow-step-title">{steps[part1Step]?.label}</h3>
+        <p className="flow-step-note">Complete each section carefully to generate the most useful screening priority estimate.</p>
+      </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
       </div>
