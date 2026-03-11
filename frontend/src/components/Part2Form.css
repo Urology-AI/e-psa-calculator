@@ -249,3 +249,58 @@
   .form-navigation { padding: 12px; }
   .summary-content { flex-direction: column; gap: 8px; }
 }
+
+/* Professional flow polish */
+.part2-form-container {
+  max-width: 820px;
+  padding-top: 20px;
+}
+
+.flow-header {
+  background: linear-gradient(180deg, #f8fbff 0%, #f2f7fd 100%);
+  border: 1px solid #e2ebf4;
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.flow-step-title {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.part1-summary-box {
+  border: 1px solid #d9e7f5;
+  box-shadow: 0 3px 10px rgba(23, 86, 136, 0.08);
+}
+
+.question-card {
+  border: 1px solid #e5edf5;
+  box-shadow: 0 2px 10px rgba(21, 53, 78, 0.06);
+}
+
+.question-text {
+  font-weight: 700;
+}
+
+.option-btn {
+  border-color: #dce7f1;
+  background: #f8fbfe;
+  font-weight: 650;
+}
+
+.option-btn:hover,
+.option-btn.selected {
+  border-color: #2a76a9;
+  background: #eaf4fd;
+  box-shadow: 0 0 0 3px rgba(42, 118, 169, 0.12);
+}
+
+.form-navigation {
+  box-shadow: 0 -6px 20px rgba(21, 46, 69, 0.08);
+}
+
+.btn-back,
+.btn-next,
+.btn-calculate {
+  min-height: 48px;
+}
