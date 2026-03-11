@@ -340,6 +340,95 @@ function App() {
         } else {
           // Anonymous users can proceed without consent until they link contact info.
           if (currentUser.isAnonymous) {
+            // Restore session for returning anonymous users
+            try {
+              if (userData && userData.currentSessionId) {
+                const restoredSessionId = userData.currentSessionId;
+                setSessionId(restoredSessionId);
+                localStorage.setItem(`sessionId_${currentUser.uid}`, restoredSessionId);
+                try {
+                  const session = await getSession(restoredSessionId);
+                  if (session) {
+                    if (session.status === 'STEP2_COMPLETE') {
+                      setStage('post');
+                      if (session.step1) {
+                        setPreData(session.step1);
+                        try {
+                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                          setPreResult(preResult);
+                          if (session.step2) {
+                            setPostData(session.step2);
+                            const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
+                            setPostResult(postResult);
+                          }
+                        } catch (calcErr) {
+                          console.error('Error recalculating results:', calcErr);
+                        }
+                      }
+                      setCurrentStep(3);
+                    } else if (session.status === 'STEP1_COMPLETE') {
+                      setStage('pre');
+                      if (session.step1) {
+                        try {
+                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                          if (preResult) {
+                            setPreResult(preResult);
+                            setPreData(session.step1);
+                            setTimeout(() => setCurrentStep(3), 150);
+                          }
+                        } catch (calcErr) {
+                          console.error('Error recalculating preResult:', calcErr);
+                        }
+                      }
+                    }
+                  }
+                } catch (sessionErr) {
+                  console.warn('Could not load anonymous session:', sessionErr);
+                }
+              } else {
+                // Try localStorage as fallback
+                const storedSessionId = localStorage.getItem(`sessionId_${currentUser.uid}`);
+                if (storedSessionId) {
+                  setSessionId(storedSessionId);
+                  try {
+                    const session = await getSession(storedSessionId);
+                    if (session) {
+                      if (session.status === 'STEP2_COMPLETE') {
+                        setStage('post');
+                        setCurrentStep(3);
+                        if (session.step1) {
+                          setPreData(session.step1);
+                          try {
+                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            setPreResult(preResult);
+                            if (session.step2) {
+                              setPostData(session.step2);
+                              const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
+                              setPostResult(postResult);
+                            }
+                          } catch (calcErr) { console.error('Calc error:', calcErr); }
+                        }
+                      } else if (session.status === 'STEP1_COMPLETE') {
+                        setStage('pre');
+                        setCurrentStep(3);
+                        if (session.step1) {
+                          setPreData(session.step1);
+                          try {
+                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            setPreResult(preResult);
+                          } catch (calcErr) { console.error('Calc error:', calcErr); }
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.warn('Could not load session from localStorage ID:', e);
+                  }
+                }
+              }
+            } catch (restoreErr) {
+              console.warn('Could not restore anonymous session:', restoreErr);
+            }
+            setStorageMode('cloud');
             setAuthStep('app');
           } else {
             setAuthStep('consent');
@@ -436,6 +525,10 @@ function App() {
       }
       if (consent) {
         setConsentData(consent);
+      }
+      // Anonymous users always use cloud storage
+      if (shouldBypassConsent) {
+        setStorageMode('cloud');
       }
       setAuthStep('app');
       console.log('[AuthFlow] consent bypass/existing -> authStep=app', { uid: user?.uid, shouldBypassConsent });
