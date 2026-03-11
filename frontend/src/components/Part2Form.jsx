@@ -264,6 +264,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       <div className="flow-header">
         <div className="flow-step-chip">Step {currentStep} of 2</div>
         <h3 className="flow-step-title">{steps[currentStep - 1]?.label}</h3>
+        <p className="flow-step-note">Use your PSA and MRI information to refine your risk assessment results.</p>
       </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(currentStep / 2) * 100}%` }}></div>
