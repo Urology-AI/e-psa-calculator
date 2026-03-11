@@ -934,6 +934,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="flow-header">
         <div className="flow-step-chip">Step {part1Step + 1} of {steps.length}</div>
         <h3 className="flow-step-title">{steps[part1Step]?.label}</h3>
+        <p className="flow-step-note">Complete each section carefully to generate the most useful screening priority estimate.</p>
       </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
