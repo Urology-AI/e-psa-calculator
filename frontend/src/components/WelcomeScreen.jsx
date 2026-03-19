@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import {
-  FileTextIcon,
-  ClipboardListIcon,
-  ClockIcon,
-  LockIcon,
-  ArrowRightIcon,
-  UploadIcon,
-  ShieldCheckIcon,
-  StethoscopeIcon,
-  CheckCircle2Icon
-} from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon } from 'lucide-react';
 
 const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
@@ -29,88 +19,94 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
   }
 
   return (
-    <div className="welcome-screen">
-      <div className="welcome-container">
-        <section className="welcome-hero">
-          <div className="hero-badge">Educational Clinical Support Tool</div>
-          <h3 className="hero-title">Know your baseline risk before your next urology visit</h3>
-          <p className="hero-description">
-            Complete a brief evidence-informed questionnaire to generate a personalized ePSA estimate
-            for discussion with your clinician.
-          </p>
+    <div className="ws-root">
 
-          <div className="welcome-features">
-            <div className="feature-item">
-              <ClipboardListIcon size={18} className="feature-icon" />
-              <span className="feature-text">27 guided questions</span>
-            </div>
-            <div className="feature-item">
-              <ClockIcon size={18} className="feature-icon" />
-              <span className="feature-text">~5 minutes</span>
-            </div>
-            <div className="feature-item">
-              <LockIcon size={18} className="feature-icon" />
-              <span className="feature-text">Private by design</span>
-            </div>
-          </div>
-        </section>
+      {/* ── Hero ── */}
+      <section className="ws-hero">
+        <h1 className="ws-hero-title">
+          Find out if you should discuss<br />PSA testing with your doctor.
+        </h1>
+        <p className="ws-hero-body">
+          ePSA is an evidence-informed questionnaire developed at Mount Sinai that summarises
+          your personal risk factors — age, family history, PSA, lifestyle, and symptoms — into
+          a single structured report designed to support your conversation with a clinician.
+        </p>
 
-        <section className="welcome-body">
+        {/* CTA */}
+        <div className="ws-cta">
           {showStorageChoice ? (
-            <div className="welcome-storage-choice">
-              <p className="welcome-storage-label">Choose how to save your progress</p>
-              <div className="welcome-storage-buttons">
-                <button type="button" className="btn-begin-local" onClick={onBeginLocal}>
-                  <span>Use this device only</span>
-                  <span className="btn-begin-sub">No sign-in · data stays on this browser</span>
-                </button>
-                <button type="button" className="btn-begin-cloud" onClick={onBeginCloud}>
-                  <span>Save anonymously to cloud</span>
-                  <span className="btn-begin-sub">Get a session key · no phone or email required</span>
-                </button>
-              </div>
+            <div className="ws-storage-choice">
+              <button type="button" className="ws-btn-primary" onClick={onBeginLocal}>
+                <span>Start Assessment</span>
+                <ArrowRightIcon size={18} />
+              </button>
+              <button type="button" className="ws-btn-ghost" onClick={onBeginCloud}>
+                Save to cloud instead
+              </button>
             </div>
           ) : (
-            <button className="btn-begin-assessment" onClick={handleBegin}>
+            <button className="ws-btn-primary" onClick={handleBegin}>
               <span>Start Assessment</span>
               <ArrowRightIcon size={18} />
             </button>
           )}
+          <p className="ws-cta-note">~5 minutes · No account required · Private by design</p>
+        </div>
+      </section>
 
-          {onImport && (
-            <button type="button" className="btn-import-json" onClick={onImport}>
-              <UploadIcon size={16} />
-              <span>Import Previous Session</span>
-            </button>
-          )}
-
-          <button className="btn-view-form-bottom" onClick={() => setShowForm(true)} title="View Offline Form">
-            <FileTextIcon size={16} />
-            <span>View Printable Form</span>
-          </button>
-
-          <div className="trust-grid">
-            <div className="trust-item">
-              <ShieldCheckIcon size={16} />
-              <span>No account required</span>
-            </div>
-            <div className="trust-item">
-              <StethoscopeIcon size={16} />
-              <span>Built for clinician conversations</span>
-            </div>
-            <div className="trust-item">
-              <CheckCircle2Icon size={16} />
-              <span>Clear risk summary output</span>
-            </div>
+      {/* ── How it works ── */}
+      <section className="ws-flow">
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">1</span>
+          <div>
+            <strong>Risk Profile</strong>
+            <span> — 27 questions covering demographics, lifestyle, family history, and urinary symptoms.</span>
           </div>
-        </section>
+        </div>
+        <div className="ws-flow-connector" aria-hidden="true" />
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">2</span>
+          <div>
+            <strong>Clinical Data</strong>
+            <span> — Optionally add your PSA level and MRI PI-RADS score to refine the estimate.</span>
+          </div>
+        </div>
+        <div className="ws-flow-connector" aria-hidden="true" />
+        <div className="ws-flow-step">
+          <span className="ws-flow-num">3</span>
+          <div>
+            <strong>Personalised Results</strong>
+            <span> — Receive an ePSA risk tier with printable guidance for your clinician discussion.</span>
+          </div>
+        </div>
+      </section>
 
-        <p className="welcome-footer">
-          This tool is for education only and is not a diagnosis. It has not been clinically validated for
-          standalone decision-making and should be used alongside guidance from a licensed healthcare
-          professional.
-        </p>
+      {/* ── Secondary actions ── */}
+      <div className="ws-secondary">
+        {onImport && (
+          <button type="button" className="ws-btn-text" onClick={onImport}>
+            <UploadIcon size={14} />
+            <span>Import previous session</span>
+          </button>
+        )}
+        <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
+          <FileTextIcon size={14} />
+          <span>View printable form</span>
+        </button>
       </div>
+
+      {/* ── Footer strip ── */}
+      <footer className="ws-footer">
+        <span className="ws-footer-inst">
+          Icahn School of Medicine at Mount Sinai · Urology Department
+        </span>
+        <span className="ws-footer-sep" aria-hidden="true">·</span>
+        <span className="ws-footer-guidelines">Based on guidance by: AUA · NCCN · EAU · SUO</span>
+        <p className="ws-footer-disclaimer">
+          Educational use only. Not a clinical diagnostic. Does not replace guidance from a licensed healthcare professional.
+        </p>
+      </footer>
+
     </div>
   );
 };

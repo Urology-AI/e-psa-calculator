@@ -1,31 +1,120 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Part2Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
-import { 
-  ArrowLeftIcon, 
-  RefreshCwIcon, 
-  PrinterIcon, 
-  FileTextIcon, 
+import {
+  ArrowLeftIcon,
+  RefreshCwIcon,
+  PrinterIcon,
+  FileTextIcon,
   CloudIcon,
-  HardDriveIcon,
-  DownloadIcon
+  DownloadIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  FlaskConicalIcon,
+  ActivityIcon,
+  InfoIcon,
+  CheckCircle2Icon,
+  AlertTriangleIcon,
+  AlertCircleIcon,
+  ExternalLinkIcon,
+  MapPinIcon,
 } from 'lucide-react';
 
-const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, storageMode, postData, sessionId = null, userEmail = null, userPhone = null, onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null }) => {
-  const [showPrintableForm, setShowPrintableForm] = React.useState(false);
+/* ─── Collapsible ─── */
+const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="p2r-collapsible">
+      <button
+        className="p2r-collapsible-toggle"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        type="button"
+      >
+        <span>{title}</span>
+        {open ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
+      </button>
+      {open && <div className="p2r-collapsible-body">{children}</div>}
+    </div>
+  );
+};
+
+/* ─── Risk Level Visual Bar ─── */
+const RiskLevelBar = ({ riskClass }) => {
+  const levels = [
+    { id: 'low',      label: 'LOW',       color: '#16a34a' },
+    { id: 'moderate', label: 'MODERATE',  color: '#d97706' },
+    { id: 'high',     label: 'HIGH',      color: '#dc2626' },
+  ];
+  const cls = String(riskClass || '').toLowerCase();
+  const activeIdx = cls.includes('very') || cls.includes('high') ? 2
+    : cls.includes('moderate') ? 1
+    : 0;
+
+  return (
+    <div className="p2r-risk-bar" role="group" aria-label="Risk level bar">
+      {levels.map(({ id, label, color }, i) => {
+        const isActive = i === activeIdx;
+        return (
+          <div
+            key={id}
+            className={`p2r-risk-bar-segment ${isActive ? 'p2r-risk-bar-segment--active' : ''}`}
+            style={isActive ? { background: color, color: '#fff' } : {}}
+            aria-current={isActive ? 'true' : undefined}
+          >
+            <span className="p2r-risk-bar-label">{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─── Risk Icon ─── */
+const RiskIcon = ({ riskClass }) => {
+  const cls = String(riskClass || '').toLowerCase();
+  if (cls.includes('low') && !cls.includes('moderate') && !cls.includes('high')) {
+    return <CheckCircle2Icon size={22} className="p2r-risk-icon p2r-risk-icon--low" />;
+  }
+  if (cls.includes('moderate')) {
+    return <AlertTriangleIcon size={22} className="p2r-risk-icon p2r-risk-icon--moderate" />;
+  }
+  return <AlertCircleIcon size={22} className="p2r-risk-icon p2r-risk-icon--high" />;
+};
+
+/* ─── Main Component ─── */
+const Part2Results = ({
+  result,
+  preResult,
+  preData,
+  onEditAnswers,
+  onStartOver,
+  storageMode,
+  postData,
+  sessionId = null,
+  userEmail = null,
+  userPhone = null,
+  onSaveToCloud = null,
+  cloudAvailable = false,
+  saveToCloudPending = false,
+  saveToCloudError = null,
+}) => {
+  const [showPrintableForm, setShowPrintableForm] = useState(false);
+
   const handleExportCsv = () => {
-    const rows = buildPart2CsvRows(postData, preResult, result, {}); // config not needed for CSV
+    const rows = buildPart2CsvRows(postData, preResult, result, {});
     const filename = `ePSA_Part2_Results_${new Date().toISOString().slice(0, 10)}.csv`;
     downloadCsv(filename, rows);
   };
+
   const footerDisclaimerText =
     'ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai';
 
   if (showPrintableForm) {
     return (
-      <PrintableForm 
+      <PrintableForm
         formData={{
           ...(preData || {}),
           ...(postData || {}),
@@ -37,18 +126,19 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
           risk: preResult?.risk,
           action: preResult?.action,
           bmi: preResult?.bmi ?? preData?.bmi,
-          age: preResult?.age ?? preData?.age
+          age: preResult?.age ?? preData?.age,
         }}
-        onBack={() => setShowPrintableForm(false)} 
+        onBack={() => setShowPrintableForm(false)}
       />
     );
   }
+
   if (!result) {
     return (
-      <div className="part2-results-container">
-        <p>No results available.</p>
-        <div className="summary-box">
-          <div style={{ fontSize: '13px', color: '#666' }}>{footerDisclaimerText}</div>
+      <div className="p2r-container">
+        <p className="p2r-empty">No results available.</p>
+        <div className="p2r-disclaimer-box">
+          <p>{footerDisclaimerText}</p>
         </div>
       </div>
     );
@@ -64,252 +154,300 @@ const Part2Results = ({ result, preResult, preData, onEditAnswers, onStartOver, 
     psaTier,
     discordanceFlag,
     lowPsaWarning,
-    lowPsaWarningText
+    lowPsaWarningText,
   } = result;
 
-  const part2RiskExplanationText =
-    'Part 2 combines your ePSA risk profile with your PSA level and (if available) MRI PI-RADS score to provide an educational risk tier. PSA levels and PI-RADS scores entered here are used solely for educational risk stratification. PSA-based screening in combination with shared decision-making is the recommended standard — this tool is intended to supplement, not replace, that conversation with your clinician. A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or further workup is pursued.';
-
-  const piradsExplanationTextProvided =
-    'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.';
-  
-  const piradsExplanationTextNotProvided =
-    'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.';
-
-  // Map risk class to color
-  const getRiskColor = (riskClass) => {
-    const cls = String(riskClass || '');
-    if (cls.includes('low')) return RISK_COLORS.LOW;
-    if (cls.includes('moderate')) return RISK_COLORS["LOW-MOD"];
-    if (cls.includes('high') && !cls.includes('very')) return RISK_COLORS.MOD;
-    return RISK_COLORS.HIGH;
+  const getRiskColor = (rc) => {
+    const cls = String(rc || '').toLowerCase();
+    if (cls.includes('very') || (cls.includes('high') && !cls.includes('mod'))) return '#dc2626';
+    if (cls.includes('moderate')) return '#d97706';
+    return '#16a34a';
   };
 
   const riskColor = getRiskColor(riskClass);
+  const cleanRiskCat = (riskCat || '').replace(/[🟢🟡🟠🔴]/g, '').trim();
+
+  const riskCardClass =
+    riskColor === '#dc2626' ? 'p2r-risk-card--high' :
+    riskColor === '#d97706' ? 'p2r-risk-card--moderate' :
+    'p2r-risk-card--low';
+
+  const pointsExplanationText =
+    'Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. A logistic regression model calculates an estimated probability of high-grade (Gleason Grade Group ≥3) prostate cancer. This is displayed as an educational risk category, not a clinical diagnosis.';
 
   return (
-    <div className="part2-results-container">
-      <div className="results-header">
-        {sessionId && (
-          <div className="session-id-display">
-            Session key: <strong>{sessionId}</strong>
-          </div>
-        )}
-        {storageMode === 'cloud' && sessionId && (
-          <div className="saved-to-cloud-badge">
-            <CloudIcon size={16} />
-            <span>Saved to cloud</span>
-          </div>
-        )}
-        {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
-          <div className="move-to-cloud-row">
-            <button
-              type="button"
-              className="btn-move-to-cloud"
-              onClick={onSaveToCloud}
-              disabled={saveToCloudPending}
-            >
-              <CloudIcon size={18} />
-              {saveToCloudPending ? 'Saving...' : 'Move to cloud'}
-            </button>
-            {saveToCloudError && (
-              <span className="save-to-cloud-error">{saveToCloudError}</span>
-            )}
-          </div>
-        )}
-      </div>
+    <div className="p2r-container" role="main">
 
-      <div className="score-card">
-        <div className="score-label">YOUR EDUCATIONAL RISK CATEGORY</div>
-        <div className="score-big" style={{ color: riskColor }}>
-          {riskPct}
+      {/* ── Session / Cloud row ── */}
+      {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
+        <div className="p2r-cloud-row">
+          {sessionId && (
+            <div className="p2r-session-pill">
+              <span className="p2r-session-label">Session</span>
+              <code className="p2r-session-code">{sessionId}</code>
+            </div>
+          )}
+          {storageMode === 'cloud' && sessionId && (
+            <div className="p2r-cloud-saved">
+              <CloudIcon size={13} /><span>Saved to cloud</span>
+            </div>
+          )}
+          {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
+            <div className="p2r-cloud-move">
+              <button
+                type="button"
+                className="p2r-btn-move-cloud"
+                onClick={onSaveToCloud}
+                disabled={saveToCloudPending}
+              >
+                <CloudIcon size={16} />
+                {saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
+              </button>
+              {saveToCloudError && <span className="p2r-cloud-err">{saveToCloudError}</span>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Low PSA Warning ── */}
+      {lowPsaWarning && (
+        <div className="p2r-alert p2r-alert--warning" role="alert">
+          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
+          <div>
+            <div className="p2r-alert-title">Low-PSA Notice</div>
+            <p className="p2r-alert-body">{lowPsaWarningText}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Discordance Flag ── */}
+      {discordanceFlag && (
+        <div
+          className={`p2r-alert p2r-alert--${discordanceFlag.severity === 'high' ? 'error' : 'warning'}`}
+          role="alert"
+        >
+          <AlertCircleIcon size={16} className="p2r-alert-icon" />
+          <div>
+            <div className="p2r-alert-title">Risk Discordance Detected</div>
+            <p className="p2r-alert-body">{discordanceFlag.text}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Risk Summary Card ── */}
+      <div className={`p2r-risk-card ${riskCardClass}`} role="region" aria-label="Risk assessment result">
+        <div className="p2r-risk-label">Educational Risk Category</div>
+        <div className="p2r-risk-tier-row">
+          <RiskIcon riskClass={riskClass} />
+          <span className="p2r-risk-pct" style={{ color: riskColor }}>{riskPct}</span>
         </div>
         {riskPctRange && (
-          <div className="score-range" style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+          <div className="p2r-risk-range">
             Display range: <strong>{riskPctRange}</strong>
           </div>
         )}
-        <div className="risk-badge" style={{ background: riskColor }}>
-          {riskCat.replace(/[🟢🟡🟠🔴]/g, '').trim()}
+        <div className="p2r-risk-badge" style={{ background: riskColor }}>
+          {cleanRiskCat}
         </div>
+        <RiskLevelBar riskClass={riskClass} />
       </div>
 
-      {lowPsaWarning && (
-        <div className="summary-box low-psa-warning-banner">
-          <div style={{ color: '#C0392B', fontWeight: 600, marginBottom: '4px' }}>Low-PSA Warning</div>
-          <div style={{ fontSize: '13px' }}>
-            {lowPsaWarningText}
-          </div>
-        </div>
-      )}
-
-      {discordanceFlag && (
-        <div className={`summary-box discordance-flag discordance-${discordanceFlag.severity}`}>
-          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Risk Discordance Detected</div>
-          <div style={{ fontSize: '13px' }}>
-            {discordanceFlag.text}
-          </div>
-        </div>
-      )}
-
+      {/* ── Part 1 Reference ── */}
       {preResult && (
-        <div className="part1-reference-box">
-          <div className="reference-label">Based on Part 1 Score:</div>
-          <div className="reference-content">
-            <span>ePSA Score: <strong>{preResult.score}%</strong></span>
-            <span>Risk Level: <strong>{preResult.risk}</strong></span>
+        <div className="p2r-part1-ref" role="complementary" aria-label="Part 1 reference data">
+          <div className="p2r-part1-ref-label">Based on Part 1 Screening Profile</div>
+          <div className="p2r-part1-ref-data">
+            <div className="p2r-part1-ref-item">
+              <span className="p2r-part1-ref-val">{preResult.score}%</span>
+              <span className="p2r-part1-ref-key">ePSA Score</span>
+            </div>
+            <div className="p2r-part1-ref-divider" aria-hidden="true" />
+            <div className="p2r-part1-ref-item">
+              <span className="p2r-part1-ref-val">{preResult.risk}</span>
+              <span className="p2r-part1-ref-key">Risk Tier</span>
+            </div>
+            <div className="p2r-part1-ref-divider" aria-hidden="true" />
+            <div className="p2r-part1-ref-item">
+              <span className="p2r-part1-ref-val">
+                {postData?.psa != null ? `${postData.psa} ng/mL` : '—'}
+              </span>
+              <span className="p2r-part1-ref-key">PSA Level</span>
+            </div>
+            {postData?.knowPirads && (
+              <>
+                <div className="p2r-part1-ref-divider" aria-hidden="true" />
+                <div className="p2r-part1-ref-item">
+                  <span className="p2r-part1-ref-val">PI-RADS {postData.pirads}</span>
+                  <span className="p2r-part1-ref-key">MRI Score</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      <div className="recommendation-box" style={{ border: `2px solid ${riskColor}` }}>
-        <div className="rec-label" style={{ color: riskColor }}>
-          CONSIDER DISCUSSING NEXT STEPS
+      {/* ── Next Steps / Recommendations ── */}
+      <div className="p2r-recommendations" style={{ borderLeftColor: riskColor }}>
+        <div className="p2r-rec-label" style={{ color: riskColor }}>
+          Recommended Next Steps
         </div>
-        <ul className="rec-list">
-          {(nextSteps?.length ? nextSteps : ['Discuss these results with your physician and review PSA/MRI follow-up options.']).map((step, index) => {
-            // Check for external links
-            if (step.includes('Learn more about prostate cancer health')) {
-              return (
-                <li key={index}>
-                  {step.replace(' →', '')}
-                  <a 
-                    href="https://www.youtube.com/@ashtewarimd7526" 
-                    target="_blank" 
+        <ul className="p2r-rec-list">
+          {(nextSteps?.length
+            ? nextSteps
+            : ['Discuss these results with your physician and review PSA/MRI follow-up options.']
+          ).map((step, index) => {
+            const hasVideoLink = step.includes('Learn more about prostate cancer health');
+            const hasMobileUnit = step.includes('Mount Sinai Mobile Unit');
+            const cleanStep = step.replace(' →', '');
+
+            return (
+              <li key={index} className="p2r-rec-item">
+                <span className="p2r-rec-bullet" style={{ color: riskColor }} aria-hidden="true">›</span>
+                <span className="p2r-rec-text">{cleanStep}</span>
+                {hasVideoLink && (
+                  <a
+                    href="https://www.youtube.com/@ashtewarimd7526"
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="external-link"
+                    className="p2r-rec-link"
+                    aria-label="Watch prostate cancer health video"
                     title="Watch Video"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" fill={riskColor} opacity="0.2" />
-                      <path fill={riskColor} d="M10 8v8l6-4z" />
-                    </svg>
+                    <ExternalLinkIcon size={14} />
                   </a>
-                </li>
-              );
-            }
-            if (step.includes('Mount Sinai Mobile Unit')) {
-              return (
-                <li key={index}>
-                  {step.replace(' →', '')}
-                  <a 
-                    href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" 
-                    target="_blank" 
+                )}
+                {hasMobileUnit && (
+                  <a
+                    href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="external-link"
+                    className="p2r-rec-link"
+                    aria-label="View Mobile Unit location"
                     title="View Mobile Unit Location"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill={riskColor} viewBox="0 0 24 24" width="18" height="18">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
+                    <MapPinIcon size={14} />
                   </a>
-                </li>
-              );
-            }
-            return <li key={index}>{step}</li>;
+                )}
+              </li>
+            );
           })}
         </ul>
       </div>
 
-      <div className="summary-box">
-        <div><strong>Risk explanation</strong></div>
-        <div style={{ marginTop: '6px' }}>{part2RiskExplanationText}</div>
-        <div style={{ marginTop: '10px' }}>
-          <strong>How the risk tier is summarized</strong>
+      {/* ── Clinical inputs summary ── */}
+      <div className="p2r-clinical-grid" role="group" aria-label="Key clinical inputs">
+        <div className="p2r-clinical-item">
+          <FlaskConicalIcon size={16} className="p2r-clinical-icon" />
+          <div>
+            <div className="p2r-clinical-val">
+              {psaValue != null ? `${psaValue}` : postData?.psa != null ? `${postData.psa}` : '—'}
+              {(psaValue != null || postData?.psa != null) && <span className="p2r-clinical-unit"> ng/mL</span>}
+            </div>
+            <div className="p2r-clinical-key">PSA Level</div>
+          </div>
         </div>
-        <div style={{ marginTop: '6px' }}>
-          {pointsExplanationText}
+        <div className="p2r-clinical-item">
+          <ActivityIcon size={16} className="p2r-clinical-icon" />
+          <div>
+            <div className="p2r-clinical-val">{psaTier || '—'}</div>
+            <div className="p2r-clinical-key">PSA Tier</div>
+          </div>
         </div>
-        <div style={{ marginTop: '10px' }}><strong>About PI-RADS</strong></div>
-        <div style={{ marginTop: '6px' }}>
-          {postData?.knowPirads ? piradsExplanationTextProvided : piradsExplanationTextNotProvided}
+        <div className="p2r-clinical-item">
+          <InfoIcon size={16} className="p2r-clinical-icon" />
+          <div>
+            <div className="p2r-clinical-val">
+              {postData?.knowPirads ? `PI-RADS ${postData.pirads}` : 'Not provided'}
+            </div>
+            <div className="p2r-clinical-key">MRI Score</div>
+          </div>
         </div>
       </div>
 
-      <div className="summary-box">
-        <>
-          <div><strong>Key clinical inputs</strong></div>
-          <div>PSA: <strong>{psaValue != null ? `${psaValue} ng/mL` : (postData?.psa != null ? `${postData.psa} ng/mL` : 'N/A')}</strong></div>
-          <div>PSA Tier: <strong>{psaTier || 'N/A'}</strong></div>
-          <div>PI-RADS: <strong>{postData?.knowPirads ? postData?.pirads : 'Not Provided'}</strong></div>
-          {preResult && (
+      {/* ── Expandable detail sections ── */}
+      <div className="p2r-details">
+        <CollapsibleSection title="About This Risk Estimate" defaultOpen>
+          <p>{pointsExplanationText}</p>
+          <p>
+            PSA levels and PI-RADS scores entered here are used solely for educational risk stratification.
+            PSA-based screening in combination with shared decision-making is the recommended standard —
+            this tool is intended to supplement, not replace, that conversation with your clinician.
+          </p>
+          <p>
+            A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or
+            further workup is pursued.
+          </p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Understanding PI-RADS / MRI">
+          <p>
+            {postData?.knowPirads
+              ? 'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.'
+              : 'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.'}
+          </p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Important Disclaimer">
+          <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
+        </CollapsibleSection>
+      </div>
+
+      {/* ── Action buttons ── */}
+      <div className="p2r-actions">
+        <div className="p2r-actions-row p2r-actions-row--primary">
+          <button className="p2r-btn p2r-btn--outline" onClick={onEditAnswers}>
+            <ArrowLeftIcon size={16} /><span>Edit Answers</span>
+          </button>
+          <button className="p2r-btn p2r-btn--danger" onClick={onStartOver}>
+            <RefreshCwIcon size={16} /><span>Start Over</span>
+          </button>
+        </div>
+        <div className="p2r-actions-row">
+          <button className="p2r-btn p2r-btn--solid" onClick={() => window.print()}>
+            <PrinterIcon size={16} /><span>Print Results</span>
+          </button>
+          <button className="p2r-btn p2r-btn--outline" onClick={() => setShowPrintableForm(true)}>
+            <FileTextIcon size={16} /><span>Printable Form</span>
+          </button>
+          {(storageMode === 'local' || storageMode === 'cloud') && (
             <>
-              <div>Part 1 Score: <strong>{preResult.score}%</strong></div>
-              <div>Part 1 Risk: <strong>{preResult.risk}</strong></div>
+              <button
+                className="p2r-btn p2r-btn--outline"
+                onClick={() => {
+                  try {
+                    const exportData = {
+                      version: '1.0',
+                      exportDate: new Date().toISOString(),
+                      part: 'complete',
+                      part1Data: preData || {},
+                      part1Result: preResult || {},
+                      part2Data: postData || {},
+                      part2Result: result || {},
+                      userInfo: { email: userEmail || null, phone: userPhone || null, sessionId: sessionId || null },
+                    };
+                    const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
+                    const a = Object.assign(document.createElement('a'), {
+                      href: url,
+                      download: `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`,
+                    });
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  } catch (err) {
+                    alert('Export failed. Please try again.');
+                  }
+                }}
+              >
+                <DownloadIcon size={16} /><span>Export JSON</span>
+              </button>
+              <button className="p2r-btn p2r-btn--outline" onClick={handleExportCsv}>
+                <DownloadIcon size={16} /><span>Export CSV</span>
+              </button>
             </>
           )}
-        </>
-      </div>
-
-      <div className="summary-box">
-        <div style={{ fontSize: '13px', color: '#666' }}>
-          {footerDisclaimerText}
         </div>
       </div>
-
-      <div className="result-buttons">
-        <button className="btn-edit" onClick={onEditAnswers}>
-          <ArrowLeftIcon size={18} />
-          <span>Edit Answers</span>
-        </button>
-        <button className="btn-start-over" onClick={onStartOver}>
-          <RefreshCwIcon size={18} />
-          <span>Start Over</span>
-        </button>
-        <button className="btn-print" onClick={() => window.print()}>
-          <PrinterIcon size={18} />
-          <span>Print Results</span>
-        </button>
-        <button className="btn-print-form" onClick={() => setShowPrintableForm(true)}>
-          <FileTextIcon size={18} />
-          <span>Print Form</span>
-        </button>
-        
-        {/* Export available for both storage modes */}
-        {(storageMode === 'local' || storageMode === 'cloud') && (
-          <>
-            <button className="btn-export" onClick={() => {
-              try {
-                const exportData = {
-                  version: '1.0',
-                  exportDate: new Date().toISOString(),
-                  part: 'complete',
-                  part1Data: preData || {},
-                  part1Result: preResult || {},
-                  part2Data: postData || {},
-                  part2Result: result || {},
-                  userInfo: {
-                    email: userEmail || null,
-                    phone: userPhone || null,
-                    sessionId: sessionId || null
-                  }
-                };
-                const dataStr = JSON.stringify(exportData, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-              } catch (error) {
-                console.error('Export failed:', error);
-                alert('Export failed. Please try again.');
-              }
-            }}>
-              <DownloadIcon size={18} />
-              <span>Export Data</span>
-            </button>
-            <button className="btn-export" onClick={handleExportCsv}>
-              <DownloadIcon size={18} />
-              <span>Export CSV</span>
-            </button>
-          </>
-        )}
-      </div>
-
     </div>
   );
 };
