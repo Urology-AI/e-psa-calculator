@@ -7,16 +7,18 @@ import {
   CalendarIcon, 
   HospitalIcon 
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const ConsentScreen = ({ phone, email, onConsentComplete }) => {
   const [consent, setConsent] = useState(null);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (consent === null) {
-      setError('Please select an option to continue');
+      setError(t('consent.errorNoSelection'));
       return;
     }
 
@@ -36,12 +38,14 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
     <div className="consent-container">
       <div className="consent-card">
         <div className="consent-header">
-          <h2>Follow-Up Communication Consent</h2>
+          <h2>{t('consent.title')}</h2>
           <p className="consent-intro">
             {hasContact
-              ? <>Your {isEmail ? 'email address' : 'phone number'} <strong>{contactInfo}</strong> will be used for:</>
-              : <>Your session is stored by key only. No contact info is collected. You may still choose:</>
-            }
+              ? t('consent.introWithContact', {
+                  contactInfo,
+                  contactLabel: isEmail ? t('consent.contactEmailLabel') : t('consent.contactPhoneLabel'),
+                })
+              : t('consent.introWithoutContact')}
           </p>
         </div>
 
@@ -50,20 +54,20 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             {hasContact && (
               <li>
                 <ShieldIcon size={16} />
-                Account login and verification
+                {t('consent.reasonAccountLogin')}
               </li>
             )}
             <li>
               {hasContact ? (isEmail ? <MailIcon size={16} /> : <SmartphoneIcon size={16} />) : <ShieldIcon size={16} />}
-              Screening results follow-up
+              {t('consent.reasonFollowup')}
             </li>
             <li>
               <CalendarIcon size={16} />
-              PSA test reminders
+              {t('consent.reasonReminders')}
             </li>
             <li>
               <HospitalIcon size={16} />
-              Connection to Mount Sinai care resources
+              {t('consent.reasonResources')}
             </li>
           </ul>
         </div>
@@ -71,7 +75,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
         <form onSubmit={handleSubmit} className="consent-form">
           <div className="consent-question">
             <p className="question-text">
-              <strong>May we contact you regarding your screening results or follow-up care?</strong>
+              <strong>{t('consent.question')}</strong>
             </p>
 
             <div className="consent-options">
@@ -86,7 +90,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
                     setError('');
                   }}
                 />
-                <span>Yes, I agree to be contacted</span>
+                <span>{t('consent.optionYes')}</span>
               </label>
 
               <label className={`consent-option ${consent === 'no' ? 'selected' : ''}`}>
@@ -100,7 +104,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
                     setError('');
                   }}
                 />
-                <span>No</span>
+                <span>{t('consent.optionNo')}</span>
               </label>
             </div>
 
@@ -109,10 +113,10 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
 
           <div className="consent-disclaimer">
             <p>
-              <strong>Note:</strong> You can still use the ePSA tool regardless of your choice.
+              <strong>{t('consent.disclaimerNotePrefix')}</strong> {t('consent.disclaimerMain')}
               {hasContact
-                ? ' If you decline, we will not contact you for follow-up, but you can access your results anytime by logging in.'
-                : ' If you decline, we will not contact you. Use your session key to load your data from cloud anytime.'
+                ? ` ${t('consent.disclaimerWithContactNo')}`
+                : ` ${t('consent.disclaimerWithoutContactNo')}`
               }
             </p>
           </div>
@@ -122,7 +126,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             className="btn btn-primary btn-block"
             disabled={consent === null}
           >
-            Continue
+            {t('consent.continueButton')}
           </button>
         </form>
       </div>

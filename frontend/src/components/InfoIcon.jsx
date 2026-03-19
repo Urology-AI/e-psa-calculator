@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import './InfoIcon.css';
+import { useTranslation } from 'react-i18next';
 
-const InfoIcon = ({ title, description, sources }) => {
+const InfoIcon = ({ title, description, titleKey, descriptionKey, sources }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const resolvedTitle = titleKey ? t(titleKey) : title;
+  const resolvedDescription = descriptionKey ? t(descriptionKey) : description;
 
   return (
     <>
@@ -12,7 +17,7 @@ const InfoIcon = ({ title, description, sources }) => {
           e.stopPropagation();
           setIsOpen(true);
         }}
-        title={`Learn more about ${title}`}
+        title={t('info.learnMore', { title: resolvedTitle })}
       >
         ⓘ
       </button>
@@ -21,15 +26,15 @@ const InfoIcon = ({ title, description, sources }) => {
         <div className="info-modal-overlay" onClick={() => setIsOpen(false)}>
           <div className="info-modal" onClick={(e) => e.stopPropagation()}>
             <div className="info-modal-header">
-              <h3>{title}</h3>
+              <h3>{resolvedTitle}</h3>
               <button className="info-modal-close" onClick={() => setIsOpen(false)}>
                 ×
               </button>
             </div>
             <div className="info-modal-body">
-              <p className="info-description">{description}</p>
+              <p className="info-description">{resolvedDescription}</p>
               <div className="info-sources">
-                <strong>Sources:</strong>
+                <strong>{t('info.sources')}</strong>
                 <ul>
                   {sources.map((source, idx) => (
                     <li key={idx}>

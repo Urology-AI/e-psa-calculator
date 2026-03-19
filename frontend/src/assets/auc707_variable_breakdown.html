@@ -1,0 +1,140 @@
+
+<style>
+* { box-sizing: border-box; }
+.grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+.card { background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px 14px; }
+.card-label { font-size:12px; color:var(--color-text-secondary); margin-bottom:3px; }
+.card-val { font-size:20px; font-weight:500; }
+.card-sub { font-size:11px; color:var(--color-text-tertiary); margin-top:2px; }
+.section { font-size:14px; font-weight:500; color:var(--color-text-primary); margin:18px 0 8px; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { font-weight:500; color:var(--color-text-secondary); padding:6px 8px; border-bottom:0.5px solid var(--color-border-tertiary); text-align:left; }
+th.r,td.r { text-align:right; }
+th.c,td.c { text-align:center; }
+td { padding:6px 8px; border-bottom:0.5px solid var(--color-border-tertiary); color:var(--color-text-primary); font-size:12px; }
+tr.pos td { background:rgba(24,95,165,0.06); }
+tr.neg td { background:rgba(163,45,45,0.05); }
+.hr { border:none; border-top:0.5px solid var(--color-border-tertiary); margin:16px 0; }
+.warn { background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); padding:10px 14px; margin-bottom:10px; font-size:13px; color:var(--color-text-warning); }
+.info { background:var(--color-background-info); border:0.5px solid var(--color-border-info); border-radius:var(--border-radius-md); padding:10px 14px; margin-bottom:10px; font-size:13px; color:var(--color-text-info); }
+code { font-family:var(--font-mono); font-size:11px; background:var(--color-background-secondary); padding:1px 5px; border-radius:3px; }
+</style>
+
+<div style="padding:1rem 0;">
+
+<div class="grid3">
+  <div class="card">
+    <div class="card-label">Confirmed AUC</div>
+    <div class="card-val" style="color:var(--color-text-success);">0.707</div>
+    <div class="card-sub">All 13 variables, N=94</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Intercept</div>
+    <div class="card-val" style="font-size:16px;">−2.3534</div>
+    <div class="card-sub">Baseline log-odds (age &lt;60, low risk)</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Outcome</div>
+    <div class="card-val" style="font-size:15px;">csPCa = GG ≥ 3</div>
+    <div class="card-sub">23 positive / 71 negative</div>
+  </div>
+</div>
+
+<div class="info">The score formula is: <code>logit = −2.353 + (sum of coefficients × variable values)</code>, then <code>probability = 1 / (1 + e^−logit)</code>. Every variable below was used exactly as described in the encoding column.</div>
+
+<hr class="hr">
+<div class="section">All 13 variables — exact encoding and coefficients</div>
+
+<table>
+  <thead><tr>
+    <th class="c">#</th>
+    <th>Variable</th>
+    <th>How it was encoded</th>
+    <th class="r">Coefficient<br>(log-OR)</th>
+    <th class="r">OR</th>
+    <th class="c">Direction vs<br>original model</th>
+  </tr></thead>
+  <tbody>
+    <tr class="pos"><td class="c">1</td><td>Age 60–69</td><td>Binary — 1 if age group is 60–69, else 0</td><td class="r">+0.491</td><td class="r">1.63</td><td class="c">✓ same</td></tr>
+    <tr class="pos"><td class="c">2</td><td>Age 70+</td><td>Binary — 1 if age group is 70+, else 0</td><td class="r">+0.506</td><td class="r">1.66</td><td class="c">✓ same</td></tr>
+    <tr class="pos"><td class="c">3</td><td>BMI ≥ 30</td><td>Binary — 1 if BMI ≥ 30, else 0</td><td class="r">+0.182</td><td class="r">1.20</td><td class="c">✓ same</td></tr>
+    <tr class="pos"><td class="c">4</td><td>IPSS mild (0–7)</td><td>Binary — 1 if IPSS total 0–7, else 0</td><td class="r">+0.643</td><td class="r">1.90</td><td class="c">✓ same</td></tr>
+    <tr class="pos"><td class="c">5</td><td>IPSS moderate (8–19)</td><td>Binary — 1 if IPSS total 8–19, else 0</td><td class="r">+0.063</td><td class="r">1.07</td><td class="c">⚠ reversed*</td></tr>
+    <tr class="neg"><td class="c">6</td><td>Exercise: some</td><td>Binary — 1 if exercise = some (code 1), else 0</td><td class="r">−0.045</td><td class="r">0.96</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">7</td><td>Exercise: none</td><td>Binary — 1 if exercise = none (code 2), else 0</td><td class="r">−0.224</td><td class="r">0.80</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">8</td><td>Smoking: former</td><td>Binary — 1 if smoking = former (code 1), else 0</td><td class="r">−0.224</td><td class="r">0.80</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">9</td><td>Smoking: current</td><td>Binary — 1 if smoking = current (code 2), else 0</td><td class="r">−0.497</td><td class="r">0.61</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">10</td><td>Diet: high red meat</td><td>Binary — 1 if diet = red_meat or western, else 0</td><td class="r">−0.377</td><td class="r">0.69</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">11</td><td>Race: Black</td><td>Binary — 1 if race string contains "black", else 0</td><td class="r">−0.552</td><td class="r">0.58</td><td class="c">✗ reversed</td></tr>
+    <tr class="neg"><td class="c">12</td><td>Family history</td><td>Binary — 1 if any FH of prostate cancer, else 0</td><td class="r">−0.492</td><td class="r">0.61</td><td class="c">✗ reversed</td></tr>
+    <tr class="pos"><td class="c">13</td><td>Comorbidity score</td><td>Ordinal 0 / 1 / 2 — None=0, one condition=1, Both=2</td><td class="r">+0.610</td><td class="r">1.84</td><td class="c">✓ same</td></tr>
+  </tbody>
+</table>
+<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:5px;">Blue rows = positive coefficient (increases risk probability). Red rows = negative coefficient (decreases probability in this model). * IPSS moderate was reversed vs original model (original adds 4 pts) but OR is nearly 1.0 and non-significant.</div>
+
+<hr class="hr">
+<div class="section">Coefficient forest plot</div>
+<div style="position:relative;height:340px;"><canvas id="forestPlot"></canvas></div>
+
+<hr class="hr">
+<div class="warn">Important caveat: 8 of 13 variables (exercise, smoking, diet, race, family history) have negative or near-zero coefficients in this dataset — opposite to clinical expectation. The AUC of 0.707 is driven primarily by age, IPSS mild, and comorbidity score. This is an in-sample result on N=94 with only 23 events and has not been cross-validated. The reversed variables reflect cohort selection bias, not true biology.</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const dark = matchMedia('(prefers-color-scheme:dark)').matches;
+const gridColor = dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+const textColor = dark?'#c2c0b6':'#3d3d3a';
+
+const vars = [
+  "Comorbidity score","IPSS mild (0–7)","Age 70+","Age 60–69","BMI ≥ 30",
+  "IPSS moderate (8–19)","Exercise: some","Smoking: former","Exercise: none",
+  "Diet: high red meat","Family history","Smoking: current","Race: Black"
+];
+const coefs = [0.610,0.643,0.506,0.491,0.182,0.063,-0.045,-0.224,-0.224,-0.377,-0.492,-0.497,-0.552];
+const colors = coefs.map(c => c > 0
+  ? (dark ? 'rgba(24,95,165,0.75)' : 'rgba(24,95,165,0.65)')
+  : (dark ? 'rgba(163,45,45,0.75)' : 'rgba(163,45,45,0.60)')
+);
+
+const canvas = document.getElementById('forestPlot');
+if (!canvas || typeof Chart === 'undefined') {
+  const msg = document.createElement('div');
+  msg.style.cssText = 'color:#b91c1c; padding:8px 0; font-size:13px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;';
+  msg.textContent = 'Graph cannot be rendered (Chart.js failed to load).';
+  if (canvas && canvas.parentElement) canvas.parentElement.appendChild(msg);
+} else {
+  new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels: vars,
+      datasets:[{
+        data: coefs,
+        backgroundColor: colors,
+        borderColor: 'transparent',
+        borderWidth: 0,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label: v => `Log-OR: ${v.raw > 0 ? '+' : ''}${v.raw.toFixed(3)}  |  OR: ${Math.exp(v.raw).toFixed(2)}`
+        }}
+      },
+      scales:{
+        x:{
+          title:{display:true,text:'Coefficient (log-OR)',color:textColor,font:{size:11}},
+          ticks:{color:textColor,font:{size:10}},
+          grid:{color:gridColor},
+          min:-0.75, max:0.85
+        },
+        y:{ticks:{color:textColor,font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+</script>

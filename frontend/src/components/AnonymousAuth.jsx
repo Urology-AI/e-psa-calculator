@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { useTranslation } from 'react-i18next';
 import './AnonymousAuth.css';
 
 const AnonymousAuth = ({ onAuthSuccess }) => {
@@ -8,6 +9,7 @@ const AnonymousAuth = ({ onAuthSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [created, setCreated] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     generateSessionId();
@@ -69,21 +71,21 @@ const AnonymousAuth = ({ onAuthSuccess }) => {
       <div className="anonymous-auth-card">
         {/* Header */}
         <div className="auth-header">
-          <h1 className="auth-title">Prostate‑Specific Awareness</h1>
-          <p className="auth-subtitle">A Non‑Validated Educational Risk Tool</p>
+          <h1 className="auth-title">{t('anonymousAuth.header.title')}</h1>
+          <p className="auth-subtitle">{t('anonymousAuth.header.subtitle')}</p>
         </div>
 
         {!created ? (
           <>
             <div className="auth-instruction">
-              <p>Create an anonymous session to get started</p>
+              <p>{t('anonymousAuth.instruction.title')}</p>
               <p className="instruction-subtitle">
-                Your session will be tracked with a unique ID. No personal information required.
+                {t('anonymousAuth.instruction.subtitle')}
               </p>
             </div>
 
             <div className="session-id-display">
-              <div className="session-id-label">Your Session ID:</div>
+              <div className="session-id-label">{t('anonymousAuth.sessionIdLabel')}</div>
               <div className="session-id-value">{sessionId}</div>
               <button 
                 type="button" 
@@ -91,7 +93,7 @@ const AnonymousAuth = ({ onAuthSuccess }) => {
                 className="regenerate-btn"
                 disabled={loading}
               >
-                🔄 Regenerate
+                {'🔄'} {t('anonymousAuth.regenerate')}
               </button>
             </div>
 
@@ -103,38 +105,36 @@ const AnonymousAuth = ({ onAuthSuccess }) => {
                 disabled={loading}
                 className="auth-submit-btn"
               >
-                {loading ? 'Creating Session...' : 'Start Assessment'}
+                {loading ? t('anonymousAuth.creatingSession') : t('anonymousAuth.startAssessment')}
               </button>
             </form>
 
             <div className="auth-info">
               <p>
-                <strong>Save this Session ID:</strong> You'll need it to access your results later.
-                Take a screenshot or write it down.
+                <strong>{t('anonymousAuth.saveSessionIdStrong')}</strong> {t('anonymousAuth.saveSessionIdRest')}
               </p>
             </div>
           </>
         ) : (
           <div className="session-created">
             <div className="success-icon">✅</div>
-            <h3>Session Created!</h3>
+            <h3>{t('anonymousAuth.sessionCreatedTitle')}</h3>
             <div className="session-confirmation">
-              <div className="session-id-label">Your Session ID:</div>
+              <div className="session-id-label">{t('anonymousAuth.sessionIdLabel')}</div>
               <div className="session-id-value large">{sessionId}</div>
             </div>
             <p className="session-warning">
-              <strong>Important:</strong> Save this Session ID to access your results later.
-              Without it, you won't be able to return to your assessment.
+              <strong>{t('anonymousAuth.importantStrong')}</strong> {t('anonymousAuth.sessionWarningRest')}
             </p>
           </div>
         )}
 
         <div className="auth-footer">
           <div className="footer-options">
-            <p>Other ways to sign in:</p>
+            <p>{t('anonymousAuth.otherWaysTitle')}</p>
             <div className="auth-alternatives">
-              <span>📱 Phone Number</span>
-              <span>📧 Email</span>
+              <span>📱 {t('anonymousAuth.phoneNumber')}</span>
+              <span>📧 {t('anonymousAuth.email')}</span>
             </div>
           </div>
         </div>

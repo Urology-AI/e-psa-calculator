@@ -5,6 +5,7 @@ import {
 } from 'firebase/auth';
 import { auth, firebaseConfig } from '../config/firebase';
 import './PhoneAuth.css';
+import { useTranslation } from 'react-i18next';
 
 // Check if using Auth Emulator (reCAPTCHA not needed)
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -34,6 +35,7 @@ class MockRecaptchaVerifier {
 }
 
 const PhoneAuth = ({ onAuthSuccess }) => {
+  const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState('phone'); // 'phone' or 'code'
@@ -86,7 +88,7 @@ const PhoneAuth = ({ onAuthSuccess }) => {
       const phoneNumber = `+1${digits}`; // US format, adjust for international
 
       if (digits.length !== 10) {
-        throw new Error('Please enter a valid 10-digit phone number');
+        throw new Error(t('phoneAuth.errors.invalidPhone10Digits'));
       }
 
       // Initialize reCAPTCHA (skip on localhost when using emulator)
@@ -113,7 +115,7 @@ const PhoneAuth = ({ onAuthSuccess }) => {
           },
           'expired-callback': () => {
             console.error('reCAPTCHA expired');
-            setError('reCAPTCHA expired. Please try again.');
+            setError(t('phoneAuth.errors.recaptchaExpired'));
             if (window.recaptchaVerifier) {
               try {
                 if (typeof window.recaptchaVerifier.clear === 'function') {
@@ -249,11 +251,11 @@ const PhoneAuth = ({ onAuthSuccess }) => {
       console.error('Verification Error:', err.code, err.message);
       console.error('Full error details:', err);
       
-      let errorMessage = 'Invalid verification code. Please try again.';
+      let errorMessage = t('phoneAuth.errors.invalidVerificationCodeGeneric');
       if (err.code === 'auth/invalid-verification-code') {
-        errorMessage = 'Invalid verification code. Please check and try again.';
+        errorMessage = t('phoneAuth.errors.invalidVerificationCode');
       } else if (err.code === 'auth/code-expired') {
-        errorMessage = 'Verification code expired. Please request a new code.';
+        errorMessage = t('phoneAuth.errors.codeExpired');
       } else if (err.message) {
         errorMessage = err.message;
       }
@@ -271,23 +273,23 @@ const PhoneAuth = ({ onAuthSuccess }) => {
   return (
     <div className="phone-auth-container">
       <div className="phone-auth-card">
-        <p className="auth-subtitle">Enter your phone number to get started</p>
+        <p className="auth-subtitle">{t('phoneAuth.subtitle')}</p>
 
         {step === 'phone' ? (
           <form onSubmit={handlePhoneSubmit} className="auth-form">
             <div className="form-group">
-              <label htmlFor="phone">Phone Number</label>
+              <label htmlFor="phone">{t('phoneAuth.phoneLabel')}</label>
               <input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={handlePhoneChange}
-                placeholder="(555) 123-4567"
+                placeholder={t('phoneAuth.phonePlaceholder')}
                 required
                 maxLength="14"
                 className="phone-input"
               />
-              <small>We'll send you a verification code via SMS</small>
+              <small>{t('phoneAuth.smsHint')}</small>
             </div>
 
             {/* reCAPTCHA container - must stay in DOM */}
@@ -300,24 +302,24 @@ const PhoneAuth = ({ onAuthSuccess }) => {
               className="btn btn-primary btn-block"
               disabled={loading || phone.replace(/\D/g, '').length !== 10}
             >
-              {loading ? 'Sending...' : 'Send Verification Code'}
+              {loading ? t('phoneAuth.sending') : t('phoneAuth.sendCode')}
             </button>
           </form>
         ) : (
           <form onSubmit={handleCodeSubmit} className="auth-form">
             <div className="form-group">
-              <label htmlFor="code">Verification Code</label>
+              <label htmlFor="code">{t('phoneAuth.verificationCodeLabel')}</label>
               <input
                 id="code"
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
+                placeholder={t('phoneAuth.codePlaceholder')}
                 required
                 maxLength="6"
                 className="code-input"
               />
-              <small>Enter the 6-digit code sent to {phone}</small>
+              <small>{t('phoneAuth.codeSentTo', { phone })}</small>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -328,7 +330,7 @@ const PhoneAuth = ({ onAuthSuccess }) => {
                 className="btn btn-primary btn-block"
                 disabled={loading || code.length !== 6}
               >
-                {loading ? 'Verifying...' : 'Verify Code'}
+                {loading ? t('phoneAuth.verifying') : t('phoneAuth.verifyCode')}
               </button>
               <button
                 type="button"
@@ -343,7 +345,7 @@ const PhoneAuth = ({ onAuthSuccess }) => {
                 }}
                 className="btn btn-link"
               >
-                Change Phone Number
+                {t('phoneAuth.changePhoneNumber')}
               </button>
             </div>
           </form>

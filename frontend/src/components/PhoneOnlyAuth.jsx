@@ -5,6 +5,7 @@ import {
 } from 'firebase/auth';
 import { auth, firebaseConfig } from '../config/firebase';
 import './PhoneOnlyAuth.css';
+import { useTranslation } from 'react-i18next';
 
 // Check if using Auth Emulator (reCAPTCHA not needed)
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -34,6 +35,7 @@ class MockRecaptchaVerifier {
 }
 
 const PhoneOnlyAuth = ({ onAuthSuccess }) => {
+  const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState('phone'); // 'phone' or 'code'
@@ -172,26 +174,26 @@ const PhoneOnlyAuth = ({ onAuthSuccess }) => {
         {/* Header */}
         <div className="phone-only-auth-header">
           <div className="auth-logo">ePSA</div>
-          <h1 className="auth-title">Prostate‑Specific Awareness</h1>
-          <p className="auth-subtitle">A Non‑Validated Educational Risk Tool</p>
+          <h1 className="auth-title">{t('phoneOnlyAuth.title')}</h1>
+          <p className="auth-subtitle">{t('phoneOnlyAuth.subtitle')}</p>
         </div>
 
         {/* Phone Step */}
         {step === 'phone' && (
           <>
             <div className="auth-instruction">
-              <p>Enter your phone number to get started</p>
+              <p>{t('phoneOnlyAuth.enterPhonePrompt')}</p>
             </div>
 
             <form onSubmit={handlePhoneSubmit} className="auth-form">
               <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
+                <label htmlFor="phone">{t('phoneOnlyAuth.phoneLabel')}</label>
                 <input
                   id="phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                  placeholder="(555) 123-4567"
+                  placeholder={t('phoneOnlyAuth.phonePlaceholder')}
                   className="auth-input"
                   maxLength={14}
                   required
@@ -205,12 +207,12 @@ const PhoneOnlyAuth = ({ onAuthSuccess }) => {
                 disabled={loading || phone.replace(/\D/g, '').length !== 10}
                 className="auth-submit-btn"
               >
-                {loading ? 'Sending...' : 'Send Verification Code'}
+                {loading ? t('phoneOnlyAuth.sending') : t('phoneOnlyAuth.sendCode')}
               </button>
             </form>
 
             <div className="auth-info">
-              <p>We'll send you a verification code via SMS</p>
+              <p>{t('phoneOnlyAuth.smsHint')}</p>
             </div>
           </>
         )}
@@ -219,19 +221,19 @@ const PhoneOnlyAuth = ({ onAuthSuccess }) => {
         {step === 'code' && (
           <>
             <div className="auth-instruction">
-              <p>Enter the verification code sent to:</p>
+              <p>{t('phoneOnlyAuth.enterCodePrompt')}</p>
               <p className="phone-display">{phone}</p>
             </div>
 
             <form onSubmit={handleCodeSubmit} className="auth-form">
               <div className="form-group">
-                <label htmlFor="code">Verification Code</label>
+                <label htmlFor="code">{t('phoneOnlyAuth.verificationCodeLabel')}</label>
                 <input
                   id="code"
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Enter 6-digit code"
+                  placeholder={t('phoneOnlyAuth.codePlaceholder')}
                   className="auth-input"
                   maxLength={6}
                   required
@@ -246,20 +248,20 @@ const PhoneOnlyAuth = ({ onAuthSuccess }) => {
                   onClick={handleBack}
                   className="auth-back-btn"
                 >
-                  Back
+                  {t('phoneOnlyAuth.back')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading || code.length !== 6}
                   className="auth-submit-btn"
                 >
-                  {loading ? 'Verifying...' : 'Verify Code'}
+                  {loading ? t('phoneOnlyAuth.verifying') : t('phoneOnlyAuth.verifyCode')}
                 </button>
               </div>
             </form>
 
             <div className="auth-info">
-              <p>Didn't receive the code? Check your messages or try again.</p>
+              <p>{t('phoneOnlyAuth.didNotReceive')}</p>
             </div>
           </>
         )}

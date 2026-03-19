@@ -5,6 +5,7 @@ import {
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import './UniversalAuth.css';
+import { useTranslation } from 'react-i18next';
 
 // Check if using Auth Emulator
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -16,24 +17,25 @@ const MockRecaptchaVerifier = () => {};
 const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   const getAnonymousAuthErrorMessage = (err) => {
-    if (!err) return 'Failed to create session. Please try again.';
+    if (!err) return t('auth.errors.generic');
     if (err.code === 'auth/operation-not-allowed') {
-      return 'Anonymous sign-in is disabled. Enable Anonymous provider in Auth (or Auth Emulator) and retry.';
+      return t('auth.errors.operationNotAllowed');
     }
     if (err.code === 'auth/admin-restricted-operation') {
       // this usually means the project is preventing client-side creation of
       // anonymous accounts (e.g. provider is turned off or the project is locked)
-      return 'Anonymous sign-in is restricted in this Firebase project. "Enable Anonymous provider" in Authentication settings or use the emulator with the correct config.';
+      return t('auth.errors.adminRestricted');
     }
     if (err.code === 'permission-denied' || err.code === 'firestore/permission-denied') {
-      return 'Session created but Firestore write was denied. Check Firestore rules/emulator and retry.';
+      return t('auth.errors.permissionDenied');
     }
     if (err.code === 'unavailable' || err.code === 'firestore/unavailable') {
-      return 'Firestore is unavailable. Make sure the Firestore emulator is running.';
+      return t('auth.errors.firestoreUnavailable');
     }
-    return `${err.message || 'Failed to create session.'}${err.code ? ` (${err.code})` : ''}`;
+    return `${err.message || t('auth.errors.generic')}${err.code ? ` (${err.code})` : ''}`;
   };
 
   useEffect(() => {}, []);
@@ -120,31 +122,27 @@ const UniversalAuth = ({ onAuthSuccess, initialEmail = null }) => {
     <div className="universal-auth-container">
       <div className="universal-auth-card">
         <div className="auth-instruction">
-          <p>Create an anonymous session to save to cloud</p>
-          <p className="instruction-subtitle">
-            You will get a session key. Save it to load your data later. No email or phone collected.
-          </p>
+          <p>{t('auth.createSessionHeading')}</p>
+          <p className="instruction-subtitle">{t('auth.subtitle')}</p>
         </div>
 
         <div className="anonymous-session-info">
           <div className="session-preview">
-            <div className="session-label">You&apos;ll get a session key like:</div>
-            <div className="session-example">A1B2C3D4</div>
+            <div className="session-label">{t('auth.sessionPreviewLabel')}</div>
+            <div className="session-example">{t('auth.sessionExample')}</div>
           </div>
-          <p className="session-note">
-            Save this key to load your assessment from cloud later.
-          </p>
+          <p className="session-note">{t('auth.sessionNote')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="auth-error">{error}</div>}
           <button type="submit" disabled={loading} className="auth-submit-btn">
-            {loading ? 'Creating...' : 'Create session'}
+            {loading ? t('auth.buttonCreating') : t('auth.buttonCreateSession')}
           </button>
         </form>
 
         <div className="auth-info">
-          <p>Your data is stored under this key only. No personal information is collected.</p>
+          <p>{t('auth.infoLine')}</p>
         </div>
 
         <div id="recaptcha-container" aria-hidden="true" />

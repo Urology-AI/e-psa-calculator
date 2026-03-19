@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
+import { useTranslation } from 'react-i18next';
 import { 
   FileTextIcon, 
   ClipboardListIcon, 
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 
 const WelcomeScreenGHPages = ({ onBegin, onImport, formData }) => {
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
 
   const handleViewForm = () => {
@@ -31,66 +33,66 @@ const WelcomeScreenGHPages = ({ onBegin, onImport, formData }) => {
       <div className="welcome-container">
         <div className="welcome-body">
           <p className="welcome-description">
-            This 5-minute questionnaire calculates your personalized risk assessment using validated clinical instruments.
+            {t('welcomeGh.description')}
           </p>
 
           <div className="demo-notice-banner">
             <MonitorIcon size={20} className="demo-icon" />
             <div className="demo-text">
-              <strong>Demo Version</strong>
-              <span>Data stored locally in your browser only</span>
+              <strong>{t('welcomeGh.demoVersion')}</strong>
+              <span>{t('welcomeGh.demoStorage')}</span>
             </div>
           </div>
 
           <div className="welcome-features">
             <div className="feature-item">
               <ClipboardListIcon size={20} className="feature-icon" />
-              <span className="feature-text">27 questions</span>
+              <span className="feature-text">{t('welcomeGh.featureQuestions')}</span>
             </div>
             <div className="feature-item">
               <ClockIcon size={20} className="feature-icon" />
-              <span className="feature-text">~5 min</span>
+              <span className="feature-text">{t('welcomeGh.featureTime')}</span>
             </div>
             <div className="feature-item">
               <DatabaseIcon size={20} className="feature-icon" />
-              <span className="feature-text">Local storage</span>
+              <span className="feature-text">{t('welcomeGh.featureLocalStorage')}</span>
             </div>
           </div>
 
           <div className="demo-features">
-            <h4>Available in this demo:</h4>
+            <h4>{t('welcomeGh.availableInDemo')}</h4>
             <ul>
-              <li>✅ Complete assessment questionnaire</li>
-              <li>✅ Risk calculations and results</li>
-              <li>✅ JSON import/export</li>
-              <li>✅ Print functionality</li>
+              <li>{t('welcomeGh.availableItems.questionnaire')}</li>
+              <li>{t('welcomeGh.availableItems.results')}</li>
+              <li>{t('welcomeGh.availableItems.json')}</li>
+              <li>{t('welcomeGh.availableItems.print')}</li>
             </ul>
-            <h4>Not available in demo:</h4>
+            <h4>{t('welcomeGh.notAvailableInDemo')}</h4>
             <ul>
-              <li>❌ Phone authentication</li>
-              <li>❌ Cloud storage & sync</li>
-              <li>❌ PDF import</li>
+              <li>{t('welcomeGh.notAvailableItems.phoneAuth')}</li>
+              <li>{t('welcomeGh.notAvailableItems.cloudSync')}</li>
+              <li>{t('welcomeGh.notAvailableItems.pdfImport')}</li>
             </ul>
           </div>
 
           <button className="btn-begin-assessment" onClick={onBegin}>
-            <span>Start Demo Assessment</span>
+            <span>{t('welcomeGh.startDemo')}</span>
             <ArrowRightIcon size={18} />
           </button>
 
           <button className="btn-import-json" onClick={onImport}>
             <FileTextIcon size={16} />
-            <span>Import JSON File</span>
+            <span>{t('welcomeGh.importJson')}</span>
           </button>
 
-          <button className="btn-view-form-bottom" onClick={handleViewForm} title="View Offline Form">
+          <button className="btn-view-form-bottom" onClick={handleViewForm} title={t('welcomeGh.viewOfflineFormTitle')}>
             <FileTextIcon size={16} />
-            <span>View Printable Form</span>
+            <span>{t('welcome.viewPrintableForm')}</span>
           </button>
         </div>
 
         <p className="welcome-footer">
-          <strong>Demo Version:</strong> For educational and research purposes. Not for clinical decision-making without physician review.
+          <strong>{t('welcomeGh.demoVersion')}:</strong> {t('welcomeGh.footerDisclaimer')}
         </p>
       </div>
     </div>

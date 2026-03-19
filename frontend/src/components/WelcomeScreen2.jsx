@@ -3,6 +3,7 @@ import './WelcomeScreen2.css';
 import RiskAssessmentDocs from './RiskAssessmentDocs';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { useTranslation } from 'react-i18next';
 
 const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const [showModelDetails, setShowModelDetails] = useState(false);
@@ -11,6 +12,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
   const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
   const riskCategories = part2.riskCategories || [];
   const toPct = (value) => (typeof value === 'number' ? `${Math.round(value * 100)}%` : String(value));
+  const { t } = useTranslation();
   const getRiskColor = (tier) => {
     switch (tier) {
       case 'Lower': return '#27AE60';
@@ -26,14 +28,14 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
       
       <div className="welcome2-container">
         <div className="welcome2-header">
-          <h1>Stage 2: Risk Assessment</h1>
-          <p className="welcome2-subtitle">Detailed evaluation of your prostate cancer risk factors</p>
+          <h1>{t('welcome2.stage2Title')}</h1>
+          <p className="welcome2-subtitle">{t('welcome2.stage2Subtitle')}</p>
         </div>
 
         <div className="welcome2-body">
           {preResult && preResult.probability !== undefined && (
             <div className="pre-result-summary">
-              <h3>Your Screening Priority Result</h3>
+              <h3>{t('welcome2.priorityResultHeading')}</h3>
               <div 
                 className="priority-badge"
                 style={{ 
@@ -41,12 +43,15 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
                   color: 'white'
                 }}
               >
-                {preResult.riskTier} Risk ({preResult.probability.toFixed(1)}%)
+                {t('welcome2.priorityBadge', {
+                  riskTier: preResult.riskTier,
+                  probability: preResult.probability.toFixed(1),
+                })}
               </div>
               <p className="priority-description">
-                Based on your initial assessment, you have a <strong>{preResult.riskTier?.toLowerCase()}</strong> priority 
-                for prostate cancer screening. This stage will gather additional clinical information 
-                to refine your risk profile.
+                {t('welcome2.priorityDescription', {
+                  priorityTierLower: preResult.riskTier?.toLowerCase(),
+                })}
               </p>
             </div>
           )}
@@ -54,71 +59,65 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
           {showModelDetails ? (
             <div className="model-breakdown-expanded">
               <div className="model-info-section">
-                <h3>Risk Assessment Model Details</h3>
-                <p>
-                  This stage combines your initial screening priority with additional clinical 
-                  variables to produce a comprehensive risk score:
-                </p>
+                <h3>{t('welcome2.modelDetails.heading')}</h3>
+                <p>{t('welcome2.modelDetails.intro')}</p>
                 
                 <div className="model-factors">
                   <div className="factor-card">
                     <span className="factor-icon">🔬</span>
                     <div className="factor-content">
-                      <strong>Clinical Measurements</strong>
-                      <span>PSA history, DRE findings, urinary symptoms (IPSS)</span>
+                      <strong>{t('welcome2.modelDetails.factors.clinical.title')}</strong>
+                      <span>{t('welcome2.modelDetails.factors.clinical.desc')}</span>
                     </div>
                   </div>
                   
                   <div className="factor-card">
                     <span className="factor-icon">🏥</span>
                     <div className="factor-content">
-                      <strong>Medical History</strong>
-                      <span>Previous biopsies, infections, medications</span>
+                      <strong>{t('welcome2.modelDetails.factors.history.title')}</strong>
+                      <span>{t('welcome2.modelDetails.factors.history.desc')}</span>
                     </div>
                   </div>
                   
                   <div className="factor-card">
                     <span className="factor-icon">🧬</span>
                     <div className="factor-content">
-                      <strong>Genetic & Family Factors</strong>
-                      <span>Detailed family history, genetic markers if known</span>
+                      <strong>{t('welcome2.modelDetails.factors.genetic.title')}</strong>
+                      <span>{t('welcome2.modelDetails.factors.genetic.desc')}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="model-breakdown">
-                <h3>Risk Assessment Model</h3>
+                <h3>{t('welcome2.modelBreakdown.heading')}</h3>
                 <div className="breakdown-card">
-                  <h4>Combined Risk Calculation</h4>
-                  <p>
-                    This stage combines your initial screening priority with additional clinical 
-                    variables to produce a comprehensive risk score:
-                  </p>
+                  <h4>{t('welcome2.modelBreakdown.combined.heading')}</h4>
+                  <p>{t('welcome2.modelBreakdown.combined.desc')}</p>
                   
                   <div className="formula">
                     <div className="formula-row">
-                      <span className="formula-label">Stage 1 Score:</span>
-                      <span className="formula-value">Baseline probability from initial assessment</span>
+                      <span className="formula-label">{t('welcome2.modelBreakdown.formula.stage1.label')}</span>
+                      <span className="formula-value">{t('welcome2.modelBreakdown.formula.stage1.value')}</span>
                     </div>
                     <div className="formula-row">
-                      <span className="formula-label">Stage 2 Adjustments:</span>
-                      <span className="formula-value">Baseline carry + PSA points + PI-RADS points/override</span>
+                      <span className="formula-label">{t('welcome2.modelBreakdown.formula.stage2.label')}</span>
+                      <span className="formula-value">{t('welcome2.modelBreakdown.formula.stage2.value')}</span>
                     </div>
                     <div className="formula-row formula-total">
-                      <span className="formula-label">Final Risk Score:</span>
-                      <span className="formula-value">Dynamic category mapping from total points</span>
+                      <span className="formula-label">{t('welcome2.modelBreakdown.formula.final.label')}</span>
+                      <span className="formula-value">{t('welcome2.modelBreakdown.formula.final.value')}</span>
                     </div>
                   </div>
                   
                   <div className="risk-tiers">
-                    <h5>Risk Categories</h5>
+                    <h5>{t('welcome2.modelBreakdown.riskCategories.heading')}</h5>
                     {riskCategories.map((category, index) => (
                       <div className="tier-row" key={`welcome2-tier-${index}`}>
                         <span className="tier-badge" style={{ backgroundColor: '#1C2833' }}>
                           {String(category.riskCat || '').replace(/[🟢🟡🟠🔴]/g, '').trim()}
                         </span>
-                        <span>{toPct(category.riskPct)} probability</span>
+                        <span>{toPct(category.riskPct)} {t('welcome2.modelBreakdown.riskCategories.probabilityLabel')}</span>
                       </div>
                     ))}
                   </div>
@@ -126,11 +125,11 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
               </div>
 
               <div className="disclaimer-box">
-                <strong>References:</strong>
+                <strong>{t('welcome2.references.label')}</strong>
                 <ul>
-                  <li>NCCN Clinical Practice Guidelines for Prostate Cancer Early Detection</li>
-                  <li>EAU Guidelines on Prostate Cancer</li>
-                  <li>PCPT Risk Calculator 2.0</li>
+                  <li>{t('welcome2.references.item1')}</li>
+                  <li>{t('welcome2.references.item2')}</li>
+                  <li>{t('welcome2.references.item3')}</li>
                 </ul>
               </div>
 
@@ -139,7 +138,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
                 onClick={() => setShowModelDetails(false)}
               >
                 <EyeOffIcon size={16} />
-                Hide Details
+                {t('welcome2.hideDetails')}
               </button>
             </div>
           ) : (
@@ -148,37 +147,32 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
               onClick={() => setShowModelDetails(true)}
             >
               <EyeIcon size={16} />
-              View Risk Assessment Model Details
+              {t('welcome2.viewModelDetails')}
             </button>
           )}
 
           <div className="disclaimer-box">
-            <strong>Important Note:</strong> This assessment is for educational purposes only 
-            and does not constitute medical advice. The risk model is based on published 
-            research but should not replace consultation with a qualified healthcare provider.
-            Always discuss your results with your doctor before making any health decisions.
+            <strong>{t('welcome2.importantNote.label')}</strong> {t('welcome2.importantNote.text')}
           </div>
 
           <div className="time-estimate">
-            Estimated time: ~5-7 minutes
+            {t('welcome2.estimatedTime')}
           </div>
 
           <button className="btn-begin-stage2" onClick={onBegin}>
-            Begin Risk Assessment →
+            {t('welcome2.beginStage2Button')}
           </button>
         </div>
       </div>
 
       <footer className="welcome2-footer">
         <div className="footer-content">
-          <p className="footer-text">
-            Learn more about the documentation for this tool.
-          </p>
+          <p className="footer-text">{t('welcome2.footerText')}</p>
           <button 
             className="btn-model-docs" 
             onClick={() => setShowDocs(true)}
           >
-            View Risk Assessment Documentation
+            {t('welcome2.viewDocsButton')}
           </button>
         </div>
       </footer>

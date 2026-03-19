@@ -1,8 +1,10 @@
 import React from 'react';
 import './ModelDocs.css';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { useTranslation } from 'react-i18next';
 
 const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
+  const { t } = useTranslation();
   const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
   const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
   const validation = activeConfig.validation || DEFAULT_CALCULATOR_CONFIG.validation;
@@ -28,20 +30,20 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
     <div className="model-docs-overlay">
       <div className="model-docs-container">
         <div className="model-docs-header">
-          <h2>Risk Assessment Documentation</h2>
-          <button className="btn-close" onClick={onClose}>×</button>
+          <h2>{t('riskDocs.title')}</h2>
+          <button className="btn-close" onClick={onClose} aria-label={t('riskDocs.close')}>×</button>
         </div>
         
         <div className="model-docs-content">
           <section className="docs-section">
-            <h3>Overview</h3>
+            <h3>{t('riskDocs.overviewTitle')}</h3>
             <p>
               The Risk Assessment stage combines your initial educational estimate (Stage 1 ePSA score)
               with additional information (PSA and optional MRI PI-RADS) to create an educational summary.
               It is not a diagnosis and should not be used as a standalone basis for clinical decisions.
             </p>
             <div className="info-box warning">
-              <strong>Important:</strong> ePSA is a <strong>non-validated educational risk assessment tool</strong>.
+              <strong>{t('riskDocs.importantLabel')}</strong> ePSA is a <strong>{t('riskDocs.nonValidatedStrong')}</strong>.
               Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU.
               In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend.
               PSA and MRI interpretation depends on clinical context (e.g., PSA trends, prostate size, infection/inflammation, medications),
@@ -50,7 +52,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           </section>
 
           <section className="docs-section">
-            <h3>Risk Calculation Formula</h3>
+            <h3>{t('riskDocs.formulaTitle')}</h3>
             {useLogistic ? (
               <>
                 <p className="formula-note">Model type: <strong>logistic_v1</strong>. Logit = intercept + log(PSA) × weight + PI-RADS dummies.</p>
@@ -93,15 +95,15 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           </section>
 
           <section className="docs-section">
-            <h3>Variable Definitions</h3>
+            <h3>{t('riskDocs.variableDefinitionsTitle')}</h3>
             {useLogistic ? (
               <table className="vars-table">
                 <thead>
                   <tr>
-                    <th>Variable</th>
-                    <th>Type</th>
-                    <th>Coefficient</th>
-                    <th>Description</th>
+                    <th>{t('riskDocs.table.variable')}</th>
+                    <th>{t('riskDocs.table.type')}</th>
+                    <th>{t('riskDocs.table.coefficient')}</th>
+                    <th>{t('riskDocs.table.description')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,11 +127,11 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
               <table className="vars-table">
                 <thead>
                   <tr>
-                    <th>Variable</th>
-                    <th>Type</th>
-                    <th>Range</th>
-                    <th>Points</th>
-                    <th>Description</th>
+                    <th>{t('riskDocs.table.variable')}</th>
+                    <th>{t('riskDocs.table.type')}</th>
+                    <th>{t('riskDocs.table.range')}</th>
+                    <th>{t('riskDocs.table.points')}</th>
+                    <th>{t('riskDocs.table.description')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,23 +162,23 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           </section>
 
           <section className="docs-section">
-            <h3>Risk Categories & Next Steps</h3>
+            <h3>{t('riskDocs.categoriesTitle')}</h3>
             {useLogistic ? (
               <div className="tiers-grid">
                 <div className="tier-card">
-                  <h4>Low</h4>
+                  <h4>{t('riskDocs.low')}</h4>
                   <div className="tier-range">probability &lt; {toPct(thresholds.low)}</div>
-                  <p className="tier-action">Consider discussing PSA/MRI follow-up with a clinician.</p>
+                  <p className="tier-action">{t('riskDocs.followupAction')}</p>
                 </div>
                 <div className="tier-card">
-                  <h4>Moderate</h4>
+                  <h4>{t('riskDocs.moderate')}</h4>
                   <div className="tier-range">{toPct(thresholds.low)} – {toPct(thresholds.moderate)}</div>
-                  <p className="tier-action">Consider discussing PSA/MRI follow-up with a clinician.</p>
+                  <p className="tier-action">{t('riskDocs.followupAction')}</p>
                 </div>
                 <div className="tier-card">
-                  <h4>High</h4>
+                  <h4>{t('riskDocs.high')}</h4>
                   <div className="tier-range">≥ {toPct(thresholds.high)}</div>
-                  <p className="tier-action">Consider prioritizing discussion with a clinician about next steps.</p>
+                  <p className="tier-action">{t('riskDocs.highAction')}</p>
                 </div>
               </div>
             ) : (
@@ -205,7 +207,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
 
           {!useLogistic && piradsOverrideEntries.length > 0 && (
           <section className="docs-section">
-            <h3>PI-RADS Override Logic</h3>
+            <h3>{t('riskDocs.piradsOverrideTitle')}</h3>
             <div className="info-box info">
               {piradsOverrideEntries.map((entry) => (
                 <p key={`pirads-override-${entry.score}`}>
@@ -221,7 +223,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           )}
 
           <section className="docs-section">
-            <h3>Hormonal Therapy Considerations</h3>
+            <h3>{t('riskDocs.hormonalTitle')}</h3>
             <p>
               <strong>5-alpha reductase inhibitors</strong> (finasteride, dutasteride) used for BPH or hair loss 
               can lower PSA levels by approximately 50%.
@@ -239,7 +241,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           </section>
 
           <section className="docs-section">
-            <h3>Limitations</h3>
+            <h3>{t('riskDocs.limitationsTitle')}</h3>
             <ul className="limitations-list">
               <li>
                 <strong>PSA variability:</strong> PSA can fluctuate due to infection, recent ejaculation, 
@@ -256,7 +258,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
           </section>
 
           <section className="docs-section">
-            <h3>References</h3>
+            <h3>{t('riskDocs.referencesTitle')}</h3>
             <ul className="limitations-list">
               <li>NCCN Clinical Practice Guidelines for Prostate Cancer Early Detection</li>
               <li>EAU Guidelines on Prostate Cancer (2023)</li>
@@ -277,7 +279,7 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
         </div>
 
         <div className="model-docs-footer">
-          <button className="btn-primary" onClick={onClose}>Close Documentation</button>
+          <button className="btn-primary" onClick={onClose}>{t('riskDocs.closeDocumentation')}</button>
         </div>
       </div>
     </div>

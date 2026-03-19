@@ -3,43 +3,86 @@ import './Part1Form.css';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
 import { CheckIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const IPSS_QUESTIONS = [
-  'Incomplete emptying — not fully emptying your bladder?',
-  'Frequency — urinating again within 2 hours?',
-  'Intermittency — stopping and starting during urination?',
-  'Urgency — difficulty postponing urination?',
-  'Weak stream — weak urinary stream?',
-  'Straining — pushing or straining to begin?',
-  'Nocturia — getting up at night to urinate?',
+const IPSS_QUESTION_KEYS = [
+  'part1.ipss.q1',
+  'part1.ipss.q2',
+  'part1.ipss.q3',
+  'part1.ipss.q4',
+  'part1.ipss.q5',
+  'part1.ipss.q6',
+  'part1.ipss.q7',
 ];
 
-const IPSS_LABELS = ['Not at all', '< 1 in 5', '< Half', '~ Half', '> Half', 'Always'];
+const IPSS_LABEL_KEY_BY_VALUE = {
+  0: 'part1.ipss.label0',
+  1: 'part1.ipss.label1',
+  2: 'part1.ipss.label2',
+  3: 'part1.ipss.label3',
+  4: 'part1.ipss.label4',
+  5: 'part1.ipss.label5',
+};
 
-const SHIM_QUESTIONS = [
+const SHIM_QUESTION_KEYS = [
   {
-    q: 'How do you rate your confidence that you could get and keep an erection?',
-    opts: [[1, 'Very low'], [2, 'Low'], [3, 'Moderate'], [4, 'High'], [5, 'Very high']]
+    qKey: 'part1.shim.q1',
+    opts: [
+      [1, 'part1.shim.q1.opt1'],
+      [2, 'part1.shim.q1.opt2'],
+      [3, 'part1.shim.q1.opt3'],
+      [4, 'part1.shim.q1.opt4'],
+      [5, 'part1.shim.q1.opt5'],
+    ],
   },
   {
-    q: 'When you had erections with sexual stimulation, how often were they hard enough for penetration?',
-    opts: [[0, 'No activity'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+    qKey: 'part1.shim.q2',
+    opts: [
+      [0, 'part1.shim.q2.opt0'],
+      [1, 'part1.shim.q2.opt1'],
+      [2, 'part1.shim.q2.opt2'],
+      [3, 'part1.shim.q2.opt3'],
+      [4, 'part1.shim.q2.opt4'],
+      [5, 'part1.shim.q2.opt5'],
+    ],
   },
   {
-    q: 'During intercourse, how often were you able to maintain your erection after penetration?',
-    opts: [[0, 'Did not attempt'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+    qKey: 'part1.shim.q3',
+    opts: [
+      [0, 'part1.shim.q3.opt0'],
+      [1, 'part1.shim.q3.opt1'],
+      [2, 'part1.shim.q3.opt2'],
+      [3, 'part1.shim.q3.opt3'],
+      [4, 'part1.shim.q3.opt4'],
+      [5, 'part1.shim.q3.opt5'],
+    ],
   },
   {
-    q: 'During intercourse, how difficult was it to maintain your erection to completion?',
-    opts: [[0, 'Did not attempt'], [1, 'Extremely difficult'], [2, 'Very difficult'], [3, 'Difficult'], [4, 'Slightly difficult'], [5, 'Not difficult']]
+    qKey: 'part1.shim.q4',
+    opts: [
+      [0, 'part1.shim.q4.opt0'],
+      [1, 'part1.shim.q4.opt1'],
+      [2, 'part1.shim.q4.opt2'],
+      [3, 'part1.shim.q4.opt3'],
+      [4, 'part1.shim.q4.opt4'],
+      [5, 'part1.shim.q4.opt5'],
+    ],
   },
   {
-    q: 'When you attempted intercourse, how often was it satisfactory for you?',
-    opts: [[0, 'Did not attempt'], [1, 'Almost never'], [2, 'A few times'], [3, 'Sometimes'], [4, 'Most times'], [5, 'Almost always']]
+    qKey: 'part1.shim.q5',
+    opts: [
+      [0, 'part1.shim.q5.opt0'],
+      [1, 'part1.shim.q5.opt1'],
+      [2, 'part1.shim.q5.opt2'],
+      [3, 'part1.shim.q5.opt3'],
+      [4, 'part1.shim.q5.opt4'],
+      [5, 'part1.shim.q5.opt5'],
+    ],
   },
 ];
 
 const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1Step }) => {
+  const { t } = useTranslation();
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
@@ -246,12 +289,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">About You</div>
+      <div className="section-header">{t('part1.steps.aboutYou.sectionTitle')}</div>
 
       <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">1</div>
-          <div className="question-text">Age</div>
+          <div className="question-text">{t('part1.fields.age.title')}</div>
           <InfoIcon {...fieldReferences.age} />
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -260,7 +303,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             type="number"
             className="input-field"
             style={{ width: '100%' }}
-            placeholder="Age (18+)"
+            placeholder={t('part1.fields.age.placeholder')}
             min="18"
             max="120"
             value={localData.age}
@@ -268,7 +311,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           />
           {attemptedNext && !ageValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Please enter age (18-120)
+              {t('part1.errors.step0.ageInline')}
             </div>
           )}
         </div>
@@ -277,7 +320,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: raceValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">2</div>
-          <div className="question-text">Race / Ethnicity</div>
+          <div className="question-text">{t('part1.fields.race.title')}</div>
           <InfoIcon {...fieldReferences.race} />
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -288,16 +331,16 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             value={localData.race || ''} 
             onChange={(e) => updateField('race', e.target.value)}
           >
-            <option value="">Select race/ethnicity</option>
-            <option value="white">White / Caucasian</option>
-            <option value="black">Black / African American</option>
-            <option value="hispanic">Hispanic / Latino</option>
-            <option value="asian">Asian / Pacific Islander</option>
-            <option value="other">Other / Mixed</option>
+            <option value="">{t('part1.fields.race.selectPlaceholder')}</option>
+            <option value="white">{t('part1.race.white')}</option>
+            <option value="black">{t('part1.race.black')}</option>
+            <option value="hispanic">{t('part1.race.hispanic')}</option>
+            <option value="asian">{t('part1.race.asian')}</option>
+            <option value="other">{t('part1.race.other')}</option>
           </select>
           {attemptedNext && !raceValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Please select your race/ethnicity
+              {t('part1.errors.step0.raceInline')}
             </div>
           )}
         </div>
@@ -313,20 +356,20 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">Family & Genetic Risk</div>
+      <div className="section-header">{t('part1.steps.familyGeneticRisk.sectionTitle')}</div>
 
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">Family History of Prostate Cancer</div>
+          <div className="question-text">{t('part1.step1.familyHistory.title')}</div>
           <InfoIcon {...fieldReferences.familyHistory} />
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 0, label: 'No' },
-              { value: 1, label: 'Yes' },
+              { value: 0, label: t('part1.options.no') },
+              { value: 1, label: t('part1.options.yes') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -339,7 +382,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !familyHistoryValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -348,22 +391,22 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: inflammationHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">4</div>
-          <div className="question-text">Previous History of Inflammation</div>
+          <div className="question-text">{t('part1.step1.inflammationHistory.title')}</div>
           <InfoIcon {...fieldReferences.inflammationHistory} />
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            Have you ever been diagnosed with any inflammatory condition?
+            {t('part1.step1.inflammationHistory.prompt')}
             <br />
             <span style={{ fontSize: '13px', fontStyle: 'italic' }}>
-              (ex. Ulcerative Colitis, Crohn's disease, chronic prostatitis)
+              {t('part1.step1.inflammationHistory.example')}
             </span>
           </div>
           <div className="option-grid c3">
             {[
-              { value: 0, label: 'No' },
-              { value: 1, label: 'Yes' },
+              { value: 0, label: t('part1.options.no') },
+              { value: 1, label: t('part1.options.yes') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -376,7 +419,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !inflammationHistoryValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -385,16 +428,16 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">5</div>
-          <div className="question-text">Known BRCA1/BRCA2 Mutation</div>
+          <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
           <InfoIcon {...fieldReferences.brcaStatus} />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
-              { value: 'unknown', label: 'Unknown' },
+              { value: 'yes', label: t('part1.options.yes') },
+              { value: 'no', label: t('part1.options.no') },
+              { value: 'unknown', label: t('part1.options.unknown') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -407,7 +450,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !brcaValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -423,46 +466,46 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">Body Metrics</div>
+      <div className="section-header">{t('part1.steps.bodyMetrics.sectionTitle')}</div>
 
       <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">6</div>
-          <div className="question-text">Height</div>
+          <div className="question-text">{t('part1.step2.heightQuestion')}</div>
           <InfoIcon {...fieldReferences.heightWeight} />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
-              Feet / Inches
+              {t('part1.step2.heightUnit.imperial')}
             </button>
             <button className={`option-btn ${localData.heightUnit === 'metric' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'metric')}>
-              Centimeters
+              {t('part1.step2.heightUnit.metric')}
             </button>
           </div>
 
           {localData.heightUnit === 'imperial' ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <input type="number" className="input-field" placeholder="Feet (3-8)" value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
-              <input type="number" className="input-field" placeholder="Inches (0-11)" value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
+              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialFeetPlaceholder')} value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
+              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialInchesPlaceholder')} value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
             </div>
           ) : (
-            <input type="number" className="input-field" placeholder="Height in cm (100-250)" value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
+            <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
           )}
           {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Feet must be between 3 and 8
+              {t('part1.step2.heightImperialFeetError')}
             </div>
           )}
           {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Inches must be between 0 and 11
+              {t('part1.step2.heightImperialInchesError')}
             </div>
           )}
           {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Height must be between 100 and 250 cm
+              {t('part1.step2.heightMetricError')}
             </div>
           )}
         </div>
@@ -471,38 +514,38 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">7</div>
-          <div className="question-text">Weight</div>
+          <div className="question-text">{t('part1.step2.weightQuestion')}</div>
           <InfoIcon {...fieldReferences.heightWeight} />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
-              Pounds (lbs)
+              {t('part1.step2.weightUnit.lbs')}
             </button>
             <button className={`option-btn ${localData.weightUnit === 'kg' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'kg')}>
-              Kilograms (kg)
+              {t('part1.step2.weightUnit.kg')}
             </button>
           </div>
 
           {localData.weightUnit === 'kg' ? (
-            <input type="number" className="input-field" placeholder="Weight in kg (25-250)" value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
+            <input type="number" className="input-field" placeholder={t('part1.step2.weightMetricPlaceholder')} value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
           ) : (
-            <input type="number" className="input-field" placeholder="Weight in lbs (50-500)" value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
+            <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
           )}
           {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Weight must be between 50 and 500 lbs
+              {t('part1.step2.weightImperialError')}
             </div>
           )}
           {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-              Weight must be between 25 and 250 kg
+              {t('part1.step2.weightMetricError')}
             </div>
           )}
 
           <div className="question-note" style={{ marginTop: '8px', fontSize: '14px', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
-            BMI (auto-calculated): <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
+            {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
             {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
         </div>
@@ -518,21 +561,21 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">Lifestyle</div>
+      <div className="section-header">{t('part1.steps.lifestyle.sectionTitle')}</div>
 
       <div className="question-card" style={{ borderColor: exerciseValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">8</div>
-          <div className="question-text">Exercise Level</div>
+          <div className="question-text">{t('part1.fields.exercise.title')}</div>
           <InfoIcon {...fieldReferences.exercise} />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 0, label: 'Regular (3+ days/week)' },
-              { value: 1, label: 'Some (1-2 days/week)' },
-              { value: 2, label: 'None' },
+              { value: 0, label: t('part1.step3.exercise.regular') },
+              { value: 1, label: t('part1.step3.exercise.some') },
+              { value: 2, label: t('part1.step3.exercise.none') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -545,7 +588,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !exerciseValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -554,16 +597,16 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: smokingValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">9</div>
-          <div className="question-text">Smoking Status</div>
+          <div className="question-text">{t('part1.fields.smoking.title')}</div>
           <InfoIcon {...fieldReferences.smoking} />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 2, label: 'Current' },
-              { value: 1, label: 'Former' },
-              { value: 0, label: 'Never' },
+              { value: 2, label: t('part1.step3.smoking.current') },
+              { value: 1, label: t('part1.step3.smoking.former') },
+              { value: 0, label: t('part1.step3.smoking.never') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -576,7 +619,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !smokingValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -585,15 +628,15 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">10</div>
-          <div className="question-text">Chemical Exposure (e.g., Agent Orange or pesticides)</div>
+          <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
           <InfoIcon {...fieldReferences.chemicalExposure} />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
+              { value: 'yes', label: t('part1.options.yes') },
+              { value: 'no', label: t('part1.options.no') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -606,7 +649,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !chemicalValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -625,26 +668,26 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">Additional Information</div>
+      <div className="section-header">{t('part1.steps.additionalInfo.sectionTitle')}</div>
 
       <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">11</div>
-          <div className="question-text">Diet Pattern</div>
+          <div className="question-text">{t('part1.fields.diet.title')}</div>
           <InfoIcon {...fieldReferences.diet} />
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: 'western', label: 'Western / Standard American' },
-              { value: 'mediterranean', label: 'Mediterranean' },
-              { value: 'indian', label: 'Indian' },
-              { value: 'dash', label: 'DASH-style' },
-              { value: 'plant-based', label: 'Plant-based (Vegetarian / Vegan)' },
-              { value: 'pescatarian', label: 'Pescatarian' },
-              { value: 'low-carb-keto', label: 'Low-carb / Keto' },
-              { value: 'other', label: 'Other / Prefer not to say' },
+              { value: 'western', label: t('part1.step4.diet.western') },
+              { value: 'mediterranean', label: t('part1.step4.diet.mediterranean') },
+              { value: 'indian', label: t('part1.step4.diet.indian') },
+              { value: 'dash', label: t('part1.step4.diet.dash') },
+              { value: 'plant-based', label: t('part1.step4.diet.plantBased') },
+              { value: 'pescatarian', label: t('part1.step4.diet.pescatarian') },
+              { value: 'low-carb-keto', label: t('part1.step4.diet.lowCarbKeto') },
+              { value: 'other', label: t('part1.step4.diet.other') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -657,7 +700,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {attemptedNext && !dietValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please select an option
+              {t('part1.errors.selectOption')}
             </div>
           )}
         </div>
@@ -666,57 +709,57 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: comorbiditiesValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">12</div>
-          <div className="question-text">Comorbidities</div>
+          <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
           <InfoIcon {...fieldReferences.comorbidities} />
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            Have you been diagnosed with any of the following? (Hypertension, Hyperlipidemia, Coronary Artery Disease, Diabetes).
+            {t('part1.step4.comorbidities.prompt')}
           </div>
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>Have you had any of these conditions?</div>
+            <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{t('part1.step4.comorbidities.askAnyLabel')}</div>
             <div className="option-grid c2">
               <button
                 type="button"
                 className={`option-btn ${localData.comorbidityScore === 0 ? 'selected' : ''}`}
                 onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 0 }))}
               >
-                No
+                {t('part1.options.no')}
               </button>
               <button
                 type="button"
                 className={`option-btn ${localData.comorbidityScore === 1 || localData.comorbidityScore === 2 ? 'selected' : ''}`}
                 onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: prev.comorbidityScore === 1 || prev.comorbidityScore === 2 ? prev.comorbidityScore : 1 }))}
               >
-                Yes
+                {t('part1.options.yes')}
               </button>
             </div>
           </div>
           {(localData.comorbidityScore === 1 || localData.comorbidityScore === 2) && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>How many of these conditions do you have?</div>
+              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{t('part1.step4.comorbidities.howManyLabel')}</div>
               <div className="option-grid c2">
                 <button
                   type="button"
                   className={`option-btn ${localData.comorbidityScore === 1 ? 'selected' : ''}`}
                   onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 1 }))}
                 >
-                  One
+                  {t('part1.step4.comorbidities.one')}
                 </button>
                 <button
                   type="button"
                   className={`option-btn ${localData.comorbidityScore === 2 ? 'selected' : ''}`}
                   onClick={() => setLocalData(prev => ({ ...prev, comorbidityScore: 2 }))}
                 >
-                  Two or more
+                  {t('part1.step4.comorbidities.twoOrMore')}
                 </button>
               </div>
             </div>
           )}
           {attemptedNext && !comorbiditiesValid && (
             <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
-              Please answer the comorbidity questions
+              {t('part1.errors.comorbidityQuestions')}
             </div>
           )}
         </div>
@@ -728,20 +771,33 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   const renderStep5 = () => {
     const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
     const answeredCount = localData.ipss.filter(v => v !== null && v !== undefined).length;
+    const ipssQuestions = IPSS_QUESTION_KEYS.map((k) => t(k));
+    const ipssLabels = [0, 1, 2, 3, 4, 5].map((v) => ({
+      value: v,
+      label: t(IPSS_LABEL_KEY_BY_VALUE[v]),
+    }));
     
     return (
     <div className="part1-step">
       <div className="section-header">
-        Urinary Symptoms (IPSS)
+        {t('part1.steps.ipss.sectionTitle')}
         <InfoIcon {...fieldReferences.ipss} />
         {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
-        {!ipssComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
-        {!ipssComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/7 answered)</span>}
+        {!ipssComplete && attemptedNext && (
+          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+            {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
+          </span>
+        )}
+        {!ipssComplete && !attemptedNext && (
+          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+            {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
+          </span>
+        )}
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
-        Over the past month, how often have you had:
+        {t('part1.ipss.note')}
       </div>
-      {IPSS_QUESTIONS.map((q, index) => (
+      {ipssQuestions.map((q, index) => (
         <div key={index} className="question-card" style={{ 
           borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
           borderWidth: '2px' 
@@ -753,8 +809,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           <div className="question-body">
             <div className="option-grid c3">
-              {IPSS_LABELS.map((label, value) => (
-                <button key={value} className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`} onClick={() => updateIPSS(index, value)}>
+              {ipssLabels.map(({ value, label }) => (
+                <button
+                  key={value}
+                  className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`}
+                  onClick={() => updateIPSS(index, value)}
+                >
                   <span className="score">({value})</span> {label}
                 </button>
               ))}
@@ -763,7 +823,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
       ))}
       <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : '#7F8C8D' }}>
-        IPSS Total: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+        {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
       </div>
     </div>
   );
@@ -772,20 +832,32 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   const renderStep6 = () => {
     const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
     const answeredCount = localData.shim.filter(v => v !== null && v !== undefined).length;
+    const shimQuestions = SHIM_QUESTION_KEYS.map((item) => ({
+      q: t(item.qKey),
+      opts: item.opts.map(([score, labelKey]) => [score, t(labelKey)]),
+    }));
     
     return (
     <div className="part1-step">
       <div className="section-header">
-        Sexual Health (SHIM)
+        {t('part1.steps.shim.sectionTitle')}
         <InfoIcon {...fieldReferences.shim} />
         {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
-        {!shimComplete && attemptedNext && <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
-        {!shimComplete && !attemptedNext && <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>({answeredCount}/5 answered)</span>}
+        {!shimComplete && attemptedNext && (
+          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+            {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
+          </span>
+        )}
+        {!shimComplete && !attemptedNext && (
+          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+            {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
+          </span>
+        )}
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
-        Over the past 6 months:
+        {t('part1.shim.note')}
       </div>
-      {SHIM_QUESTIONS.map((item, index) => (
+      {shimQuestions.map((item, index) => (
         <div key={index} className="question-card" style={{ 
           borderColor: localData.shim[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
           borderWidth: '2px' 
@@ -807,20 +879,20 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
       ))}
       <div className="score-total" style={{ color: shimComplete ? '#27AE60' : '#7F8C8D' }}>
-        SHIM Total: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
+        {t('part1.shim.totalLabel')}: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
       </div>
     </div>
   );
   };
 
   const steps = [
-    { label: 'About You', render: renderStep0 },
-    { label: 'Family & Genetic Risk', render: renderStep1 },
-    { label: 'Body Metrics', render: renderStep2 },
-    { label: 'Lifestyle', render: renderStep3 },
-    { label: 'Additional Info', render: renderStep4 },
-    { label: 'IPSS', render: renderStep5 },
-    { label: 'SHIM', render: renderStep6 },
+    { label: t('part1.steps.aboutYou.shortLabel'), render: renderStep0 },
+    { label: t('part1.steps.familyGeneticRisk.shortLabel'), render: renderStep1 },
+    { label: t('part1.steps.bodyMetrics.shortLabel'), render: renderStep2 },
+    { label: t('part1.steps.lifestyle.shortLabel'), render: renderStep3 },
+    { label: t('part1.steps.additionalInfo.shortLabel'), render: renderStep4 },
+    { label: t('part1.steps.ipss.shortLabel'), render: renderStep5 },
+    { label: t('part1.steps.shim.shortLabel'), render: renderStep6 },
   ];
 
   const validateStep = (step) => {
@@ -829,66 +901,66 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     if (step === 0) {
       const ageNum = parseInt(localData.age, 10);
       if (!localData.age || isNaN(ageNum) || ageNum < 18 || ageNum > 120) {
-        errors.push('Please enter a valid age (18+)');
+        errors.push(t('part1.errors.validate.step0.ageInvalid'));
       }
       if (!localData.race) {
-        errors.push('Please select your race/ethnicity');
+        errors.push(t('part1.errors.validate.step0.raceInvalid'));
       }
     }
     
     if (step === 1) {
       if (localData.familyHistory === null || localData.familyHistory === undefined) {
-        errors.push('Please answer family history question');
+        errors.push(t('part1.errors.validate.step1.familyHistoryInvalid'));
       }
       if (!localData.brcaStatus) {
-        errors.push('Please answer BRCA status question');
+        errors.push(t('part1.errors.validate.step1.brcaInvalid'));
       }
     }
     
     if (step === 2) {
       if (!hasValidHeight()) {
-        errors.push('Please enter valid height');
+        errors.push(t('part1.errors.validate.step2.heightInvalid'));
       }
       if (!hasValidWeight()) {
-        errors.push('Please enter valid weight');
+        errors.push(t('part1.errors.validate.step2.weightInvalid'));
       }
       if (localData.bmi <= 0) {
-        errors.push('BMI could not be calculated - please check height and weight');
+        errors.push(t('part1.errors.validate.step2.bmiInvalid'));
       }
     }
     
     if (step === 3) {
       if (localData.exercise === null || localData.exercise === undefined) {
-        errors.push('Please select exercise level');
+        errors.push(t('part1.errors.validate.step3.exerciseInvalid'));
       }
       if (localData.smoking === null || localData.smoking === undefined) {
-        errors.push('Please select smoking status');
+        errors.push(t('part1.errors.validate.step3.smokingInvalid'));
       }
       if (!localData.chemicalExposure) {
-        errors.push('Please answer chemical exposure question');
+        errors.push(t('part1.errors.validate.step3.chemicalInvalid'));
       }
     }
     
     if (step === 4) {
       if (!localData.dietPattern) {
-        errors.push('Please select your diet pattern');
+        errors.push(t('part1.errors.validate.step4.dietInvalid'));
       }
       if (localData.comorbidityScore === null || localData.comorbidityScore === undefined) {
-        errors.push('Please answer the comorbidity questions');
+        errors.push(t('part1.errors.validate.step4.comorbidityInvalid'));
       }
     }
     
     if (step === 5) {
       const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
       if (!ipssComplete) {
-        errors.push('Please answer all 7 IPSS questions');
+        errors.push(t('part1.errors.validate.step5.ipssInvalid'));
       }
     }
     
     if (step === 6) {
       const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
       if (!shimComplete) {
-        errors.push('Please answer all 5 SHIM questions');
+        errors.push(t('part1.errors.validate.step6.shimInvalid'));
       }
     }
     
@@ -914,7 +986,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
     return (
       <div className="step-error-box">
-        <div className="step-error-title">Please complete the following before continuing:</div>
+        <div className="step-error-title">{t('part1.errors.stepErrorTitle')}</div>
         <ul className="step-error-list">
           {errors.map((error, idx) => (
             <li key={idx}>{error}</li>
@@ -932,16 +1004,16 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   return (
     <div className="part1-form-container">
       <div className="flow-header">
-        <div className="flow-step-chip">Step {part1Step + 1} of {steps.length}</div>
+        <div className="flow-step-chip">{t('part1.form.stepChip', { current: part1Step + 1, total: steps.length })}</div>
         <h3 className="flow-step-title">{steps[part1Step]?.label}</h3>
-        <p className="flow-step-note">Complete each section carefully to generate the most useful screening priority estimate.</p>
+        <p className="flow-step-note">{t('part1.form.flowNote')}</p>
       </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
       </div>
 
       <div className="answer-counter">
-        {answeredCount}/{totalQuestions} answered
+        {t('part1.form.answeredCounter', { answeredCount, totalQuestions })}
       </div>
       {renderStepErrors()}
       {steps[part1Step]?.render()}
@@ -949,21 +1021,23 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="form-navigation-inner">
           {part1Step > 0 && (
             <button className="btn-back" onClick={onBack}>
-              ← Back
+              {t('part1.nav.back')}
             </button>
           )}
           {part1Step < steps.length - 1 ? (
             <button className="btn-next" onClick={handleNext}>
-              Next →
+              {t('part1.nav.next')}
             </button>
           ) : (
             <button
               className="btn-calculate"
               onClick={onNext}
               disabled={!canProceedResult}
-              title={!canProceedResult ? 'Please complete all required fields' : 'Click to calculate your score'}
+              title={!canProceedResult ? t('part1.nav.calculateTitleDisabled') : t('part1.nav.calculateTitleEnabled')}
             >
-              {canProceedResult ? 'Calculate My Score ✓' : `Complete all questions (${answeredCount}/${totalQuestions})`}
+              {canProceedResult
+                ? t('part1.nav.calculate')
+                : t('part1.nav.calculateIncomplete', { answeredCount, totalQuestions })}
             </button>
           )}
         </div>

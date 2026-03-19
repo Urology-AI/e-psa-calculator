@@ -1,8 +1,10 @@
 import React from 'react';
 import './StorageChoiceScreen.css';
 import { CloudIcon, HardDriveIcon, UploadIcon, CheckIcon, LockIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StorageChoiceScreen = ({ onChoice, onImport, cloudAvailable = true }) => {
+  const { t } = useTranslation();
   return (
     <div className="storage-choice-container">
       <div className="storage-options">
@@ -11,19 +13,19 @@ const StorageChoiceScreen = ({ onChoice, onImport, cloudAvailable = true }) => {
           <div className="storage-icon">
             <CloudIcon size={48} />
           </div>
-          <h3>Cloud Storage</h3>
+          <h3>{t('storage.cloudTitle')}</h3>
           <p className="storage-description">
-            Store your data securely by email or phone number. Access from any device and share with healthcare providers.
+            {t('storage.cloudDescription')}
           </p>
           <ul className="storage-features">
-            <li><CheckIcon size={16} className="feature-check-icon" /> Secure cloud storage</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Access from any device</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Provider collaboration</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Automatic backups</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Email or phone authentication</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.cloudFeatureSecure')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.cloudFeatureAnyDevice')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.cloudFeatureCollaboration')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.cloudFeatureBackups')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.cloudFeatureAuth')}</li>
           </ul>
           <button className="storage-btn primary">
-            Continue with Cloud Storage
+            {t('storage.cloudContinue')}
           </button>
         </div>
         )}
@@ -31,37 +33,37 @@ const StorageChoiceScreen = ({ onChoice, onImport, cloudAvailable = true }) => {
           <div className="storage-icon">
             <HardDriveIcon size={48} />
           </div>
-          <h3>Local Storage</h3>
+          <h3>{t('storage.localTitle')}</h3>
           <p className="storage-description">
-            Store your data only on this device. No account or phone number required. Use import/export to save or move your data.
+            {t('storage.localDescription')}
           </p>
           <ul className="storage-features">
-            <li><CheckIcon size={16} className="feature-check-icon" /> No sign-in required</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Same questionnaire &amp; results</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Export to JSON or print</li>
-            <li><CheckIcon size={16} className="feature-check-icon" /> Privacy on this device</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.localFeatureNoSignIn')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.localFeatureSame')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.localFeatureExport')}</li>
+            <li><CheckIcon size={16} className="feature-check-icon" /> {t('storage.localFeaturePrivacy')}</li>
           </ul>
           <button className={`storage-btn ${cloudAvailable ? 'secondary' : 'primary'}`}>
-            Continue with Local Storage
+            {t('storage.localContinue')}
           </button>
         </div>
       </div>
 
       <div className="storage-import-section">
-        <p className="import-text">Already have an assessment?</p>
+        <p className="import-text">{t('storage.importPrompt')}</p>
         <button className="import-btn" onClick={onImport}>
           <UploadIcon size={18} />
-          <span>Import Previous Data</span>
+          <span>{t('storage.importButton')}</span>
         </button>
       </div>
 
       <div className="storage-footer">
         <p className="footer-text">
-          Your health data is stored securely and privately. We never share or sell your information.
+          {t('storage.footerText')}
         </p>
         <p className="privacy-note">
           <LockIcon size={14} className="privacy-lock-icon" />
-          HIPAA-compliant secure storage
+          {t('storage.privacyNote')}
         </p>
       </div>
     </div>

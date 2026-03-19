@@ -3,8 +3,10 @@ import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserIcon, UnlinkIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
 import './ProfileManager.css';
+import { useTranslation } from 'react-i18next';
 
 const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink }) => {
+  const { t } = useTranslation();
   const [userData, setUserData] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
     try {
       await deleteDoc(doc(db, 'users', userDocId));
 
-      setSuccess('Session deleted successfully.');
+      setSuccess(t('profileManager.successDeleted'));
 
       if (onSessionUnlink) {
         onSessionUnlink();
@@ -46,24 +48,24 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
       }, 1500);
     } catch (err) {
       console.error('Error deleting session:', err);
-      setError('Failed to delete session. Please try again.');
+      setError(t('profileManager.errorDeleteFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   const formatCreatedAt = (createdAt) => {
-    if (!createdAt) return 'Not available';
+    if (!createdAt) return t('profileManager.notAvailable');
     if (typeof createdAt?.toDate === 'function') {
       return createdAt.toDate().toLocaleDateString();
     }
     const parsed = new Date(createdAt);
-    if (Number.isNaN(parsed.getTime())) return 'Not available';
+    if (Number.isNaN(parsed.getTime())) return t('profileManager.notAvailable');
     return parsed.toLocaleDateString();
   };
 
   if (!userData) {
-    return <div className="profile-loading">Loading...</div>;
+    return <div className="profile-loading">{t('profileManager.loading')}</div>;
   }
 
   return (
@@ -72,14 +74,14 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
         <div className="profile-info">
           <div className="session-display">
             <UserIcon size={16} />
-            <span className="session-id">Session key: {sessionId}</span>
+            <span className="session-id">{t('profileManager.sessionKeyLabel')}: {sessionId}</span>
           </div>
         </div>
         <div className="profile-actions">
           {!showUnlinkConfirm && (
             <button className="unlink-session-btn" onClick={() => setShowUnlinkConfirm(true)}>
               <UnlinkIcon size={14} />
-              Delete session
+              {t('profileManager.deleteSession')}
             </button>
           )}
         </div>
@@ -90,16 +92,15 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
           <div className="unlink-confirm">
             <div className="unlink-warning">
               <AlertTriangleIcon size={24} />
-              <h3>Delete session</h3>
+              <h3>{t('profileManager.deleteSession')}</h3>
               <p>
-                This will permanently delete session &quot;{sessionId}&quot; and all associated data.
-                This action cannot be undone.
+                {t('profileManager.deleteWarning', { sessionId })}
               </p>
               <div className="warning-details">
                 <ul>
-                  <li>All assessment data will be deleted</li>
-                  <li>This session key will no longer work</li>
-                  <li>You will need to create a new session to save to cloud again</li>
+                  <li>{t('profileManager.warningItem1')}</li>
+                  <li>{t('profileManager.warningItem2')}</li>
+                  <li>{t('profileManager.warningItem3')}</li>
                 </ul>
               </div>
             </div>
@@ -114,7 +115,7 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
                 disabled={loading}
               >
                 <UnlinkIcon size={14} />
-                {loading ? 'Deleting...' : 'Delete session'}
+                {loading ? t('profileManager.deleting') : t('profileManager.deleteSession')}
               </button>
               <button
                 className="cancel-btn"
@@ -122,18 +123,18 @@ const ProfileManager = ({ userDocId, sessionId, onProfileUpdate, onSessionUnlink
                 disabled={loading}
               >
                 <XIcon size={14} />
-                Cancel
+                {t('profileManager.cancel')}
               </button>
             </div>
           </div>
         ) : (
           <div className="profile-display">
             <div className="info-item">
-              <div className="info-label">Session key</div>
+              <div className="info-label">{t('profileManager.sessionKeyTitle')}</div>
               <div className="info-value session-key-value">{sessionId}</div>
             </div>
             <div className="info-item">
-              <div className="info-label">Created</div>
+              <div className="info-label">{t('profileManager.created')}</div>
               <div className="info-value">
                 {formatCreatedAt(userData.createdAt)}
               </div>

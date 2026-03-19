@@ -8,8 +8,10 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import './EmailAuth.css';
+import { useTranslation } from 'react-i18next';
 
 const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(initialEmail || '');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('signin'); // 'signin', 'signup', 'forgot'
@@ -143,20 +145,20 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
     <div className="email-auth-container">
       <div className="email-auth-card">
         <div className="email-auth-header">
-          <h2>{mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Reset Password'}</h2>
+          <h2>{mode === 'signin' ? t('emailAuth.signIn') : mode === 'signup' ? t('emailAuth.createAccount') : t('emailAuth.resetPassword')}</h2>
           <p className="email-auth-subtitle">
             {mode === 'signin' 
-              ? 'Access your ePSA assessment results'
+              ? t('emailAuth.subtitle.signIn')
               : mode === 'signup' 
-              ? 'Start your prostate health assessment'
-              : 'We\'ll send you a password reset link'
+              ? t('emailAuth.subtitle.signUp')
+              : t('emailAuth.subtitle.forgot')
             }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="email-auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">{t('emailAuth.emailLabel')}</label>
             <input
               id="email"
               type="email"
@@ -164,7 +166,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={!!initialEmail}
-              placeholder="your@email.com"
+              placeholder={t('emailAuth.emailPlaceholder')}
               className="form-input"
             />
           </div>
@@ -172,7 +174,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
           {mode !== 'forgot' && (
             <div className="form-group">
               <label htmlFor="password">
-                {mode === 'signin' ? 'Password' : 'Create Password'}
+                {mode === 'signin' ? t('emailAuth.passwordLabel') : t('emailAuth.createPasswordLabel')}
               </label>
               <input
                 id="password"
@@ -180,7 +182,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder={mode === 'signin' ? 'Enter your password' : 'Create a strong password'}
+                placeholder={mode === 'signin' ? t('emailAuth.passwordPlaceholder') : t('emailAuth.createPasswordPlaceholder')}
                 className="form-input"
                 minLength="6"
               />
@@ -195,7 +197,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
             disabled={loading}
             className="auth-submit-btn"
           >
-            {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Email'}
+            {loading ? t('emailAuth.pleaseWait') : mode === 'signin' ? t('emailAuth.signIn') : mode === 'signup' ? t('emailAuth.createAccount') : t('emailAuth.sendResetEmail')}
           </button>
         </form>
 
@@ -207,7 +209,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
                 onClick={() => toggleMode('forgot')}
                 className="auth-link-btn"
               >
-                Forgot password?
+                {t('emailAuth.forgotPassword')}
               </button>
               {!initialEmail && (
                 <button
@@ -215,7 +217,7 @@ const EmailAuth = ({ onAuthSuccess, initialEmail = null }) => {
                   onClick={() => toggleMode('signup')}
                   className="auth-link-btn"
                 >
-                  Need an account? Sign up
+                  {t('emailAuth.needAccount')}
                 </button>
               )}
             </>

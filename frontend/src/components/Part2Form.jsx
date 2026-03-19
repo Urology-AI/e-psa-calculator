@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Part2Form.css';
+import { useTranslation } from 'react-i18next';
 
 const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentStep, totalSteps }) => {
+  const { t } = useTranslation();
   const [localData, setLocalData] = useState({
     knowPsa: formData.knowPsa || false,
     psa: formData.psa || '',
@@ -53,18 +55,18 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   const renderStep1 = () => (
     <div className="part2-step">
-      <div className="section-header">PSA Level</div>
+      <div className="section-header">{t('part2.steps.psa.sectionTitle')}</div>
       
       <div className="question-card">
         <div className="question-header">
           <div className="question-number">1</div>
-          <div className="question-text">Do you know your PSA level?</div>
+          <div className="question-text">{t('part2.psa.q1')}</div>
         </div>
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: false, label: "No, I don't know my PSA" },
-              { value: true, label: "Yes, I know my PSA level" },
+              { value: false, label: t('part2.psa.q1OptNo') },
+              { value: true, label: t('part2.psa.q1OptYes') },
             ].map(opt => (
               <button
                 key={String(opt.value)}
@@ -88,13 +90,13 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
           <div className="question-card">
             <div className="question-header">
               <div className="question-number">2</div>
-              <div className="question-text">Enter PSA Level (ng/mL)</div>
+              <div className="question-text">{t('part2.psa.q2')}</div>
             </div>
             <div className="question-body">
               <input
                 type="number"
                 className="input-field"
-                placeholder="PSA level (0.1-100)"
+                placeholder={t('part2.psa.psaPlaceholder')}
                 step="0.1"
                 min="0.1"
                 max="100"
@@ -103,7 +105,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 onBlur={(e) => {
                   const psaNum = parseFloat(e.target.value);
                   if (e.target.value && (isNaN(psaNum) || psaNum < 0.1 || psaNum > 100)) {
-                    e.target.setCustomValidity('PSA level must be between 0.1 and 100 ng/mL');
+                    e.target.setCustomValidity(t('part2.psa.psaInvalidValidity'));
                   } else {
                     e.target.setCustomValidity('');
                   }
@@ -111,11 +113,11 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               />
               {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
                 <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
-                  PSA level must be between 0.1 and 100 ng/mL
+                  {t('part2.psa.psaInvalid')}
                 </div>
               )}
               <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-                PSA (Prostate-Specific Antigen) is a blood test used to screen for prostate cancer.
+                {t('part2.psa.psaNote')}
               </div>
             </div>
           </div>
@@ -123,10 +125,10 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
           <div className="question-card">
             <div className="question-header">
               <div className="question-number">3</div>
-              <div className="question-text">Are you taking any hormonal medications that may affect PSA?</div>
+              <div className="question-text">{t('part2.psa.q3')}</div>
               <span 
                 className="info-icon" 
-                title="Medications like finasteride (Propecia/Proscar), dutasteride (Avodart), or other 5-alpha reductase inhibitors can lower PSA levels by approximately 50%. This is important for accurate risk assessment."
+                title={t('part2.psa.q3InfoTitle')}
               >
                 ⓘ
               </span>
@@ -134,8 +136,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
             <div className="question-body">
               <div className="option-grid c2">
                 {[
-                  { value: false, label: "No / Not sure" },
-                  { value: true, label: "Yes, I'm taking hormonal therapy" },
+                  { value: false, label: t('part2.psa.q3OptNo') },
+                  { value: true, label: t('part2.psa.q3OptYes') },
                 ].map(opt => (
                   <button
                     key={String(opt.value)}
@@ -154,13 +156,13 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               {localData.onHormonalTherapy && (
                 <div style={{ marginTop: '12px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: '#1C2833' }}>
-                    Which medication? (optional)
+                    {t('part2.psa.q4Label')}
                   </div>
                   <div className="option-grid c2">
                     {[
-                      { value: 'finasteride', label: 'Finasteride (Propecia/Proscar)' },
-                      { value: 'dutasteride', label: 'Dutasteride (Avodart)' },
-                      { value: 'other', label: 'Other / Not sure' },
+                      { value: 'finasteride', label: t('part2.psa.q4OptFinasteride') },
+                      { value: 'dutasteride', label: t('part2.psa.q4OptDutasteride') },
+                      { value: 'other', label: t('part2.psa.q4OptOther') },
                     ].map(opt => (
                       <button
                         key={opt.value}
@@ -172,7 +174,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                     ))}
                   </div>
                   <div className="question-note" style={{ marginTop: '8px', fontSize: '12px', color: '#F39C12' }}>
-                    Note: These medications can lower PSA by ~50%. Your doctor may need to adjust the PSA value for accurate interpretation.
+                    {t('part2.psa.q4Note')}
                   </div>
                 </div>
               )}
@@ -185,18 +187,18 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   const renderStep2 = () => (
     <div className="part2-step">
-      <div className="section-header">MRI Results (Optional)</div>
+      <div className="section-header">{t('part2.steps.mri.sectionTitle')}</div>
       
       <div className="question-card">
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">Do you know your MRI PIRADS score?</div>
+          <div className="question-text">{t('part2.mri.q1')}</div>
         </div>
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: false, label: "No" },
-              { value: true, label: "Yes" },
+              { value: false, label: t('part2.mri.q1OptNo') },
+              { value: true, label: t('part2.mri.q1OptYes') },
             ].map(opt => (
               <button
                 key={String(opt.value)}
@@ -214,7 +216,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
         <div className="question-card">
           <div className="question-header">
             <div className="question-number">4</div>
-            <div className="question-text">PIRADS Score on MRI</div>
+            <div className="question-text">{t('part2.mri.q2')}</div>
           </div>
           <div className="question-body">
             <div className="option-grid c3">
@@ -235,7 +237,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               ))}
             </div>
             <div className="question-note" style={{ marginTop: '8px', fontSize: '13px', color: '#7F8C8D' }}>
-              PI-RADS (Prostate Imaging Reporting and Data System) scores range from 1-5, with higher scores indicating higher suspicion for clinically significant prostate cancer.
+              {t('part2.mri.q2Note')}
             </div>
           </div>
         </div>
@@ -253,7 +255,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     return (
       <div className="part2-form-container">
         <div className="error-message-box">
-          <p>Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment.</p>
+          <p>{t('part2.form.errorPreResult')}</p>
         </div>
       </div>
     );
@@ -262,18 +264,18 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
   return (
     <div className="part2-form-container">
       <div className="flow-header">
-        <div className="flow-step-chip">Step {currentStep} of 2</div>
-        <h3 className="flow-step-title">{steps[currentStep - 1]?.label}</h3>
-        <p className="flow-step-note">Use your PSA and MRI information to refine your risk assessment results.</p>
+        <div className="flow-step-chip">{t('part2.flow.stepChip', { current: currentStep })}</div>
+        <h3 className="flow-step-title">{t(`part2.steps.${currentStep === 1 ? 'psa' : 'mri'}.sectionTitle`)}</h3>
+        <p className="flow-step-note">{t('part2.flow.note')}</p>
       </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(currentStep / 2) * 100}%` }}></div>
       </div>
       <div className="part1-summary-box">
-        <div className="summary-label">Part 1 Results:</div>
+        <div className="summary-label">{t('part2.summary.label')}</div>
         <div className="summary-content">
-          <span>Score: <strong>{preResult.score}%</strong></span>
-          <span>Risk: <strong>{preResult.risk}</strong></span>
+          <span>{t('part2.summary.scoreLabel')}: <strong>{preResult.score}%</strong></span>
+          <span>{t('part2.summary.riskLabel')}: <strong>{preResult.risk}</strong></span>
         </div>
       </div>
       
@@ -293,7 +295,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               onClick={onNext}
               disabled={!canProceed()}
             >
-              Next →
+              {t('part2.nav.next')}
             </button>
           ) : (
             <button 
@@ -301,7 +303,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               onClick={onNext}
               disabled={!canProceed()}
             >
-              Calculate Risk Assessment ✓
+              {t('part2.nav.calculate')}
             </button>
           )}
         </div>
