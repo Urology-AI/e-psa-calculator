@@ -7,8 +7,10 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import './EmailLinkAuth.css';
+import { useTranslation } from 'react-i18next';
 
 const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(initialEmail || '');
   const [mode, setMode] = useState('request'); // 'request' or 'confirm'
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
       localStorage.setItem('emailForSignIn', email);
       
       setLinkSent(true);
-      setMessage('Check your email for a sign-in link!');
+      setMessage(t('emailLinkAuth.checkEmailMessage'));
       setMode('confirm');
     } catch (err) {
       console.error('Send link error:', err);
@@ -127,15 +129,15 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
       <div className="email-link-auth-container">
         <div className="email-link-auth-card">
           <div className="email-link-auth-header">
-            <h2>Signing You In...</h2>
+            <h2>{t('emailLinkAuth.signingInTitle')}</h2>
             <p className="email-link-auth-subtitle">
-              Verifying your email link
+              {t('emailLinkAuth.verifyingLink')}
             </p>
           </div>
           {loading && (
             <div className="auth-loading">
               <div className="spinner"></div>
-              <p>Please wait while we sign you in...</p>
+              <p>{t('emailLinkAuth.pleaseWait')}</p>
             </div>
           )}
           {error && <div className="auth-error">{error}</div>}
@@ -144,7 +146,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
               className="auth-resend-btn" 
               onClick={handleResendLink}
             >
-              Request New Link
+              {t('emailLinkAuth.requestNewLink')}
             </button>
           )}
         </div>
@@ -156,11 +158,11 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
     <div className="email-link-auth-container">
       <div className="email-link-auth-card">
         <div className="email-link-auth-header">
-          <h2>{linkSent ? 'Check Your Email' : 'Sign In with Email'}</h2>
+          <h2>{linkSent ? t('emailLinkAuth.checkYourEmail') : t('emailLinkAuth.signInWithEmail')}</h2>
           <p className="email-link-auth-subtitle">
             {linkSent 
-              ? `We sent a sign-in link to ${email}`
-              : 'Enter your email to receive a secure sign-in link'
+              ? t('emailLinkAuth.sentLinkTo', { email })
+              : t('emailLinkAuth.enterEmailSecureLink')
             }
           </p>
         </div>
@@ -168,7 +170,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
         {!linkSent ? (
           <form onSubmit={handleSendLink} className="email-link-auth-form">
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">{t('emailLinkAuth.emailLabel')}</label>
               <input
                 id="email"
                 type="email"
@@ -176,7 +178,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={!!initialEmail}
-                placeholder="your@email.com"
+                placeholder={t('emailLinkAuth.emailPlaceholder')}
                 className="form-input"
               />
             </div>
@@ -189,18 +191,18 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
               disabled={loading}
               className="auth-submit-btn"
             >
-              {loading ? 'Sending...' : 'Send Sign-In Link'}
+              {loading ? t('emailLinkAuth.sending') : t('emailLinkAuth.sendSignInLink')}
             </button>
           </form>
         ) : (
           <div className="link-sent-confirmation">
             <div className="success-icon">✉️</div>
-            <h3>Email Sent!</h3>
+            <h3>{t('emailLinkAuth.emailSent')}</h3>
             <p>
               Check your inbox for an email from ePSA. Click the sign-in link to access your assessment.
             </p>
             <p className="email-tips">
-              <strong>Didn't receive it?</strong>
+              <strong>{t('emailLinkAuth.didNotReceive')}</strong>
               <br />
               • Check your spam folder
               <br />
@@ -212,7 +214,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
               className="auth-resend-btn" 
               onClick={handleResendLink}
             >
-              Send New Link
+              {t('emailLinkAuth.sendNewLink')}
             </button>
           </div>
         )}
@@ -223,7 +225,7 @@ const EmailLinkAuth = ({ onAuthSuccess, initialEmail = null }) => {
             onClick={() => window.history.back()}
             className="auth-link-btn"
           >
-            Go Back
+            {t('emailLinkAuth.goBack')}
           </button>
         </div>
       </div>

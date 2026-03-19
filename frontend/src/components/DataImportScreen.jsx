@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import './DataImportScreen.css';
 import { ArrowLeftIcon, UploadIcon, KeyIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false }) => {
+  const { t } = useTranslation();
   const [dragActive, setDragActive] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
@@ -48,10 +50,10 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
         const data = JSON.parse(text);
         onImportSuccess(data, 'json');
       } else {
-        throw new Error('Please upload a JSON file (from Export Data).');
+        throw new Error(t('dataImport.errors.uploadJsonOnly'));
       }
     } catch (err) {
-      setError(err.message || 'Failed to import file. Please check the file format.');
+      setError(err.message || t('dataImport.errors.importFailed'));
     } finally {
       setImporting(false);
     }
@@ -66,7 +68,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
       // Validate session ID format (8 characters, alphanumeric)
       const normalizedSessionId = (sessionId || '').toUpperCase().trim();
       if (!/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
-        throw new Error('Please enter a valid 8-character session key (letters and numbers only)');
+        throw new Error(t('dataImport.errors.invalidSessionKey'));
       }
 
       // Resolve session through backend on the next screen.
@@ -74,7 +76,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
         sessionId: normalizedSessionId
       }, 'session');
       } catch (err) {
-        setError(err.message || 'Failed to load from cloud. Please try again.');
+        setError(err.message || t('dataImport.errors.loadCloudFailed'));
       } finally {
       setLoadingSession(false);
     }
@@ -85,10 +87,10 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
       <div className="import-header">
         <button className="back-btn" onClick={onBack}>
           <ArrowLeftIcon size={18} />
-          <span>Back</span>
+          <span>{t('dataImport.back')}</span>
         </button>
-        <h1>Import Assessment Data</h1>
-        <p>Upload your previous ePSA assessment data to continue where you left off.</p>
+        <h1>{t('dataImport.title')}</h1>
+        <p>{t('dataImport.subtitle')}</p>
       </div>
 
       <div className="import-methods">
@@ -96,9 +98,9 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
         <div className="import-section">
           <h3>
             <KeyIcon size={20} />
-            Load from cloud
+            {t('dataImport.loadFromCloud')}
           </h3>
-          <p>Enter your anonymous session key to load your saved assessment data</p>
+          <p>{t('dataImport.cloudDescription')}</p>
           
           <form onSubmit={handleSessionLogin} className="session-login-form">
             <div className="session-input-group">
@@ -106,7 +108,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
                 type="text"
                 value={sessionId}
                 onChange={(e) => setSessionId(e.target.value.toUpperCase())}
-                placeholder="e.g. A1B2C3D4"
+                placeholder={t('dataImport.sessionPlaceholder')}
                 className="session-input"
                 maxLength={8}
                 style={{ textTransform: 'uppercase' }}
@@ -116,7 +118,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
                 disabled={loadingSession || sessionId.length !== 8}
                 className="session-login-btn"
               >
-                {loadingSession ? 'Loading...' : 'Load'}
+                {loadingSession ? t('dataImport.loading') : t('dataImport.load')}
               </button>
             </div>
             {error && <div className="import-error">{error}</div>}
@@ -128,9 +130,9 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
         <div className="import-section">
           <h3>
             <UploadIcon size={20} />
-            Upload JSON data
+            {t('dataImport.uploadJsonData')}
           </h3>
-          <p>Upload your exported assessment data file (JSON from Export Data).</p>
+          <p>{t('dataImport.uploadDescription')}</p>
           
           <div 
             className={`file-drop-zone ${dragActive ? 'active' : ''}`}
@@ -143,8 +145,8 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
               <div className="drop-icon">
                 <UploadIcon size={48} />
               </div>
-              <p>Drag and drop your JSON file here</p>
-              <p className="drop-text">or</p>
+              <p>{t('dataImport.dragDrop')}</p>
+              <p className="drop-text">{t('dataImport.or')}</p>
               <input
                 type="file"
                 id="data-upload"
@@ -153,7 +155,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
                 style={{ display: 'none' }}
               />
               <label htmlFor="data-upload" className="file-select-btn">
-                Choose JSON file
+                {t('dataImport.chooseJson')}
               </label>
             </div>
           </div>
@@ -163,22 +165,22 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
       {importing && (
         <div className="import-loading">
           <div className="spinner"></div>
-          <p>Importing your data...</p>
+          <p>{t('dataImport.importing')}</p>
         </div>
       )}
 
       {error && (
         <div className="import-error">
-          <p>Error: {error}</p>
+          <p>{t('dataImport.errorPrefix')}: {error}</p>
         </div>
       )}
 
       <div className="import-help">
-        <h3>How to import</h3>
+        <h3>{t('dataImport.howToImport')}</h3>
         <ul>
-          <li><strong>Upload JSON:</strong> Use the JSON file from Export Data on your results screen.</li>
-          <li>Your data will be restored and you can complete or edit any missing fields.</li>
-          {!hideCloudSection && <li>Works with both local and cloud storage.</li>}
+          <li><strong>{t('dataImport.how.uploadJsonLabel')}</strong> {t('dataImport.how.uploadJsonText')}</li>
+          <li>{t('dataImport.how.restoreText')}</li>
+          {!hideCloudSection && <li>{t('dataImport.how.cloudLocal')}</li>}
         </ul>
       </div>
     </div>

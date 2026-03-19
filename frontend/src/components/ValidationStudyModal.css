@@ -1,0 +1,139 @@
+.vstudy-hero {
+  padding: 4px 2px 16px 2px;
+}
+
+.vstudy-hero-title {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.vstudy-muted {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.vstudy-hero-sub {
+  color: #374151;
+  line-height: 1.6;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.vstudy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vstudy-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 14px;
+}
+
+.vstudy-card-wide {
+  grid-column: span 1;
+}
+
+.vstudy-card-label {
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.vstudy-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.vstudy-tables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vstudy-table {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.vstudy-table-title {
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.vstudy-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.vstudy-metric {
+  padding: 10px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vstudy-metric span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.vstudy-metric strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.vstudy-confusion {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.vstudy-confusion-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+.vstudy-confusion-row span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.vstudy-confusion-row strong {
+  color: #111827;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .vstudy-grid {
+    grid-template-columns: 1fr;
+  }
+  .vstudy-card-wide {
+    grid-column: auto;
+  }
+  .vstudy-tables {
+    grid-template-columns: 1fr;
+  }
+}
+

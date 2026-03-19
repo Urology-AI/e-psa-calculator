@@ -4,6 +4,7 @@ import './App.css';
 
 // GitHub Pages demo app - no Firebase dependencies
 import App from './App.gh-pages.jsx';
+import './i18n/i18n.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -209,7 +209,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     variableValues.ipssTotal = ipssTotal;
     variableValues.shimTotal = shimTotal;
   } else {
-    // Fallback: treat any future variables as simple flags if modelType changes
     part1.variables.forEach(variable => {
       const id = variable.id;
       if (id === 'age') variableValues.age = ageNum;
@@ -223,86 +222,113 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     });
   }
 
-  // Point-based Part 1 scoring (max 130 points; 0–2 from comorbidities)
+  // ---------------------------------------------------------------------------
+  // Point-based Part 1 scoring — Bayesian-recalibrated weights (v2)
+  //
+  // Weights derived from Bayesian logistic regression (N=94, 23 csPCa events)
+  // with informative Normal priors anchored to AUA/NCCN/EAU literature log-ORs.
+  // Scale factor: 16 pts per log-OR unit (age 70+ anchor).
+  // Youden-optimal threshold: rawScore ≥ 18 (maps to continuous score −1.347).
+  // MAX_POINTS: 80 (age_70plus + bmi + ipss_mild + ex_none + smk_current +
+  //             diet + race_black + fh + comorb*2)
+  //
+  // Change log vs v1:
+  //   Age 60–69:      8  → 10   (+2)   posterior OR 1.86
+  //   Age 70+:        16 → 16   (=)    posterior OR 2.58 — anchor unchanged
+  //   BMI ≥ 30:       8  →  4   (−4)   posterior OR 1.27 — weaker than assumed
+  //   IPSS mild:      8  →  8   (=)    posterior OR 1.58 — confirmed
+  //   IPSS moderate:  4  →  0   (−4)   posterior OR 0.94 — non-significant, removed
+  //   IPSS severe:    0  →  0   (=)    reference category unchanged
+  //   Exercise some:  8  →  2   (−6)   posterior OR 1.18 — weaker signal
+  //   Exercise none: 16  →  4   (−12)  posterior OR 1.21 — weaker signal
+  //   Smoking former: 8  →  2   (−6)   posterior OR 1.11 — weaker signal
+  //   Smoking current:16  →  6   (−10)  posterior OR 1.49 — reduced but retained
+  //   Diet red meat:  8  →  4   (−4)   posterior OR 1.24 — reduced
+  //   Race Black:     8  →  8   (=)    posterior OR 1.52 — confirmed
+  //   Family history: 16 → 10   (−6)   posterior OR 1.71 — reduced, still important
+  //   Comorbidity:   0-2 → 0,10,20     posterior OR 1.72/unit — significant, upweighted
+  // ---------------------------------------------------------------------------
   let rawScore = 0;
-  const MAX_POINTS = 130;
+  const MAX_POINTS = 80;
 
-  // Age
+  // Age — only the highest applicable bin scores
   if (ageNum >= 70) {
-    rawScore += 16;
+    rawScore += 16;   // posterior OR 2.58
   } else if (ageNum >= 60) {
-    rawScore += 8;
+    rawScore += 10;   // posterior OR 1.86
   }
+  // Age < 60: 0 pts (reference)
 
   // BMI
   if (Number.isFinite(bmiNum) && bmiNum >= 30) {
-    rawScore += 8;
+    rawScore += 4;    // posterior OR 1.27 (reduced from 8)
   }
 
-  // IPSS (mild / moderate / severe)
+  // IPSS — only the highest applicable severity scores
   if (ipssTotal >= 0 && ipssTotal <= 7) {
-    rawScore += 8; // Mild
-  } else if (ipssTotal >= 8 && ipssTotal <= 19) {
-    rawScore += 4; // Moderate
-  } // Severe (20–35) gets 0
+    rawScore += 8;    // Mild — posterior OR 1.58 (unchanged)
+  }
+  // Moderate (8–19): 0 pts — posterior OR 0.94, non-significant
+  // Severe  (20–35): 0 pts — reference, unchanged
 
-  // Exercise: 0=high, 1=some, 2=none
+  // Exercise — only one tier applies
   if (exerciseCode === 1) {
-    rawScore += 8;
+    rawScore += 2;    // Some exercise — posterior OR 1.18 (reduced from 8)
   } else if (exerciseCode === 2) {
-    rawScore += 16;
+    rawScore += 4;    // No exercise — posterior OR 1.21 (reduced from 16)
   }
 
-  // Smoking: 0=never, 1=former, 2=current
+  // Smoking — only one tier applies
   if (smokingCode === 1) {
-    rawScore += 8;
+    rawScore += 2;    // Former — posterior OR 1.11 (reduced from 8)
   } else if (smokingCode === 2) {
-    rawScore += 16;
+    rawScore += 6;    // Current — posterior OR 1.49 (reduced from 16)
   }
 
-  // Diet: treat Western / standard American as high red meat
-  if (dietPattern === 'western') {
-    rawScore += 8;
+  // Diet
+  if (dietPattern === 'western' || dietPattern === 'red_meat') {
+    rawScore += 4;    // posterior OR 1.24 (reduced from 8)
   }
 
   // Race
   if (isBlack) {
-    rawScore += 8;
+    rawScore += 8;    // posterior OR 1.52 (unchanged)
   }
 
   // Family history
   if (fhBinary === 1) {
-    rawScore += 16;
+    rawScore += 10;   // posterior OR 1.71 (reduced from 16)
   }
 
-  // BRCA
+  // BRCA — retained from v1 (not in Bayesian model; literature OR ~3–5)
   if (brcaStatus === 'yes') {
     rawScore += 16;
   }
 
-  // Inflammation (biopsy-detected / history)
+  // Inflammation history — retained from v1 (not in Bayesian model)
   if (inflammationHistory === 1 || inflammationHistory === 'yes') {
     rawScore += 4;
   }
 
-  // Agent Orange / chemical exposure
+  // Agent Orange / chemical exposure — retained from v1 (not in Bayesian model)
   if (chemicalExposure === 'yes') {
     rawScore += 4;
   }
 
-  // SHIM
+  // SHIM — retained from v1 (not in Bayesian model)
   if (shimTotal > 0 && shimTotal < 12) {
     rawScore += 8;
   }
 
-  // Comorbidities: 0, 1, or 2 points. Use comorbidityScore if present, else derive from four Yes/No and cap at 2.
+  // Comorbidities — posterior OR 1.72 per unit; upweighted to 10 pts/unit
+  // Use comorbidityScore (0/1/2) if present, else derive from four Yes/No fields
   const isYes = (v) => v === 'yes' || v === true || v === 1;
   let comorbidityPoints = 0;
   if (comorbidityScore !== undefined && comorbidityScore !== null) {
-    comorbidityPoints = Math.min(2, Math.max(0, Number(comorbidityScore)));
+    comorbidityPoints = Math.min(2, Math.max(0, Number(comorbidityScore))) * 10;
   } else {
     const n = [hypertension, hyperlipidemia, coronaryArteryDisease, diabetes].filter(isYes).length;
-    comorbidityPoints = n >= 2 ? 2 : n;
+    comorbidityPoints = (n >= 2 ? 2 : n) * 10;
   }
   rawScore += comorbidityPoints;
 
@@ -384,7 +410,17 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     }
   }
 
-  // ePSA Risk Tier mapping (Component 1) based on rawScore
+  // ---------------------------------------------------------------------------
+  // ePSA Risk Tier mapping (Component 1) — Bayesian-recalibrated cutoffs (v2)
+  //
+  // Cutoffs derived from Youden-optimal threshold (rawScore ≥ 18 on 0–80 scale)
+  // anchored to the Bayesian model's optimal sensitivity/specificity balance.
+  //
+  //   v1 cutoffs (0–130 scale): ≤15 Low, ≤31 Int-Low, ≤63 Int-High, >63 High
+  //   v2 cutoffs (0–80 scale):  ≤10 Low, ≤17 Int-Low, ≤30 Int-High, >30 High
+  //
+  // Youden J at threshold ≥18: sensitivity 82.6%, specificity 42.3% (N=94)
+  // ---------------------------------------------------------------------------
   const EPSA_TIER_DEFS = [
     {
       key: 'low',
@@ -417,14 +453,14 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   ];
 
   let epsaTierIndex;
-  if (rawScore <= 15) {
-    epsaTierIndex = 0;
-  } else if (rawScore <= 31) {
-    epsaTierIndex = 1;
-  } else if (rawScore <= 63) {
-    epsaTierIndex = 2;
+  if (rawScore <= 10) {
+    epsaTierIndex = 0;       // Low
+  } else if (rawScore <= 17) {
+    epsaTierIndex = 1;       // Intermediate-Low
+  } else if (rawScore <= 30) {
+    epsaTierIndex = 2;       // Intermediate-High  ← Youden threshold sits here
   } else {
-    epsaTierIndex = 3;
+    epsaTierIndex = 3;       // High
   }
 
   const epsaTierDef = EPSA_TIER_DEFS[epsaTierIndex];
@@ -458,7 +494,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,
     displayRange: `${rangeLow}%–${rangeHigh}%`,
-    confidenceRange: `${rangeLow}%–${rangeHigh}%`,
     confidenceLow: rangeLow,
     confidenceHigh: rangeHigh,
     calculationDetails: {
@@ -479,7 +514,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   let baseMaxScore = preResult?.calculationDetails?.maxScore;
 
   if (!Number.isFinite(baseRawScore)) {
-    baseMaxScore = 128;
+    baseMaxScore = 80;
     baseRawScore = Math.round((preScorePct / 100) * baseMaxScore);
   }
 
@@ -509,7 +544,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
       piradsPoints = 30;
     } else if (piradsVal === 5) {
       piradsPoints = 45;
-      piradsOverridden = true; // hard override to High tier
+      piradsOverridden = true;
     }
   }
 
@@ -537,7 +572,14 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints;
 
-  // Map total points to ePSA tier
+  // ---------------------------------------------------------------------------
+  // Part 2 tier mapping — cutoffs scaled to new 0–80 base + PSA/PI-RADS addons
+  //
+  // Combined score ceiling (approx): 80 (Part 1 max) + 45 (PSA high) + 15 (bonus)
+  //   + 45 (PI-RADS 5) = 185. Practical range with PI-RADS ≤4: ~0–155.
+  // Tier boundaries preserve proportional spacing from v1 (28/58/116 on 0–173)
+  // rescaled to the new base: 13/27/55 (rounded to nearest integer).
+  // ---------------------------------------------------------------------------
   const TIER_DEFS = [
     {
       key: 'low',
@@ -571,12 +613,12 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   let tierIndex;
   if (piradsOverridden) {
-    tierIndex = 3; // High regardless of score
-  } else if (totalPoints <= 28) {
+    tierIndex = 3;
+  } else if (totalPoints <= 13) {
     tierIndex = 0;
-  } else if (totalPoints <= 58) {
+  } else if (totalPoints <= 27) {
     tierIndex = 1;
-  } else if (totalPoints <= 116) {
+  } else if (totalPoints <= 55) {
     tierIndex = 2;
   } else {
     tierIndex = 3;
@@ -584,7 +626,6 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   const tierDef = TIER_DEFS[tierIndex];
 
-  // Map to existing riskClass bands for color mapping
   const RISK_CLASSES = ['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk'];
   const riskClass = RISK_CLASSES[tierIndex];
 

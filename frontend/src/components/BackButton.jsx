@@ -1,8 +1,10 @@
 import React from 'react';
 import { ArrowLeftIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import './GlobalBackButton.css';
 
 const BackButton = ({ show, onBack, disabled = false }) => {
+  const { t } = useTranslation();
   if (!show) return null;
 
   return (
@@ -13,7 +15,7 @@ const BackButton = ({ show, onBack, disabled = false }) => {
       disabled={disabled}
     >
       <ArrowLeftIcon size={16} />
-      <span>Back</span>
+      <span>{t('common.back')}</span>
     </button>
   );
 };

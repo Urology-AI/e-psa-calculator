@@ -3,6 +3,7 @@
  * No Firebase imports; local storage only. Same UI: welcome, import, form, results, Model Docs, HIPAA popup.
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
@@ -11,6 +12,8 @@ import Part1Results from './components/Part1Results.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 import BackButton from './components/BackButton.jsx';
+import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
+import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import { BookIcon, ShieldCheckIcon } from 'lucide-react';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
 
@@ -50,6 +53,7 @@ const defaultPostData = {
 };
 
 function App() {
+  const { t } = useTranslation();
   const [step, setStep] = useState('welcome'); // 'welcome' | 'import' | 'app'
   const [view, setView] = useState('form'); // 'form' | 'results'
   const [part1Step, setPart1Step] = useState(0);
@@ -60,6 +64,7 @@ function App() {
   const [postResult, setPostResult] = useState(null);
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [showHipaaPopup, setShowHipaaPopup] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
 
   const [calculatorConfig] = useState(() => getCalculatorConfig());
 
@@ -77,7 +82,7 @@ function App() {
 
   const handleImportSuccess = (importedData, importType) => {
     if (importType === 'session') {
-      alert('Load from cloud is not available in this demo. Use the full app with Firebase to use your session key.');
+      alert(t('app.alerts.cloudDemoNoSessionKey'));
       return;
     }
 
@@ -153,7 +158,7 @@ function App() {
     try {
       const result = calculateDynamicEPsa(preData, calculatorConfig);
       if (!result) {
-        alert('Please complete all required fields before calculating the score.');
+        alert(t('app.alerts.completeRequiredFieldsGh'));
         return;
       }
       setPreResult(result);
@@ -163,7 +168,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
-      alert('Calculation failed. Please check your answers and try again.');
+      alert(t('app.alerts.calculationFailedGh'));
     }
   };
 
@@ -175,7 +180,7 @@ function App() {
   };
 
   const handleStartOver = () => {
-    if (!window.confirm('Start over? This will clear all data.')) return;
+    if (!window.confirm(t('app.confirm.startOverClearAllDataGh'))) return;
     setPreData({ ...defaultPreData });
     setPreResult(null);
     setPostData({ ...defaultPostData });
@@ -231,74 +236,84 @@ function App() {
           </div>
           <div className="header-text">
             <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>Prostate‑Specific Awareness</h2>
-            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>A Non‑Validated Educational Risk Tool</p>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>{t('app.header.title')}</h2>
+            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>{t('app.header.subtitle')}</p>
+          </div>
+          <div className="header-actions">
+            <LanguageSwitcher />
           </div>
         </header>
 
-        {step === 'welcome' && (
+        {quickOpen ? (
+          <QuickEPsaEntry calculatorConfig={calculatorConfig} onClose={() => setQuickOpen(false)} />
+        ) : (
           <>
-            <WelcomeScreen
-              onBegin={handleBeginLocal}
-              onBeginLocal={handleBeginLocal}
-              onBeginCloud={undefined}
-              cloudAvailable={false}
-              onImport={() => setStep('import')}
-              formData={{}}
-              urlEmail={null}
-            />
-            <footer className="app-footer">
-              <div className="footer-content">
-                <p className="footer-text">ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool</p>
-                <button type="button" className="btn-model-docs" onClick={() => setShowModelDocs(true)}>
-                  <BookIcon size={16} />
-                  <span>Model Documentation</span>
-                </button>
-                <button type="button" className="btn-model-docs btn-hipaa" onClick={() => setShowHipaaPopup(true)}>
-                  <ShieldCheckIcon size={16} />
-                  <span>HIPAA Compliant</span>
-                </button>
-              </div>
-            </footer>
+            {step === 'welcome' && (
+              <>
+                <WelcomeScreen
+                  onBegin={handleBeginLocal}
+                  onBeginLocal={handleBeginLocal}
+                  onBeginCloud={undefined}
+                  cloudAvailable={false}
+                  onImport={() => setStep('import')}
+                  onQuickEntry={() => setQuickOpen(true)}
+                  formData={{}}
+                  urlEmail={null}
+                />
+                <footer className="app-footer">
+                  <div className="footer-content">
+                    <p className="footer-text">{t('app.footer.text')}</p>
+                    <button type="button" className="btn-model-docs" onClick={() => setShowModelDocs(true)}>
+                      <BookIcon size={16} />
+                      <span>{t('app.footer.modelDocs')}</span>
+                    </button>
+                    <button type="button" className="btn-model-docs btn-hipaa" onClick={() => setShowHipaaPopup(true)}>
+                      <ShieldCheckIcon size={16} />
+                      <span>{t('app.footer.hipaa')}</span>
+                    </button>
+                  </div>
+                </footer>
+              </>
+            )}
+
+            {step === 'import' && (
+              <DataImportScreen
+                onBack={() => setStep('welcome')}
+                onImportSuccess={handleImportSuccess}
+                hideCloudSection={true}
+              />
+            )}
+
+            {step === 'app' && view === 'form' && (
+              <Part1Form
+                formData={preData}
+                setFormData={setPreData}
+                onNext={handlePart1Next}
+                onBack={handlePart1Back}
+                currentStep={part1Step}
+              />
+            )}
+
+            {step === 'app' && view === 'results' && preResult && (
+              <Part1Results
+                result={preResult}
+                formData={preData}
+                storageMode="local"
+                sessionId={null}
+                userEmail={null}
+                userPhone={null}
+                onSaveToCloud={undefined}
+                cloudAvailable={false}
+                onEditAnswers={() => {
+                  setView('form');
+                  setPart1Step(0);
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onStartOver={handleStartOver}
+              />
+            )}
           </>
-        )}
-
-        {step === 'import' && (
-          <DataImportScreen
-            onBack={() => setStep('welcome')}
-            onImportSuccess={handleImportSuccess}
-            hideCloudSection={true}
-          />
-        )}
-
-        {step === 'app' && view === 'form' && (
-          <Part1Form
-            formData={preData}
-            setFormData={setPreData}
-            onNext={handlePart1Next}
-            onBack={handlePart1Back}
-            currentStep={part1Step}
-          />
-        )}
-
-        {step === 'app' && view === 'results' && preResult && (
-          <Part1Results
-            result={preResult}
-            formData={preData}
-            storageMode="local"
-            sessionId={null}
-            userEmail={null}
-            userPhone={null}
-            onSaveToCloud={undefined}
-            cloudAvailable={false}
-            onEditAnswers={() => {
-              setView('form');
-              setPart1Step(0);
-              setCurrentStep(1);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onStartOver={handleStartOver}
-          />
         )}
       </div>
 
