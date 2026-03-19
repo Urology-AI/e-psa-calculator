@@ -4,7 +4,7 @@ import PrintableForm from './PrintableForm';
 import { ArrowRightIcon, UploadIcon, FileTextIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
@@ -92,6 +92,12 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
           <button type="button" className="ws-btn-text" onClick={onImport}>
             <UploadIcon size={14} />
             <span>{t('welcome.importPreviousSession')}</span>
+          </button>
+        )}
+        {onQuickEntry && (
+          <button type="button" className="ws-btn-text" onClick={onQuickEntry}>
+            <UploadIcon size={14} />
+            <span>{t('welcome.quickEntry')}</span>
           </button>
         )}
         <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>

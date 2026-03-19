@@ -21,6 +21,7 @@ import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
+import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -61,6 +62,8 @@ function App() {
   const [importedData, setImportedData] = useState(null);
   const [saveToCloudPending, setSaveToCloudPending] = useState(false);
   const [saveToCloudError, setSaveToCloudError] = useState(null);
+
+  const [quickOpen, setQuickOpen] = useState(false);
   
   // Detect email from URL params (legacy; we no longer collect email)
   const [urlEmail, setUrlEmail] = useState(null);
@@ -1251,6 +1254,7 @@ function App() {
                 }
               }}
               cloudAvailable={isFirebaseConfigured()}
+              onQuickEntry={() => setQuickOpen(true)}
               onBeginLocal={() => {
                 setStorageMode('local');
                 setUser({ uid: 'local', isAnonymous: true });
@@ -1497,7 +1501,14 @@ function App() {
           </div>
         </header>
 
-        {authStep !== 'app' ? renderAuthScreen() : (
+        {quickOpen ? (
+          <QuickEPsaEntry
+            calculatorConfig={calculatorConfig}
+            onClose={() => setQuickOpen(false)}
+          />
+        ) : authStep !== 'app' ? (
+          renderAuthScreen()
+        ) : (
           <>
             {showTestPanel && <FirebaseTestPanel />}
             {stage === 'pre' ? renderPreStage() : renderPostStage()}

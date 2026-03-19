@@ -33,6 +33,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
   const [editDefaults, setEditDefaults] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Pre-fill with the user's example values for speed.
   const [age, setAge] = useState('');
@@ -91,6 +92,151 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       diabetes: null
     };
   }, [age, bmi, ipssTotal, shimTotal, race, familyHistory, exercise, comorbidityScore]);
+
+  const handlePrefillFromJsonFile = async (file) => {
+    setUploading(true);
+    setErrors([]);
+    setWarnings([]);
+    setShowResults(false);
+    setPreResult(null);
+
+    try {
+      const name = (file?.name || '').toLowerCase();
+      const isJson = file?.type === 'application/json' || name.endsWith('.json');
+      if (!isJson) {
+        setErrors([t('dataImport.errors.uploadJsonOnly')]);
+        return;
+      }
+
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const imported = parsed?.formData ?? parsed?.part1Data ?? parsed?.data ?? parsed;
+
+      if (!imported || typeof imported !== 'object') {
+        setErrors([t('dataImport.errors.importFailed')]);
+        return;
+      }
+
+      const ageNum = imported.age === '' || imported.age === null || imported.age === undefined ? '' : Number(imported.age);
+      const bmiNum = imported.bmi === '' || imported.bmi === null || imported.bmi === undefined ? '' : Number(imported.bmi);
+
+      const ipssArray = Array.isArray(imported.ipss) ? imported.ipss : null;
+      const shimArray = Array.isArray(imported.shim) ? imported.shim : null;
+      const ipssTotalNum = ipssArray ? ipssArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0) : Number(imported.ipssTotal);
+      const shimTotalNum = shimArray ? shimArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0) : Number(imported.shimTotal);
+
+      const safeIpSsTotal = Number.isFinite(ipssTotalNum) ? ipssTotalNum : '';
+      const safeShimTotal = Number.isFinite(shimTotalNum) ? shimTotalNum : '';
+
+      const familyHistoryNum = imported.familyHistory === null || imported.familyHistory === undefined ? 2 : Number(imported.familyHistory);
+      const exerciseNum = imported.exercise === null || imported.exercise === undefined ? 0 : Number(imported.exercise);
+
+      const isYes = (v) => v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1';
+
+      let comorbidity = imported.comorbidityScore;
+      if (comorbidity === null || comorbidity === undefined) {
+        const h = imported.hypertension;
+        const hld = imported.hyperlipidemia;
+        const cad = imported.coronaryArteryDisease;
+        const d = imported.diabetes;
+        const n = [h, hld, cad, d].filter((v) => isYes(v)).length;
+        comorbidity = n >= 2 ? 2 : n;
+      }
+      const comorbidityNum = comorbidity === '' || comorbidity === null || comorbidity === undefined ? 0 : Math.min(2, Math.max(0, Number(comorbidity)));
+
+      const smokingNum = imported.smoking === null || imported.smoking === undefined ? 0 : Number(imported.smoking);
+      const diet = typeof imported.dietPattern === 'string' && imported.dietPattern !== '' ? imported.dietPattern : 'western';
+
+      const mapBrca = (v) => {
+        if (v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1') return 'yes';
+        if (v === false || v === 'no' || v === 'No' || v === 0 || v === '0') return 'no';
+        if (v === 'unknown' || v === 'Unknown') return 'unknown';
+        return v === null || v === undefined || v === '' ? 'no' : String(v);
+      };
+
+      const chem = imported.chemicalExposure;
+      const mappedChemicalExposure = chem === true || chem === 'yes' || chem === 'Yes' || chem === 1 || chem === '1' ? 'yes' : 'no';
+
+      const mappedBrca = mapBrca(imported.brcaStatus);
+      const mappedInflammation = imported.inflammationHistory === null || imported.inflammationHistory === undefined ? 0 : (Number(imported.inflammationHistory) ? 1 : 0);
+
+      const raceStr = typeof imported.race === 'string' ? imported.race : '';
+
+      // Prefill state (form fields should match what we used for calculation).
+      setAge(ageNum === '' ? '' : String(ageNum));
+      setRace(raceStr);
+      setBmi(bmiNum === '' ? '' : String(bmiNum));
+      setIpssTotal(safeIpSsTotal === '' ? '' : String(safeIpSsTotal));
+      setShimTotal(safeShimTotal === '' ? '' : String(safeShimTotal));
+      setFamilyHistory(Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2);
+      setExercise(Number.isFinite(exerciseNum) ? exerciseNum : 0);
+      setComorbidityScore(comorbidityNum);
+      setSmoking(Number.isFinite(smokingNum) ? smokingNum : 0);
+      setDietPattern(diet);
+      setBrcaStatus(mappedBrca === 'yes' || mappedBrca === 'no' || mappedBrca === 'unknown' ? mappedBrca : 'no');
+      setInflammationHistory(mappedInflammation);
+      setChemicalExposure(mappedChemicalExposure);
+
+      // Build a local formData object for validation + calculation (avoid stale state timing).
+      const localFormData = {
+        age: ageNum === '' ? '' : ageNum,
+        race: raceStr ? raceStr : null,
+        bmi: bmiNum === '' ? '' : bmiNum,
+        ipss: distributeTotalToArray(safeIpSsTotal, 7, 5),
+        shim: distributeTotalToArray(safeShimTotal, 5, 5),
+        exercise: Number.isFinite(exerciseNum) ? exerciseNum : 0,
+        familyHistory: Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2,
+        smoking: Number.isFinite(smokingNum) ? smokingNum : 0,
+        chemicalExposure: mappedChemicalExposure,
+        dietPattern: diet,
+        brcaStatus: mappedBrca,
+        inflammationHistory: mappedInflammation,
+        comorbidityScore: comorbidityNum,
+        hypertension: null,
+        hyperlipidemia: null,
+        coronaryArteryDisease: null,
+        diabetes: null
+      };
+
+      const extraErrors = [];
+      if (safeIpSsTotal !== '' && (!Number.isFinite(safeIpSsTotal) || safeIpSsTotal < 0 || safeIpSsTotal > 35)) {
+        extraErrors.push(t('quickEntry.errors.ipssRange'));
+      }
+      if (safeShimTotal !== '' && (!Number.isFinite(safeShimTotal) || safeShimTotal < 0 || safeShimTotal > 25)) {
+        extraErrors.push(t('quickEntry.errors.shimRange'));
+      }
+
+      const validation = validateInputs(localFormData, calculatorConfig);
+      const mergedErrors = [...(validation.errors || []), ...extraErrors];
+      setWarnings(validation.warnings || []);
+      setErrors(mergedErrors);
+
+      if (mergedErrors.length > 0) {
+        setPreResult(null);
+        setShowResults(false);
+        return;
+      }
+
+      const result = calculateDynamicEPsa(localFormData, calculatorConfig);
+      if (!result) {
+        setPreResult(null);
+        setShowResults(false);
+        setErrors([t('quickEntry.errors.calculationFailed')]);
+        setWarnings([]);
+        return;
+      }
+
+      setPreResult(result);
+      setShowResults(true);
+    } catch (err) {
+      setErrors([err?.message || t('dataImport.errors.importFailed')]);
+      setWarnings([]);
+      setPreResult(null);
+      setShowResults(false);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleCalculate = () => {
     const ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
@@ -188,6 +334,27 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                 handleCalculate();
               }}
             >
+              <div className="quick-upload">
+                <div className="quick-upload-title">{t('dataImport.uploadJsonData')}</div>
+                <div className="quick-upload-desc">{t('dataImport.uploadDescription')}</div>
+
+                <input
+                  type="file"
+                  id="quick-prefill-json"
+                  accept=".json,application/json"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handlePrefillFromJsonFile(file);
+                    e.target.value = '';
+                  }}
+                />
+
+                <label htmlFor="quick-prefill-json" className="quick-upload-btn" role="button" tabIndex={0}>
+                  {uploading ? t('dataImport.importing') : t('dataImport.chooseJson')}
+                </label>
+              </div>
+
               <div className="quick-row">
                 <label className="quick-label">
                   {t('quickEntry.ageLabel')}
