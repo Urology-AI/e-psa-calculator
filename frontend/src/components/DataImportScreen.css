@@ -258,6 +258,126 @@
   color: #00578B;
 }
 
+/* ─── Dark mode overrides ─── */
+.theme-dark .import-header h1 {
+  color: var(--ink-900);
+}
+
+.theme-dark .import-header p {
+  color: var(--ink-500);
+}
+
+.theme-dark .back-btn {
+  background: var(--surface);
+  color: var(--brand-600);
+  border-color: var(--brand-600);
+  box-shadow: var(--shadow-xs);
+}
+
+.theme-dark .back-btn:hover {
+  background: var(--brand-900);
+  color: #fff;
+}
+
+.theme-dark .import-section {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .import-section:hover {
+  border-color: var(--brand-600);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-dark .import-section h3 {
+  color: var(--ink-900);
+}
+
+.theme-dark .import-section p {
+  color: var(--ink-500);
+}
+
+.theme-dark .file-drop-zone {
+  background: var(--surface);
+  border-color: var(--line-200);
+}
+
+.theme-dark .file-drop-zone:hover,
+.theme-dark .file-drop-zone.active {
+  border-color: var(--brand-600);
+  background: var(--surface-subtle);
+}
+
+.theme-dark .drop-icon,
+.theme-dark .import-loading p {
+  color: var(--brand-600);
+}
+
+.theme-dark .drop-content p,
+.theme-dark .drop-text {
+  color: var(--ink-500);
+}
+
+.theme-dark .file-select-btn {
+  background: var(--brand-700);
+  color: #fff;
+}
+
+.theme-dark .file-select-btn:hover {
+  background: var(--brand-800);
+}
+
+.theme-dark .import-loading {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .import-error {
+  background: var(--error-50);
+  border-color: rgba(185, 28, 28, 0.35);
+}
+
+.theme-dark .import-error p {
+  color: var(--error-600);
+}
+
+.theme-dark .import-help {
+  background: var(--surface);
+  border-color: var(--line-100);
+}
+
+.theme-dark .import-help h3 {
+  color: var(--ink-900);
+}
+
+.theme-dark .import-help li {
+  color: var(--ink-500);
+}
+
+.theme-dark .import-help li strong {
+  color: var(--ink-900);
+}
+
+.theme-dark .session-input {
+  background: var(--surface);
+  color: var(--ink-900);
+  border-color: var(--line-100);
+}
+
+.theme-dark .session-input:focus {
+  border-color: var(--brand-600);
+}
+
+.theme-dark .session-login-btn {
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+  color: #fff;
+}
+
+.theme-dark .session-login-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--brand-700);
+}
+
 .session-login-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

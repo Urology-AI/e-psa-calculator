@@ -77,6 +77,16 @@
     "trustNoAccount": "No account required",
     "trustClinicianConversations": "Built for clinician conversations",
     "trustClearRiskSummary": "Clear risk summary output",
+    "flow": {
+      "step1Title": "Risk Profile",
+      "step1Body": "27 guided questions covering demographics, lifestyle, family history, and urinary symptoms.",
+      "step2Title": "Clinical Data",
+      "step2Body": "Optionally add your PSA level and MRI PI-RADS score to refine the estimate.",
+      "step3Title": "Personalised Results",
+      "step3Body": "Receive an ePSA risk tier with printable guidance for your clinician discussion."
+    },
+    "footerInstitution": "Icahn School of Medicine at Mount Sinai · Urology Department",
+    "footerGuidelines": "Based on guidance by: AUA · NCCN · EAU · SUO",
     "footerDisclaimer": "This tool is for education only and is not a diagnosis. It has not been clinically validated for standalone decision-making and should be used alongside guidance from a licensed healthcare professional."
   },
   "welcome2": {

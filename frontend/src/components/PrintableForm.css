@@ -488,7 +488,6 @@
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color-adjust: exact;
   }
   
   body {
@@ -643,7 +642,6 @@
   textarea {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color-adjust: exact;
     background: white !important;
   }
   
@@ -693,4 +691,144 @@
   .scale-compact label:hover {
     opacity: 0.8;
   }
+}
+
+/* ─── Dark mode overrides (screen only) ─── */
+.theme-dark .printable-form-container {
+  background: var(--surface) !important;
+  color: var(--ink-900) !important;
+}
+
+.theme-dark .printable-form-content {
+  background: var(--surface) !important;
+}
+
+.theme-dark .btn-back,
+.theme-dark .btn-print,
+.theme-dark .btn-export-json {
+  border-color: var(--line-100);
+}
+
+.theme-dark .btn-back {
+  background: var(--surface-subtle);
+  color: var(--ink-900);
+}
+
+.theme-dark .btn-print {
+  background: var(--brand-800);
+  color: #fff;
+}
+
+.theme-dark .btn-export-json {
+  background: var(--success-600);
+  color: #fff;
+}
+
+.theme-dark .printable-header,
+.theme-dark .print-instructions,
+.theme-dark .section-divider {
+  border-color: var(--line-100) !important;
+}
+
+/* Full readability for PrintableForm in dark mode (screen preview) */
+.theme-dark .print-instructions {
+  background: var(--surface-subtle) !important;
+  color: var(--ink-900) !important;
+}
+
+.theme-dark .notes-box,
+.theme-dark .phone-box {
+  background: var(--surface) !important;
+  border-color: var(--line-100) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.theme-dark .notes-label,
+.theme-dark .phone-label {
+  color: var(--brand-600) !important;
+}
+
+.theme-dark .notes-input,
+.theme-dark .phone-input {
+  background: var(--surface-subtle) !important;
+  border-color: var(--line-100) !important;
+  color: var(--ink-900) !important;
+}
+
+.theme-dark .notes-input:focus,
+.theme-dark .phone-input:focus {
+  outline: 2px solid var(--brand-600) !important;
+  border-color: var(--brand-600) !important;
+}
+
+.theme-dark .printable-heading {
+  color: var(--success-600) !important;
+}
+
+.theme-dark .printable-title {
+  color: var(--brand-600) !important;
+}
+
+.theme-dark .printable-tagline {
+  color: var(--ink-400) !important;
+}
+
+.theme-dark .score-help-text {
+  color: var(--ink-400) !important;
+}
+
+.theme-dark .field-label-inline,
+.theme-dark .field-label-compact {
+  color: var(--ink-500) !important;
+}
+
+.theme-dark .field-number {
+  color: var(--brand-600) !important;
+}
+
+.theme-dark .field-input-inline,
+.theme-dark .field-input-small,
+.theme-dark .field-input-tiny {
+  border-bottom-color: var(--line-100) !important;
+  color: var(--ink-900) !important;
+}
+
+.theme-dark .field-select-inline {
+  border-color: var(--line-100) !important;
+  background: var(--surface-subtle) !important;
+  color: var(--ink-900) !important;
+}
+
+.theme-dark .section-divider {
+  background: var(--surface-subtle) !important;
+  border-left-color: var(--brand-600) !important;
+}
+
+.theme-dark .section-label {
+  color: var(--brand-600) !important;
+}
+
+.theme-dark .checkbox-inline {
+  color: var(--ink-500) !important;
+}
+
+.theme-dark .checkbox-inline input[type="checkbox"],
+.theme-dark .checkbox-inline input[type="radio"] {
+  accent-color: var(--brand-600) !important;
+}
+
+.theme-dark .scale-compact label {
+  color: var(--ink-500) !important;
+}
+
+.theme-dark .scale-compact label input[type="radio"] {
+  accent-color: var(--brand-600) !important;
+}
+
+.theme-dark .footer-text {
+  color: var(--ink-400) !important;
+}
+
+.theme-dark .printable-footer {
+  border-top-color: var(--line-100) !important;
 }

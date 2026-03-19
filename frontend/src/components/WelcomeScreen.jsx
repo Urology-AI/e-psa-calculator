@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
 import { ArrowRightIcon, UploadIcon, FileTextIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
 
   const handleBegin = () => {
     if (onBegin) return onBegin();
@@ -19,17 +22,15 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
   }
 
   return (
-    <div className="ws-root">
+    <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* ── Hero ── */}
       <section className="ws-hero">
         <h1 className="ws-hero-title">
-          Find out if you should discuss<br />PSA testing with your doctor.
+          {t('welcome.heroTitle')}
         </h1>
         <p className="ws-hero-body">
-          ePSA is an evidence-informed questionnaire developed at Mount Sinai that summarises
-          your personal risk factors — age, family history, PSA, lifestyle, and symptoms — into
-          a single structured report designed to support your conversation with a clinician.
+          {t('welcome.heroDescription')}
         </p>
 
         {/* CTA */}
@@ -37,20 +38,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
           {showStorageChoice ? (
             <div className="ws-storage-choice">
               <button type="button" className="ws-btn-primary" onClick={onBeginLocal}>
-                <span>Start Assessment</span>
+                <span>{t('welcome.storageDeviceOnlyTitle')}</span>
+                <span className="ws-btn-sub">{t('welcome.storageDeviceOnlySub')}</span>
                 <ArrowRightIcon size={18} />
               </button>
               <button type="button" className="ws-btn-ghost" onClick={onBeginCloud}>
-                Save to cloud instead
+                <span>{t('welcome.storageCloudTitle')}</span>
+                <span className="ws-btn-sub ws-btn-sub-ghost">{t('welcome.storageCloudSub')}</span>
               </button>
             </div>
           ) : (
             <button className="ws-btn-primary" onClick={handleBegin}>
-              <span>Start Assessment</span>
+              <span>{t('welcome.startAssessment')}</span>
               <ArrowRightIcon size={18} />
             </button>
           )}
-          <p className="ws-cta-note">~5 minutes · No account required · Private by design</p>
+          <p className="ws-cta-note">
+            {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
+          </p>
         </div>
       </section>
 
@@ -59,24 +64,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
         <div className="ws-flow-step">
           <span className="ws-flow-num">1</span>
           <div>
-            <strong>Risk Profile</strong>
-            <span> — 27 questions covering demographics, lifestyle, family history, and urinary symptoms.</span>
+            <strong>{t('welcome.flow.step1Title')}</strong>
+            <span> — {t('welcome.flow.step1Body')}</span>
           </div>
         </div>
         <div className="ws-flow-connector" aria-hidden="true" />
         <div className="ws-flow-step">
           <span className="ws-flow-num">2</span>
           <div>
-            <strong>Clinical Data</strong>
-            <span> — Optionally add your PSA level and MRI PI-RADS score to refine the estimate.</span>
+            <strong>{t('welcome.flow.step2Title')}</strong>
+            <span> — {t('welcome.flow.step2Body')}</span>
           </div>
         </div>
         <div className="ws-flow-connector" aria-hidden="true" />
         <div className="ws-flow-step">
           <span className="ws-flow-num">3</span>
           <div>
-            <strong>Personalised Results</strong>
-            <span> — Receive an ePSA risk tier with printable guidance for your clinician discussion.</span>
+            <strong>{t('welcome.flow.step3Title')}</strong>
+            <span> — {t('welcome.flow.step3Body')}</span>
           </div>
         </div>
       </section>
@@ -86,24 +91,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, formData
         {onImport && (
           <button type="button" className="ws-btn-text" onClick={onImport}>
             <UploadIcon size={14} />
-            <span>Import previous session</span>
+            <span>{t('welcome.importPreviousSession')}</span>
           </button>
         )}
         <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
           <FileTextIcon size={14} />
-          <span>View printable form</span>
+          <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
         </button>
       </div>
 
       {/* ── Footer strip ── */}
       <footer className="ws-footer">
         <span className="ws-footer-inst">
-          Icahn School of Medicine at Mount Sinai · Urology Department
+          {t('welcome.footerInstitution')}
         </span>
         <span className="ws-footer-sep" aria-hidden="true">·</span>
-        <span className="ws-footer-guidelines">Based on guidance by: AUA · NCCN · EAU · SUO</span>
+        <span className="ws-footer-guidelines">{t('welcome.footerGuidelines')}</span>
         <p className="ws-footer-disclaimer">
-          Educational use only. Not a clinical diagnostic. Does not replace guidance from a licensed healthcare professional.
+          {t('welcome.footerDisclaimer')}
         </p>
       </footer>
 

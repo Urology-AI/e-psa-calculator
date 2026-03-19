@@ -33,6 +33,25 @@
   transform: none;
 }
 
+/* Dark mode readability */
+.theme-dark .global-back-btn {
+  background: var(--surface-subtle);
+  color: var(--brand-600);
+  border-color: var(--brand-600);
+  box-shadow: var(--shadow-xs);
+}
+
+.theme-dark .global-back-btn:hover {
+  background: var(--brand-700);
+  color: #fff;
+  border-color: var(--brand-700);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-dark .global-back-btn svg {
+  color: currentColor;
+}
+
 /* Hide on print */
 @media print {
   .global-back-btn {

@@ -34,3 +34,26 @@
 .form-field input[type="number"]:hover {
   border-color: #003A5D;
 }
+
+/* ─── Dark mode overrides ─── */
+.theme-dark .form-label {
+  color: var(--ink-500);
+}
+
+.theme-dark .form-field select,
+.theme-dark .form-field input[type="number"] {
+  background-color: var(--surface);
+  border-color: var(--line-100);
+  color: var(--ink-900);
+}
+
+.theme-dark .form-field select:hover,
+.theme-dark .form-field input[type="number"]:hover {
+  border-color: var(--brand-600);
+}
+
+.theme-dark .form-field select:focus,
+.theme-dark .form-field input[type="number"]:focus {
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 3px rgba(31, 110, 163, 0.18);
+}

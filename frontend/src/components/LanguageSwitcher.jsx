@@ -18,7 +18,7 @@ const LanguageSwitcher = () => {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <label style={{ fontSize: 12, color: '#6B7280' }}>{t('common.language')}</label>
+      <label style={{ fontSize: 12, color: 'var(--ink-500)' }}>{t('common.language')}</label>
       <select
         value={resolvedLang}
         onChange={handleLanguageChange}
@@ -27,9 +27,9 @@ const LanguageSwitcher = () => {
           fontSize: 12,
           padding: '6px 10px',
           borderRadius: 8,
-          border: '1px solid #E5E7EB',
-          background: '#fff',
-          color: '#111827',
+          border: '1px solid var(--line-100)',
+          background: 'var(--surface)',
+          color: 'var(--ink-900)',
         }}
       >
         {supportedLanguages.map((lng) => (

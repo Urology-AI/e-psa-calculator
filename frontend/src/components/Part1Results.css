@@ -557,3 +557,235 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ─── Dark mode overrides ─── */
+.theme-dark .results-empty {
+  color: var(--ink-500);
+}
+
+.theme-dark .results-cloud-row {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .session-pill {
+  background: var(--surface);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .session-pill-label {
+  color: var(--ink-500);
+}
+
+.theme-dark .session-pill-code {
+  color: var(--brand-600);
+}
+
+.theme-dark .cloud-saved-badge {
+  background: var(--success-50);
+  border-color: rgba(22, 163, 74, 0.35);
+  color: var(--success-600);
+}
+
+.theme-dark .btn-move-cloud {
+  background: var(--surface);
+  color: var(--brand-600);
+  border-color: var(--brand-600);
+}
+
+.theme-dark .btn-move-cloud:hover:not(:disabled) {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .risk-summary-card {
+  background: var(--surface);
+  border-color: var(--line-100);
+  box-shadow: var(--shadow-soft);
+}
+
+.theme-dark .risk-summary-label {
+  color: var(--ink-400);
+}
+
+.theme-dark .risk-psa-equivalent {
+  color: var(--ink-500);
+}
+
+.theme-dark .risk-psa-equivalent strong {
+  color: var(--brand-600);
+}
+
+.theme-dark .btn-results--outline {
+  background: transparent;
+  color: var(--brand-600);
+  border-color: var(--line-100);
+}
+
+.theme-dark .btn-results--outline:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .btn-results--solid {
+  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
+}
+
+.theme-dark .btn-results--danger-outline {
+  background: transparent;
+  color: var(--error-600);
+  border-color: rgba(185, 28, 28, 0.35);
+}
+
+.theme-dark .btn-results--danger-outline:hover {
+  background: var(--error-50);
+}
+
+/* Ensure full readability for all Part 1 results content */
+.theme-dark .results-cloud-row {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .session-pill {
+  background: var(--surface);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .session-pill-label {
+  color: var(--ink-400);
+}
+
+.theme-dark .session-pill-code {
+  color: var(--brand-600);
+}
+
+.theme-dark .cloud-move-row {
+  color: inherit;
+}
+
+.theme-dark .risk-psa-equivalent {
+  color: var(--ink-500);
+}
+
+.theme-dark .risk-psa-equivalent strong {
+  color: var(--brand-600);
+}
+
+.theme-dark .risk-gauge-labels {
+  color: var(--ink-400);
+}
+
+.theme-dark .risk-gauge-score {
+  color: var(--ink-900);
+}
+
+.theme-dark .risk-gauge-caption {
+  color: var(--ink-400);
+}
+
+.theme-dark .guideline-banner {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .guideline-banner-icon {
+  color: var(--brand-600);
+}
+
+.theme-dark .guideline-banner p {
+  color: var(--ink-500);
+}
+
+.theme-dark .recommendation-card {
+  background: var(--surface);
+  border-color: var(--line-100);
+  box-shadow: var(--shadow-soft);
+}
+
+.theme-dark .rec-card-text {
+  color: var(--ink-700);
+}
+
+.theme-dark .rec-card-sub {
+  color: var(--ink-400);
+}
+
+.theme-dark .metrics-grid .metric-card,
+.theme-dark .metric-card {
+  background: var(--surface);
+  border-color: var(--line-100);
+  box-shadow: var(--shadow-soft);
+}
+
+.theme-dark .metric-value {
+  color: var(--ink-900);
+}
+
+.theme-dark .metric-unit {
+  color: var(--ink-400);
+}
+
+.theme-dark .metric-label {
+  color: var(--ink-400);
+}
+
+.theme-dark .tier-scale-item {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .tier-scale-sub {
+  color: var(--ink-400);
+}
+
+.theme-dark .collapsible-section {
+  background: var(--surface);
+  border-color: var(--line-100);
+  box-shadow: var(--shadow-soft);
+}
+
+.theme-dark .collapsible-toggle {
+  color: var(--ink-900);
+}
+
+.theme-dark .collapsible-toggle:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .collapsible-toggle svg {
+  color: var(--ink-400);
+}
+
+.theme-dark .collapsible-body {
+  border-top-color: var(--line-100);
+}
+
+.theme-dark .collapsible-body p {
+  color: var(--ink-500);
+}
+
+.theme-dark .detail-sections {
+  color: inherit;
+}
+
+.theme-dark .detail-data-row {
+  border-top-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .detail-data-row strong {
+  color: var(--brand-600);
+}
+
+.theme-dark .detail-note {
+  color: var(--ink-400) !important;
+}
+
+.theme-dark .detail-disclaimer {
+  color: var(--ink-400) !important;
+}
+
+.theme-dark .detail-attribution {
+  color: var(--ink-400) !important;
+}

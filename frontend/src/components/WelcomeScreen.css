@@ -82,6 +82,20 @@
   transform: translateY(0);
 }
 
+.ws-btn-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.95;
+  margin-top: 2px;
+}
+
+.ws-btn-sub-ghost {
+  color: inherit;
+  opacity: 0.85;
+  text-decoration: none;
+}
+
 .ws-btn-ghost {
   background: none;
   border: none;
@@ -237,4 +251,77 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ─── Dark mode overrides ─── */
+.theme-dark .ws-hero {
+  border-bottom-color: var(--line-200);
+}
+
+.theme-dark .ws-hero-title {
+  color: var(--ink-800);
+}
+
+.theme-dark .ws-hero-body {
+  color: var(--ink-500);
+}
+
+.theme-dark .ws-btn-primary {
+  background: var(--brand-900);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-dark .ws-btn-primary:hover {
+  background: var(--brand-800);
+}
+
+.theme-dark .ws-btn-ghost {
+  color: var(--brand-600);
+}
+
+.theme-dark .ws-cta-note {
+  color: var(--ink-500);
+}
+
+.theme-dark .ws-flow-step {
+  color: var(--ink-700);
+}
+
+.theme-dark .ws-flow-step strong {
+  color: var(--ink-900);
+}
+
+.theme-dark .ws-flow-num {
+  background: var(--surface-subtle);
+  color: var(--brand-500);
+  border-color: var(--line-100);
+}
+
+.theme-dark .ws-flow-connector {
+  background: var(--line-100);
+}
+
+.theme-dark .ws-btn-text {
+  color: var(--ink-500);
+}
+
+.theme-dark .ws-btn-text:hover {
+  color: var(--brand-600);
+}
+
+.theme-dark .ws-footer {
+  border-top-color: var(--line-200);
+}
+
+.theme-dark .ws-footer-inst {
+  color: var(--ink-700);
+}
+
+.theme-dark .ws-footer-guidelines {
+  color: var(--ink-500);
+}
+
+.theme-dark .ws-footer-disclaimer {
+  color: var(--ink-400);
 }

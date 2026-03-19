@@ -117,3 +117,37 @@
     height: 36px;
   }
 }
+
+/* ─── Dark mode overrides ─── */
+.theme-dark .step-navigation {
+  margin-top: 2rem;
+}
+
+.theme-dark .step-circle {
+  background-color: var(--surface-subtle);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .step-circle.active {
+  background-color: var(--brand-900);
+  border-color: var(--brand-900);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-dark .step-circle.completed {
+  background-color: #b45309;
+  border-color: #b45309;
+}
+
+.theme-dark .step-label {
+  color: var(--ink-500);
+}
+
+.theme-dark .step-label.active {
+  color: var(--brand-600);
+}
+
+.theme-dark .step-line-container {
+  background: var(--line-100);
+}

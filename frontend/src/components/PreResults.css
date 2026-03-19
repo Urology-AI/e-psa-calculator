@@ -102,6 +102,31 @@
   text-align: left;
 }
 
+/* ─── Dark mode overrides ─── */
+.theme-dark .pre-results-container {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.theme-dark .pre-results-header h3 {
+  color: var(--brand-700);
+}
+
+.theme-dark .priority-category,
+.theme-dark .points-value {
+  color: var(--brand-700);
+}
+
+.theme-dark .points-label,
+.theme-dark .pre-disclaimer {
+  color: var(--ink-500);
+}
+
+.theme-dark .finasteride-notice {
+  background: var(--warning-50);
+  color: var(--warning-600);
+}
+
 .prior-cancer {
   background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   border-left: 6px solid #c62828;

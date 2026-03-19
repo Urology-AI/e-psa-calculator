@@ -79,6 +79,10 @@
   --text-2xl:  1.5rem;
   --text-3xl:  1.875rem;
   --text-4xl:  2.25rem;
+
+  /* App background + surfaces */
+  --app-bg: linear-gradient(160deg, #f0f7ff 0%, #eaf3fb 40%, #f5f8fc 100%);
+  --header-logo-bg: linear-gradient(180deg, #f8fbff 0%, #f1f7fd 100%);
 }
 
 /* ─── Reset & Base ─── */
@@ -93,7 +97,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--ink-900);
-  background: linear-gradient(160deg, #f0f7ff 0%, #eaf3fb 40%, #f5f8fc 100%);
+  background: var(--app-bg);
   min-height: 100vh;
   line-height: 1.6;
 }
@@ -124,10 +128,38 @@ body {
 .header-logo-container {
   text-align: center;
   padding: 20px 24px 18px;
-  background: linear-gradient(180deg, #f8fbff 0%, #f1f7fd 100%);
+  background: var(--header-logo-bg);
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-100);
   margin-bottom: 1.25rem;
+}
+
+/* ─── Dark mode overrides ─── */
+.theme-dark {
+  --surface: #0b1220;
+  --surface-subtle: #0f1930;
+  --surface-muted: #0d162a;
+
+  --line-200: #213043;
+  --line-100: #1b2a3b;
+  --line-50: #0f1c2d;
+
+  --ink-950: #e5e7eb;
+  --ink-900: #e5e7eb;
+  --ink-800: #cbd5e1;
+  --ink-700: #9ca3af;
+  --ink-500: #94a3b8;
+  --ink-400: #718096;
+  --ink-300: #64748b;
+
+  --app-bg: linear-gradient(160deg, #050a13 0%, #081327 40%, #0b1220 100%);
+  --header-logo-bg: linear-gradient(180deg, #0f1930 0%, #0b1220 100%);
+}
+
+.theme-dark .stage-pre {
+  background: linear-gradient(135deg, #1f2a37 0%, #2d3748 100%);
+  color: var(--gold-400);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .logo {
@@ -174,6 +206,25 @@ body {
   justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.theme-toggle-btn {
+  border: 1px solid var(--line-100);
+  background: var(--surface-subtle);
+  color: var(--ink-700);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-1px);
 }
 
 /* ─── Stage Badges ─── */
