@@ -11,6 +11,7 @@ import ConsentScreen from './components/ConsentScreen.jsx';
 import { BookIcon, ShieldCheckIcon } from 'lucide-react';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
+import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
@@ -18,6 +19,8 @@ import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
+import LanguageSwitcher from './components/LanguageSwitcher.jsx';
+import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -40,6 +43,7 @@ const POST_STEPS = [
 ];
 
 function App() {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [userPhone, setUserPhone] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
@@ -1213,8 +1217,18 @@ function App() {
   // Determine if back button should be shown
   const shouldShowBackButton = () => {
     if (authStep === 'welcome') return false;
-    // Hide back on first form step only when in cloud; in local mode show back so user can return to welcome
-    if (authStep === 'app' && stage === 'pre' && currentStep === 1 && part1Step === 0 && storageMode !== 'local') return false;
+    if (authStep === 'import') return false;
+
+    // When the current screen already provides its own back button,
+    // hide the global one to avoid duplicated controls.
+    if (authStep === 'app') {
+      const onPart1Form = stage === 'pre' && (currentStep === 1 || currentStep === 2);
+      if (onPart1Form && part1Step > 0) return false;
+
+      const onPart2Form = stage === 'post' && (currentStep === 1 || currentStep === 2);
+      if (onPart2Form) return false;
+    }
+
     return true;
   };
 
@@ -1253,22 +1267,20 @@ function App() {
             />
             <footer className="app-footer">
               <div className="footer-content">
-                <p className="footer-text">
-                  Learn more about the documentation for this tool.
-                </p>
+                <p className="footer-text">{t('app.footer.text')}</p>
                 <button 
                   className="btn-model-docs" 
                   onClick={() => setShowModelDocs(true)}
                 >
                   <BookIcon size={16} />
-                  <span>Model Documentation</span>
+                  <span>{t('app.footer.modelDocs')}</span>
                 </button>
                 <button 
                   className="btn-model-docs btn-hipaa"
                   onClick={() => setShowHipaaPopup(true)}
                 >
                   <ShieldCheckIcon size={16} />
-                  <span>HIPAA Compliant</span>
+                  <span>{t('app.footer.hipaa')}</span>
                 </button>
               </div>
             </footer>
@@ -1334,15 +1346,15 @@ function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onStartOver={async () => {
-                  if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
+                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
                     await handleClearData();
                   }
                 }}
               />
             ) : (
               <div className="loading-results">
-                <p>Loading your results...</p>
-                <p style={{ fontSize: '12px', color: '#666' }}>If this persists, try refreshing the page.</p>
+                <p>{t('app.loadingResults.title')}</p>
+                <p style={{ fontSize: '12px', color: '#666' }}>{t('app.loadingResults.note')}</p>
               </div>
             )}
             <div className="stage-actions">
@@ -1365,7 +1377,7 @@ function App() {
                 className="btn btn-primary"
                 disabled={!preResult}
               >
-                Continue to Risk Assessment →
+                {t('app.continueToRisk')}
               </button>
             </div>
           </div>
@@ -1428,7 +1440,7 @@ function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onStartOver={async () => {
-                  if (window.confirm('Are you sure you want to clear all data and start over? This will delete your current session.')) {
+                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
                     await handleClearData();
                   }
                 }}
@@ -1467,16 +1479,18 @@ function App() {
           </div>
           <div className="header-text">
             <h1>ePSA</h1>
-            <h2>educational Prostate‑Specific Awareness</h2>
-            <p className="subtitle">A Non‑Validated Electronic Risk Tool</p>
+            <h2>{t('app.header.title')}</h2>
+            <p className="subtitle">{t('app.header.subtitle')}</p>
           </div>
           <div className="header-actions">
+            <ThemeSwitcher />
+            <LanguageSwitcher />
             <div className="stage-indicator">
               {authStep === 'app' && (
                 stage === 'pre' ? (
-                  <span className="stage-badge stage-pre">Stage 1: Screening Priority</span>
+                  <span className="stage-badge stage-pre">{t('app.stage.stagePre')}</span>
                 ) : (
-                  <span className="stage-badge stage-post">Stage 2: Risk Assessment</span>
+                  <span className="stage-badge stage-post">{t('app.stage.stagePost')}</span>
                 )
               )}
             </div>

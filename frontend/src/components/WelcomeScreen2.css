@@ -412,3 +412,134 @@
     margin-top: 12px;
   }
 }
+
+/* ─── Dark mode overrides ─── */
+.theme-dark .welcome2-header {
+  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
+}
+
+.theme-dark .welcome2-subtitle {
+  color: var(--ink-400);
+}
+
+.theme-dark .welcome2-body {
+  background: var(--surface);
+  border: 1px solid var(--line-100);
+}
+
+.theme-dark .pre-result-summary {
+  background: var(--surface-subtle);
+  border-left-color: var(--brand-700);
+}
+
+.theme-dark .pre-result-summary h3 {
+  color: var(--ink-900);
+}
+
+.theme-dark .priority-description {
+  color: var(--ink-500);
+}
+
+.theme-dark .model-info-section h3,
+.theme-dark .model-breakdown h3 {
+  color: var(--brand-700);
+}
+
+.theme-dark .model-info-section p,
+.theme-dark .factor-content span,
+.theme-dark .breakdown-card p {
+  color: var(--ink-500);
+}
+
+.theme-dark .factor-card,
+.theme-dark .breakdown-card,
+.theme-dark .breakdown-card,
+.theme-dark .formula,
+.theme-dark .disclaimer-box {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .factor-content strong,
+.theme-dark .breakdown-card h4 {
+  color: var(--ink-900);
+}
+
+.theme-dark .formula {
+  border: 1px solid var(--line-100);
+}
+
+.theme-dark .formula-row {
+  border-bottom-color: var(--line-100);
+}
+
+.theme-dark .formula-label {
+  color: var(--ink-500);
+}
+
+.theme-dark .formula-value,
+.theme-dark .formula-total .formula-value {
+  color: var(--ink-900);
+}
+
+.theme-dark .formula-total .formula-label {
+  color: var(--brand-700);
+}
+
+.theme-dark .risk-tiers h5 {
+  color: var(--ink-500);
+}
+
+.theme-dark .tier-row {
+  color: var(--ink-500);
+}
+
+.theme-dark .disclaimer-box {
+  color: var(--ink-500);
+  border-left: 4px solid var(--warning-600);
+  background: var(--warning-50);
+}
+
+.theme-dark .time-estimate {
+  color: var(--ink-500);
+}
+
+.theme-dark .btn-begin-stage2 {
+  background: var(--brand-900);
+  color: #fff;
+}
+
+.theme-dark .btn-begin-stage2:hover {
+  background: var(--brand-800);
+}
+
+.theme-dark .welcome2-footer {
+  border-top-color: var(--line-100);
+}
+
+.theme-dark .footer-text {
+  color: var(--ink-500);
+}
+
+.theme-dark .btn-model-docs,
+.theme-dark .btn-view-model {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+}
+
+.theme-dark .btn-model-docs:hover,
+.theme-dark .btn-view-model:hover {
+  background: var(--brand-600);
+  color: #fff;
+}
+
+.theme-dark .btn-hide-details {
+  background: var(--surface-subtle);
+  color: var(--ink-500);
+  border-color: var(--line-100);
+}
+
+.theme-dark .btn-hide-details:hover {
+  background: var(--surface);
+  color: var(--ink-700);
+  border-color: var(--line-100);
+}

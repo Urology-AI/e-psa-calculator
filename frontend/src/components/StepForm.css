@@ -97,6 +97,39 @@
   transform: translateY(0);
 }
 
+/* ─── Dark mode overrides ─── */
+.theme-dark .step-title {
+  color: var(--brand-700);
+}
+
+.theme-dark .step-description {
+  color: var(--ink-500);
+}
+
+.theme-dark .step-actions {
+  border-top-color: var(--line-100);
+}
+
+.theme-dark .btn-primary {
+  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.theme-dark .btn-primary:hover:not(.disabled) {
+  background: linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%);
+}
+
+.theme-dark .btn-secondary {
+  background: var(--surface);
+  color: var(--brand-600);
+  border-color: rgba(19, 79, 122, 0.55);
+}
+
+.theme-dark .btn-secondary:hover {
+  background: var(--surface-subtle);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
   .step-title {
     font-size: 1.5rem;

@@ -13,7 +13,7 @@
 }
 
 .model-docs-container {
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 16px;
   max-width: 900px;
   width: 100%;
@@ -31,7 +31,7 @@
   padding: 20px 30px;
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--line-100);
 }
 
 .model-docs-header h2 {
@@ -74,23 +74,23 @@
 }
 
 .docs-section h3 {
-  color: #1e3a8a;
+  color: var(--brand-700);
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 16px 0;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--line-100);
 }
 
 .docs-section p {
-  color: #374151;
+  color: var(--ink-700);
   line-height: 1.7;
   margin: 0 0 12px 0;
 }
 
 .formula-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-subtle);
+  border: 1px solid var(--line-100);
   border-radius: 8px;
   padding: 20px;
   margin: 16px 0;
@@ -101,13 +101,13 @@
 }
 
 .formula-box code {
-  color: #1e40af;
+  color: var(--brand-600);
 }
 
 .formula-note {
   text-align: center;
   font-style: italic;
-  color: #64748b;
+  color: var(--ink-500);
   font-size: 15px;
   margin-top: 8px;
 }
@@ -121,9 +121,9 @@
 }
 
 .info-box.warning {
-  background: #fef3c7;
-  border-left: 4px solid #f59e0b;
-  color: #92400e;
+  background: var(--gold-100);
+  border-left: 4px solid var(--gold-400);
+  color: var(--gold-600);
 }
 
 .info-box.info {
@@ -143,25 +143,25 @@
 .vars-table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--line-100);
 }
 
 .vars-table th {
-  background: #f8fafc;
+  background: var(--surface-subtle);
   font-weight: 600;
-  color: #1e3a8a;
+  color: var(--brand-700);
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .vars-table tr:hover {
-  background: #f8fafc;
+  background: var(--surface-subtle);
 }
 
 .vars-table td:first-child {
   font-weight: 500;
-  color: #1e40af;
+  color: var(--brand-600);
 }
 
 .tiers-grid {
@@ -356,4 +356,70 @@
   .vars-table td {
     padding: 8px;
   }
+}
+
+/* ─── Dark mode overrides (match main app variables) ─── */
+.theme-dark .model-docs-container {
+  background: var(--surface);
+}
+
+.theme-dark .model-docs-header {
+  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
+}
+
+.theme-dark .model-docs-footer {
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--line-100);
+}
+
+.theme-dark .model-docs-header {
+  border-bottom: 1px solid var(--line-100);
+}
+
+.theme-dark .docs-section h3 {
+  color: var(--brand-700);
+  border-bottom-color: var(--line-100);
+}
+
+.theme-dark .docs-section p,
+.theme-dark .limitations-list li,
+.theme-dark .docs-section ol,
+.theme-dark .reference,
+.theme-dark .reference-note {
+  color: var(--ink-700);
+}
+
+.theme-dark .formula-box {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .formula-note {
+  color: var(--ink-500);
+}
+
+.theme-dark .vars-table th,
+.theme-dark .vars-table td {
+  border-bottom-color: var(--line-100);
+}
+
+.theme-dark .vars-table th {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .vars-table tr:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .confidence-note {
+  background: var(--surface-subtle);
+  color: var(--ink-500);
+}
+
+.theme-dark .metrics-table td {
+  border-bottom-color: var(--line-100);
+}
+
+.theme-dark .limitations-list li {
+  border-bottom-color: var(--line-50);
 }

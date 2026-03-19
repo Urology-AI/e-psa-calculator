@@ -77,6 +77,16 @@
     "trustNoAccount": "No se requiere cuenta",
     "trustClinicianConversations": "Diseñado para conversar con su clínico",
     "trustClearRiskSummary": "Salida clara del resumen de riesgo",
+    "flow": {
+      "step1Title": "Perfil de Riesgo",
+      "step1Body": "27 preguntas guiadas sobre datos demográficos, estilo de vida, historia familiar y síntomas urinarios.",
+      "step2Title": "Datos Clínicos",
+      "step2Body": "Opcionalmente añada su nivel de PSA y la puntuación PI-RADS de la RM para refinar la estimación.",
+      "step3Title": "Resultados Personalizados",
+      "step3Body": "Reciba un nivel de riesgo de ePSA con orientación imprimible para su conversación con el clínico."
+    },
+    "footerInstitution": "Icahn School of Medicine at Mount Sinai · Departamento de Urología",
+    "footerGuidelines": "Basado en la guía de: AUA · NCCN · EAU · SUO",
     "footerDisclaimer": "Esta herramienta es solo para fines educativos y no es un diagnóstico. No ha sido validada clínicamente para la toma de decisiones de forma independiente y debe usarse junto con la orientación de un profesional de la salud con licencia."
   },
   "welcome2": {
