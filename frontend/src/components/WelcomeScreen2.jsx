@@ -172,7 +172,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
       <footer className="welcome2-footer">
         <div className="footer-content">
           <p className="footer-text">
-            ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool
+            Learn more about the documentation for this tool.
           </p>
           <button 
             className="btn-model-docs" 
