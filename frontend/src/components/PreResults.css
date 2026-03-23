@@ -1,11 +1,11 @@
 .pre-results-container {
   margin-top: 2.5rem;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 1.25rem rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.5s ease-in-out;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(1.25rem);
   transition: all 0.5s ease-in-out;
 }
 
@@ -23,7 +23,7 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(1.25rem);
   }
   to {
     opacity: 1;
@@ -68,7 +68,7 @@
   gap: 0.5rem;
   padding: 1rem;
   background: rgba(0, 58, 93, 0.05);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
@@ -85,9 +85,9 @@
 
 .finasteride-notice {
   background: #fff3cd;
-  border-left: 4px solid #D4AF37;
+  border-left: 0.25rem solid #D4AF37;
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   margin-bottom: 1.5rem;
   text-align: left;
   color: #856404;
@@ -96,7 +96,7 @@
 .pre-disclaimer {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  border-top: 0.125rem solid rgba(0, 0, 0, 0.1);
   font-size: 0.9rem;
   color: #666;
   text-align: left;
@@ -129,7 +129,7 @@
 
 .prior-cancer {
   background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-  border-left: 6px solid #c62828;
+  border-left: 0.375rem solid #c62828;
 }
 
 .prior-cancer-message {
@@ -143,15 +143,15 @@
 /* Priority colors */
 .pre-green {
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-left: 6px solid #2e7d32;
+  border-left: 0.375rem solid #2e7d32;
 }
 
 .pre-yellow {
   background: linear-gradient(135deg, #fff9c4 0%, #fffde7 100%);
-  border-left: 6px solid #D4AF37;
+  border-left: 0.375rem solid #D4AF37;
 }
 
 .pre-red {
   background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-  border-left: 6px solid #c62828;
+  border-left: 0.375rem solid #c62828;
 }

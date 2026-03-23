@@ -31,7 +31,7 @@ const PreResults = ({ result }) => {
           <h3>Important Notice</h3>
         </div>
         <div className="pre-results-content">
-          <p className="prior-cancer-message" style={{ fontSize: '18px', fontWeight: 'bold', color: '#c62828', marginBottom: '20px' }}>
+          <p className="prior-cancer-message" style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#c62828', marginBottom: '20px' }}>
             {message || 'You should follow up with your treating physician.'}
           </p>
           <div className="pre-disclaimer">

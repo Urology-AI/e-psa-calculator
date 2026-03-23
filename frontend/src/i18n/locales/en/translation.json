@@ -8,6 +8,15 @@
       "title": "Prostate‑Specific Awareness",
       "subtitle": "A Non‑Validated Educational Risk Tool"
     },
+    "textScale": {
+      "groupLabel": "Text size",
+      "smaller": "A−",
+      "bigger": "A+",
+      "decreaseTitle": "Smaller text",
+      "increaseTitle": "Bigger text",
+      "decreaseAria": "Decrease text size",
+      "increaseAria": "Increase text size"
+    },
     "stage": {
       "stagePre": "Stage 1: Screening Priority",
       "stagePost": "Stage 2: Risk Assessment"

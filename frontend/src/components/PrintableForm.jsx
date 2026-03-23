@@ -319,7 +319,7 @@ const PrintableForm = ({ onBack, formData }) => {
               <span className="field-number">4.</span> {t('part1.fields.inflammationHistory.title')}:
               <label className="checkbox-inline"><input type="radio" name="inflammation" value="0" defaultChecked={isChecked('inflammationHistory', 0)} /> {t('part1.options.no')}</label>
               <label className="checkbox-inline"><input type="radio" name="inflammation" value="1" defaultChecked={isChecked('inflammationHistory', 1)} /> {t('part1.options.yes')}</label>
-              <div style={{ fontSize: '11px', fontStyle: 'italic', marginTop: '4px', marginLeft: '20px' }}>
+              <div style={{ fontSize: '0.6875rem', fontStyle: 'italic', marginTop: '4px', marginLeft: '20px' }}>
                 {t('printableForm.inflammationExamples')}
               </div>
             </label>

@@ -14,7 +14,7 @@
 }
 
 .loading-spinner {
-  font-size: 18px;
+  font-size: 1.125rem;
   color: #9ca3af;
   animation: pulse 2s infinite;
 }
@@ -31,7 +31,7 @@
 
 .insights-dashboard.error h3 {
   margin: 16px 0 8px;
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 .insights-dashboard.error button {
@@ -57,7 +57,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
@@ -73,7 +73,7 @@
   padding: 8px 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .header-controls button {
@@ -84,7 +84,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   background-color: rgba(26, 26, 46, 0.95);
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -168,7 +168,7 @@
 }
 
 .rec-content span {
-  font-size: 13px;
+  font-size: 0.8125rem;
   opacity: 0.9;
 }
 
@@ -186,7 +186,7 @@
   padding: 12px 20px;
   border: none;
   background: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #9ca3af;
   cursor: pointer;
@@ -249,13 +249,13 @@
 }
 
 .metric-value {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 .metric-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #9ca3af;
   font-weight: 500;
 }
@@ -264,7 +264,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #10b981;
   font-weight: 500;
 }
@@ -284,7 +284,7 @@
 }
 
 .chart-container h3 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 16px 0;
@@ -301,7 +301,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #ffffff;
 }
 
@@ -338,7 +338,7 @@
 
 .perf-metric label {
   display: block;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -347,14 +347,14 @@
 
 .perf-metric value {
   display: block;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 4px;
 }
 
 .perf-metric small {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #9ca3af;
 }
 
@@ -366,7 +366,7 @@
 }
 
 .confusion-matrix h3 {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 20px 0;
@@ -389,7 +389,7 @@
 .matrix-cell.header {
   background-color: rgba(26, 26, 46, 0.95);
   color: #ffffff;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .matrix-cell.tp {
@@ -425,7 +425,7 @@
 }
 
 .chart-large h3 {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 20px 0;
@@ -452,7 +452,7 @@
 
 .cal-stat label {
   display: block;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -461,7 +461,7 @@
 
 .cal-stat value {
   display: block;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 4px;
@@ -476,7 +476,7 @@
 }
 
 .cal-stat small {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #9ca3af;
 }
 
@@ -488,7 +488,7 @@
 }
 
 .calibration-chart h3 {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 20px 0;
@@ -499,7 +499,7 @@
   padding: 16px;
   background-color: rgba(26, 26, 46, 0.95);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #9ca3af;
   line-height: 1.6;
 }

@@ -310,7 +310,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             onChange={(e) => updateField('age', e.target.value)}
           />
           {attemptedNext && !ageValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.ageInline')}
             </div>
           )}
@@ -339,7 +339,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <option value="other">{t('part1.race.other')}</option>
           </select>
           {attemptedNext && !raceValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.raceInline')}
             </div>
           )}
@@ -381,7 +381,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !familyHistoryValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -396,10 +396,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
             {t('part1.step1.inflammationHistory.prompt')}
             <br />
-            <span style={{ fontSize: '13px', fontStyle: 'italic' }}>
+            <span style={{ fontSize: '0.8125rem', fontStyle: 'italic' }}>
               {t('part1.step1.inflammationHistory.example')}
             </span>
           </div>
@@ -418,7 +418,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !inflammationHistoryValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -449,7 +449,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !brcaValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -494,17 +494,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
           )}
           {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialFeetError')}
             </div>
           )}
           {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialInchesError')}
             </div>
           )}
           {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightMetricError')}
             </div>
           )}
@@ -534,17 +534,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
           )}
           {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightImperialError')}
             </div>
           )}
           {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightMetricError')}
             </div>
           )}
 
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '14px', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
             {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
@@ -587,7 +587,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !exerciseValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -618,7 +618,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !smokingValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -648,7 +648,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !chemicalValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -699,7 +699,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !dietValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -714,11 +714,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
             {t('part1.step4.comorbidities.prompt')}
           </div>
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{t('part1.step4.comorbidities.askAnyLabel')}</div>
+            <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>{t('part1.step4.comorbidities.askAnyLabel')}</div>
             <div className="option-grid c2">
               <button
                 type="button"
@@ -738,7 +738,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
           {(localData.comorbidityScore === 1 || localData.comorbidityScore === 2) && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>{t('part1.step4.comorbidities.howManyLabel')}</div>
+              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>{t('part1.step4.comorbidities.howManyLabel')}</div>
               <div className="option-grid c2">
                 <button
                   type="button"
@@ -758,7 +758,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </div>
           )}
           {attemptedNext && !comorbiditiesValid && (
-            <div style={{ color: '#E74C3C', fontSize: '12px', marginTop: '8px' }}>
+            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.comorbidityQuestions')}
             </div>
           )}
@@ -784,17 +784,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <InfoIcon {...fieldReferences.ipss} />
         {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
         {!ipssComplete && attemptedNext && (
-          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
             {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
           </span>
         )}
         {!ipssComplete && !attemptedNext && (
-          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
             {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
           </span>
         )}
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
         {t('part1.ipss.note')}
       </div>
       {ipssQuestions.map((q, index) => (
@@ -844,17 +844,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <InfoIcon {...fieldReferences.shim} />
         {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
         {!shimComplete && attemptedNext && (
-          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
             {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
           </span>
         )}
         {!shimComplete && !attemptedNext && (
-          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '14px', fontWeight: '400' }}>
+          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
             {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
           </span>
         )}
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '14px', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
         {t('part1.shim.note')}
       </div>
       {shimQuestions.map((item, index) => (

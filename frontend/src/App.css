@@ -57,17 +57,17 @@
   --gold-100: #fef3c7;
 
   /* Shadows */
-  --shadow-xs:   0 1px 3px rgba(11, 42, 67, 0.07);
-  --shadow-sm:   0 4px 10px rgba(11, 42, 67, 0.08);
-  --shadow-md:   0 8px 24px rgba(11, 42, 67, 0.10);
-  --shadow-soft: 0 12px 30px rgba(11, 42, 67, 0.08);
-  --shadow-lg:   0 20px 48px rgba(11, 42, 67, 0.12);
+  --shadow-xs:   0 0.0625rem 0.1875rem rgba(11, 42, 67, 0.07);
+  --shadow-sm:   0 0.25rem 0.625rem rgba(11, 42, 67, 0.08);
+  --shadow-md:   0 0.5rem 1.5rem rgba(11, 42, 67, 0.10);
+  --shadow-soft: 0 0.75rem 1.875rem rgba(11, 42, 67, 0.08);
+  --shadow-lg:   0 1.25rem 3rem rgba(11, 42, 67, 0.12);
 
   /* Radii */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
   --radius-full: 9999px;
 
   /* Typography scale */
@@ -83,11 +83,34 @@
   /* App background + surfaces */
   --app-bg: linear-gradient(160deg, #f0f7ff 0%, #eaf3fb 40%, #f5f8fc 100%);
   --header-logo-bg: linear-gradient(180deg, #f8fbff 0%, #f1f7fd 100%);
+
+  /* Readable type: user A−/A+ × gentle boost on tablet/phone (see html font-size below) */
+  --epsa-user-text-scale: 1;
+  --epsa-viewport-text-boost: 1;
 }
 
 /* ─── Reset & Base ─── */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+html {
+  /* % is relative to browser default (~16px); rem units across the app follow this */
+  font-size: calc(100% * var(--epsa-viewport-text-boost) * var(--epsa-user-text-scale));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --epsa-viewport-text-boost: 1.045;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --epsa-viewport-text-boost: 1.09;
+  }
 }
 
 body {
@@ -109,28 +132,49 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 56.25rem;
   margin: 0 auto;
   padding: 2rem 2.25rem;
   background: var(--surface);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--line-100);
+  border: 0.0625rem solid var(--line-100);
   box-shadow: var(--shadow-soft);
+}
+
+@media (max-width: 768px) {
+  .App {
+    padding: 1.15rem 0.75rem 2.75rem;
+  }
+
+  .container {
+    padding: 1.35rem 1.1rem;
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .App {
+    padding: 0.85rem 0.55rem 2.5rem;
+  }
+
+  .container {
+    padding: 1.1rem 0.85rem;
+  }
 }
 
 /* ─── App Header ─── */
 .app-header {
   margin-bottom: 1.75rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--line-200);
+  border-bottom: 0.0625rem solid var(--line-200);
 }
 
 .header-logo-container {
   text-align: center;
-  padding: 20px 24px 18px;
+  padding: 1.25rem 1.5rem 1.125rem;
   background: var(--header-logo-bg);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--line-100);
+  border: 0.0625rem solid var(--line-100);
   margin-bottom: 1.25rem;
 }
 
@@ -159,14 +203,14 @@ body {
 .theme-dark .stage-pre {
   background: linear-gradient(135deg, #1f2a37 0%, #2d3748 100%);
   color: var(--gold-400);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 0.0625rem solid rgba(245, 158, 11, 0.35);
 }
 
 .logo {
   display: block !important;
   margin: 0 auto;
-  max-width: 185px;
-  max-height: 100px;
+  max-width: 11.5625rem;
+  max-height: 6.25rem;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -209,29 +253,77 @@ body {
 }
 
 .theme-toggle-btn {
-  border: 1px solid var(--line-100);
+  border: 0.0625rem solid var(--line-100);
   background: var(--surface-subtle);
   color: var(--ink-700);
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
   cursor: pointer;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .theme-toggle-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-0.0625rem);
+}
+
+.text-scale-control {
+  display: inline-flex;
+  align-items: stretch;
+  border: 0.0625rem solid var(--line-100);
+  border-radius: 0.625rem;
+  overflow: hidden;
+  background: var(--surface-subtle);
+}
+
+.text-scale-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-700);
+  padding: 0.5rem 0.625rem;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.text-scale-btn + .text-scale-btn {
+  border-left: 0.0625rem solid var(--line-100);
+}
+
+.text-scale-btn:hover:not(:disabled) {
+  background: var(--surface-muted);
+  color: var(--ink-900);
+}
+
+.text-scale-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .text-scale-control {
+    border-radius: 0.75rem;
+  }
+
+  .text-scale-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9375rem;
+  }
 }
 
 /* ─── Stage Badges ─── */
 .stage-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   padding: 0.45rem 0.9rem;
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
@@ -243,7 +335,7 @@ body {
 .stage-pre {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: var(--gold-600);
-  border: 1px solid #fcd34d;
+  border: 0.0625rem solid #fcd34d;
 }
 
 .stage-post {
@@ -258,7 +350,7 @@ body {
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(0.625rem); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -279,7 +371,7 @@ body {
 .stage-actions {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--line-200);
+  border-top: 0.0625rem solid var(--line-200);
   display: flex;
   justify-content: center;
   gap: 0.75rem;
@@ -290,7 +382,7 @@ body {
 .app-footer {
   margin-top: 2rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--line-200);
+  border-top: 0.0625rem solid var(--line-200);
 }
 
 .footer-content {
@@ -311,7 +403,7 @@ body {
 .btn-model-docs {
   padding: 0.5rem 0.9rem;
   background: transparent;
-  border: 1.5px solid var(--brand-700);
+  border: 0.09375rem solid var(--brand-700);
   color: var(--brand-700);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -320,7 +412,7 @@ body {
   transition: all 0.18s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .btn-model-docs:hover {
@@ -350,7 +442,7 @@ body {
   }
 
   .header-logo-container {
-    padding: 14px;
+    padding: 0.875rem;
   }
 
   .footer-content {
