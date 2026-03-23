@@ -8,6 +8,15 @@
       "title": "Conciencia sobre el cáncer de próstata",
       "subtitle": "Una herramienta educativa de riesgo no validada"
     },
+    "textScale": {
+      "groupLabel": "Tamaño del texto",
+      "smaller": "A−",
+      "bigger": "A+",
+      "decreaseTitle": "Texto más pequeño",
+      "increaseTitle": "Texto más grande",
+      "decreaseAria": "Reducir tamaño del texto",
+      "increaseAria": "Aumentar tamaño del texto"
+    },
     "stage": {
       "stagePre": "Etapa 1: Prioridad de detección",
       "stagePost": "Etapa 2: Evaluación de riesgos"

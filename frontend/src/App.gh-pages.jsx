@@ -15,6 +15,7 @@ import BackButton from './components/BackButton.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
+import TextScaleControl from './components/TextScaleControl.jsx';
 import { BookIcon, ShieldCheckIcon } from 'lucide-react';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
 
@@ -236,11 +237,12 @@ function App() {
             />
           </div>
           <div className="header-text">
-            <h1 style={{ fontSize: '42px', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>{t('app.header.title')}</h2>
-            <p className="subtitle" style={{ fontSize: '14px', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>{t('app.header.subtitle')}</p>
+            <h1 style={{ fontSize: '2.625rem', fontWeight: 800, color: '#2E7D32', margin: '0 0 4px', letterSpacing: '-1px' }}>ePSA</h1>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1C2833', margin: '0 0 6px' }}>{t('app.header.title')}</h2>
+            <p className="subtitle" style={{ fontSize: '0.875rem', color: '#7F8C8D', fontStyle: 'italic', margin: 0 }}>{t('app.header.subtitle')}</p>
           </div>
           <div className="header-actions">
+            <TextScaleControl />
             <ThemeSwitcher />
             <LanguageSwitcher />
           </div>

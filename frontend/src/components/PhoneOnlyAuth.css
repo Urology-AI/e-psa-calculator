@@ -3,89 +3,89 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 1.25rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .phone-only-auth-card {
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 48px;
+  border-radius: 1rem;
+  box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.1);
+  padding: 3rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 26.25rem;
   text-align: center;
 }
 
 .phone-only-auth-header {
-  margin-bottom: 48px;
+  margin-bottom: 3rem;
 }
 
 .auth-logo {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   color: #667eea;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.03125rem;
 }
 
 .auth-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #2d3748;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   line-height: 1.2;
 }
 
 .auth-subtitle {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #718096;
   margin: 0;
   line-height: 1.4;
 }
 
 .auth-instruction {
-  margin-bottom: 32px;
+  margin-bottom: 2rem;
 }
 
 .auth-instruction p {
   color: #4a5568;
-  font-size: 16px;
-  margin: 0 0 8px 0;
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
   line-height: 1.5;
 }
 
 .phone-display {
   font-weight: 600;
   color: #667eea;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
   text-align: left;
 }
 
 .form-group label {
   color: #4a5568;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .auth-input {
-  padding: 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 1rem;
+  border: 0.125rem solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   background: white;
 }
@@ -93,35 +93,35 @@
 .auth-input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 0.1875rem rgba(102, 126, 234, 0.1);
 }
 
 .auth-error {
   background-color: #fed7d7;
   color: #c53030;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   text-align: center;
-  margin: -8px 0;
+  margin: -0.5rem 0;
 }
 
 .auth-submit-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 16px 24px;
-  font-size: 16px;
+  border-radius: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 
 .auth-submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  transform: translateY(-0.0625rem);
+  box-shadow: 0 0.625rem 1.25rem rgba(102, 126, 234, 0.3);
 }
 
 .auth-submit-btn:disabled {
@@ -132,17 +132,17 @@
 
 .auth-buttons {
   display: flex;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .auth-back-btn {
   background: #f7fafc;
   color: #4a5568;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 16px 24px;
-  font-size: 16px;
+  border: 0.125rem solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -155,12 +155,12 @@
 }
 
 .auth-info {
-  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 
 .auth-info p {
   color: #718096;
-  font-size: 14px;
+  font-size: 0.875rem;
   margin: 0;
   line-height: 1.4;
 }
@@ -172,33 +172,33 @@
 /* Responsive design */
 @media (max-width: 480px) {
   .phone-only-auth-container {
-    padding: 16px;
+    padding: 1rem;
   }
 
   .phone-only-auth-card {
-    padding: 32px 24px;
+    padding: 2rem 1.5rem;
   }
 
   .auth-logo {
-    font-size: 28px;
+    font-size: 1.75rem;
   }
 
   .auth-title {
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   .auth-subtitle {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .auth-input {
-    padding: 14px;
-    font-size: 16px;
+    padding: 0.875rem;
+    font-size: 1rem;
   }
 
   .auth-submit-btn,
   .auth-back-btn {
-    padding: 14px 20px;
-    font-size: 15px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
   }
 }

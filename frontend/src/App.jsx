@@ -21,6 +21,7 @@ import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
+import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
@@ -1358,7 +1359,7 @@ function App() {
             ) : (
               <div className="loading-results">
                 <p>{t('app.loadingResults.title')}</p>
-                <p style={{ fontSize: '12px', color: '#666' }}>{t('app.loadingResults.note')}</p>
+                <p style={{ fontSize: '0.75rem', color: '#666' }}>{t('app.loadingResults.note')}</p>
               </div>
             )}
             <div className="stage-actions">
@@ -1487,6 +1488,7 @@ function App() {
             <p className="subtitle">{t('app.header.subtitle')}</p>
           </div>
           <div className="header-actions">
+            <TextScaleControl />
             <ThemeSwitcher />
             <LanguageSwitcher />
             <div className="stage-indicator">

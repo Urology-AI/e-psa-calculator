@@ -4,6 +4,17 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/e-psa-calculator/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      (function () {
+        try {
+          var LEVELS = [0.875, 0.9375, 1, 1.0625, 1.125, 1.1875, 1.25];
+          var raw = localStorage.getItem('epsaTextScale');
+          var i = raw != null ? parseInt(raw, 10) : NaN;
+          if (!Number.isFinite(i) || i < 0 || i >= LEVELS.length) i = 3;
+          document.documentElement.style.setProperty('--epsa-user-text-scale', String(LEVELS[i]));
+        } catch (e) {}
+      })();
+    </script>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self';">
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="ePSA - Prostate-Specific Awareness Risk Assessment Tool (Demo)" />

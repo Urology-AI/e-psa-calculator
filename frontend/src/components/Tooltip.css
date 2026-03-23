@@ -1,17 +1,22 @@
 .tooltip {
   display: inline-block;
-  margin-left: 5px;
-  background-color: #D4AF37;
-  color: #fff;
+  margin-left: 0.3125rem;
+  background-color: var(--gold-400);
+  color: var(--ink-950);
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
   text-align: center;
-  line-height: 18px;
-  font-size: 12px;
+  line-height: 1.125rem;
+  font-size: 0.75rem;
   cursor: help;
   position: relative;
   vertical-align: middle;
+}
+
+.theme-dark .tooltip {
+  background-color: var(--gold-600);
+  color: var(--ink-950);
 }
 
 .tooltip:hover::after {
@@ -20,20 +25,27 @@
   left: 125%;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
+  background-color: var(--ink-900);
+  color: var(--surface);
+  border: 0.0625rem solid var(--line-200);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
   white-space: pre-wrap;
-  min-width: 300px;
-  max-width: 400px;
+  min-width: 18.75rem;
+  max-width: 25rem;
   text-align: left;
   z-index: 1000;
   opacity: 1;
   pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  font-size: 13px;
+  box-shadow: var(--shadow-md);
+  font-size: 0.8125rem;
   line-height: 1.5;
+}
+
+.theme-dark .tooltip:hover::after {
+  background-color: var(--surface-muted);
+  color: var(--ink-900);
+  border-color: var(--line-100);
 }
 
 .tooltip::after {

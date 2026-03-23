@@ -8,7 +8,7 @@
   justify-content: space-between;
   align-items: center;
   position: relative;
-  max-width: 800px;
+  max-width: 50rem;
   margin: 0 auto;
 }
 
@@ -22,8 +22,8 @@
 }
 
 .step-circle {
-  width: 48px;
-  height: 48px;
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   background-color: #e0e0e0;
   color: #666;
@@ -34,7 +34,7 @@
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid #e0e0e0;
+  border: 0.1875rem solid #e0e0e0;
   position: relative;
   z-index: 3;
 }
@@ -47,7 +47,7 @@
   background-color: #003A5D;
   color: white;
   border-color: #003A5D;
-  box-shadow: 0 4px 12px rgba(0, 58, 93, 0.3);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 58, 93, 0.3);
 }
 
 .step-circle.completed {
@@ -72,27 +72,27 @@
 
 .step-line-container {
   position: absolute;
-  top: 24px;
-  left: 24px;
-  right: 24px;
-  height: 3px;
+  top: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 0.1875rem;
   background: #e0e0e0;
   z-index: 1;
-  border-radius: 2px;
+  border-radius: 0.125rem;
 }
 
 .step-line {
   height: 100%;
   background: linear-gradient(to right, #D4AF37 0%, #003A5D 100%);
   transition: width 0.5s ease;
-  border-radius: 2px;
+  border-radius: 0.125rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .step-circle {
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     font-size: 0.9rem;
   }
   
@@ -113,8 +113,8 @@
   }
   
   .step-circle {
-    width: 36px;
-    height: 36px;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 }
 

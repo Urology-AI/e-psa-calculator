@@ -17,17 +17,17 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <label style={{ fontSize: 12, color: 'var(--ink-500)' }}>{t('common.language')}</label>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <label style={{ fontSize: '0.75rem', color: 'var(--ink-500)' }}>{t('common.language')}</label>
       <select
         value={resolvedLang}
         onChange={handleLanguageChange}
         aria-label={t('common.language')}
         style={{
-          fontSize: 12,
-          padding: '6px 10px',
-          borderRadius: 8,
-          border: '1px solid var(--line-100)',
+          fontSize: '0.75rem',
+          padding: '0.375rem 0.625rem',
+          borderRadius: '0.5rem',
+          border: '0.0625rem solid var(--line-100)',
           background: 'var(--surface)',
           color: 'var(--ink-900)',
         }}
