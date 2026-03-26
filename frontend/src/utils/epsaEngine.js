@@ -262,11 +262,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
   // Non-Bayesian variables retained from v1
+  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
   const brcaLabel =
-    brcaStatus === 'yes' ? 'Positive' :
+    brcaPositive ? 'Positive' :
       brcaStatus === 'no' ? 'Negative (tested)' :
         'Not tested / Unknown';
-  addImpact('BRCA mutation', brcaLabel, brcaStatus === 'yes' ? 16 : 0);
+  addImpact('BRCA mutation', brcaLabel, brcaPositive ? 16 : 0);
   addImpact(
     'Inflammation history',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
@@ -358,22 +359,25 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
       key: 'low',
       label: 'Low Risk',
       scoreRange: 'score 0-10',
+      normalizedRange: '<= 12.5%',
       guideline:
-        'Your contextual risk profile does not suggest an immediate need for PSA testing based on risk factors alone. Follow standard age-based screening guidance as directed by your physician.'
+        'Your ePSA score is in the low-risk range. Routine screening timeline applies. Discuss with your physician.'
     },
     {
       key: 'intermediate',
       label: 'Intermediate Risk',
       scoreRange: 'score 11-17',
+      normalizedRange: '13.75%-21.25%',
       guideline:
-        'Your risk factors suggest discussing PSA testing with your physician at your next visit. Guidelines recommend re-screening every 2-4 years. Your doctor may recommend earlier follow-up based on your individual circumstances.'
+        'Your ePSA score is in the intermediate range. A PSA test is recommended. Speak with your physician.'
     },
     {
       key: 'elevated',
       label: 'Elevated Risk',
       scoreRange: 'score >= 18',
+      normalizedRange: '>= 22.5%',
       guideline:
-        'Your contextual risk factor profile is elevated. PSA testing and a conversation with your physician are recommended — do not delay. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further evaluation for patients with this risk profile.'
+        'Your ePSA score is elevated. A PSA test is recommended promptly. Please speak with your physician.'
     }
   ];
 
@@ -384,6 +388,19 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   else epsaTierIndex = 2;                       // Elevated (formerly Int-High + High)
 
   const epsaTierDef = EPSA_TIER_DEFS[epsaTierIndex];
+  const hasTwoComorbidities =
+    (comorbidityScore !== undefined && comorbidityScore !== null)
+      ? Number(comorbidityScore) >= 2
+      : comorbidityPoints >= 20;
+  const highRiskAnchors = {
+    age70plus: ageNum >= 70,
+    blackRace: isBlack,
+    familyHistory: fhBinary > 0,
+    brca: brcaPositive,
+    twoComorbidities: hasTwoComorbidities
+  };
+  const hasHighRiskAnchor = Object.values(highRiskAnchors).some((v) => v === true);
+  const isHighRiskFlagged = rawScore >= 18 && hasHighRiskAnchor;
 
   return {
     score: scorePercent,
@@ -391,7 +408,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     recommendationThresholdLabel,
     risk,
     color,
-    action,
+    action: epsaTierDef.guideline,
     recommendPSA,
     tierRisk,
     tierColor,
@@ -411,12 +428,15 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     epsaTierKey: epsaTierDef.key,
     epsaTierLabel: epsaTierDef.label,
     epsaTierScoreRange: epsaTierDef.scoreRange,
+    epsaTierNormalizedRange: epsaTierDef.normalizedRange,
     epsaTierBoundaries: {
       lowMax: 10,
       intermediateMax: 17,
       maxScore: MAX_POINTS
     },
     itemImpacts,
+    isHighRiskFlagged,
+    highRiskAnchors,
     // epsaPsaEquivalent intentionally omitted from Part 1 — see comment above
     epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,

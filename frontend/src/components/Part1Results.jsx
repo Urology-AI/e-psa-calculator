@@ -188,9 +188,11 @@ const Part1Results = ({
     epsaTierKey,
     epsaTierLabel,
     epsaTierScoreRange,
+    epsaTierNormalizedRange,
     recommendationThresholdLabel,
     epsaGuidelineText,
     itemImpacts = [],
+    isHighRiskFlagged = false,
     // epsaPsaEquivalent intentionally not destructured — not shown in Part 1
   } = result;
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -325,9 +327,9 @@ const Part1Results = ({
   //   Intermediate → blue   #2563eb
   //   Elevated     → amber  #d97706
   const tierScaleItems = [
-    { key: 'low', tierRiskFallback: 'LOWER', label: 'Low', sub: 'Fewer risk factors', color: '#16a34a', bg: '#f0fdf4' },
-    { key: 'intermediate', tierRiskFallback: 'MODERATE', label: 'Intermediate', sub: 'Some risk factors', color: '#2563eb', bg: '#eff6ff' },
-    { key: 'elevated', tierRiskFallback: 'HIGHER', label: 'Elevated', sub: 'Multiple risk factors', color: '#d97706', bg: '#fffbeb' },
+    { key: 'low', tierRiskFallback: 'LOWER', label: 'Low', sub: 'score <= 10 (<= 12.5%)', color: '#16a34a', bg: '#f0fdf4' },
+    { key: 'intermediate', tierRiskFallback: 'MODERATE', label: 'Intermediate', sub: 'score 11-17 (13.75%-21.25%)', color: '#2563eb', bg: '#eff6ff' },
+    { key: 'elevated', tierRiskFallback: 'HIGHER', label: 'Elevated', sub: 'score >= 18 (>= 22.5%)', color: '#d97706', bg: '#fffbeb' },
   ];
 
   const metrics = [
@@ -405,6 +407,18 @@ const Part1Results = ({
           {riskBadgeLabel}
         </div>
       </div>
+
+      {isHighRiskFlagged && (
+        <div className="high-risk-flag-card" role="note" aria-label="High-risk factors present">
+          <div className="high-risk-flag-title">Priority: High-Risk Factors Present</div>
+          <p className="high-risk-flag-text">
+            This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age &gt;=70, Black ancestry, first-degree family history, or confirmed BRCA mutation. &gt;=2 comorbid conditions also meets this threshold based on cohort data (OR 1.93, p=0.001, N=94).
+          </p>
+          <p className="high-risk-flag-disclosure">
+            The High-Risk flag is clinically motivated and guideline-anchored. Statistical separation from non-flagged Elevated patients has not yet been validated at current sample size (N=94, 23 csPCa events). Revalidation is planned at 230+ events.
+          </p>
+        </div>
+      )}
 
       {/* ── Guideline text ── */}
       {epsaGuidelineText && (
@@ -491,7 +505,10 @@ const Part1Results = ({
           {epsaTierScoreRange && (
             <div className="detail-data-row">
               <span>Tier Score Range</span>
-              <strong>{epsaTierScoreRange}</strong>
+              <strong>
+                {epsaTierScoreRange}
+                {epsaTierNormalizedRange ? ` (${epsaTierNormalizedRange})` : ''}
+              </strong>
             </div>
           )}
           <div className="detail-data-row">
