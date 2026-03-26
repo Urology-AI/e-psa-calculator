@@ -183,21 +183,6 @@ const Part2Results = ({
   return (
     <div className="p2r-container" role="main">
 
-      {/* ── Mobile Unit link (top bar) ── */}
-      <div className="p2r-top-links-row">
-        <a
-          className="p2r-mobile-unit-pill"
-          href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Find Mobile Unit location"
-          title="Find Mobile Unit location"
-        >
-          <MapPinIcon size={16} />
-          <span>Mobile Unit</span>
-        </a>
-      </div>
-
       {/* ── Session / Cloud row ── */}
       {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
         <div className="p2r-cloud-row">
@@ -449,6 +434,21 @@ const Part2Results = ({
         <CollapsibleSection title="Important Disclaimer">
           <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
         </CollapsibleSection>
+      </div>
+
+      {/* ── Resources (video + mobile unit) ── */}
+      <div className="p2r-bottom-links-row" aria-label="Resource links">
+        <a
+          className="p2r-video-pill"
+          href="https://www.youtube.com/@ashtewarimd7526"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Watch clinician video resources"
+          title="Watch clinician video resources"
+        >
+          <ExternalLinkIcon size={16} />
+          <span>Video Resources</span>
+        </a>
       </div>
 
       {/* ── Action buttons ── */}

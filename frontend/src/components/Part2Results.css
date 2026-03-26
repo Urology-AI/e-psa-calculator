@@ -18,6 +18,14 @@
   gap: 0.5rem;
 }
 
+.p2r-bottom-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
 .p2r-mobile-unit-pill {
   display: inline-flex;
   align-items: center;
@@ -33,6 +41,25 @@
 }
 
 .p2r-mobile-unit-pill:hover {
+  background: #f0f7ff;
+  transform: translateY(-0.0625rem);
+}
+
+.p2r-video-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border: 0.0625rem solid #d0e0ee;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #1d6ea3;
+}
+
+.p2r-video-pill:hover {
   background: #f0f7ff;
   transform: translateY(-0.0625rem);
 }
@@ -586,6 +613,9 @@
   .p2r-actions,
   .p2r-cloud-row { display: none !important; }
 
+  .p2r-top-links-row { display: none !important; }
+  .p2r-bottom-links-row { display: none !important; }
+
   .p2r-risk-card,
   .p2r-recommendations,
   .p2r-clinical-grid { page-break-inside: avoid; }
@@ -656,6 +686,16 @@
 }
 
 .theme-dark .p2r-mobile-unit-pill:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .p2r-video-pill {
+  background: var(--surface);
+  border-color: var(--line-100);
+  color: var(--brand-600);
+}
+
+.theme-dark .p2r-video-pill:hover {
   background: var(--surface-subtle);
 }
 
