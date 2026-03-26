@@ -296,6 +296,34 @@
   text-transform: uppercase;
 }
 
+.high-risk-flag-card {
+  border: 0.0625rem solid #fbbf24;
+  background: #fffbeb;
+  border-radius: 0.75rem;
+  padding: 0.875rem 0.9375rem;
+}
+
+.high-risk-flag-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #92400e;
+}
+
+.high-risk-flag-text,
+.high-risk-flag-disclosure {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #7c2d12;
+}
+
+.high-risk-flag-disclosure {
+  font-size: 0.75rem;
+  color: #9a3412;
+}
+
 /* ─── Guideline Banner ─── */
 .guideline-banner {
   display: flex;
@@ -981,6 +1009,20 @@
 .theme-dark .guideline-banner {
   background: var(--surface-subtle);
   border-color: var(--line-100);
+}
+
+.theme-dark .high-risk-flag-card {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(217, 119, 6, 0.14);
+}
+
+.theme-dark .high-risk-flag-title {
+  color: #fcd34d;
+}
+
+.theme-dark .high-risk-flag-text,
+.theme-dark .high-risk-flag-disclosure {
+  color: #fdba74;
 }
 
 .theme-dark .guideline-banner-icon {
