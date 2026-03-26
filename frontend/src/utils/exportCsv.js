@@ -91,6 +91,10 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
     riskClass: postResult?.riskClass ?? '',
     riskPctRange: postResult?.riskPctRange ?? '',
     totalPoints: postResult?.totalPoints ?? '',
+    prostateVolume: pd.prostateVolume ?? '',
+    psadValue: postResult?.psadValue ?? '',
+    psadPoints: postResult?.psadPoints ?? '',
+    psadFlag: postResult?.psadFlag ?? '',
     modelVersion: postResult?.modelVersion ?? config?.version ?? '',
   };
   return [row];

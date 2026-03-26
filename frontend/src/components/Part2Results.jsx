@@ -3,6 +3,8 @@ import './Part2Results.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
+import ModalInfoIcon from './InfoIcon';
+import { fieldReferences } from '../utils/fieldReferences';
 import {
   ArrowLeftIcon,
   RefreshCwIcon,
@@ -14,7 +16,7 @@ import {
   ChevronUpIcon,
   FlaskConicalIcon,
   ActivityIcon,
-  InfoIcon,
+  InfoIcon as LucideInfoIcon,
   CheckCircle2Icon,
   AlertTriangleIcon,
   AlertCircleIcon,
@@ -155,6 +157,9 @@ const Part2Results = ({
     discordanceFlag,
     lowPsaWarning,
     lowPsaWarningText,
+    psadValue,
+    psadPoints,
+    psadFlag,
   } = result;
 
   const getRiskColor = (rc) => {
@@ -177,6 +182,21 @@ const Part2Results = ({
 
   return (
     <div className="p2r-container" role="main">
+
+      {/* ── Mobile Unit link (top bar) ── */}
+      <div className="p2r-top-links-row">
+        <a
+          className="p2r-mobile-unit-pill"
+          href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Find Mobile Unit location"
+          title="Find Mobile Unit location"
+        >
+          <MapPinIcon size={16} />
+          <span>Mobile Unit</span>
+        </a>
+      </div>
 
       {/* ── Session / Cloud row ── */}
       {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
@@ -216,6 +236,32 @@ const Part2Results = ({
           <div>
             <div className="p2r-alert-title">Low-PSA Notice</div>
             <p className="p2r-alert-body">{lowPsaWarningText}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── PSA Density (PSAD) note ── */}
+      {psadFlag && (
+        <div className="p2r-alert p2r-alert--warning" role="note" aria-label="PSA density elevated note">
+          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
+          <div>
+            <div className="p2r-alert-title">PSA Density Notice</div>
+            <p className="p2r-alert-body">
+              PSA Density elevated (&gt; 0.177 ng/mL/mL) — supports further evaluation per Kadeer et al. 2025.
+            </p>
+            <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.9 }}>
+                Source
+              </span>
+              <ModalInfoIcon
+                title="Kadeer et al. 2025 — PSA Density (PSAD)"
+                description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
+                sources={fieldReferences.part2.psadKadeer.sources}
+              />
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.95 }}>
+                Kadeer et al. 2025 (Front. Oncol. 15:1602134)
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -354,7 +400,7 @@ const Part2Results = ({
           </div>
         </div>
         <div className="p2r-clinical-item">
-          <InfoIcon size={16} className="p2r-clinical-icon" />
+          <LucideInfoIcon size={16} className="p2r-clinical-icon" />
           <div>
             <div className="p2r-clinical-val">
               {postData?.knowPirads ? `PI-RADS ${postData.pirads}` : 'Not provided'}
@@ -362,6 +408,19 @@ const Part2Results = ({
             <div className="p2r-clinical-key">MRI Score</div>
           </div>
         </div>
+
+        {psadValue != null && !Number.isNaN(psadValue) && (
+          <div className="p2r-clinical-item">
+            <LucideInfoIcon size={16} className="p2r-clinical-icon" />
+            <div>
+              <div className="p2r-clinical-val">
+                {Number(psadValue).toFixed(3)}
+                <span className="p2r-clinical-unit"> ng/mL/mL</span>
+              </div>
+              <div className="p2r-clinical-key">PSA Density</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Expandable detail sections ── */}

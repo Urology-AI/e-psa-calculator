@@ -452,6 +452,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
   const { psa, pirads, knowPirads } = postData || {};
+  const prostateVolumeValRaw = postData?.prostateVolume !== ''
+    && postData?.prostateVolume != null
+    ? Number(postData.prostateVolume)
+    : null;
 
   const preScorePct = Number(preResult?.score) || 0;
   let baseRawScore = preResult?.calculationDetails?.rawScore;
@@ -493,6 +497,8 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   let psaBonusLow = 0;
   let lowPsaWarning = false;
   let lowPsaWarningText = null;
+  // Clinical amplification: for high-risk feature profiles, a "reassuringly low" PSA
+  // (< 2.0 ng/mL) still triggers extra points to reflect anchors not captured by PSA alone.
   if (psaVal != null && !Number.isNaN(psaVal) && psaVal < 2.0 && hasHighRiskFeature) {
     psaBonusLow = 15;
     lowPsaWarning = true;
@@ -500,7 +506,36 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
       'Important: Low PSA Does Not Rule Out Risk. Your PSA level is below 2.0 ng/mL, which is often considered reassuring. However, your risk profile includes one or more high-risk features (race, family history, genetic mutations, or MRI findings) that are associated with clinically significant prostate cancer even at low PSA levels. Standard guidelines do not currently account for these factors when interpreting PSA thresholds. Early evaluation with a urologist is recommended regardless of your PSA value.';
   }
 
-  const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints;
+  // ---------------------------------------------------------------------------
+  // Optional PSAD (PSA Density = PSA ÷ Prostate Volume) - Part 2 additive
+  //
+  // Source: Kadeer et al. 2025 (Front. Oncol. 15:1602134)
+  // Youden-optimal cutoff: 0.177 ng/mL/mL
+  // Also supported by: Pedraza et al. 2023 (Eur Urol Open Sci 48:72–81)
+  // ---------------------------------------------------------------------------
+  const prostateVolumeVal =
+    prostateVolumeValRaw != null && Number.isFinite(prostateVolumeValRaw) ? prostateVolumeValRaw : null;
+
+  let psadPoints = 0;
+  let psadValue = null;
+  let psadFlag = false;
+
+  if (
+    prostateVolumeVal != null && !Number.isNaN(prostateVolumeVal) &&
+    psaVal != null && !Number.isNaN(psaVal) &&
+    prostateVolumeVal > 0
+  ) {
+    psadValue = psaVal / prostateVolumeVal;
+    if (psadValue > 0.177) {
+      psadPoints = 20;
+      psadFlag = true;
+    } else if (psadValue > 0.10) {
+      psadPoints = 10;
+    }
+    // psadValue <= 0.10 -> 0 points
+  }
+
+  const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints + psadPoints;
 
   // ---------------------------------------------------------------------------
   // Part 2 tier mapping
@@ -603,6 +638,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     discordanceFlag,
     lowPsaWarning,
     lowPsaWarningText,
+    psadValue,
+    psadPoints,
+    psadFlag,
     modelVersion: config.version
   };
 };
