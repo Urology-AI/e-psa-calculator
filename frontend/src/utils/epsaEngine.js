@@ -21,17 +21,16 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
 
   const ageNum = requireNumber(formData?.age, 'Age');
   const bmiNum = requireNumber(formData?.bmi, 'BMI');
+
   const validateOrdinalArray = (fieldLabel, values, expectedLength, minValue, maxValue) => {
     if (!Array.isArray(values)) {
       errors.push(`${fieldLabel} responses are required`);
       return null;
     }
-
     if (values.length !== expectedLength) {
       errors.push(`${fieldLabel} must contain ${expectedLength} responses`);
       return null;
     }
-
     let total = 0;
     for (let i = 0; i < values.length; i += 1) {
       const raw = values[i];
@@ -50,7 +49,6 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
       }
       total += score;
     }
-
     return total;
   };
 
@@ -77,8 +75,9 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     coronaryArteryDisease: 'Coronary Artery Disease (CAD)',
     diabetes: 'Diabetes'
   };
-  // Accept either comorbidityScore (0, 1, 2) or the four separate fields (backward compat)
-  const hasComorbidityScore = formData?.comorbidityScore !== undefined && formData?.comorbidityScore !== null;
+
+  const hasComorbidityScore =
+    formData?.comorbidityScore !== undefined && formData?.comorbidityScore !== null;
   if (hasComorbidityScore) {
     const s = Number(formData.comorbidityScore);
     if (s !== 0 && s !== 1 && s !== 2) {
@@ -105,7 +104,9 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
         errors.push(`BMI must be at least ${validation.minBMI}`);
       }
       if (bmiNum > validation.maxBMI) {
-        warnings.push(`BMI is above the validated range (>${validation.maxBMI}); results may be less accurate.`);
+        warnings.push(
+          `BMI is above the validated range (>${validation.maxBMI}); results may be less accurate.`
+        );
       }
     }
   }
@@ -113,11 +114,9 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
   if (ipssTotal != null && (ipssTotal < 0 || ipssTotal > 35)) {
     errors.push('IPSS total must be between 0 and 35');
   }
-
   if (shimTotal != null && (shimTotal < 0 || shimTotal > 25)) {
     errors.push('SHIM total must be between 0 and 25');
   }
-
   if (ageNum != null && ageNum < 40) {
     warnings.push('Age under 40: model may be less validated in very young patients');
   }
@@ -130,25 +129,16 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const { part1 } = config;
 
   const { errors } = validateInputs(formData, config);
-  if (errors.length > 0) {
-    return null;
-  }
+  if (errors.length > 0) return null;
 
-  const {
-    age,
-    race,
-    bmi,
-    ipss,
-    shim,
-    exercise,
-    familyHistory
-  } = formData;
+  const { age, race, bmi, ipss, shim, exercise, familyHistory } = formData;
 
   const normalizeRaceValue = (value) => String(value ?? '').trim().toLowerCase();
   const configuredRaceBlackValues = part1?.encodings?.raceBlackValues;
-  const raceBlackValues = Array.isArray(configuredRaceBlackValues) && configuredRaceBlackValues.length > 0
-    ? configuredRaceBlackValues.map(normalizeRaceValue)
-    : null;
+  const raceBlackValues =
+    Array.isArray(configuredRaceBlackValues) && configuredRaceBlackValues.length > 0
+      ? configuredRaceBlackValues.map(normalizeRaceValue)
+      : null;
 
   const variableValues = {};
   const pickBinLabel = (x, bins, fallback) => {
@@ -159,12 +149,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     return fallback;
   };
 
-  const ipssTotal = Array.isArray(ipss)
-    ? ipss.reduce((a, b) => a + (b ?? 0), 0)
-    : 0;
-  const shimTotal = Array.isArray(shim)
-    ? shim.reduce((a, b) => a + (b ?? 0), 0)
-    : 0;
+  const ipssTotal = Array.isArray(ipss) ? ipss.reduce((a, b) => a + (b ?? 0), 0) : 0;
+  const shimTotal = Array.isArray(shim) ? shim.reduce((a, b) => a + (b ?? 0), 0) : 0;
 
   const isBlack = raceBlackValues
     ? raceBlackValues.includes(normalizeRaceValue(race))
@@ -193,19 +179,14 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     variableValues.age_50_59 = ageBin === '50-59' ? 1 : 0;
     variableValues.age_60_69 = ageBin === '60-69' ? 1 : 0;
     variableValues.age_70_plus = ageBin === '70+' ? 1 : 0;
-
     variableValues.bmi_25_29_9 = bmiBin === '25-29.9' ? 1 : 0;
     variableValues.bmi_ge_30 = bmiBin === '>=30' ? 1 : 0;
-
     variableValues.ipss_moderate = ipssSev === 'moderate' ? 1 : 0;
     variableValues.ipss_severe = ipssSev === 'severe' ? 1 : 0;
-
     variableValues.exercise_some = exerciseCode === 1 ? 1 : 0;
     variableValues.exercise_none = exerciseCode === 2 ? 1 : 0;
-
     variableValues.raceBlack = isBlack ? 1 : 0;
     variableValues.fhBinary = fhBinary;
-
     variableValues.ipssTotal = ipssTotal;
     variableValues.shimTotal = shimTotal;
   } else {
@@ -225,103 +206,75 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ---------------------------------------------------------------------------
   // Point-based Part 1 scoring — Bayesian-recalibrated weights (v2)
   //
-  // Weights derived from Bayesian logistic regression (N=94, 23 csPCa events)
-  // with informative Normal priors anchored to AUA/NCCN/EAU literature log-ORs.
-  // Scale factor: 16 pts per log-OR unit (age 70+ anchor).
-  // Youden-optimal threshold: rawScore ≥ 18 (maps to continuous score −1.347).
-  // MAX_POINTS: 80 (age_70plus + bmi + ipss_mild + ex_none + smk_current +
-  //             diet + race_black + fh + comorb*2)
+  // Weights from Bayesian logistic regression (N=94, 23 csPCa events) with
+  // informative Normal priors anchored to AUA/NCCN/EAU literature log-ORs.
+  // Scale: 16 pts per log-OR unit (age 70+ anchor). MAX_POINTS = 80.
+  // Youden-optimal triage threshold: rawScore >= 18 (J=0.138, sens=91.3%, spec=22.5%)
   //
-  // Change log vs v1:
-  //   Age 60–69:      8  → 10   (+2)   posterior OR 1.86
-  //   Age 70+:        16 → 16   (=)    posterior OR 2.58 — anchor unchanged
-  //   BMI ≥ 30:       8  →  4   (−4)   posterior OR 1.27 — weaker than assumed
-  //   IPSS mild:      8  →  8   (=)    posterior OR 1.58 — confirmed
-  //   IPSS moderate:  4  →  0   (−4)   posterior OR 0.94 — non-significant, removed
-  //   IPSS severe:    0  →  0   (=)    reference category unchanged
-  //   Exercise some:  8  →  2   (−6)   posterior OR 1.18 — weaker signal
-  //   Exercise none: 16  →  4   (−12)  posterior OR 1.21 — weaker signal
-  //   Smoking former: 8  →  2   (−6)   posterior OR 1.11 — weaker signal
-  //   Smoking current:16  →  6   (−10)  posterior OR 1.49 — reduced but retained
-  //   Diet red meat:  8  →  4   (−4)   posterior OR 1.24 — reduced
-  //   Race Black:     8  →  8   (=)    posterior OR 1.52 — confirmed
-  //   Family history: 16 → 10   (−6)   posterior OR 1.71 — reduced, still important
-  //   Comorbidity:   0-2 → 0,10,20     posterior OR 1.72/unit — significant, upweighted
+  // v2 change log vs v1:
+  //   Age 60-69:       8 -> 10  posterior OR 1.86
+  //   Age 70+:        16 -> 16  posterior OR 2.58 (anchor, unchanged)
+  //   BMI >= 30:       8 ->  4  posterior OR 1.27
+  //   IPSS mild:       8 ->  8  posterior OR 1.58 (unchanged)
+  //   IPSS moderate:   4 ->  0  posterior OR 0.94 (non-significant, removed)
+  //   IPSS severe:     0 ->  0  reference (unchanged)
+  //   Exercise some:   8 ->  2  posterior OR 1.18
+  //   Exercise none:  16 ->  4  posterior OR 1.21
+  //   Smoking former:  8 ->  2  posterior OR 1.11
+  //   Smoking current:16 ->  6  posterior OR 1.49
+  //   Diet red meat:   8 ->  4  posterior OR 1.24
+  //   Race Black:      8 ->  8  posterior OR 1.52 (unchanged)
+  //   Family history: 16 -> 10  posterior OR 1.71
+  //   Comorbidity:   0-2 -> 0,10,20  posterior OR 1.72/unit (only sig. variable, p=0.001)
   // ---------------------------------------------------------------------------
   let rawScore = 0;
   const MAX_POINTS = 80;
+  const itemImpacts = [];
+  const addImpact = (item, value, points) => {
+    itemImpacts.push({ item, value, points });
+    rawScore += points;
+  };
 
-  // Age — only the highest applicable bin scores
-  if (ageNum >= 70) {
-    rawScore += 16;   // posterior OR 2.58
-  } else if (ageNum >= 60) {
-    rawScore += 10;   // posterior OR 1.86
-  }
-  // Age < 60: 0 pts (reference)
+  if (ageNum >= 70) addImpact('Age', `${ageNum} years`, 16);
+  else if (ageNum >= 60) addImpact('Age', `${ageNum} years`, 10);
+  else addImpact('Age', `${ageNum} years`, 0);
 
-  // BMI
-  if (Number.isFinite(bmiNum) && bmiNum >= 30) {
-    rawScore += 4;    // posterior OR 1.27 (reduced from 8)
-  }
+  if (Number.isFinite(bmiNum) && bmiNum >= 30) addImpact('BMI', bmiNum.toFixed(1), 4);
+  else addImpact('BMI', Number.isFinite(bmiNum) ? bmiNum.toFixed(1) : 'N/A', 0);
 
-  // IPSS — only the highest applicable severity scores
-  if (ipssTotal >= 0 && ipssTotal <= 7) {
-    rawScore += 8;    // Mild — posterior OR 1.58 (unchanged)
-  }
-  // Moderate (8–19): 0 pts — posterior OR 0.94, non-significant
-  // Severe  (20–35): 0 pts — reference, unchanged
+  // Only IPSS mild (0-7) scores. Moderate (8-19) and severe (20-35) both score 0.
+  if (ipssTotal >= 0 && ipssTotal <= 7) addImpact('IPSS total', `${ipssTotal}/35`, 8);
+  else addImpact('IPSS total', `${ipssTotal}/35`, 0);
 
-  // Exercise — only one tier applies
-  if (exerciseCode === 1) {
-    rawScore += 2;    // Some exercise — posterior OR 1.18 (reduced from 8)
-  } else if (exerciseCode === 2) {
-    rawScore += 4;    // No exercise — posterior OR 1.21 (reduced from 16)
-  }
+  if (exerciseCode === 1) addImpact('Exercise', 'Some', 2);
+  else if (exerciseCode === 2) addImpact('Exercise', 'None', 4);
+  else addImpact('Exercise', 'Regular', 0);
 
-  // Smoking — only one tier applies
-  if (smokingCode === 1) {
-    rawScore += 2;    // Former — posterior OR 1.11 (reduced from 8)
-  } else if (smokingCode === 2) {
-    rawScore += 6;    // Current — posterior OR 1.49 (reduced from 16)
-  }
+  if (smokingCode === 1) addImpact('Smoking', 'Former', 2);
+  else if (smokingCode === 2) addImpact('Smoking', 'Current', 6);
+  else addImpact('Smoking', 'Never', 0);
 
-  // Diet
-  if (dietPattern === 'western' || dietPattern === 'red_meat') {
-    rawScore += 4;    // posterior OR 1.24 (reduced from 8)
-  }
+  // Only 'western' and 'red_meat' score — 'mixed' scores 0
+  if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4);
+  else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0);
 
-  // Race
-  if (isBlack) {
-    rawScore += 8;    // posterior OR 1.52 (unchanged)
-  }
+  addImpact('Black ancestry', isBlack ? 'Yes' : 'No', isBlack ? 8 : 0);
+  addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
-  // Family history
-  if (fhBinary === 1) {
-    rawScore += 10;   // posterior OR 1.71 (reduced from 16)
-  }
+  // Non-Bayesian variables retained from v1
+  const brcaLabel =
+    brcaStatus === 'yes' ? 'Positive' :
+      brcaStatus === 'no' ? 'Negative (tested)' :
+        'Not tested / Unknown';
+  addImpact('BRCA mutation', brcaLabel, brcaStatus === 'yes' ? 16 : 0);
+  addImpact(
+    'Inflammation history',
+    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
+    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0
+  );
+  addImpact('Chemical/Agent Orange exposure', chemicalExposure === 'yes' ? 'Yes' : 'No', chemicalExposure === 'yes' ? 4 : 0);
+  addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0);
 
-  // BRCA — retained from v1 (not in Bayesian model; literature OR ~3–5)
-  if (brcaStatus === 'yes') {
-    rawScore += 16;
-  }
-
-  // Inflammation history — retained from v1 (not in Bayesian model)
-  if (inflammationHistory === 1 || inflammationHistory === 'yes') {
-    rawScore += 4;
-  }
-
-  // Agent Orange / chemical exposure — retained from v1 (not in Bayesian model)
-  if (chemicalExposure === 'yes') {
-    rawScore += 4;
-  }
-
-  // SHIM — retained from v1 (not in Bayesian model)
-  if (shimTotal > 0 && shimTotal < 12) {
-    rawScore += 8;
-  }
-
-  // Comorbidities — posterior OR 1.72 per unit; upweighted to 10 pts/unit
-  // Use comorbidityScore (0/1/2) if present, else derive from four Yes/No fields
   const isYes = (v) => v === 'yes' || v === true || v === 1;
   let comorbidityPoints = 0;
   if (comorbidityScore !== undefined && comorbidityScore !== null) {
@@ -330,144 +283,112 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     const n = [hypertension, hyperlipidemia, coronaryArteryDisease, diabetes].filter(isYes).length;
     comorbidityPoints = (n >= 2 ? 2 : n) * 10;
   }
-  rawScore += comorbidityPoints;
+  addImpact('Comorbidity burden', String(comorbidityScore ?? 'derived'), comorbidityPoints);
 
-  // Normalize to 0–1 and 0–100%
   const probability = Math.max(0, Math.min(1, rawScore / MAX_POINTS));
   const scorePercent = Math.round(probability * 100);
-
-  // Recommendation threshold in probability space (e.g. 0.09 for 9%)
-  const recommendThreshold = typeof part1?.recommendThreshold === 'number'
-    ? part1.recommendThreshold
-    : 0.09;
-  // Display range ±5%
   const rangeLow = Math.max(0, scorePercent - 5);
   const rangeHigh = Math.min(100, scorePercent + 5);
 
-  let recommendPSA = null;
+  const recommendThreshold =
+    typeof part1?.recommendThreshold === 'number' ? part1.recommendThreshold : 0.09;
+  const recommendationThresholdLabel = `>= ${(recommendThreshold * 100).toFixed(0)}%`;
   const lowerProb = rangeLow / 100;
   const upperProb = rangeHigh / 100;
 
-  if (upperProb < recommendThreshold) {
-    recommendPSA = false;
-  } else if (lowerProb >= recommendThreshold) {
-    recommendPSA = true;
-  } else {
-    recommendPSA = null; // borderline
-  }
+  let recommendPSA = null;
+  if (upperProb < recommendThreshold) recommendPSA = false;
+  else if (lowerProb >= recommendThreshold) recommendPSA = true;
 
-  // Clinical override: family history + age ≥ 40 always recommends PSA
-  if (fhBinary === 1 && parseInt(age, 10) >= 40) {
-    recommendPSA = true;
-  }
+  // Clinical override: family history + age >= 40 always recommends PSA
+  if (fhBinary === 1 && parseInt(age, 10) >= 40) recommendPSA = true;
 
   let tierRisk, tierColor, tierScoreRange;
-
   if (probability < part1.riskCutoffs.lower.threshold) {
-    tierRisk = 'LOWER';
-    tierColor = part1.riskCutoffs.lower.color;
+    tierRisk = 'LOWER'; tierColor = part1.riskCutoffs.lower.color;
     tierScoreRange = part1.riskCutoffs.lower.label;
   } else if (probability < part1.riskCutoffs.moderate.threshold) {
-    tierRisk = 'MODERATE';
-    tierColor = part1.riskCutoffs.moderate.color;
+    tierRisk = 'MODERATE'; tierColor = part1.riskCutoffs.moderate.color;
     tierScoreRange = part1.riskCutoffs.moderate.label;
   } else {
-    tierRisk = 'HIGHER';
-    tierColor = part1.riskCutoffs.higher.color;
+    tierRisk = 'HIGHER'; tierColor = part1.riskCutoffs.higher.color;
     tierScoreRange = part1.riskCutoffs.higher.label;
   }
 
-  let risk;
-  let color;
-  let action;
-  let scoreRange;
-
+  let risk, color, action, scoreRange;
   if (recommendPSA === true) {
-    risk = 'PSA_RECOMMENDED';
-    color = '#D4AF37';
+    risk = 'PSA_RECOMMENDED'; color = '#D4AF37';
     scoreRange = recommendThreshold != null
-      ? `≥ ${(recommendThreshold * 100).toFixed(0)}%`
-      : tierScoreRange;
+      ? `>= ${(recommendThreshold * 100).toFixed(0)}%` : tierScoreRange;
     action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
   } else if (recommendPSA === false) {
-    risk = 'PSA_NOT_RECOMMENDED';
-    color = '#27AE60';
+    risk = 'PSA_NOT_RECOMMENDED'; color = '#27AE60';
     scoreRange = recommendThreshold != null
-      ? `< ${(recommendThreshold * 100).toFixed(0)}%`
-      : tierScoreRange;
+      ? `< ${(recommendThreshold * 100).toFixed(0)}%` : tierScoreRange;
     action = 'Routine screening.\nFollow standard age-based screening guidance.';
   } else {
-    risk = tierRisk;
-    color = tierColor;
-    scoreRange = tierScoreRange;
-
-    if (tierRisk === 'HIGHER') {
-      action = 'PSA testing and urological evaluation are recommended.';
-    } else if (tierRisk === 'MODERATE') {
-      action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
-    } else {
-      action = 'Routine screening.\nFollow standard age-based screening guidance.';
-    }
+    risk = tierRisk; color = tierColor; scoreRange = tierScoreRange;
+    if (tierRisk === 'HIGHER') action = 'PSA testing and urological evaluation are recommended.';
+    else if (tierRisk === 'MODERATE') action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
+    else action = 'Routine screening.\nFollow standard age-based screening guidance.';
   }
 
   // ---------------------------------------------------------------------------
-  // ePSA Risk Tier mapping (Component 1) — Bayesian-recalibrated cutoffs (v2)
+  // ePSA Risk Tier — 3-tier system (v2, updated March 2026)
   //
-  // Cutoffs derived from Youden-optimal threshold (rawScore ≥ 18 on 0–80 scale)
-  // anchored to the Bayesian model's optimal sensitivity/specificity balance.
+  // CHANGE from previous 4-tier:
+  //   Old: Low (<=10) | Int-Low (11-17) | Int-High (18-30) | High (>=31)
+  //   New: Low (<=10) | Intermediate (11-17) | Elevated (>=18)
   //
-  //   v1 cutoffs (0–130 scale): ≤15 Low, ≤31 Int-Low, ≤63 Int-High, >63 High
-  //   v2 cutoffs (0–80 scale):  ≤10 Low, ≤17 Int-Low, ≤30 Int-High, >30 High
+  // Rationale:
+  //   csPCa prevalence was 28% Int-High vs 27% High — statistically identical.
+  //   Youden J at old High boundary (>=31) = 0.038, near-worthless discriminator.
+  //   90% of old High-tier patients already had PSA >= 4.
+  //   Validated triage threshold is >=18 (J=0.138, sens=91.3%, spec=22.5%).
+  //   The >=31 boundary was not empirically supported in the N=94 validation cohort.
   //
-  // Youden J at threshold ≥18: sensitivity 82.6%, specificity 42.3% (N=94)
+  // PSA-equivalent labels removed from Part 1:
+  //   Part 1 runs before PSA is drawn. PSA-equivalent numbers have no anchor
+  //   and were creating false precision (old High label ">= 10 ng/mL" was wrong —
+  //   median PSA in that cohort was 6.7 ng/mL). Replaced with action language.
+  //   PSA-equivalent labels ARE retained in Part 2 where a real PSA is present.
   // ---------------------------------------------------------------------------
   const EPSA_TIER_DEFS = [
     {
       key: 'low',
-      label: '🟢 Low Risk',
-      psaEquivalent: '< 1.0 ng/mL',
+      label: 'Low Risk',
+      scoreRange: 'score 0-10',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8–10 years if under 55, or as directed by your physician.'
+        'Your contextual risk profile does not suggest an immediate need for PSA testing based on risk factors alone. Follow standard age-based screening guidance as directed by your physician.'
     },
     {
-      key: 'intermediate-low',
-      label: '🟡 Intermediate-Low Risk',
-      psaEquivalent: '1.0–2.9 ng/mL',
+      key: 'intermediate',
+      label: 'Intermediate Risk',
+      scoreRange: 'score 11-17',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent of 1.0–2.9 ng/mL. Guidelines recommend rescreening every 2–4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
+        'Your risk factors suggest discussing PSA testing with your physician at your next visit. Guidelines recommend re-screening every 2-4 years. Your doctor may recommend earlier follow-up based on your individual circumstances.'
     },
     {
-      key: 'intermediate-high',
-      label: '🟠 Intermediate-High Risk',
-      psaEquivalent: '3.0–9.9 ng/mL',
+      key: 'elevated',
+      label: 'Elevated Risk',
+      scoreRange: 'score >= 18',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent of 3.0–9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
-    },
-    {
-      key: 'high',
-      label: '🔴 High Risk',
-      psaEquivalent: '≥ 10 ng/mL',
-      guideline:
-        'Your risk profile is consistent with a PSA equivalent of ≥ 10 ng/mL. Guidelines from AUA, NCCN, and EAU strongly recommend urology referral and biopsy discussion. Prompt evaluation is advised.'
+        'Your contextual risk factor profile is elevated. PSA testing and a conversation with your physician are recommended — do not delay. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further evaluation for patients with this risk profile.'
     }
   ];
 
+  // 3-tier assignment (Youden-optimal boundary at rawScore >= 18)
   let epsaTierIndex;
-  if (rawScore <= 10) {
-    epsaTierIndex = 0;       // Low
-  } else if (rawScore <= 17) {
-    epsaTierIndex = 1;       // Intermediate-Low
-  } else if (rawScore <= 30) {
-    epsaTierIndex = 2;       // Intermediate-High  ← Youden threshold sits here
-  } else {
-    epsaTierIndex = 3;       // High
-  }
+  if (rawScore <= 10) epsaTierIndex = 0;        // Low
+  else if (rawScore <= 17) epsaTierIndex = 1;   // Intermediate
+  else epsaTierIndex = 2;                       // Elevated (formerly Int-High + High)
 
   const epsaTierDef = EPSA_TIER_DEFS[epsaTierIndex];
 
   return {
     score: scorePercent,
     scoreRange,
+    recommendationThresholdLabel,
     risk,
     color,
     action,
@@ -475,27 +396,31 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     tierRisk,
     tierColor,
     tierScoreRange,
-    confidenceRange: `${rangeLow}%–${rangeHigh}%`,
+    confidenceRange: `${rangeLow}%-${rangeHigh}%`,
     confidenceLow: rangeLow,
     confidenceHigh: rangeHigh,
     ipssTotal: variableValues.ipssTotal,
     shimTotal: variableValues.shimTotal,
     bmi: Number(bmi).toFixed(1),
     age: parseInt(age, 10),
-    // Part 2 integration helpers
     isBlack,
     fhBinary,
     brcaStatus,
-    // Component 1: ePSA Risk Tier (raw-score based)
+    // 3-tier result fields
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
     epsaTierLabel: epsaTierDef.label,
-    epsaPsaEquivalent: epsaTierDef.psaEquivalent,
+    epsaTierScoreRange: epsaTierDef.scoreRange,
+    epsaTierBoundaries: {
+      lowMax: 10,
+      intermediateMax: 17,
+      maxScore: MAX_POINTS
+    },
+    itemImpacts,
+    // epsaPsaEquivalent intentionally omitted from Part 1 — see comment above
     epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,
-    displayRange: `${rangeLow}%–${rangeHigh}%`,
-    confidenceLow: rangeLow,
-    confidenceHigh: rangeHigh,
+    displayRange: `${rangeLow}%-${rangeHigh}%`,
     calculationDetails: {
       probability,
       rawScore,
@@ -508,7 +433,6 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
   const { psa, pirads, knowPirads } = postData || {};
 
-  // Base raw score from Part 1 (original variables only)
   const preScorePct = Number(preResult?.score) || 0;
   let baseRawScore = preResult?.calculationDetails?.rawScore;
   let baseMaxScore = preResult?.calculationDetails?.maxScore;
@@ -518,47 +442,33 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     baseRawScore = Math.round((preScorePct / 100) * baseMaxScore);
   }
 
-  // PSA scoring
   const psaVal = psa === '' || psa === null || psa === undefined ? null : Number(psa);
   let psaPoints = 0;
   if (psaVal != null && !Number.isNaN(psaVal)) {
-    if (psaVal < 1.0) {
-      psaPoints = 0;
-    } else if (psaVal < 3.0) {
-      psaPoints = 10;
-    } else if (psaVal < 10.0) {
-      psaPoints = 25;
-    } else {
-      psaPoints = 45;
-    }
+    if (psaVal < 1.0) psaPoints = 0;
+    else if (psaVal < 3.0) psaPoints = 10;
+    else if (psaVal < 10.0) psaPoints = 25;
+    else psaPoints = 45;
   }
 
-  // PI-RADS scoring
-  const piradsVal = knowPirads ? (pirads === '' || pirads === null || pirads === undefined ? null : Number(pirads)) : null;
+  const piradsVal = knowPirads
+    ? (pirads === '' || pirads === null || pirads === undefined ? null : Number(pirads))
+    : null;
   let piradsPoints = 0;
   let piradsOverridden = false;
   if (piradsVal != null && !Number.isNaN(piradsVal)) {
-    if (piradsVal === 3) {
-      piradsPoints = 15;
-    } else if (piradsVal === 4) {
-      piradsPoints = 30;
-    } else if (piradsVal === 5) {
-      piradsPoints = 45;
-      piradsOverridden = true;
-    }
+    if (piradsVal === 3) piradsPoints = 15;
+    else if (piradsVal === 4) piradsPoints = 30;
+    else if (piradsVal === 5) { piradsPoints = 45; piradsOverridden = true; }
   }
 
-  // High-risk features for Low-PSA bonus and warning
   const isBlack = !!preResult?.isBlack;
   const fhBinary = preResult?.fhBinary ?? 0;
   const hasFamilyHistory = fhBinary === 1 || preResult?.familyHistory === 1;
   const brcaStatus = preResult?.brcaStatus;
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
   const hasHighRiskFeature =
-    isBlack ||
-    hasFamilyHistory ||
-    brcaPositive ||
-    (piradsVal != null && piradsVal >= 3);
+    isBlack || hasFamilyHistory || brcaPositive || (piradsVal != null && piradsVal >= 3);
 
   let psaBonusLow = 0;
   let lowPsaWarning = false;
@@ -567,85 +477,79 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     psaBonusLow = 15;
     lowPsaWarning = true;
     lowPsaWarningText =
-      '🚨 Important: Low PSA Does Not Rule Out Risk Your PSA level is below 2.0 ng/mL, which is often considered reassuring. However, your risk profile includes one or more high-risk features (race, family history, genetic mutations, or MRI findings) that are associated with clinically significant prostate cancer even at low PSA levels. Standard guidelines do not currently account for these factors when interpreting PSA thresholds. Early evaluation with a urologist is recommended regardless of your PSA value.';
+      'Important: Low PSA Does Not Rule Out Risk. Your PSA level is below 2.0 ng/mL, which is often considered reassuring. However, your risk profile includes one or more high-risk features (race, family history, genetic mutations, or MRI findings) that are associated with clinically significant prostate cancer even at low PSA levels. Standard guidelines do not currently account for these factors when interpreting PSA thresholds. Early evaluation with a urologist is recommended regardless of your PSA value.';
   }
 
   const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints;
 
   // ---------------------------------------------------------------------------
-  // Part 2 tier mapping — cutoffs scaled to new 0–80 base + PSA/PI-RADS addons
+  // Part 2 tier mapping
   //
-  // Combined score ceiling (approx): 80 (Part 1 max) + 45 (PSA high) + 15 (bonus)
-  //   + 45 (PI-RADS 5) = 185. Practical range with PI-RADS ≤4: ~0–155.
-  // Tier boundaries preserve proportional spacing from v1 (28/58/116 on 0–173)
-  // rescaled to the new base: 13/27/55 (rounded to nearest integer).
+  // PSA-equivalent labels ARE present here because a real PSA value is available.
+  //
+  // CHANGE: High tier psaEquivalent updated from ">= 10 ng/mL" to ">= 4.0 ng/mL".
+  //   The old label was inherited from v1 scale and was factually wrong for v2:
+  //   - Median PSA in the old High tier (rawScore >= 31) = 6.7 ng/mL
+  //   - Only 20% of those patients actually had PSA >= 10
+  //   - The AUA guideline action threshold is 4.0 ng/mL
+  //   - ">= 4.0 ng/mL" accurately describes this population
+  //
+  // Part 2 combined score tier boundaries (0-80 base + PSA + PI-RADS addons):
+  //   Low        <= 13
+  //   Int-Low    14-27
+  //   Int-High   28-55
+  //   High       >= 56
   // ---------------------------------------------------------------------------
   const TIER_DEFS = [
     {
       key: 'low',
-      label: '🟢 Low Risk',
+      label: 'Low Risk',
       psaEquivalent: '< 1.0 ng/mL',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8–10 years if under 55, or as directed by your physician.'
+        'Your combined risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8-10 years if under 55, or as directed by your physician.'
     },
     {
       key: 'intermediate-low',
-      label: '🟡 Intermediate-Low Risk',
-      psaEquivalent: '1.0–2.9 ng/mL',
+      label: 'Intermediate-Low Risk',
+      psaEquivalent: '1.0-2.9 ng/mL',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent of 1.0–2.9 ng/mL. Guidelines recommend rescreening every 2–4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
+        'Your combined risk profile is consistent with a PSA equivalent of 1.0-2.9 ng/mL. Guidelines recommend re-screening every 2-4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
     },
     {
       key: 'intermediate-high',
-      label: '🟠 Intermediate-High Risk',
-      psaEquivalent: '3.0–9.9 ng/mL',
+      label: 'Intermediate-High Risk',
+      psaEquivalent: '3.0-9.9 ng/mL',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent of 3.0–9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
+        'Your combined risk profile is consistent with a PSA equivalent of 3.0-9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
     },
     {
       key: 'high',
-      label: '🔴 High Risk',
-      psaEquivalent: '≥ 10 ng/mL',
+      label: 'High Risk',
+      // UPDATED from ">= 10 ng/mL" — see comment block above
+      psaEquivalent: '>= 4.0 ng/mL',
       guideline:
-        'Your risk profile is consistent with a PSA equivalent of ≥ 10 ng/mL. Guidelines from AUA, NCCN, and EAU strongly recommend urology referral and biopsy discussion. Prompt evaluation is advised.'
+        'Your combined risk profile warrants prompt evaluation. AUA, NCCN, and EAU guidelines strongly recommend urology referral and biopsy discussion. Do not delay follow-up with your physician.'
     }
   ];
 
   let tierIndex;
-  if (piradsOverridden) {
-    tierIndex = 3;
-  } else if (totalPoints <= 13) {
-    tierIndex = 0;
-  } else if (totalPoints <= 27) {
-    tierIndex = 1;
-  } else if (totalPoints <= 55) {
-    tierIndex = 2;
-  } else {
-    tierIndex = 3;
-  }
+  if (piradsOverridden) tierIndex = 3;
+  else if (totalPoints <= 13) tierIndex = 0;
+  else if (totalPoints <= 27) tierIndex = 1;
+  else if (totalPoints <= 55) tierIndex = 2;
+  else tierIndex = 3;
 
   const tierDef = TIER_DEFS[tierIndex];
-
   const RISK_CLASSES = ['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk'];
   const riskClass = RISK_CLASSES[tierIndex];
 
-  // Actual PSA tier for discordance flag
   let psaTierIndex = null;
   let psaTierLabel = null;
   if (psaVal != null && !Number.isNaN(psaVal)) {
-    if (psaVal < 1.0) {
-      psaTierIndex = 0;
-      psaTierLabel = 'Low';
-    } else if (psaVal < 3.0) {
-      psaTierIndex = 1;
-      psaTierLabel = 'Intermediate-Low';
-    } else if (psaVal < 10.0) {
-      psaTierIndex = 2;
-      psaTierLabel = 'Intermediate-High';
-    } else {
-      psaTierIndex = 3;
-      psaTierLabel = 'High';
-    }
+    if (psaVal < 1.0) { psaTierIndex = 0; psaTierLabel = 'Low'; }
+    else if (psaVal < 3.0) { psaTierIndex = 1; psaTierLabel = 'Intermediate-Low'; }
+    else if (psaVal < 10.0) { psaTierIndex = 2; psaTierLabel = 'Intermediate-High'; }
+    else { psaTierIndex = 3; psaTierLabel = 'High'; }
   }
 
   let discordanceFlag = null;
@@ -653,29 +557,23 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     const diff = tierIndex - psaTierIndex;
     if (diff > 0) {
       const severity = diff === 1 ? 'yellow' : 'orange';
-      const discordanceText = `⚠️ Risk Discordance Detected Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`;
-      discordanceFlag = {
-        severity,
-        text: discordanceText
-      };
+      const discordanceText =
+        `Risk Discordance Detected. Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`;
+      discordanceFlag = { severity, text: discordanceText };
     }
   }
 
-  const riskCat = tierDef.label;
-  const riskPct = tierDef.psaEquivalent;
-  const nextSteps = [tierDef.guideline];
-
   return {
-    riskPct,
+    riskPct: tierDef.psaEquivalent,
     riskPctRange: null,
-    riskCat,
+    riskCat: tierDef.label,
     riskClass,
     totalPoints,
     prePoints: baseRawScore,
     baselineCarryPoints: null,
     psaPoints,
     piradsPoints,
-    nextSteps,
+    nextSteps: [tierDef.guideline],
     piradsOverridden,
     psaTier: psaTierLabel,
     psaValue: psaVal,

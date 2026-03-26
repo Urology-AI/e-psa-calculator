@@ -19,9 +19,9 @@ import {
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
-const RiskGauge = ({ score, risk }) => {
-  // cy=130, r=100, strokeW=22 → bottom of arc at y=130, stroke edge at 141
-  // viewBox height=145 gives 4px clearance; no SVG text to clip
+// Accepts epsaTierLabel so the caption shows the new tier name, not the raw
+// engine tierRisk string (LOWER / MODERATE / HIGHER).
+const RiskGauge = ({ score, epsaTierKey, epsaTierLabel }) => {
   const cx = 140, cy = 130, r = 100, strokeW = 22;
   const toRad = (deg) => (deg * Math.PI) / 180;
 
@@ -40,21 +40,28 @@ const RiskGauge = ({ score, risk }) => {
   const needleTipX = cx + needleLen * Math.cos(toRad(needleAngle));
   const needleTipY = cy - needleLen * Math.sin(toRad(needleAngle));
 
+  // 3-tier colour scheme:
+  //   LOWER    = green  #16a34a
+  //   MODERATE = blue   #2563eb  (was amber — Intermediate is a calm mid-tier)
+  //   HIGHER   = amber  #d97706  (was red — Elevated, not alarming red)
   const colors = {
-    lower:    '#16a34a',
-    moderate: '#d97706',
-    higher:   '#dc2626',
-    track:    '#e2eaf2',
+    lower: '#16a34a',
+    moderate: '#2563eb',
+    higher: '#d97706',
+    track: '#e2eaf2',
   };
 
   const activeColor =
-    risk === 'LOWER'  ? colors.lower  :
-    risk === 'HIGHER' ? colors.higher :
-    colors.moderate;
+    epsaTierKey === 'low' ? colors.lower :
+      epsaTierKey === 'elevated' ? colors.higher :
+        colors.moderate;
+
+  // Caption: prefer the human-readable epsaTierLabel if available,
+  // fall back to the raw risk string for backward compatibility.
+  const caption = epsaTierLabel || 'Risk';
 
   return (
-    <figure className="risk-gauge-figure" aria-label={`Risk gauge: ${risk} risk, score ${clampedScore}%`}>
-      {/* SVG arc + needle only — no text nodes inside SVG to avoid clipping */}
+    <figure className="risk-gauge-figure" aria-label={`Risk gauge: ${caption}, score ${clampedScore}%`}>
       <svg
         viewBox="0 0 280 145"
         xmlns="http://www.w3.org/2000/svg"
@@ -63,29 +70,34 @@ const RiskGauge = ({ score, risk }) => {
       >
         {/* Background track */}
         <path d={arcPath(182, -2)} fill="none" stroke={colors.track} strokeWidth={strokeW + 6} strokeLinecap="butt" />
-        {/* LOWER — green */}
-        <path d={arcPath(180, 122)} fill="none" stroke={colors.lower}    strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'LOWER'    ? '1' : '0.3'} />
-        {/* MODERATE — amber */}
-        <path d={arcPath(118,  62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'MODERATE' ? '1' : '0.3'} />
-        {/* HIGHER — red */}
-        <path d={arcPath( 58,   0)} fill="none" stroke={colors.higher}   strokeWidth={strokeW} strokeLinecap="butt" opacity={risk === 'HIGHER'   ? '1' : '0.3'} />
+        {/* Low */}
+        <path d={arcPath(180, 122)} fill="none" stroke={colors.lower} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'low' ? '1' : '0.3'} />
+        {/* Intermediate */}
+        <path d={arcPath(118, 62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'intermediate' ? '1' : '0.3'} />
+        {/* Elevated */}
+        <path d={arcPath(58, 0)} fill="none" stroke={colors.higher} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'elevated' ? '1' : '0.3'} />
         {/* Needle shadow */}
-        <line x1={cx} y1={cy+2} x2={needleTipX} y2={needleTipY+2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
+        <line x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
         {/* Needle */}
-        <line x1={cx} y1={cy}   x2={needleTipX} y2={needleTipY}   stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
+        <line x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
         {/* Hub */}
-        <circle cx={cx} cy={cy} r="8"  fill="#1e3a5f" />
+        <circle cx={cx} cy={cy} r="8" fill="#1e3a5f" />
         <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
       </svg>
 
-      {/* Labels rendered in HTML — zero clipping risk */}
       <div className="risk-gauge-labels">
-        <span style={{ color: colors.lower }}>Lower</span>
-        <span className="risk-gauge-score" style={{ color: activeColor }}>{clampedScore}%</span>
-        <span style={{ color: colors.higher }}>Higher</span>
+        <span className={`risk-gauge-range-pill ${epsaTierKey === 'low' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.lower }}>
+          Low (0-10)
+        </span>
+        <span className={`risk-gauge-range-pill ${epsaTierKey === 'intermediate' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.moderate }}>
+          Intermediate (11-17)
+        </span>
+        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>
+          Elevated (&gt;=18)
+        </span>
       </div>
       <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>
-        {risk} RISK
+        {caption}
       </figcaption>
     </figure>
   );
@@ -111,10 +123,18 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
 };
 
 /* ─── Risk Icon ─── */
-const RiskIcon = ({ risk }) => {
-  if (risk === 'LOWER') return <CheckCircle2Icon size={22} className="risk-icon risk-icon--lower" />;
-  if (risk === 'MODERATE') return <AlertTriangleIcon size={22} className="risk-icon risk-icon--moderate" />;
-  return <AlertCircleIcon size={22} className="risk-icon risk-icon--higher" />;
+// Maps engine tierRisk (LOWER / MODERATE / HIGHER) and epsaTierKey
+// (low / intermediate / elevated) to the appropriate icon + CSS class.
+const RiskIcon = ({ risk, epsaTierKey }) => {
+  const key = epsaTierKey || risk;
+  if (key === 'low' || key === 'LOWER') {
+    return <CheckCircle2Icon size={22} className="risk-icon risk-icon--lower" />;
+  }
+  if (key === 'intermediate' || key === 'MODERATE') {
+    return <AlertTriangleIcon size={22} className="risk-icon risk-icon--moderate" />;
+  }
+  // elevated / HIGHER
+  return <AlertCircleIcon size={22} className="risk-icon risk-icon--elevated" />;
 };
 
 /* ─── Main Component ─── */
@@ -165,28 +185,116 @@ const Part1Results = ({
     age,
     recommendPSA,
     tierRisk,
+    epsaTierKey,
     epsaTierLabel,
-    epsaPsaEquivalent,
+    epsaTierScoreRange,
+    recommendationThresholdLabel,
     epsaGuidelineText,
+    itemImpacts = [],
+    // epsaPsaEquivalent intentionally not destructured — not shown in Part 1
   } = result;
+  const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
+  const impactMaxScore = Number(result?.calculationDetails?.maxScore);
+  const impactTotal = itemImpacts.reduce((sum, impact) => sum + (Number(impact?.points) || 0), 0);
+  const impactTotalDisplay = Number.isFinite(rawImpactTotal) ? rawImpactTotal : impactTotal;
+  const impactPercent = Number.isFinite(impactMaxScore) && impactMaxScore > 0
+    ? Math.round((impactTotalDisplay / impactMaxScore) * 100)
+    : null;
+  const rawScore = Number(result?.calculationDetails?.rawScore);
+  const maxScore = Number(result?.calculationDetails?.maxScore);
+  const mapRawScoreToGaugePercent = (raw, max) => {
+    if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0) return score;
+    const clampedRaw = Math.max(0, Math.min(max, raw));
+    // Piecewise tier-aware mapping so Elevated appears in the higher dial zone.
+    // Low: 0-10 -> 0-33, Intermediate: 11-17 -> 34-66, Elevated: 18+ -> 67-100.
+    if (clampedRaw <= 10) {
+      return Math.round((clampedRaw / 10) * 33);
+    }
+    if (clampedRaw <= 17) {
+      return Math.round(34 + ((clampedRaw - 11) / 6) * 32);
+    }
+    return Math.round(67 + ((clampedRaw - 18) / Math.max(1, max - 18)) * 33);
+  };
+  const gaugeScore = mapRawScoreToGaugePercent(rawScore, maxScore);
+  const confidenceLow = Number(result?.confidenceLow);
+  const confidenceHigh = Number(result?.confidenceHigh);
+  const thresholdPctMatch = String(recommendationThresholdLabel || '').match(/(\d+(\.\d+)?)/);
+  const recommendationThresholdPct = thresholdPctMatch ? Number(thresholdPctMatch[1]) : 9;
+  const selectedTierKey =
+    epsaTierKey || (activeTier === 'LOWER' ? 'low' : activeTier === 'HIGHER' ? 'elevated' : 'intermediate');
+  const thresholdTiers = [
+    { key: 'low', label: 'Low', range: 'score 0-10', colorClass: 'threshold-chip--low' },
+    { key: 'intermediate', label: 'Intermediate', range: 'score 11-17', colorClass: 'threshold-chip--intermediate' },
+    { key: 'elevated', label: 'Elevated', range: 'score >= 18', colorClass: 'threshold-chip--elevated' },
+  ];
+  const tierWhyText = Number.isFinite(rawImpactTotal)
+    ? `Selected because your raw point total is ${rawImpactTotal}, which falls in ${epsaTierScoreRange || 'the selected tier range'}.`
+    : `Selected because your total points fall in ${epsaTierScoreRange || 'the selected tier range'}.`;
+  let recommendationWhyText = `PSA recommendation trigger is ${recommendationThresholdLabel || '>= 9%'} (different from raw-score tier boundaries).`;
+  let recommendationWhyClass = 'threshold-status threshold-status--neutral';
+  if (Number.isFinite(confidenceLow) && Number.isFinite(confidenceHigh)) {
+    if (confidenceLow >= recommendationThresholdPct) {
+      recommendationWhyText = `Selected as above threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully at or above ${recommendationThresholdPct}%.`;
+      recommendationWhyClass = 'threshold-status threshold-status--met';
+    } else if (confidenceHigh < recommendationThresholdPct) {
+      recommendationWhyText = `Selected as below threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully below ${recommendationThresholdPct}%.`;
+      recommendationWhyClass = 'threshold-status threshold-status--below';
+    } else {
+      recommendationWhyText = `Selected as borderline: your displayed range (${confidenceLow}%-${confidenceHigh}%) crosses the ${recommendationThresholdPct}% threshold.`;
+      recommendationWhyClass = 'threshold-status threshold-status--neutral';
+    }
+  }
+  if (recommendationWhyClass.includes('threshold-status--met')) {
+    if (selectedTierKey === 'elevated') {
+      recommendationWhyClass = 'threshold-status threshold-status--met-elevated';
+    } else if (selectedTierKey === 'intermediate') {
+      recommendationWhyClass = 'threshold-status threshold-status--met-intermediate';
+    } else {
+      recommendationWhyClass = 'threshold-status threshold-status--met-low';
+    }
+  }
 
   const displayRange = result.displayRange || result.confidenceRange;
   const activeTier = tierRisk || risk;
 
   const recommendationLabel =
-    recommendPSA === true  ? 'PSA Screening Recommended' :
-    recommendPSA === false ? 'PSA Not Currently Recommended' :
-    'Recommendation Unavailable';
+    recommendPSA === true ? 'PSA Screening Recommended' :
+      recommendPSA === false ? 'PSA Not Currently Recommended' :
+        'Recommendation Unavailable';
 
-  const riskBadgeLabel = recommendPSA == null ? `${risk} RISK` : recommendationLabel.toUpperCase();
+  const riskBadgeLabel = recommendPSA == null ? (epsaTierLabel || `${risk} RISK`) : recommendationLabel.toUpperCase();
 
-  const getSoftenedActionText = (tier, fallback) => {
+  // Map epsaTierKey to a CSS card class.
+  // Falls back to tierRisk-based class for backward compatibility with any
+  // config-driven path that still emits LOWER / MODERATE / HIGHER.
+  const riskBgClass =
+    epsaTierKey === 'low' ? 'risk-card--lower' :
+      epsaTierKey === 'intermediate' ? 'risk-card--moderate' :
+        epsaTierKey === 'elevated' ? 'risk-card--elevated' :
+          activeTier === 'LOWER' ? 'risk-card--lower' :
+            activeTier === 'HIGHER' ? 'risk-card--elevated' :
+              'risk-card--moderate';
+  const tierAccentColor =
+    epsaTierKey === 'low' ? '#16a34a' :
+      epsaTierKey === 'intermediate' ? '#2563eb' :
+        epsaTierKey === 'elevated' ? '#d97706' :
+          activeTier === 'LOWER' ? '#16a34a' :
+            activeTier === 'HIGHER' ? '#d97706' :
+              '#2563eb';
+
+  const getSoftenedActionText = (key, tier, fallback) => {
     if (typeof fallback === 'string' && fallback.trim().length > 0) return fallback;
-    switch (tier) {
+    // key = epsaTierKey (low / intermediate / elevated)
+    // tier = activeTier / tierRisk (LOWER / MODERATE / HIGHER) — fallback
+    const k = key || tier;
+    switch (k) {
+      case 'low':
       case 'LOWER':
         return 'Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.';
+      case 'intermediate':
       case 'MODERATE':
         return 'Consider discussing this result with your healthcare provider. Together you can decide whether PSA screening makes sense based on your age, preferences, and prior results.';
+      case 'elevated':
       case 'HIGHER':
         return 'Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation — such as PSA testing or follow-up — is appropriate.';
       default:
@@ -194,28 +302,43 @@ const Part1Results = ({
     }
   };
 
-  const getTierDescription = (tier) => {
-    switch (tier) {
+  const getTierDescription = (key, tier) => {
+    const k = key || tier;
+    switch (k) {
+      case 'low':
       case 'LOWER':
-        return 'LOWER suggests a lower estimated likelihood relative to others in the model\'s reference data. Lower does not mean no risk, and it does not replace clinician guidance.';
+        return 'Low Risk suggests a lower estimated likelihood relative to others in the model\'s reference data. Lower does not mean no risk, and it does not replace clinician guidance.';
+      case 'intermediate':
       case 'MODERATE':
-        return 'MODERATE suggests an estimated likelihood in the middle range of the model\'s reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.';
+        return 'Intermediate Risk suggests an estimated likelihood in the middle range of the model\'s reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.';
+      case 'elevated':
       case 'HIGHER':
-        return 'HIGHER suggests a higher estimated likelihood relative to others in the model\'s reference data. Higher does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.';
+        return 'Elevated Risk suggests a higher estimated likelihood relative to others in the model\'s reference data. Elevated does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.';
       default:
         return '';
     }
   };
 
-  const riskBgClass =
-    activeTier === 'LOWER'    ? 'risk-card--lower' :
-    activeTier === 'HIGHER'   ? 'risk-card--higher' :
-    'risk-card--moderate';
+  // 3-tier scale — matches against epsaTierKey, with tierRisk fallback.
+  // Colours align with the updated CSS:
+  //   Low          → green  #16a34a
+  //   Intermediate → blue   #2563eb
+  //   Elevated     → amber  #d97706
+  const tierScaleItems = [
+    { key: 'low', tierRiskFallback: 'LOWER', label: 'Low', sub: 'Fewer risk factors', color: '#16a34a', bg: '#f0fdf4' },
+    { key: 'intermediate', tierRiskFallback: 'MODERATE', label: 'Intermediate', sub: 'Some risk factors', color: '#2563eb', bg: '#eff6ff' },
+    { key: 'elevated', tierRiskFallback: 'HIGHER', label: 'Elevated', sub: 'Multiple risk factors', color: '#d97706', bg: '#fffbeb' },
+  ];
 
   const metrics = [
     { label: 'Age', value: age, unit: 'yrs' },
     { label: 'BMI', value: bmi, unit: '' },
-    { label: 'IPSS Score', value: `${ipssTotal}/35`, unit: '' },
+    {
+      label: 'IPSS Score',
+      value: `${ipssTotal}/35`,
+      unit: '',
+      note: Number(ipssTotal) >= 20 ? 'Severe range in v2 contributes 0 points' : null
+    },
     { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '' },
   ];
 
@@ -261,20 +384,21 @@ const Part1Results = ({
         <div className="risk-summary-header">
           <div className="risk-summary-label">Your ePSA Risk Assessment</div>
           <div className="risk-summary-tier-row">
-            <RiskIcon risk={activeTier} />
-            <span className="risk-tier-text" style={{ color }}>
+            <RiskIcon risk={activeTier} epsaTierKey={epsaTierKey} />
+            <span className="risk-tier-text" style={{ color: tierAccentColor }}>
               {epsaTierLabel || activeTier}
             </span>
           </div>
-          {epsaPsaEquivalent && (
-            <div className="risk-psa-equivalent">
-              PSA equivalent: <strong>{epsaPsaEquivalent}</strong>
-            </div>
-          )}
+          {/* PSA equivalent intentionally omitted from Part 1 display.
+              It is only shown in Part 2 where a real PSA value is present. */}
         </div>
 
-        {/* Gauge */}
-        <RiskGauge score={score} risk={activeTier} />
+        {/* Gauge — passes epsaTierLabel so caption shows correct tier name */}
+        <RiskGauge
+          score={gaugeScore}
+          epsaTierKey={epsaTierKey}
+          epsaTierLabel={epsaTierLabel}
+        />
 
         {/* Recommendation pill */}
         <div className="risk-rec-pill" style={{ background: color }}>
@@ -293,7 +417,7 @@ const Part1Results = ({
       {/* ── Recommendation box ── */}
       <div className="recommendation-card" style={{ borderLeftColor: color }}>
         <div className="rec-card-label" style={{ color }}>Clinician Discussion Guidance</div>
-        <p className="rec-card-text">{getSoftenedActionText(activeTier, action)}</p>
+        <p className="rec-card-text">{getSoftenedActionText(epsaTierKey, activeTier, action)}</p>
         {recommendPSA != null && (
           <p className="rec-card-sub">
             {recommendPSA
@@ -312,21 +436,20 @@ const Part1Results = ({
               {m.unit && <span className="metric-unit">{m.unit}</span>}
             </div>
             <div className="metric-label">{m.label}</div>
+            {m.note && <div className="metric-note">{m.note}</div>}
           </div>
         ))}
       </div>
 
-      {/* ── Risk tier scale ── */}
+      {/* ── Risk tier scale (3 tiers) ── */}
       <div className="tier-scale" role="group" aria-label="Risk tier scale">
-        {[
-          { label: 'LOWER',    sub: 'Fewer risk flags',  color: '#16a34a', bg: '#f0fdf4' },
-          { label: 'MODERATE', sub: 'Some risk flags',   color: '#d97706', bg: '#fffbeb' },
-          { label: 'HIGHER',   sub: 'Many risk flags',   color: '#dc2626', bg: '#fef2f2' },
-        ].map(({ label, sub, color: c, bg }) => {
-          const isActive = label === activeTier;
+        {tierScaleItems.map(({ key, tierRiskFallback, label, sub, color: c, bg }) => {
+          const isActive = epsaTierKey
+            ? epsaTierKey === key
+            : activeTier === tierRiskFallback;
           return (
             <div
-              key={label}
+              key={key}
               className={`tier-scale-item ${isActive ? 'tier-scale-item--active' : ''}`}
               style={isActive ? { background: bg, borderColor: c, color: c } : {}}
               aria-current={isActive ? 'true' : undefined}
@@ -348,7 +471,7 @@ const Part1Results = ({
             you do or do not have prostate cancer. Use this as a starting point for a conversation with
             a clinician who can interpret your risk in context.
           </p>
-          <p>{getTierDescription(activeTier)}</p>
+          <p>{getTierDescription(epsaTierKey, activeTier)}</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="How This Score Is Calculated">
@@ -365,15 +488,84 @@ const Part1Results = ({
               <strong>{displayRange}</strong>
             </div>
           )}
-          <div className="detail-data-row">
-            <span>Recommendation Threshold</span>
-            <strong>{scoreRange}</strong>
-          </div>
+          {epsaTierScoreRange && (
+            <div className="detail-data-row">
+              <span>Tier Score Range</span>
+              <strong>{epsaTierScoreRange}</strong>
+            </div>
+          )}
           <div className="detail-data-row">
             <span>Risk Tier</span>
-            <strong>{activeTier}</strong>
+            <strong>{epsaTierLabel || activeTier}</strong>
           </div>
+          <div className="threshold-chip-grid" role="group" aria-label="Risk tier thresholds">
+            {thresholdTiers.map((tier) => (
+              <div
+                key={tier.key}
+                className={`threshold-chip ${tier.colorClass} ${selectedTierKey === tier.key ? 'threshold-chip--selected' : ''}`}
+                aria-current={selectedTierKey === tier.key ? 'true' : undefined}
+              >
+                <span className="threshold-chip-title">{tier.label}</span>
+                <span className="threshold-chip-range">Range: {tier.range}</span>
+              </div>
+            ))}
+          </div>
+          <p className="threshold-why-text">{tierWhyText}</p>
+          <div className={recommendationWhyClass}>{recommendationWhyText}</div>
         </CollapsibleSection>
+
+        {itemImpacts.length > 0 && (
+          <CollapsibleSection title="Item Impact Breakdown">
+            <p>
+              Each item below shows the exact point contribution from the scoring engine used to generate your result.
+            </p>
+            <div className="impact-table-wrap">
+              <table className="impact-table" aria-label="Item impact breakdown table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Input</th>
+                    <th>Impact</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {itemImpacts.map((impact) => (
+                    <tr key={impact.item}>
+                      <td>{impact.item}</td>
+                      <td>{impact.value}</td>
+                      <td>
+                        <div className="impact-bar-track" aria-hidden="true">
+                          <div
+                            className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`}
+                            style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }}
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>
+                          {impact.points > 0 ? `+${impact.points}` : '0'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={3}>Total score contribution</td>
+                    <td>
+                      <span className="impact-total-badge">
+                        {impactTotalDisplay}
+                        {Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}
+                        {impactPercent != null ? ` (${impactPercent}%)` : ''}
+                      </span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </CollapsibleSection>
+        )}
 
         <CollapsibleSection title="Screening Guidelines (AUA/SUO 2026)">
           <p>
@@ -439,9 +631,15 @@ const Part1Results = ({
                       exportDate: new Date().toISOString(),
                       part: 'part1',
                       formData,
-                      userInfo: { email: userEmail || null, phone: userPhone || null, sessionId: sessionId || null },
+                      userInfo: {
+                        email: userEmail || null,
+                        phone: userPhone || null,
+                        sessionId: sessionId || null,
+                      },
                     };
-                    const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
+                    const url = URL.createObjectURL(
+                      new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+                    );
                     const a = Object.assign(document.createElement('a'), {
                       href: url,
                       download: `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json`,
