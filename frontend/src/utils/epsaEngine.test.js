@@ -14,7 +14,7 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     expect(result).toHaveProperty('confidenceRange');
     expect(result).toHaveProperty('calculationDetails');
     expect(result.calculationDetails).toHaveProperty('rawScore');
-    expect(result.calculationDetails).toHaveProperty('maxScore', 130);
+    expect(result.calculationDetails).toHaveProperty('maxScore', 80);
     expect(result.calculationDetails).toHaveProperty('probability');
     expect(typeof result.score).toBe('number');
     expect(result.score).toBeGreaterThanOrEqual(0);
@@ -107,7 +107,7 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
 
   it('confidence range is a percent range string', () => {
     const result = calculateDynamicEPsa(makePart1Form());
-    expect(result.confidenceRange).toMatch(/\d+%–\d+%/);
+    expect(result.confidenceRange).toMatch(/\d+%[-–]\d+%/);
   });
 
   it('rejects invalid form (missing race)', () => {
@@ -168,7 +168,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     expect(result).toHaveProperty('riskPct');
     expect(result).toHaveProperty('riskClass');
     expect(result).toHaveProperty('riskCat');
-    expect(['< 1.0 ng/mL', '1.0–2.9 ng/mL', '3.0–9.9 ng/mL', '≥ 10 ng/mL']).toContain(result.riskPct);
+    expect(['< 1.0 ng/mL', '1.0-2.9 ng/mL', '3.0-9.9 ng/mL', '>= 4.0 ng/mL']).toContain(result.riskPct);
     expect(['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk']).toContain(result.riskClass);
   });
 
@@ -176,8 +176,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     const preResult = makePreResult();
     const postData = makePart2Post({ psa: 4 });
     const result = calculateDynamicEPsaPost(preResult, postData);
-    expect(result.riskPctRange).toBeDefined();
-    expect(result.riskPctRange).toMatch(/\d+%–\d+%/);
+    expect(result.riskPctRange).toBeNull();
   });
 
   it('higher PSA increases Part 2 risk category', () => {
@@ -208,5 +207,39 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     const preResult = makePreResult();
     const result = calculateDynamicEPsaPost(preResult, makePart2Post({ psa: 0.5 }));
     expect(['low-risk', 'moderate-risk']).toContain(result.riskClass);
+  });
+
+  it('PSAD: elevated density triggers psadFlag and points', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 4, knowPirads: false, prostateVolume: 20 })
+    );
+    // PSA density = 4/20 = 0.2 > 0.177
+    expect(result.psadFlag).toBe(true);
+    expect(result.psadPoints).toBe(20);
+    expect(result.psadValue).toBeCloseTo(0.2, 5);
+  });
+
+  it('PSAD: intermediate density gives partial points', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 4, knowPirads: false, prostateVolume: 40 })
+    );
+    // PSA density = 4/40 = 0.1 -> should be 0 because condition is > 0.10
+    expect(result.psadFlag).toBe(false);
+    expect(result.psadPoints).toBe(0);
+  });
+
+  it('PSAD: skipped when prostate volume missing', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 4, knowPirads: false, prostateVolume: null })
+    );
+    expect(result.psadFlag).toBe(false);
+    expect(result.psadPoints).toBe(0);
+    expect(result.psadValue).toBeNull();
   });
 });

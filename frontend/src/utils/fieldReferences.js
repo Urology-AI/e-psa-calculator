@@ -1,12 +1,12 @@
 // Risk factor references for ePSA form fields.
-// These are keyed so the Info modal text can be translated via i18n.
+// These are keyed so the Info modal can render translated descriptions + source links.
 //
-// Sources (kept as static metadata):
-// [1] CDC - https://www.cdc.gov/prostate-cancer/risk-factors/index.html
-// [2] PMC Study - https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/
-// [3] Mayo Clinic - https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087
-// [4] KCUC - https://www.kcuc.com/know-your-prostate-cancer-risk-factors/
-// [5] ZERO Cancer - https://zerocancer.org/risk-factors
+// Sources are intended to match the citations used in the original HTML prototype
+// (e.g. values embedded in data-tooltip on ePSA-working.html).
+const pubmedSearch = (term) => `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(term)}`;
+
+const cancerGovProstatePreventionUrl = 'https://www.cancer.gov/types/prostate/patient/prostate-prevention-pdq';
+const seerRiskUrl = 'https://training.seer.cancer.gov/prostate/intro/risk.html';
 
 export const fieldReferences = {
   age: {
@@ -15,6 +15,10 @@ export const fieldReferences = {
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
+      { name: 'SEER Database', url: seerRiskUrl },
+      { name: 'cancer.gov (NCI)', url: cancerGovProstatePreventionUrl },
+      { name: 'Godtman RA, et al., Eur Urol. 2022', url: pubmedSearch('Godtman RA Eur Urol 2022') },
+      { name: 'Nemesure B, et al., Res Rep Urol. 2022', url: pubmedSearch('Nemesure B Res Rep Urol 2022') },
     ],
   },
   race: {
@@ -23,6 +27,9 @@ export const fieldReferences = {
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
+      { name: 'Tewari A., et al., Urol Onc. 2005', url: pubmedSearch('Tewari A Urol Onc 2005') },
+      { name: 'Loeb S., et al., Urology 2006', url: pubmedSearch('Loeb S Urology 2006') },
+      { name: 'Brawley O., World J Urol. 2012', url: pubmedSearch('Brawley O World J Urol 2012') },
     ],
   },
   familyHistory: {
@@ -32,6 +39,8 @@ export const fieldReferences = {
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
+      { name: 'Hemminki H, et al., Eur Urol Open Sci 2024', url: pubmedSearch('Hemminki H Eur Urol Open Sci 2024') },
+      { name: 'Madersbacher S, et al., BJU Int. 2010', url: pubmedSearch('Madersbacher S BJU Int 2010') },
     ],
   },
   inflammationHistory: {
@@ -45,6 +54,8 @@ export const fieldReferences = {
     sources: [
       { name: 'PMC Study', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
+      { name: 'Hemminki H, et al., Eur Urol Open Sci 2024', url: pubmedSearch('Hemminki H Eur Urol Open Sci 2024') },
+      { name: 'Giri VN, et al., J Clin Oncol. 2018', url: pubmedSearch('Giri VN J Clin Oncol 2018') },
     ],
   },
   heightWeight: {
@@ -53,6 +64,7 @@ export const fieldReferences = {
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
+      { name: 'Zhu D, et al., Clin Genitourin Cancer 2022', url: pubmedSearch('Zhu D Clin Genitourin Cancer 2022') },
     ],
   },
   exercise: {
@@ -61,6 +73,7 @@ export const fieldReferences = {
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
+      { name: 'Rogers LQ, et al., BMC Public Health 2008', url: pubmedSearch('Rogers LQ BMC Public Health 2008') },
     ],
   },
   smoking: {
@@ -69,6 +82,7 @@ export const fieldReferences = {
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
+      { name: 'Plaskon LA, et al., Cancer Epidemiol Biomarkers Prev. 2003', url: pubmedSearch('Plaskon LA Cancer Epidemiol Biomarkers Prev 2003') },
     ],
   },
   chemicalExposure: {
@@ -85,6 +99,8 @@ export const fieldReferences = {
     sources: [
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
+      { name: 'Su ZT, et al., JAMA Oncol. 2024', url: pubmedSearch('Su ZT JAMA Oncol 2024') },
+      { name: 'Andersson SO, et al., Int J Cancer. 1996', url: pubmedSearch('Andersson SO Int J Cancer 1996') },
     ],
   },
   ipss: {
@@ -92,6 +108,7 @@ export const fieldReferences = {
     descriptionKey: 'part1.fields.ipss.description',
     sources: [
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
+      { name: 'van Leeuwen, PJ, et al., Can J Urol. 2011', url: pubmedSearch('van Leeuwen PJ Can J Urol 2011') },
     ],
   },
   shim: {
@@ -106,7 +123,48 @@ export const fieldReferences = {
     descriptionKey: 'part1.fields.comorbidities.description',
     sources: [
       { name: 'Tiruye et al. (2024) – Impact of comorbidities on prostate cancer-specific mortality', url: 'https://pubmed.ncbi.nlm.nih.gov/38798040/' },
+      { name: 'Blanc-Lapierre A, et al., BMC Public Health 2015', url: pubmedSearch('Blanc-Lapierre A BMC Public Health 2015') },
+      { name: 'Zhu D, et al., Clin Genitourin Cancer 2022', url: pubmedSearch('Zhu D Clin Genitourin Cancer 2022') },
     ],
+  },
+  // Part 2 evidence sources used for PSAD/PSA/MRI tooltips/modals.
+  part2: {
+    psaLevel: {
+      sources: [
+        {
+          name: 'Loeb S., et al., Urology 2006',
+          url: pubmedSearch('Loeb S Urology 2006'),
+        },
+        {
+          name: 'AUA/SUO Screening Guidelines 2023',
+          url: pubmedSearch('AUA SUO screening guidelines 2023'),
+        },
+      ],
+    },
+    pirads: {
+      sources: [
+        {
+          name: 'Park KJ., et al., J Urol. 2020',
+          url: pubmedSearch('Park KJ J Urol 2020'),
+        },
+        {
+          name: 'Oerther B., et al., Prostate Cancer 2021',
+          url: pubmedSearch('Oerther B Prostate Cancer 2021'),
+        },
+      ],
+    },
+    psadKadeer: {
+      sources: [
+        {
+          name: 'Frontiers in Oncology (Kadeer et al., 2025)',
+          url: 'https://www.frontiersin.org/journals/oncology/articles/10.3389/fonc.2025.1602134/full',
+        },
+        {
+          name: 'Pedraza et al. (2023) — Eur Urol Open Sci (source ref)',
+          url: 'https://pubmed.ncbi.nlm.nih.gov/?term=Pedraza+2023+%22European+Urology+Open+Science%22+72-81+48',
+        },
+      ],
+    },
   },
 };
 

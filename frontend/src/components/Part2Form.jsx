@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './Part2Form.css';
 import { useTranslation } from 'react-i18next';
+import InfoIcon from './InfoIcon';
+import { fieldReferences } from '../utils/fieldReferences';
 
 const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentStep, totalSteps }) => {
   const { t } = useTranslation();
   const [localData, setLocalData] = useState({
     knowPsa: formData.knowPsa || false,
     psa: formData.psa || '',
+    prostateVolume: formData.prostateVolume || '',
     onHormonalTherapy: formData.onHormonalTherapy || false,
     hormonalTherapyType: formData.hormonalTherapyType || '',
     knowPirads: formData.knowPirads || false,
@@ -27,6 +30,19 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
         return;
       }
       if (!isNaN(psaNum) && psaNum >= 0.1 && psaNum <= 100) {
+        setLocalData(prev => ({ ...prev, [field]: value }));
+      }
+      return;
+    }
+
+    // Validate optional prostate volume input (for PSA density)
+    if (field === 'prostateVolume') {
+      if (value === '' || value === null || value === undefined) {
+        setLocalData(prev => ({ ...prev, [field]: '' }));
+        return;
+      }
+      const volNum = parseFloat(value);
+      if (!Number.isNaN(volNum) && volNum >= 5 && volNum <= 200) {
         setLocalData(prev => ({ ...prev, [field]: value }));
       }
       return;
@@ -61,6 +77,11 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
         <div className="question-header">
           <div className="question-number">1</div>
           <div className="question-text">{t('part2.psa.q1')}</div>
+          <InfoIcon
+            title="PSA Level — evidence sources"
+            description="PSA levels are used in Part 2 for educational risk stratification in combination with your baseline profile."
+              sources={fieldReferences.part2.psaLevel.sources}
+          />
         </div>
         <div className="question-body">
           <div className="option-grid c2">
@@ -116,6 +137,20 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                   {t('part2.psa.psaInvalid')}
                 </div>
               )}
+
+              <div style={{ marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600, color: '#1C2833' }}>
+                Prostate Volume (mL) (optional)
+              </div>
+              <input
+                type="number"
+                className="input-field"
+                placeholder="e.g. 30"
+                step="1"
+                min="5"
+                max="200"
+                value={localData.prostateVolume}
+                onChange={(e) => updateField('prostateVolume', e.target.value)}
+              />
               <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem', color: '#7F8C8D' }}>
                 {t('part2.psa.psaNote')}
               </div>
@@ -193,6 +228,11 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
         <div className="question-header">
           <div className="question-number">3</div>
           <div className="question-text">{t('part2.mri.q1')}</div>
+          <InfoIcon
+            title="MRI PI-RADS — evidence sources"
+            description="PI-RADS scoring is used in Part 2 (when provided) to help refine educational risk category."
+              sources={fieldReferences.part2.pirads.sources}
+          />
         </div>
         <div className="question-body">
           <div className="option-grid c2">
