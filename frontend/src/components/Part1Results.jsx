@@ -16,6 +16,8 @@ import {
   CheckCircle2Icon,
   AlertTriangleIcon,
   AlertCircleIcon,
+  ExternalLinkIcon,
+  MapPinIcon,
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
@@ -346,6 +348,21 @@ const Part1Results = ({
 
   return (
     <div className="results-container" role="main">
+
+      {/* ── Video link (top bar) ── */}
+      <div className="results-top-links-row">
+        <a
+          className="results-mobile-unit-pill"
+          href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Find Mobile Unit location"
+          title="Find Mobile Unit location"
+        >
+          <MapPinIcon size={16} />
+          <span>Mobile Unit</span>
+        </a>
+      </div>
 
       {/* ── Session / Cloud row ── */}
       {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (

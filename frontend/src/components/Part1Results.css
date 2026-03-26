@@ -28,6 +28,33 @@
   padding: 3rem 1rem;
 }
 
+/* ─── Top link row ─── */
+.results-top-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.results-mobile-unit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border: 0.0625rem solid #d0e0ee;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #1d6ea3;
+}
+
+.results-mobile-unit-pill:hover {
+  background: #f0f7ff;
+  transform: translateY(-0.0625rem);
+}
+
 /* ─── Cloud / Session row ─── */
 .results-cloud-row {
   display: flex;
@@ -859,6 +886,10 @@
 
   .results-actions,
   .results-cloud-row {
+    display: none !important;
+  }
+
+  .results-top-links-row {
     display: none !important;
   }
 
