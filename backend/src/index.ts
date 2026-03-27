@@ -83,6 +83,12 @@ function hashPhone(phone: string): string {
   return CryptoJS.SHA256(phone).toString();
 }
 
+// Utility: Remove undefined values from objects so Firestore Admin SDK doesn't throw.
+// Zod optional() fields produce undefined when the key is absent; Firestore rejects undefined.
+function stripUndefined<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 // ============================================
 // RATE LIMITING UTILITY
 // ============================================
@@ -234,27 +240,39 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
   const sessionData = {
     userId,
     status: 'STEP1_COMPLETE',
-    step1: step1Data,
+    step1: stripUndefined(step1Data),
     result: data.result || null,
     expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  await sessionRef.set(sessionData);
+  try {
+    await sessionRef.set(sessionData);
+  } catch (error) {
+    throw new functions.https.HttpsError('internal', 'Failed to write session document', error);
+  }
 
   // Update user's current session (use set+merge so it works even if user doc doesn't exist)
-  await db.collection('users').doc(userId).set({
-    currentSessionId: sessionRef.id,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-  }, { merge: true });
+  try {
+    await db.collection('users').doc(userId).set({
+      currentSessionId: sessionRef.id,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch (_error) {
+    // Non-fatal: session was created, just user doc update failed
+  }
 
-  // Audit log
+  // Audit log (non-fatal)
   const resultData = data.result as { score?: number } | undefined;
-  await logAudit('SESSION_CREATE', userId, 'session', sessionRef.id, {
-    status: 'STEP1_COMPLETE',
-    score: resultData?.score,
-  });
+  try {
+    await logAudit('SESSION_CREATE', userId, 'session', sessionRef.id, {
+      status: 'STEP1_COMPLETE',
+      score: resultData?.score,
+    });
+  } catch (_error) {
+    // Audit log failure should not block session creation
+  }
 
   return { success: true, sessionId: sessionRef.id };
 });
@@ -300,7 +318,7 @@ export const updateSession = functions.https.onCall(async (data: { sessionId: st
   // Update session
   const updateData: Record<string, unknown> = {
     status: 'STEP2_COMPLETE',
-    step2: step2Data,
+    step2: stripUndefined(step2Data),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
@@ -309,13 +327,21 @@ export const updateSession = functions.https.onCall(async (data: { sessionId: st
     updateData.finalScore = result.score;
   }
 
-  await sessionRef.update(updateData);
+  try {
+    await sessionRef.update(updateData);
+  } catch (error) {
+    throw new functions.https.HttpsError('internal', 'Failed to update session document', error);
+  }
 
-  // Audit log
-  await logAudit('SESSION_UPDATE', userId, 'session', sessionId, {
-    status: 'STEP2_COMPLETE',
-    finalCategory: result?.riskCat,
-  });
+  // Audit log (non-fatal)
+  try {
+    await logAudit('SESSION_UPDATE', userId, 'session', sessionId, {
+      status: 'STEP2_COMPLETE',
+      finalCategory: result?.riskCat,
+    });
+  } catch (_error) {
+    // Audit log failure should not block session update
+  }
 
   return { success: true, sessionId };
 });
