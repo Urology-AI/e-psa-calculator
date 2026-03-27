@@ -693,9 +693,14 @@ function App() {
       if (!firebaseUser) {
         throw new Error('Could not create session.');
       }
+      const cloudRisk = preResult
+        ? (['LOWER', 'MODERATE', 'HIGHER'].includes(preResult.risk)
+          ? preResult.risk
+          : (preResult.tierRisk || 'MODERATE'))
+        : undefined;
       const response = await backendCreateSession({
         step1: preData,
-        result: preResult,
+        result: preResult ? { score: preResult.score, risk: cloudRisk } : undefined,
       });
       const newSessionId = response?.sessionId;
       if (newSessionId) {
@@ -704,8 +709,8 @@ function App() {
       }
       if (postData && postResult) {
         await backendUpdateSession(newSessionId, postData, {
-          riskCat: postResult.riskClass || postResult.riskCat || 'unknown',
-          score: postResult.riskPct ?? postResult.score ?? 0,
+          riskCat: postResult.riskCat || postResult.riskClass || 'unknown',
+          score: postResult.totalPoints ?? 0,
         });
       }
       setStorageMode('cloud');
@@ -1084,9 +1089,13 @@ function App() {
       // Save Part 1 session via backend (cloud mode only)
       if (storageMode === 'cloud' && user && !sessionId) {
         try {
+          // Normalize risk to backend-accepted enum (LOWER/MODERATE/HIGHER only)
+          const backendRisk = ['LOWER', 'MODERATE', 'HIGHER'].includes(result.risk)
+            ? result.risk
+            : (result.tierRisk || 'MODERATE');
           const response = await backendCreateSession({
             step1: preData,
-            result: result
+            result: { score: result.score, risk: backendRisk }
           });
           const newSessionId = response.sessionId;
           setSessionId(newSessionId);
@@ -1143,7 +1152,10 @@ function App() {
       // Save Part 2 session via backend (cloud mode only)
       if (storageMode === 'cloud' && user && sessionId) {
         try {
-          await backendUpdateSession(sessionId, postData, result);
+          await backendUpdateSession(sessionId, postData, {
+            riskCat: result.riskCat || result.riskClass || 'unknown',
+            score: result.totalPoints ?? 0
+          });
         } catch (error) {
           console.error('Error saving step 2 via backend:', error);
         }
