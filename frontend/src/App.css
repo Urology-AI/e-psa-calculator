@@ -332,6 +332,64 @@ body {
   text-transform: uppercase;
 }
 
+.cloud-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 0.0625rem solid var(--line-200);
+  background: var(--surface-subtle);
+  color: var(--ink-700);
+  margin-right: 0.4rem;
+}
+
+.session-key-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 0.0625rem solid var(--brand-400);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  margin-right: 0.4rem;
+}
+
+.cloud-sync-badge--saving {
+  color: var(--brand-700);
+  border-color: var(--brand-400);
+  background: var(--brand-50);
+}
+
+.cloud-sync-badge--saved {
+  color: var(--success-600);
+  border-color: #86efac;
+  background: var(--success-50);
+}
+
+.cloud-sync-badge--error {
+  color: var(--error-600);
+  border-color: #fca5a5;
+  background: var(--error-50);
+}
+
+.theme-dark .cloud-sync-badge {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+  color: var(--ink-700);
+}
+
+.theme-dark .session-key-badge {
+  background: rgba(45, 139, 199, 0.14);
+  border-color: var(--brand-500);
+  color: #bfdbfe;
+}
+
 .stage-pre {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: var(--gold-600);
@@ -428,6 +486,33 @@ body {
 .btn-model-docs.btn-hipaa:hover {
   background: var(--success-600);
   color: #fff;
+}
+
+.logout-btn {
+  padding: 0.5rem 0.9rem;
+  background: transparent;
+  border: 0.09375rem solid var(--error-600);
+  color: var(--error-600);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  transition: all 0.18s ease;
+}
+
+.logout-btn:hover {
+  background: var(--error-600);
+  color: #fff;
+}
+
+.theme-dark .logout-btn {
+  border-color: #f87171;
+  color: #fca5a5;
+}
+
+.theme-dark .logout-btn:hover {
+  background: #b91c1c;
+  color: #fee2e2;
 }
 
 /* ─── Responsive ─── */

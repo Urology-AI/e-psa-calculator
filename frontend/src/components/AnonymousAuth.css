@@ -221,6 +221,63 @@
   color: #718096;
 }
 
+.theme-dark .anonymous-auth-container {
+  background: transparent;
+  color: var(--ink-900);
+}
+
+.theme-dark .anonymous-auth-card {
+  background: var(--surface);
+  border-color: var(--line-200);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-dark .auth-title,
+.theme-dark .session-created h3 {
+  color: var(--ink-900);
+}
+
+.theme-dark .auth-subtitle,
+.theme-dark .auth-instruction p,
+.theme-dark .session-id-label,
+.theme-dark .auth-info p,
+.theme-dark .footer-options p,
+.theme-dark .auth-alternatives {
+  color: var(--ink-700);
+}
+
+.theme-dark .session-id-display,
+.theme-dark .session-confirmation {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+}
+
+.theme-dark .regenerate-btn:hover:not(:disabled),
+.theme-dark .auth-submit-btn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--brand-400);
+}
+
+.theme-dark .auth-footer {
+  border-top-color: var(--line-200);
+}
+
+.theme-dark .auth-error {
+  background-color: rgba(220, 38, 38, 0.16);
+  color: #fecaca;
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.theme-dark .session-warning {
+  background: rgba(217, 119, 6, 0.14);
+  border-color: rgba(217, 119, 6, 0.38);
+  color: #fcd34d;
+}
+
+.theme-dark .session-warning strong {
+  color: #fde68a;
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .anonymous-auth-container {

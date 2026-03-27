@@ -62,6 +62,7 @@ function App() {
   const [importedData, setImportedData] = useState(null);
   const [saveToCloudPending, setSaveToCloudPending] = useState(false);
   const [saveToCloudError, setSaveToCloudError] = useState(null);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
   const [quickOpen, setQuickOpen] = useState(false);
   
@@ -339,13 +340,13 @@ function App() {
               setPart1Step(0);
             }
             
-            setAuthStep('app');
+            setAuthStep('consent');
           } catch (error) {
             console.error('Error parsing consent data:', error);
             setAuthStep('consent');
           }
         } else {
-          // Anonymous users can proceed without consent until they link contact info.
+          // Anonymous users still go through consent before entering the app.
           if (currentUser.isAnonymous) {
             // Restore session for returning anonymous users
             try {
@@ -436,7 +437,7 @@ function App() {
               console.warn('Could not restore anonymous session:', restoreErr);
             }
             setStorageMode('cloud');
-            setAuthStep('app');
+            setAuthStep('consent');
           } else {
             setAuthStep('consent');
           }
@@ -459,12 +460,20 @@ function App() {
 
 
   const upsertConsent = async (consent) => {
-    if (!user?.uid) {
-      throw new Error('Cannot save consent without an authenticated user/session');
+    const firebaseUser = auth?.currentUser;
+    const canWriteCloud =
+      storageMode === 'cloud' &&
+      !!firebaseUser &&
+      !!user?.uid &&
+      firebaseUser.uid === user.uid;
+
+    if (!canWriteCloud) {
+      return { success: true, skipped: true };
     }
     if (!db) return { success: true };
 
     const consentToContact = consent?.consentToContact === true;
+    setCloudSyncStatus('saving');
     await setDoc(doc(db, 'users', user.uid), {
       consentToContact,
       consentTimestamp: consent?.consentTimestamp || new Date().toISOString(),
@@ -472,6 +481,7 @@ function App() {
       lastLoginAt: new Date().toISOString(),
       sessionType: 'anonymous',
     }, { merge: true });
+    setCloudSyncStatus('saved');
 
     return { success: true };
   };
@@ -496,6 +506,7 @@ function App() {
 
   const saveSession = async (uid, step1Data) => {
     if (!db) return null;
+    setCloudSyncStatus('saving');
     const sessionRef = doc(collection(db, 'sessions'));
     const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
     await setDoc(sessionRef, {
@@ -510,11 +521,13 @@ function App() {
       currentSessionId: sessionRef.id,
       updatedAt: serverTimestamp(),
     }, { merge: true });
+    setCloudSyncStatus('saved');
     return sessionRef.id;
   };
 
   const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score) => {
     if (!db) return;
+    setCloudSyncStatus('saving');
     await updateDoc(doc(db, 'sessions', sessionDocId), {
       status: 'STEP2_COMPLETE',
       step2: step2Data,
@@ -522,15 +535,18 @@ function App() {
       finalScore: score,
       updatedAt: serverTimestamp(),
     });
+    setCloudSyncStatus('saved');
   };
 
   const removeSession = async (uid, sessionDocId) => {
     if (!db) return;
+    setCloudSyncStatus('saving');
     await deleteDoc(doc(db, 'sessions', sessionDocId));
     await updateDoc(doc(db, 'users', uid), {
       currentSessionId: deleteField(),
       updatedAt: serverTimestamp(),
     });
+    setCloudSyncStatus('saved');
   };
 
   const handleAuthSuccess = async (user, authInfo) => {
@@ -555,10 +571,9 @@ function App() {
     }
     
     const consentExists = !!(userData && userData.consentToContact !== undefined);
-    const shouldBypassConsent = user?.isAnonymous === true;
 
-    if (consentExists || shouldBypassConsent) {
-      // User already consented - skip consent screen
+    if (consentExists) {
+      // Preserve previously recorded consent, but always re-show consent screen.
       let consent;
       if (userData) {
         consent = {
@@ -569,12 +584,8 @@ function App() {
       if (consent) {
         setConsentData(consent);
       }
-      // Anonymous users always use cloud storage
-      if (shouldBypassConsent) {
-        setStorageMode('cloud');
-      }
-      setAuthStep('app');
-      console.log('[AuthFlow] consent bypass/existing -> authStep=app', { uid: user?.uid, shouldBypassConsent });
+      setAuthStep('consent');
+      console.log('[AuthFlow] consent exists -> authStep=consent', { uid: user?.uid });
     } else {
       // No consent found - show consent screen
       setAuthStep('consent');
@@ -584,6 +595,10 @@ function App() {
 
   const handleConsentComplete = async (consent) => {
     setConsentData(consent);
+    // Consent continue should always enter the Part 1 form flow.
+    setStage('pre');
+    setCurrentStep(1);
+    setPart1Step(0);
     
     // Save consent to Firestore for any authenticated mode (phone, email, or anonymous)
     if (user) {
@@ -598,6 +613,7 @@ function App() {
         // Check if it's a permission error
         if (error.code === 'permission-denied' || error.message.includes('permission')) {
           console.warn('Permission denied - Firestore rules may not be deployed.');
+          setCloudSyncStatus('error');
         }
         
         // Still proceed to app even if Firestore fails
@@ -656,6 +672,7 @@ function App() {
     });
     setPreResult(null);
     setPostResult(null);
+    setCloudSyncStatus('idle');
     setStage('pre');
     setCurrentStep(1);
     setPart1Step(0);
@@ -688,12 +705,14 @@ function App() {
         updatedAt: serverTimestamp(),
         lastLoginAt: new Date().toISOString()
       }, { merge: true });
+      setCloudSyncStatus('saved');
 
       setAppSessionId(newSessionId);
       setUser(firebaseUser);
       return newSessionId;
     } catch (err) {
       console.error('anonymous sign-in failed', err);
+      setCloudSyncStatus('error');
       if (err.code === 'auth/admin-restricted-operation') {
         throw new Error('Anonymous sign-in is restricted; enable the provider in Firebase console.');
       }
@@ -708,7 +727,7 @@ function App() {
       setStorageMode('local');
       setUser({ uid: 'local', isAnonymous: true });
       setAppSessionId('Local');
-      setAuthStep('app');
+      setAuthStep('consent');
     }
   };
 
@@ -833,9 +852,9 @@ function App() {
             consentTimestamp: restored.consentTimestamp || new Date().toISOString()
           };
           setConsentData(consent);
-          setAuthStep('app');
+          setAuthStep('consent');
         } else {
-          setAuthStep('app');
+          setAuthStep('consent');
         }
       } catch (error) {
         console.error('Session login error:', {
@@ -936,7 +955,7 @@ function App() {
     }
     
     // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
-    setAuthStep('app');
+    setAuthStep('consent');
     setStage(targetStage);
     if (part1Result) {
       if (targetStage === 'pre') {
@@ -1065,6 +1084,7 @@ function App() {
       });
       setPreResult(null);
       setPostResult(null);
+      setCloudSyncStatus('idle');
       // Reset form progress
       setStage('pre');
       setCurrentStep(1);
@@ -1236,7 +1256,7 @@ function App() {
           setAuthStep('welcome');
           break;
         case 'consent':
-          setAuthStep('login');
+          setAuthStep('welcome');
           break;
         case 'welcome':
         default:
@@ -1280,7 +1300,7 @@ function App() {
                   setStorageMode('local');
                   setUser({ uid: 'local', isAnonymous: true });
                   setAppSessionId('Local');
-                  setAuthStep('app');
+                  setAuthStep('consent');
                 }
               }}
               cloudAvailable={isFirebaseConfigured()}
@@ -1289,7 +1309,7 @@ function App() {
                 setStorageMode('local');
                 setUser({ uid: 'local', isAnonymous: true });
                 setAppSessionId('Local');
-                setAuthStep('app');
+                setAuthStep('consent');
               }}
               onBeginCloud={() => {
                 setStorageMode('cloud');
@@ -1520,7 +1540,33 @@ function App() {
             <TextScaleControl />
             <ThemeSwitcher />
             <LanguageSwitcher />
+            {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
+              <button
+                type="button"
+                className="logout-btn"
+                onClick={handleLogout}
+                title="Logout from current session"
+              >
+                Logout
+              </button>
+            )}
             <div className="stage-indicator">
+              {authStep === 'app' && storageMode === 'cloud' && appSessionId && appSessionId !== 'Local' && (
+                <span className="session-key-badge" title="Anonymous session key">
+                  Session Key: {appSessionId}
+                </span>
+              )}
+              {authStep === 'app' && storageMode === 'cloud' && (
+                <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
+                  {cloudSyncStatus === 'saving'
+                    ? 'Saving to anonymous cloud...'
+                    : cloudSyncStatus === 'saved'
+                      ? 'Synced to anonymous cloud'
+                      : cloudSyncStatus === 'error'
+                        ? 'Cloud sync issue'
+                        : 'Anonymous cloud ready'}
+                </span>
+              )}
               {authStep === 'app' && (
                 stage === 'pre' ? (
                   <span className="stage-badge stage-pre">{t('app.stage.stagePre')}</span>

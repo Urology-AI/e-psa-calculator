@@ -136,6 +136,20 @@
   line-height: 1.6;
 }
 
+.consent-data-use {
+  background: #eef6ff;
+  border-left: 0.25rem solid #1f6ea3;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  color: #1e3347;
+}
+
+.consent-data-use p {
+  margin: 0;
+  line-height: 1.6;
+}
+
 .error-message {
   background: #ffebee;
   color: #c62828;
@@ -147,6 +161,60 @@
 
 .btn-block {
   width: 100%;
+}
+
+.theme-dark .consent-card {
+  background: var(--surface);
+  border-color: var(--line-200);
+}
+
+.theme-dark .consent-header h2,
+.theme-dark .consent-intro strong {
+  color: var(--brand-400);
+}
+
+.theme-dark .consent-intro,
+.theme-dark .consent-reasons li,
+.theme-dark .question-text,
+.theme-dark .consent-option span {
+  color: var(--ink-800);
+}
+
+.theme-dark .consent-reasons {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .consent-option {
+  border-color: var(--line-200);
+  background: var(--surface);
+}
+
+.theme-dark .consent-option:hover {
+  border-color: var(--brand-500);
+  background: var(--surface-subtle);
+}
+
+.theme-dark .consent-option.selected {
+  border-color: var(--brand-500);
+  background: rgba(45, 139, 199, 0.16);
+}
+
+.theme-dark .consent-disclaimer {
+  background: rgba(217, 119, 6, 0.16);
+  border-left-color: var(--warning-600);
+  color: #fcd34d;
+}
+
+.theme-dark .consent-data-use {
+  background: rgba(45, 139, 199, 0.14);
+  border-left-color: var(--brand-500);
+  color: #bfdbfe;
+}
+
+.theme-dark .error-message {
+  background: rgba(220, 38, 38, 0.16);
+  color: #fecaca;
+  border-left-color: rgba(220, 38, 38, 0.45);
 }
 
 @media (max-width: 480px) {

@@ -351,17 +351,22 @@ const Part1Results = ({
 
       {/* ── Video link (top bar) ── */}
       <div className="results-top-links-row">
-        <a
-          className="results-mobile-unit-pill"
-          href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Find Mobile Unit location"
-          title="Find Mobile Unit location"
-        >
-          <MapPinIcon size={16} />
-          <span>Mobile Unit</span>
-        </a>
+        <div className="results-mobile-unit-wrap">
+          <a
+            className="results-mobile-unit-pill"
+            href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Find Mobile Unit location"
+            title="Find Mobile Unit location"
+          >
+            <MapPinIcon size={16} />
+            <span>Mobile Unit</span>
+          </a>
+          <p className="results-mobile-unit-note">
+            Important: Learn more about screening and upcoming community events.
+          </p>
+        </div>
       </div>
 
       {/* ── Session / Cloud row ── */}
