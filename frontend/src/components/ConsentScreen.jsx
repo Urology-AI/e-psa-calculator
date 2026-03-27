@@ -65,6 +65,9 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             <p>
               <strong>{t('consent.disclaimerNotePrefix')}</strong> {t('consent.disclaimerMain')}
             </p>
+            <p>
+              {t('consent.firstVisitDisclaimer')}
+            </p>
           </div>
 
           <div className="consent-data-use">

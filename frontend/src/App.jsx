@@ -27,6 +27,8 @@ import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp,
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
+const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
+
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
   if (!show) return null;
@@ -65,6 +67,22 @@ function App() {
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
   const [quickOpen, setQuickOpen] = useState(false);
+
+  const hasCachedConsent = () => {
+    try {
+      return localStorage.getItem(CONSENT_CACHE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  };
+
+  const cacheConsent = () => {
+    try {
+      localStorage.setItem(CONSENT_CACHE_KEY, 'true');
+    } catch {
+      // Ignore storage errors (private mode/quota).
+    }
+  };
   
   // Detect email from URL params (legacy; we no longer collect email)
   const [urlEmail, setUrlEmail] = useState(null);
@@ -168,6 +186,7 @@ function App() {
         const consentExists = !!(userData && userData.consentToContact !== undefined);
         
         if (consentExists) {
+          cacheConsent();
           try {
             let consent;
             if (userData) {
@@ -340,7 +359,7 @@ function App() {
               setPart1Step(0);
             }
             
-            setAuthStep('consent');
+            setAuthStep('app');
           } catch (error) {
             console.error('Error parsing consent data:', error);
             setAuthStep('consent');
@@ -437,9 +456,27 @@ function App() {
               console.warn('Could not restore anonymous session:', restoreErr);
             }
             setStorageMode('cloud');
-            setAuthStep('consent');
+            if (hasCachedConsent()) {
+              setConsentData({
+                consentToContact: true,
+                consentBasis: 'implied_cached',
+                consentTimestamp: new Date().toISOString()
+              });
+              setAuthStep('app');
+            } else {
+              setAuthStep('consent');
+            }
           } else {
-            setAuthStep('consent');
+            if (hasCachedConsent()) {
+              setConsentData({
+                consentToContact: true,
+                consentBasis: 'implied_cached',
+                consentTimestamp: new Date().toISOString()
+              });
+              setAuthStep('app');
+            } else {
+              setAuthStep('consent');
+            }
           }
         }
       } else {
@@ -573,7 +610,7 @@ function App() {
     const consentExists = !!(userData && userData.consentToContact !== undefined);
 
     if (consentExists) {
-      // Preserve previously recorded consent, but always re-show consent screen.
+      // Consent already recorded for this user/session.
       let consent;
       if (userData) {
         consent = {
@@ -584,17 +621,29 @@ function App() {
       if (consent) {
         setConsentData(consent);
       }
-      setAuthStep('consent');
-      console.log('[AuthFlow] consent exists -> authStep=consent', { uid: user?.uid });
+      cacheConsent();
+      setAuthStep('app');
+      console.log('[AuthFlow] consent exists -> authStep=app', { uid: user?.uid });
     } else {
-      // No consent found - show consent screen
-      setAuthStep('consent');
-      console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
+      if (hasCachedConsent()) {
+        setConsentData({
+          consentToContact: true,
+          consentBasis: 'implied_cached',
+          consentTimestamp: new Date().toISOString()
+        });
+        setAuthStep('app');
+        console.log('[AuthFlow] consent cached -> authStep=app', { uid: user?.uid });
+      } else {
+        // No consent found - show consent screen
+        setAuthStep('consent');
+        console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
+      }
     }
   };
 
   const handleConsentComplete = async (consent) => {
     setConsentData(consent);
+    cacheConsent();
     // Consent continue should always enter the Part 1 form flow.
     setStage('pre');
     setCurrentStep(1);
@@ -846,16 +895,22 @@ function App() {
         }
 
         const consentExists = restored.consentToContact !== undefined && restored.consentToContact !== null;
+        const impliedConsent = {
+          consentToContact: true,
+          consentBasis: 'implied_by_import',
+          consentTimestamp: new Date().toISOString()
+        };
         if (consentExists) {
           const consent = {
             consentToContact: restored.consentToContact || false,
             consentTimestamp: restored.consentTimestamp || new Date().toISOString()
           };
           setConsentData(consent);
-          setAuthStep('consent');
         } else {
-          setAuthStep('consent');
+          setConsentData(impliedConsent);
         }
+        cacheConsent();
+        setAuthStep('app');
       } catch (error) {
         console.error('Session login error:', {
           code: error?.code,
@@ -954,8 +1009,15 @@ function App() {
       setAppSessionId('Local');
     }
     
+    // Import implies consent to use the platform and continue.
+    setConsentData({
+      consentToContact: true,
+      consentBasis: 'implied_by_import',
+      consentTimestamp: new Date().toISOString()
+    });
+    cacheConsent();
     // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
-    setAuthStep('consent');
+    setAuthStep('app');
     setStage(targetStage);
     if (part1Result) {
       if (targetStage === 'pre') {
@@ -1300,7 +1362,16 @@ function App() {
                   setStorageMode('local');
                   setUser({ uid: 'local', isAnonymous: true });
                   setAppSessionId('Local');
-                  setAuthStep('consent');
+                  if (hasCachedConsent()) {
+                    setConsentData({
+                      consentToContact: true,
+                      consentBasis: 'implied_cached',
+                      consentTimestamp: new Date().toISOString()
+                    });
+                    setAuthStep('app');
+                  } else {
+                    setAuthStep('consent');
+                  }
                 }
               }}
               cloudAvailable={isFirebaseConfigured()}
@@ -1309,7 +1380,16 @@ function App() {
                 setStorageMode('local');
                 setUser({ uid: 'local', isAnonymous: true });
                 setAppSessionId('Local');
-                setAuthStep('consent');
+                if (hasCachedConsent()) {
+                  setConsentData({
+                    consentToContact: true,
+                    consentBasis: 'implied_cached',
+                    consentTimestamp: new Date().toISOString()
+                  });
+                  setAuthStep('app');
+                } else {
+                  setAuthStep('consent');
+                }
               }}
               onBeginCloud={() => {
                 setStorageMode('cloud');
