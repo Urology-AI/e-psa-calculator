@@ -36,6 +36,13 @@
   gap: 0.5rem;
 }
 
+.results-mobile-unit-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
 .results-mobile-unit-pill {
   display: inline-flex;
   align-items: center;
@@ -53,6 +60,13 @@
 .results-mobile-unit-pill:hover {
   background: #f0f7ff;
   transform: translateY(-0.0625rem);
+}
+
+.results-mobile-unit-note {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a6b84;
 }
 
 /* ─── Cloud / Session row ─── */
@@ -937,6 +951,20 @@
 
 /* ─── Dark mode overrides ─── */
 .theme-dark .results-empty {
+  color: var(--ink-500);
+}
+
+.theme-dark .results-mobile-unit-pill {
+  background: var(--surface);
+  border-color: var(--line-100);
+  color: var(--brand-600);
+}
+
+.theme-dark .results-mobile-unit-pill:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .results-mobile-unit-note {
   color: var(--ink-500);
 }
 

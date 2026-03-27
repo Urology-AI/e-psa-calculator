@@ -1,38 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './ConsentScreen.css';
 import { 
   ShieldIcon, 
-  SmartphoneIcon, 
-  MailIcon,
-  CalendarIcon, 
-  HospitalIcon 
+  HardDriveIcon,
+  CloudIcon,
+  LockIcon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ConsentScreen = ({ phone, email, onConsentComplete }) => {
-  const [consent, setConsent] = useState(null);
-  const [error, setError] = useState('');
   const { t } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (consent === null) {
-      setError(t('consent.errorNoSelection'));
-      return;
-    }
 
     const consentData = {
-      consentToContact: consent === 'yes',
+      consentToContact: true,
+      consentBasis: 'implied_by_use',
       consentTimestamp: new Date().toISOString()
     };
 
     onConsentComplete(consentData);
   };
-
-  const contactInfo = email || phone;
-  const isEmail = !!email;
-  const hasContact = !!contactInfo;
 
   return (
     <div className="consent-container">
@@ -40,34 +29,27 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
         <div className="consent-header">
           <h2>{t('consent.title')}</h2>
           <p className="consent-intro">
-            {hasContact
-              ? t('consent.introWithContact', {
-                  contactInfo,
-                  contactLabel: isEmail ? t('consent.contactEmailLabel') : t('consent.contactPhoneLabel'),
-                })
-              : t('consent.introWithoutContact')}
+            {t('consent.intro')}
           </p>
         </div>
 
         <div className="consent-reasons">
           <ul>
-            {hasContact && (
-              <li>
-                <ShieldIcon size={16} />
-                {t('consent.reasonAccountLogin')}
-              </li>
-            )}
             <li>
-              {hasContact ? (isEmail ? <MailIcon size={16} /> : <SmartphoneIcon size={16} />) : <ShieldIcon size={16} />}
-              {t('consent.reasonFollowup')}
+              <HardDriveIcon size={16} />
+              {t('consent.reasonStorage')}
             </li>
             <li>
-              <CalendarIcon size={16} />
-              {t('consent.reasonReminders')}
+              <CloudIcon size={16} />
+              {t('consent.reasonCloudKey')}
             </li>
             <li>
-              <HospitalIcon size={16} />
-              {t('consent.reasonResources')}
+              <LockIcon size={16} />
+              {t('consent.reasonPrivacy')}
+            </li>
+            <li>
+              <ShieldIcon size={16} />
+              {t('consent.reasonDataUse')}
             </li>
           </ul>
         </div>
@@ -75,56 +57,25 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
         <form onSubmit={handleSubmit} className="consent-form">
           <div className="consent-question">
             <p className="question-text">
-              <strong>{t('consent.question')}</strong>
+              <strong>{t('consent.acknowledgement')}</strong>
             </p>
-
-            <div className="consent-options">
-              <label className={`consent-option ${consent === 'yes' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="consent"
-                  value="yes"
-                  checked={consent === 'yes'}
-                  onChange={(e) => {
-                    setConsent(e.target.value);
-                    setError('');
-                  }}
-                />
-                <span>{t('consent.optionYes')}</span>
-              </label>
-
-              <label className={`consent-option ${consent === 'no' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="consent"
-                  value="no"
-                  checked={consent === 'no'}
-                  onChange={(e) => {
-                    setConsent(e.target.value);
-                    setError('');
-                  }}
-                />
-                <span>{t('consent.optionNo')}</span>
-              </label>
-            </div>
-
-            {error && <div className="error-message">{error}</div>}
           </div>
 
           <div className="consent-disclaimer">
             <p>
               <strong>{t('consent.disclaimerNotePrefix')}</strong> {t('consent.disclaimerMain')}
-              {hasContact
-                ? ` ${t('consent.disclaimerWithContactNo')}`
-                : ` ${t('consent.disclaimerWithoutContactNo')}`
-              }
+            </p>
+          </div>
+
+          <div className="consent-data-use">
+            <p>
+              <strong>{t('consent.dataUseTitle')}</strong> {t('consent.dataUseBody')}
             </p>
           </div>
 
           <button 
             type="submit" 
             className="btn btn-primary btn-block"
-            disabled={consent === null}
           >
             {t('consent.continueButton')}
           </button>

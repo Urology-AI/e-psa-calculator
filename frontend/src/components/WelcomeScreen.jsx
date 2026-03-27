@@ -37,14 +37,14 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
         <div className="ws-cta">
           {showStorageChoice ? (
             <div className="ws-storage-choice">
-              <button type="button" className="ws-btn-primary" onClick={onBeginLocal}>
-                <span>{t('welcome.storageDeviceOnlyTitle')}</span>
-                <span className="ws-btn-sub">{t('welcome.storageDeviceOnlySub')}</span>
+              <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
+                <span>{t('welcome.storageCloudTitle')}</span>
+                <span className="ws-btn-sub">{t('welcome.storageCloudSub')}</span>
                 <ArrowRightIcon size={18} />
               </button>
-              <button type="button" className="ws-btn-ghost" onClick={onBeginCloud}>
-                <span>{t('welcome.storageCloudTitle')}</span>
-                <span className="ws-btn-sub ws-btn-sub-ghost">{t('welcome.storageCloudSub')}</span>
+              <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>
+                <span>{t('welcome.storageDeviceOnlyTitle')}</span>
+                <span className="ws-btn-sub ws-btn-sub-ghost">{t('welcome.storageDeviceOnlySub')}</span>
               </button>
             </div>
           ) : (
