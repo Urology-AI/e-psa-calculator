@@ -219,7 +219,7 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
     const result = data.result as { score: number; risk: string };
     const ResultSchema = z.object({
       score: z.number().int().min(0).max(100),
-      risk: z.enum(['LOWER', 'MODERATE', 'HIGHER']),
+      risk: z.enum(['LOWER', 'MODERATE', 'HIGHER', 'PSA_RECOMMENDED', 'PSA_NOT_RECOMMENDED']),
     });
     try {
       ResultSchema.parse(result);
