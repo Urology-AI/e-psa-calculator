@@ -23,10 +23,9 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
-import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
-import { createSession as backendCreateSession, updateSession as backendUpdateSession, deleteSession as backendDeleteSession, getSession as backendGetSession } from './services/phiBackendService';
 
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
@@ -484,19 +483,55 @@ function App() {
     return { id: userSnap.id, ...userSnap.data() };
   };
 
-  // Session data is stored via HIPAA-compliant Cloud Functions; always fetch via backend
   const getSession = async (id) => {
-    if (!id) return null;
+    if (!id || !db) return null;
     try {
-      const session = await backendGetSession(id);
-      return session || null;
+      const snap = await getDoc(doc(db, 'sessions', id));
+      return snap.exists() ? snap.data() : null;
     } catch (error) {
-      console.warn('Could not load session via backendGetSession:', error);
+      console.warn('Could not load session:', error);
       return null;
     }
   };
 
-  // Session create/update/delete are handled by backend Cloud Functions (phiBackendService)
+  const saveSession = async (uid, step1Data) => {
+    if (!db) return null;
+    const sessionRef = doc(collection(db, 'sessions'));
+    const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    await setDoc(sessionRef, {
+      userId: uid,
+      status: 'STEP1_COMPLETE',
+      step1: step1Data,
+      expiresAt,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, 'users', uid), {
+      currentSessionId: sessionRef.id,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    return sessionRef.id;
+  };
+
+  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score) => {
+    if (!db) return;
+    await updateDoc(doc(db, 'sessions', sessionDocId), {
+      status: 'STEP2_COMPLETE',
+      step2: step2Data,
+      finalCategory: riskCat,
+      finalScore: score,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const removeSession = async (uid, sessionDocId) => {
+    if (!db) return;
+    await deleteDoc(doc(db, 'sessions', sessionDocId));
+    await updateDoc(doc(db, 'users', uid), {
+      currentSessionId: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  };
 
   const handleAuthSuccess = async (user, authInfo) => {
     console.log('[AuthFlow] handleAuthSuccess invoked', {
@@ -693,20 +728,13 @@ function App() {
       if (!firebaseUser) {
         throw new Error('Could not create session.');
       }
-      const response = await backendCreateSession({
-        step1: preData,
-        result: preResult,
-      });
-      const newSessionId = response?.sessionId;
+      const newSessionId = await saveSession(firebaseUser.uid, preData);
       if (newSessionId) {
         setSessionId(newSessionId);
         localStorage.setItem(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
-      if (postData && postResult) {
-        await backendUpdateSession(newSessionId, postData, {
-          riskCat: postResult.riskClass || postResult.riskCat || 'unknown',
-          score: postResult.riskPct ?? postResult.score ?? 0,
-        });
+      if (postData && postResult && newSessionId) {
+        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0);
       }
       setStorageMode('cloud');
     } catch (err) {
@@ -759,7 +787,7 @@ function App() {
 
           // Load session JSON from Firebase so user continues where they left off
           try {
-            const sessionData = await backendGetSession(restored.currentSessionId);
+            const sessionData = await getSession(restored.currentSessionId);
             if (sessionData?.step1) {
               const defaultShape = {
                 age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
@@ -778,15 +806,20 @@ function App() {
                 step1.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
               }
               setPreData(step1);
-              if (sessionData.result) {
-                setPreResult(sessionData.result);
-              }
+              const recalcPre = calculateDynamicEPsa(step1, calculatorConfig);
+              if (recalcPre) setPreResult(recalcPre);
               if (sessionData.step2) {
                 setPostData(sessionData.step2);
+                if (recalcPre) {
+                  const recalcPost = calculateDynamicEPsaPost(recalcPre, sessionData.step2, calculatorConfig);
+                  if (recalcPost) setPostResult(recalcPost);
+                }
+                setStage('post');
+              } else {
+                setStage('pre');
               }
-              if (sessionData.step2 && sessionData.finalCategory != null) {
-                setPostResult({ riskCat: sessionData.finalCategory, score: sessionData.finalScore ?? 0 });
-              }
+              setCurrentStep(3);
+              setStorageMode('cloud');
             }
           } catch (loadErr) {
             console.warn('Could not load session data:', loadErr);
@@ -924,10 +957,10 @@ function App() {
     // Delete current session via backend and clear user's session reference
     if (storageMode === 'cloud' && user && sessionId) {
       try {
-        await backendDeleteSession(sessionId);
+        await removeSession(user.uid, sessionId);
       } catch (error) {
-        console.error('Error deleting session from backend:', error);
-        // Continue clearing local data even if backend delete fails
+        console.error('Error deleting session:', error);
+        // Continue clearing local data even if delete fails
       }
     }
     
@@ -1081,18 +1114,14 @@ function App() {
         });
       }
       
-      // Save Part 1 session via backend (cloud mode only)
+      // Save Part 1 session to Firestore (cloud mode only)
       if (storageMode === 'cloud' && user && !sessionId) {
         try {
-          const response = await backendCreateSession({
-            step1: preData,
-            result: result
-          });
-          const newSessionId = response.sessionId;
+          const newSessionId = await saveSession(user.uid, preData);
           setSessionId(newSessionId);
           localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
         } catch (error) {
-          console.error('Error saving step 1 via backend:', error);
+          console.error('Error saving step 1 to Firestore:', error);
         }
       }
       
@@ -1140,12 +1169,12 @@ function App() {
         });
       }
       
-      // Save Part 2 session via backend (cloud mode only)
+      // Save Part 2 session to Firestore (cloud mode only)
       if (storageMode === 'cloud' && user && sessionId) {
         try {
-          await backendUpdateSession(sessionId, postData, result);
+          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0);
         } catch (error) {
-          console.error('Error saving step 2 via backend:', error);
+          console.error('Error saving step 2 to Firestore:', error);
         }
       }
       
