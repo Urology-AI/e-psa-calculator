@@ -494,7 +494,7 @@ function App() {
     }
   };
 
-  const saveSession = async (uid, step1Data, resultData) => {
+  const saveSession = async (uid, step1Data) => {
     if (!db) return null;
     const sessionRef = doc(collection(db, 'sessions'));
     const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
@@ -502,7 +502,6 @@ function App() {
       userId: uid,
       status: 'STEP1_COMPLETE',
       step1: step1Data,
-      result: resultData || null,
       expiresAt,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -729,7 +728,7 @@ function App() {
       if (!firebaseUser) {
         throw new Error('Could not create session.');
       }
-      const newSessionId = await saveSession(firebaseUser.uid, preData, preResult ? { score: preResult.score } : null);
+      const newSessionId = await saveSession(firebaseUser.uid, preData);
       if (newSessionId) {
         setSessionId(newSessionId);
         localStorage.setItem(`sessionId_${firebaseUser.uid}`, newSessionId);
@@ -807,15 +806,20 @@ function App() {
                 step1.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
               }
               setPreData(step1);
-              if (sessionData.result) {
-                setPreResult(sessionData.result);
-              }
+              const recalcPre = calculateDynamicEPsa(step1, calculatorConfig);
+              if (recalcPre) setPreResult(recalcPre);
               if (sessionData.step2) {
                 setPostData(sessionData.step2);
+                if (recalcPre) {
+                  const recalcPost = calculateDynamicEPsaPost(recalcPre, sessionData.step2, calculatorConfig);
+                  if (recalcPost) setPostResult(recalcPost);
+                }
+                setStage('post');
+              } else {
+                setStage('pre');
               }
-              if (sessionData.step2 && sessionData.finalCategory != null) {
-                setPostResult({ riskCat: sessionData.finalCategory, score: sessionData.finalScore ?? 0 });
-              }
+              setCurrentStep(3);
+              setStorageMode('cloud');
             }
           } catch (loadErr) {
             console.warn('Could not load session data:', loadErr);
@@ -1113,7 +1117,7 @@ function App() {
       // Save Part 1 session to Firestore (cloud mode only)
       if (storageMode === 'cloud' && user && !sessionId) {
         try {
-          const newSessionId = await saveSession(user.uid, preData, { score: result.score });
+          const newSessionId = await saveSession(user.uid, preData);
           setSessionId(newSessionId);
           localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
         } catch (error) {
