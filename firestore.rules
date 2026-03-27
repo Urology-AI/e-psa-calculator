@@ -86,15 +86,15 @@ service cloud.firestore {
     }
     
     // ============================================
-    // SESSIONS COLLECTION (PHI - Backend Only)
+    // SESSIONS COLLECTION
     // ============================================
     match /sessions/{sessionId} {
-      allow get, list: if isAuthenticated() && 
-        (resource.data.uid == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow get, list: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
       allow create: if isAuthenticated() &&
-        (request.resource.data.uid == request.auth.uid || isAdmin() || isSuperAdmin());
+        (request.resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
       allow update, delete: if isAuthenticated() &&
-        (resource.data.uid == request.auth.uid || isAdmin() || isSuperAdmin());
+        (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
     }
     
     // ============================================
