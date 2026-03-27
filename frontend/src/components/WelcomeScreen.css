@@ -14,6 +14,17 @@
   margin-bottom: 1.75rem;
 }
 
+.ws-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.ws-hero-main {
+  min-width: 0;
+}
+
 .ws-hero-kicker {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -122,6 +133,15 @@
   font-weight: 500;
 }
 
+.ws-qr {
+  margin-top: 0.5rem;
+}
+
+.ws-qr-right {
+  margin-top: 0;
+  align-self: start;
+}
+
 /* ── How it works ── */
 .ws-flow {
   margin-bottom: 1.5rem;
@@ -171,6 +191,13 @@
   display: flex;
   gap: 1.25rem;
   flex-wrap: wrap;
+}
+
+.ws-secondary-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
   margin-bottom: 1.75rem;
 }
 
@@ -234,6 +261,18 @@
 
 /* ── Responsive ── */
 @media (max-width: 560px) {
+  .ws-hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ws-qr-right {
+    width: 100%;
+  }
+
+  .ws-secondary-wrap {
+    grid-template-columns: 1fr;
+  }
+
   .ws-hero-title {
     font-size: 1.6rem;
   }
