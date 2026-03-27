@@ -16,11 +16,13 @@ service cloud.firestore {
     }
     
     // Optimized with regex to handle both domains and case-insensitivity
+    // Null-guard email: anonymous users have no email; avoid evaluation error on null.matches()
     function isSuperAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
-        request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
-      );
+      return isAuthenticated() &&
+        request.auth.token.email != null && (
+          request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
+          request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
+        );
     }
     
     function isAuthorizedAdmin() {
