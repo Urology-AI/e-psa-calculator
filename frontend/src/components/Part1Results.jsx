@@ -437,7 +437,7 @@ const Part1Results = ({
             This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age &gt;=70, Black ancestry, first-degree family history, or confirmed BRCA mutation. &gt;=2 comorbid conditions also meets this threshold based on cohort data (OR 1.93, p=0.001, N=94).
           </p>
           <p className="high-risk-flag-disclosure">
-            The High-Risk flag is clinically motivated and guideline-anchored. Statistical separation from non-flagged Elevated patients has not yet been validated at current sample size (N=94, 23 csPCa events). Revalidation is planned at 230+ events.
+            The High-Risk flag is clinically motivated and guideline-anchored.
           </p>
         </div>
       )}
