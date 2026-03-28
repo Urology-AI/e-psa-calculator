@@ -434,7 +434,7 @@ const Part1Results = ({
         <div className="high-risk-flag-card" role="note" aria-label="High-risk factors present">
           <div className="high-risk-flag-title">Priority: High-Risk Factors Present</div>
           <p className="high-risk-flag-text">
-            This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age &gt;=70, Black ancestry, first-degree family history, or confirmed BRCA mutation. &gt;=2 comorbid conditions also meets this threshold based on cohort data (OR 1.93, p=0.001, N=94).
+            This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age &gt;=70, Black ancestry, first-degree family history, or confirmed BRCA mutation. 
           </p>
           <p className="high-risk-flag-disclosure">
             The High-Risk flag is clinically motivated and guideline-anchored.
