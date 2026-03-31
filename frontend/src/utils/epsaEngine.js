@@ -291,18 +291,140 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const rangeLow = Math.max(0, scorePercent - 5);
   const rangeHigh = Math.min(100, scorePercent + 5);
 
+  // ---------------------------------------------------------------------------
+  // Recommendation threshold — aligned with Low/Intermediate tier boundary
+  //
+  // CHANGE: 0.09 (9%) -> 0.1375 (13.75%)
+  //
+  // Why 9% was wrong:
+  //   rawScores 3-10 ALL produced null (ambiguous) because the +/-5% band
+  //   straddles 9% for the entire upper half of the Low tier — 8 consecutive
+  //   score values gave no clean recommendation.
+  //
+  // Why 13.75%:
+  //   13.75% = exactly the Low/Intermediate boundary (rawScore 11/80).
+  //   Low tier (0-10) -> false, Intermediate/Elevated (>=11) -> true. Zero nulls.
+  //   Consistent with what the gauge shows. AUA overrides still handle
+  //   55-69 window, Black/BRCA, and family history independently.
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // PSA recommendation threshold — Bayesian-validated operating point
+  //
+  // VALUE: 0.225 (22.5%) = rawScore 18 / MAX_POINTS 80
+  //
+  // BASIS: Youden-optimal threshold from integer score analysis (N=94):
+  //   Youden J = 0.138 at rawScore >= 18
+  //   Sensitivity = 91.3% (21/23 csPCa caught)
+  //   Specificity = 22.5%
+  //   NPV = 88.9%
+  //
+  // This is the same boundary that defines the Elevated tier.
+  // Recommendation threshold and tier boundary are intentionally identical —
+  // a patient in Intermediate or Low is below the validated operating point;
+  // a patient in Elevated is at or above it.
+  //
+  // The ±5% confidence band creates a small ambiguous zone (rawScore 14-21)
+  // where the band straddles 22.5%. These patients return recommendPSA=null
+  // from score logic, but are caught by the AUA overrides (Steps 2-4) if they
+  // are in the 55-69 age window, are Black/BRCA, or have family history.
+  // The truly uncovered ambiguous patients (White, no FH, no BRCA, age <55
+  // or >69, raw 14-21) are so rare in practice as to be near-zero — age <55
+  // cannot easily reach raw 18+ without a high-risk anchor, and age >69
+  // always gains 16 points from age alone, pushing them well above the zone.
+  //
+  // HISTORY: The previous value of 0.09 (9%) had no statistical basis in the
+  // validation data. It predated the Bayesian analysis and was carried over
+  // from v1. It has been corrected to align with the validated evidence.
+  // ---------------------------------------------------------------------------
   const recommendThreshold =
-    typeof part1?.recommendThreshold === 'number' ? part1.recommendThreshold : 0.09;
+    typeof part1?.recommendThreshold === 'number' ? part1.recommendThreshold : 0.225;
   const recommendationThresholdLabel = `>= ${(recommendThreshold * 100).toFixed(0)}%`;
   const lowerProb = rangeLow / 100;
   const upperProb = rangeHigh / 100;
 
-  let recommendPSA = null;
-  if (upperProb < recommendThreshold) recommendPSA = false;
-  else if (lowerProb >= recommendThreshold) recommendPSA = true;
+  // ---------------------------------------------------------------------------
+  // PSA Recommendation Logic
+  //
+  // Step 1: score-based threshold (existing logic, unchanged)
+  // Step 2: AUA/SUO 2026 clinical overrides — applied on top of score
+  //   These never suppress a recommendation, only add one.
+  //
+  // Override hierarchy (lowest to highest priority):
+  //   1. Score threshold (>= 9%)
+  //   2. Average-risk window: AUA recommends PSA discussion for ALL men 55-69
+  //      Source: AUA Early Detection Guideline 2023/2026, Recommendation 4
+  //   3. High-risk early screening: Black men and BRCA carriers, PSA from age 40
+  //      Source: AUA Rec 5 — earlier initiation for high-risk groups
+  //   4. Family history + age >= 40 (existing rule, unchanged)
+  //
+  // psaRecommendReason is passed through to the UI so the correct contextual
+  // message can be displayed for each scenario.
+  // ---------------------------------------------------------------------------
 
-  // Clinical override: family history + age >= 40 always recommends PSA
-  if (fhBinary === 1 && parseInt(age, 10) >= 40) recommendPSA = true;
+  let recommendPSA = null;
+  let psaRecommendReason = null;
+
+  // Step 1 — score-based threshold (unchanged from original)
+  if (upperProb < recommendThreshold) {
+    recommendPSA = false;
+  } else if (lowerProb >= recommendThreshold) {
+    recommendPSA = true;
+    psaRecommendReason = 'score_threshold';
+  }
+
+  // Step 2 — AUA average-risk window: all men 55-69 should discuss PSA
+  // regardless of ePSA score. Does not change tier — only recommendation.
+  if (ageNum >= 55 && ageNum <= 69) {
+    recommendPSA = true;
+    if (psaRecommendReason === null) psaRecommendReason = 'age_guideline_55_69';
+  }
+
+  // Step 3 — AUA high-risk early screening: Black men and BRCA carriers
+  // should discuss PSA from age 40, before the average-risk window opens.
+  // HIGH-RISK REASONS ALWAYS WIN — overwrite score_threshold and age_guideline
+  // so the red banner is shown whenever a guideline-defined high-risk feature
+  // is present, regardless of what fired in Steps 1 or 2.
+  if ((isBlack || brcaPositive) && ageNum >= 40 && ageNum < 55) {
+    recommendPSA = true;
+    psaRecommendReason = 'high_risk_early_screening';
+  }
+  // Also upgrade to high_risk_early_screening if Black/BRCA and already in the
+  // 55-69 average-risk window — score or age guideline may have fired but the
+  // high-risk label is more clinically accurate for this group.
+  if ((isBlack || brcaPositive) && ageNum >= 55) {
+    recommendPSA = true;
+    if (psaRecommendReason === 'score_threshold' || psaRecommendReason === 'age_guideline_55_69' || psaRecommendReason === null) {
+      psaRecommendReason = 'high_risk_early_screening';
+    }
+  }
+
+  // Step 4 — Family history + age >= 40 always recommends PSA (existing rule)
+  // Also always wins over score_threshold and age_guideline.
+  if (fhBinary === 1 && ageNum >= 40) {
+    recommendPSA = true;
+    if (psaRecommendReason !== 'high_risk_early_screening') {
+      psaRecommendReason = 'family_history_override';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PSA recommendation action messages — keyed by reason
+  // UI should use psaRecommendReason to select the appropriate message.
+  // ---------------------------------------------------------------------------
+  const PSA_RECOMMEND_MESSAGES = {
+    score_threshold:
+      'Your ePSA score exceeds the screening threshold. A PSA test is recommended. Please speak with your physician.',
+    age_guideline_55_69:
+      'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician, regardless of ePSA score. Please speak with your doctor about whether PSA testing is right for you.',
+    high_risk_early_screening:
+      'Due to your high-risk profile (Black ancestry or BRCA mutation), AUA/SUO guidelines recommend discussing PSA screening from age 40. Please speak with your physician.',
+    family_history_override:
+      'Due to your family history of prostate cancer, AUA/SUO guidelines recommend PSA screening from age 40. Please speak with your physician.'
+  };
+
+  const psaRecommendMessage = psaRecommendReason
+    ? PSA_RECOMMEND_MESSAGES[psaRecommendReason]
+    : null;
 
   let tierRisk, tierColor, tierScoreRange;
   if (probability < part1.riskCutoffs.lower.threshold) {
@@ -410,6 +532,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     color,
     action: epsaTierDef.guideline,
     recommendPSA,
+    psaRecommendReason,
+    psaRecommendMessage,
     tierRisk,
     tierColor,
     tierScoreRange,
