@@ -1459,8 +1459,9 @@ function App() {
 
   // Main app (after login and consent)
   const renderPreStage = () => {
-    // Show pathway selector before questionnaire starts
-    if (pathwayMode === null) {
+    // Show pathway selector only for fresh sessions (no calculated result yet).
+    // Session restores and file imports bypass this — they set preResult directly.
+    if (pathwayMode === null && !preResult) {
       return (
         <PathwaySelector
           onSelect={(mode) => {
@@ -1494,7 +1495,7 @@ function App() {
             {preResult ? (
               <Part1Results
                 result={preResult}
-                formData={preData}
+                formData={{ ...preData, pathwayMode: pathwayMode || preResult?.pathwayMode || 'pre_psa' }}
                 storageMode={storageMode}
                 sessionId={appSessionId}
                 userEmail={userEmail}
@@ -1599,9 +1600,9 @@ function App() {
             {postResult && (
               <Part2Results
                 result={postResult}
-                preData={preData}
+                preData={{ ...preData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 preResult={preResult}
-                postData={postData}
+                postData={{ ...postData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 storageMode={storageMode}
                 sessionId={appSessionId}
                 userEmail={userEmail}
