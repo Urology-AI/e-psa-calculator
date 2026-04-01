@@ -794,7 +794,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     biopsyRecommended,
     biopsyReason,
     biopsyMessage,
-    pathwayMode: postData?.pathwayMode || 'post_mri',
+    // If pathwayMode was explicitly set (new sessions via PathwaySelector), use it.
+    // Otherwise infer from data: knowPirads=true → post_mri, PSA-only → post_psa.
+    // This ensures old sessions and pre-pathway JSON imports display correctly.
+    pathwayMode: postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa'),
     modelVersion: config.version
   };
 };
