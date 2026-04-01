@@ -17,6 +17,7 @@ import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
+import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
@@ -58,6 +59,7 @@ function App() {
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [showHipaaPopup, setShowHipaaPopup] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
+  const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
   const [currentStep, setCurrentStep] = useState(1);
   const [appSessionId, setAppSessionId] = useState(null);
   const [showTestPanel, setShowTestPanel] = useState(false);
@@ -646,6 +648,7 @@ function App() {
     cacheConsent();
     // Consent continue should always enter the Part 1 form flow.
     setStage('pre');
+    setPathwayMode(null);
     setCurrentStep(1);
     setPart1Step(0);
     
@@ -723,9 +726,10 @@ function App() {
     setPostResult(null);
     setCloudSyncStatus('idle');
     setStage('pre');
+    setPathwayMode(null);
     setCurrentStep(1);
     setPart1Step(0);
-    
+
     console.log('Session unlinked, returned to welcome screen');
   };
 
@@ -1047,6 +1051,7 @@ function App() {
     
     // Clear all form data and results
     setStage('pre');
+    setPathwayMode(null);
     setCurrentStep(1);
     setPart1Step(0);
     setPreData({
@@ -1149,6 +1154,7 @@ function App() {
       setCloudSyncStatus('idle');
       // Reset form progress
       setStage('pre');
+      setPathwayMode(null);
       setCurrentStep(1);
       setPart1Step(0);
       // Clear user-specific localStorage but keep general settings
@@ -1171,15 +1177,16 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (part1Step === 6) {
       // Calculate Part 1 results using DYNAMIC calculator
-      const result = calculateDynamicEPsa(preData, calculatorConfig);
-      
+      // Pass pathwayMode into formData so the engine can return it
+      const result = calculateDynamicEPsa({ ...preData, pathwayMode: pathwayMode || 'pre_psa' }, calculatorConfig);
+
       if (!result) {
         console.error('Calculation failed - missing required fields');
         console.error('preData state:', preData);
         alert('Please complete all required fields before calculating your score. Make sure you have entered all required fields in About You, Family & Genetic Risk, Body Metrics, Lifestyle, and Symptoms.');
         return;
       }
-      
+
       setPreResult(result);
       
       // Track only in cloud mode
@@ -1206,8 +1213,15 @@ function App() {
           console.error('Error saving step 1 to Firestore:', error);
         }
       }
-      
-      setCurrentStep(3);
+
+      // For post_psa and post_mri pathways, go directly to Part2Form (PSA input)
+      // User already committed to having PSA data when they selected the pathway
+      if (pathwayMode === 'post_psa' || pathwayMode === 'post_mri') {
+        setStage('post');
+        setCurrentStep(1);
+      } else {
+        setCurrentStep(3);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
     }
@@ -1230,12 +1244,19 @@ function App() {
       return;
     }
     
-    if (currentStep < 2) {
+    // post_mri has 2 Part2 steps (PSA then MRI); post_psa has 1 (PSA only)
+    const part2TotalSteps = pathwayMode === 'post_mri' ? 2 : 1;
+
+    if (currentStep < part2TotalSteps) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 2) {
+    } else if (currentStep === part2TotalSteps) {
       // Calculate Post results using DYNAMIC calculator
-      const result = calculateDynamicEPsaPost(preResult, postData, calculatorConfig);
+      // Pass pathwayMode through postData so the engine returns it in the result.
+      // For restored sessions (pathwayMode state is null), infer from whether MRI
+      // data was entered — avoids incorrectly defaulting old PSA-only sessions to post_mri.
+      const inferredPathway = pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa');
+      const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
       setPostResult(result);
       
       // Track only in cloud mode
@@ -1444,6 +1465,21 @@ function App() {
 
   // Main app (after login and consent)
   const renderPreStage = () => {
+    // Show pathway selector only for fresh sessions (no calculated result yet).
+    // Session restores and file imports bypass this — they set preResult directly.
+    if (pathwayMode === null && !preResult) {
+      return (
+        <PathwaySelector
+          onSelect={(mode) => {
+            setPathwayMode(mode);
+            setCurrentStep(1);
+            setPart1Step(0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      );
+    }
+
     switch (currentStep) {
       case 1:
       case 2:
@@ -1465,7 +1501,7 @@ function App() {
             {preResult ? (
               <Part1Results
                 result={preResult}
-                formData={preData}
+                formData={{ ...preData, pathwayMode: pathwayMode || preResult?.pathwayMode || 'pre_psa' }}
                 storageMode={storageMode}
                 sessionId={appSessionId}
                 userEmail={userEmail}
@@ -1483,6 +1519,18 @@ function App() {
                   if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
                     await handleClearData();
                   }
+                }}
+                onContinueToPostPSA={() => {
+                  setPathwayMode('post_psa');
+                  setStage('post');
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onContinueToMRI={() => {
+                  setPathwayMode('post_mri');
+                  setStage('post');
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
             ) : (
@@ -1548,7 +1596,8 @@ function App() {
               setCurrentStep(3);
             } : () => setCurrentStep(currentStep - 1)}
             currentStep={currentStep}
-            totalSteps={2}
+            totalSteps={pathwayMode === 'post_mri' ? 2 : 1}
+            pathwayMode={pathwayMode}
           />
         );
 
@@ -1558,9 +1607,9 @@ function App() {
             {postResult && (
               <Part2Results
                 result={postResult}
-                preData={preData}
+                preData={{ ...preData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 preResult={preResult}
-                postData={postData}
+                postData={{ ...postData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 storageMode={storageMode}
                 sessionId={appSessionId}
                 userEmail={userEmail}
@@ -1647,13 +1696,47 @@ function App() {
                         : 'Anonymous cloud ready'}
                 </span>
               )}
-              {authStep === 'app' && (
-                stage === 'pre' ? (
-                  <span className="stage-badge stage-pre">{t('app.stage.stagePre')}</span>
-                ) : (
-                  <span className="stage-badge stage-post">{t('app.stage.stagePost')}</span>
-                )
-              )}
+              {authStep === 'app' && (() => {
+                // On PathwaySelector screen — no badge yet
+                if (pathwayMode === null && !preResult) return null;
+
+                // Pathway-aware labels
+                const PATHWAY_BADGES = {
+                  pre_psa:  { label: 'Pre-PSA Screening',    cls: 'stage-pre'  },
+                  post_psa: { label: 'PSA Assessment',        cls: 'stage-post' },
+                  post_mri: { label: 'Full MRI Assessment',   cls: 'stage-mri'  },
+                };
+                const effectiveMode = pathwayMode
+                  || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                const badge = PATHWAY_BADGES[effectiveMode]
+                  || (stage === 'pre'
+                    ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
+                    : { label: t('app.stage.stagePost'), cls: 'stage-post' });
+
+                // Only show "Change pathway" before results are locked in
+                const canChangePathway = pathwayMode !== null && !preResult;
+
+                return (
+                  <>
+                    <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
+                    {canChangePathway && (
+                      <button
+                        type="button"
+                        className="change-pathway-btn"
+                        onClick={() => {
+                          setPathwayMode(null);
+                          setCurrentStep(1);
+                          setPart1Step(0);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        title="Go back to pathway selection"
+                      >
+                        ← Change
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </header>
