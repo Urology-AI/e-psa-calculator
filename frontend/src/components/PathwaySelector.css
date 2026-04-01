@@ -20,14 +20,14 @@
 .pathway-selector-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e3a5f;
+  color: var(--brand-700, #1e3a5f);
   margin: 0 0 0.5rem;
   line-height: 1.3;
 }
 
 .pathway-selector-sub {
   font-size: 0.9rem;
-  color: #607286;
+  color: var(--ink-500, #607286);
   margin: 0;
   line-height: 1.5;
 }
@@ -49,39 +49,31 @@
 /* ─── Individual card ─── */
 
 .pathway-card {
-  background: #ffffff;
-  border: 1.5px solid #dde4ec;
+  background: var(--surface, #ffffff);
+  border: 1.5px solid var(--line-200, #dde4ec);
   border-radius: 12px;
   padding: 1.5rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.75rem;
-  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.07);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(30, 58, 95, 0.07));
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   cursor: default;
 }
 
 .pathway-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(30, 58, 95, 0.13);
+  box-shadow: var(--shadow-md, 0 6px 18px rgba(30, 58, 95, 0.13));
 }
 
 /* ─── Accent top borders by pathway ─── */
 
-.pathway-card--pre {
-  border-top: 3px solid #008787;
-}
+.pathway-card--pre  { border-top: 3px solid #008787; }
+.pathway-card--post { border-top: 3px solid var(--brand-700, #1e3a5f); }
+.pathway-card--mri  { border-top: 3px solid #6d28d9; }
 
-.pathway-card--post {
-  border-top: 3px solid #1e3a5f;
-}
-
-.pathway-card--mri {
-  border-top: 3px solid #6d28d9;
-}
-
-/* ─── Icon ─── */
+/* ─── Icon wrapper ─── */
 
 .pathway-card-icon-wrap {
   width: 2.5rem;
@@ -94,7 +86,7 @@
 }
 
 .pathway-card--pre  .pathway-card-icon-wrap { background: #e6f5f5; color: #008787; }
-.pathway-card--post .pathway-card-icon-wrap { background: #e8edf5; color: #1e3a5f; }
+.pathway-card--post .pathway-card-icon-wrap { background: var(--surface-muted, #e8edf5); color: var(--brand-700, #1e3a5f); }
 .pathway-card--mri  .pathway-card-icon-wrap { background: #ede9fe; color: #6d28d9; }
 
 .pathway-card-icon-svg {
@@ -108,14 +100,14 @@
 .pathway-card-headline {
   font-size: 1rem;
   font-weight: 700;
-  color: #1e3a5f;
+  color: var(--ink-900, #1e3a5f);
   margin: 0;
   line-height: 1.3;
 }
 
 .pathway-card-body {
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--ink-700, #374151);
   margin: 0;
   line-height: 1.55;
   flex: 1;
@@ -146,10 +138,10 @@
 }
 
 .pathway-card--pre  .pathway-card-btn { background: #008787; color: #ffffff; }
-.pathway-card--post .pathway-card-btn { background: #1e3a5f; color: #ffffff; }
+.pathway-card--post .pathway-card-btn { background: var(--brand-700, #1e3a5f); color: #ffffff; }
 .pathway-card--mri  .pathway-card-btn { background: #6d28d9; color: #ffffff; }
 
-/* ─── Continue banners in Part1Results ─── */
+/* ─── Continue banners (used in Part1Results) ─── */
 
 .pathway-continue-banner {
   border-radius: 8px;
@@ -165,13 +157,13 @@
 }
 
 .pathway-continue-banner--navy {
-  background: #e8edf5;
-  border-left: 4px solid #1e3a5f;
+  background: var(--surface-muted, #e8edf5);
+  border-left: 4px solid var(--brand-700, #1e3a5f);
 }
 
 .pathway-continue-banner-text {
   font-size: 14px;
-  color: #374151;
+  color: var(--ink-800, #374151);
   margin: 0;
   font-weight: 500;
 }
@@ -197,6 +189,41 @@
 }
 
 .pathway-continue-banner--navy .pathway-continue-banner-btn {
-  background: #1e3a5f;
+  background: var(--brand-700, #1e3a5f);
   color: #ffffff;
 }
+
+/* ─── Dark mode ─── */
+
+.theme-dark .pathway-card {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+}
+
+.theme-dark .pathway-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.theme-dark .pathway-card--pre  .pathway-card-icon-wrap { background: rgba(0, 135, 135, 0.18); color: #2dd4bf; }
+.theme-dark .pathway-card--post .pathway-card-icon-wrap { background: rgba(45, 139, 199, 0.18); color: #93c5fd; }
+.theme-dark .pathway-card--mri  .pathway-card-icon-wrap { background: rgba(109, 40, 217, 0.22); color: #c4b5fd; }
+
+.theme-dark .pathway-card--pre  .pathway-card-btn { background: #0e7490; }
+.theme-dark .pathway-card--mri  .pathway-card-btn { background: #7c3aed; }
+
+.theme-dark .pathway-continue-banner--teal {
+  background: rgba(0, 135, 135, 0.14);
+  border-left-color: #2dd4bf;
+}
+
+.theme-dark .pathway-continue-banner--navy {
+  background: rgba(45, 139, 199, 0.14);
+  border-left-color: var(--brand-400);
+}
+
+.theme-dark .pathway-continue-banner-text {
+  color: var(--ink-700);
+}
+
+.theme-dark .pathway-continue-banner--teal .pathway-continue-banner-btn { background: #0e7490; }
+.theme-dark .pathway-continue-banner--navy .pathway-continue-banner-btn { background: var(--brand-600); }

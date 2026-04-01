@@ -1692,13 +1692,47 @@ function App() {
                         : 'Anonymous cloud ready'}
                 </span>
               )}
-              {authStep === 'app' && (
-                stage === 'pre' ? (
-                  <span className="stage-badge stage-pre">{t('app.stage.stagePre')}</span>
-                ) : (
-                  <span className="stage-badge stage-post">{t('app.stage.stagePost')}</span>
-                )
-              )}
+              {authStep === 'app' && (() => {
+                // On PathwaySelector screen — no badge yet
+                if (pathwayMode === null && !preResult) return null;
+
+                // Pathway-aware labels
+                const PATHWAY_BADGES = {
+                  pre_psa:  { label: 'Pre-PSA Screening',    cls: 'stage-pre'  },
+                  post_psa: { label: 'PSA Assessment',        cls: 'stage-post' },
+                  post_mri: { label: 'Full MRI Assessment',   cls: 'stage-mri'  },
+                };
+                const effectiveMode = pathwayMode
+                  || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                const badge = PATHWAY_BADGES[effectiveMode]
+                  || (stage === 'pre'
+                    ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
+                    : { label: t('app.stage.stagePost'), cls: 'stage-post' });
+
+                // Only show "Change pathway" before results are locked in
+                const canChangePathway = pathwayMode !== null && !preResult;
+
+                return (
+                  <>
+                    <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
+                    {canChangePathway && (
+                      <button
+                        type="button"
+                        className="change-pathway-btn"
+                        onClick={() => {
+                          setPathwayMode(null);
+                          setCurrentStep(1);
+                          setPart1Step(0);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        title="Go back to pathway selection"
+                      >
+                        ← Change
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </header>
