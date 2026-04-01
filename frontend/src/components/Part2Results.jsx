@@ -160,6 +160,10 @@ const Part2Results = ({
     psadValue,
     psadPoints,
     psadFlag,
+    biopsyRecommended = false,
+    biopsyReason = null,
+    biopsyMessage = null,
+    pathwayMode = 'post_mri',
   } = result;
 
   const getRiskColor = (rc) => {
@@ -265,9 +269,66 @@ const Part2Results = ({
         </div>
       )}
 
+      {/* ── Biopsy Recommendation Banner (post_mri only) ── */}
+      {pathwayMode === 'post_mri' && biopsyRecommended && biopsyMessage && (
+        <div
+          className="p2r-biopsy-banner"
+          role="alert"
+          style={{
+            background: biopsyReason === 'high_risk_discordance' ? '#fffbeb' : '#fef2f2',
+            borderLeft: `4px solid ${biopsyReason === 'high_risk_discordance' ? '#d97706' : '#dc2626'}`,
+            borderRadius: '8px',
+            padding: '14px 16px',
+            marginBottom: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircleIcon
+              size={18}
+              style={{
+                color: biopsyReason === 'high_risk_discordance' ? '#d97706' : '#dc2626',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: '13px',
+                color: biopsyReason === 'high_risk_discordance' ? '#92400e' : '#991b1b',
+                letterSpacing: '0.03em',
+              }}
+            >
+              {biopsyReason === 'high_risk_discordance'
+                ? 'UROLOGIST REVIEW RECOMMENDED'
+                : 'BIOPSY DISCUSSION RECOMMENDED'}
+            </span>
+          </div>
+          <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+            {biopsyMessage}
+          </p>
+          <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
+            Source: AUA/NCCN/EAU Guidelines —{' '}
+            {biopsyReason === 'pirads_5'
+              ? 'PI-RADS 5 findings require biopsy discussion without delay.'
+              : biopsyReason === 'combined_score_high'
+              ? 'High combined score warrants urology referral and biopsy discussion.'
+              : 'Significant discordance between ePSA profile and PSA level warrants evaluation.'}
+          </p>
+        </div>
+      )}
+
       {/* ── Risk Summary Card ── */}
       <div className={`p2r-risk-card ${riskCardClass}`} role="region" aria-label="Risk assessment result">
-        <div className="p2r-risk-label">Educational Risk Category</div>
+        <div className="p2r-risk-label">
+          {pathwayMode === 'post_mri'
+            ? 'Full Workup Assessment — PSA + MRI + ePSA'
+            : pathwayMode === 'post_psa'
+            ? 'Combined Risk Profile — PSA + ePSA Context'
+            : 'Educational Risk Category'}
+        </div>
         <div className="p2r-risk-tier-row">
           <RiskIcon riskClass={riskClass} />
           <span className="p2r-risk-pct" style={{ color: riskColor }}>{riskPct}</span>

@@ -1,0 +1,202 @@
+/* ─── Pathway Selector ─── */
+
+.pathway-selector {
+  max-width: 47.5rem;
+  margin: 0 auto;
+  padding: 1.5rem 0 2.5rem;
+  animation: fadeUp 0.35s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(0.625rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pathway-selector-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.pathway-selector-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.pathway-selector-sub {
+  font-size: 0.9rem;
+  color: #607286;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Card grid ─── */
+
+.pathway-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .pathway-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Individual card ─── */
+
+.pathway-card {
+  background: #ffffff;
+  border: 1.5px solid #dde4ec;
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.07);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  cursor: default;
+}
+
+.pathway-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(30, 58, 95, 0.13);
+}
+
+/* ─── Accent top borders by pathway ─── */
+
+.pathway-card--pre {
+  border-top: 3px solid #008787;
+}
+
+.pathway-card--post {
+  border-top: 3px solid #1e3a5f;
+}
+
+.pathway-card--mri {
+  border-top: 3px solid #6d28d9;
+}
+
+/* ─── Icon ─── */
+
+.pathway-card-icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pathway-card--pre  .pathway-card-icon-wrap { background: #e6f5f5; color: #008787; }
+.pathway-card--post .pathway-card-icon-wrap { background: #e8edf5; color: #1e3a5f; }
+.pathway-card--mri  .pathway-card-icon-wrap { background: #ede9fe; color: #6d28d9; }
+
+.pathway-card-icon-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+}
+
+/* ─── Text ─── */
+
+.pathway-card-headline {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pathway-card-body {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0;
+  line-height: 1.55;
+  flex: 1;
+}
+
+/* ─── Button ─── */
+
+.pathway-card-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
+.pathway-card-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.pathway-card-btn:active {
+  transform: translateY(0);
+}
+
+.pathway-card--pre  .pathway-card-btn { background: #008787; color: #ffffff; }
+.pathway-card--post .pathway-card-btn { background: #1e3a5f; color: #ffffff; }
+.pathway-card--mri  .pathway-card-btn { background: #6d28d9; color: #ffffff; }
+
+/* ─── Continue banners in Part1Results ─── */
+
+.pathway-continue-banner {
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pathway-continue-banner--teal {
+  background: #e6f5f5;
+  border-left: 4px solid #008787;
+}
+
+.pathway-continue-banner--navy {
+  background: #e8edf5;
+  border-left: 4px solid #1e3a5f;
+}
+
+.pathway-continue-banner-text {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  font-weight: 500;
+}
+
+.pathway-continue-banner-btn {
+  align-self: flex-start;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pathway-continue-banner-btn:hover {
+  opacity: 0.85;
+}
+
+.pathway-continue-banner--teal .pathway-continue-banner-btn {
+  background: #008787;
+  color: #ffffff;
+}
+
+.pathway-continue-banner--navy .pathway-continue-banner-btn {
+  background: #1e3a5f;
+  color: #ffffff;
+}
