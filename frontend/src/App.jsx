@@ -1244,10 +1244,13 @@ function App() {
       return;
     }
     
-    if (currentStep < 2) {
+    // post_mri has 2 Part2 steps (PSA then MRI); post_psa has 1 (PSA only)
+    const part2TotalSteps = pathwayMode === 'post_mri' ? 2 : 1;
+
+    if (currentStep < part2TotalSteps) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 2) {
+    } else if (currentStep === part2TotalSteps) {
       // Calculate Post results using DYNAMIC calculator
       // Pass pathwayMode through postData so the engine returns it in the result.
       // For restored sessions (pathwayMode state is null), infer from whether MRI
@@ -1593,7 +1596,8 @@ function App() {
               setCurrentStep(3);
             } : () => setCurrentStep(currentStep - 1)}
             currentStep={currentStep}
-            totalSteps={2}
+            totalSteps={pathwayMode === 'post_mri' ? 2 : 1}
+            pathwayMode={pathwayMode}
           />
         );
 
