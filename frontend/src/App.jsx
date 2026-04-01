@@ -1249,8 +1249,11 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 2) {
       // Calculate Post results using DYNAMIC calculator
-      // Pass pathwayMode through postData so the engine returns it in the result
-      const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: pathwayMode || 'post_mri' }, calculatorConfig);
+      // Pass pathwayMode through postData so the engine returns it in the result.
+      // For restored sessions (pathwayMode state is null), infer from whether MRI
+      // data was entered — avoids incorrectly defaulting old PSA-only sessions to post_mri.
+      const inferredPathway = pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa');
+      const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
       setPostResult(result);
       
       // Track only in cloud mode
