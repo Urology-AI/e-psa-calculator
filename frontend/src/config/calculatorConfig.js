@@ -10,7 +10,8 @@ export const DEFAULT_CALCULATOR_CONFIG = {
     modelType: 'binned_v1',
     // Part 1 now uses a point-based score (no logistic weights); intercept/calibration are unused.
     intercept: 0,
-    recommendThreshold: 0.09,
+    // Align with engine default: 22.5% probability ≈ raw-score screening gate (see epsaEngine)
+    recommendThreshold: 0.225,
     calibration: {
       slope: 1.0,
       interceptShift: 0.0

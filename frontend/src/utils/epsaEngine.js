@@ -565,6 +565,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,
     displayRange: `${rangeLow}%-${rangeHigh}%`,
+    pathwayMode: formData.pathwayMode || 'pre_psa',
     calculationDetails: {
       probability,
       rawScore,
@@ -742,6 +743,31 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Biopsy recommendation — Model 3 (post_mri) only
+  // ---------------------------------------------------------------------------
+  let biopsyRecommended = false;
+  let biopsyReason = null;
+  let biopsyMessage = null;
+
+  if (piradsOverridden) {
+    biopsyRecommended = true;
+    biopsyReason = 'pirads_5';
+    biopsyMessage = 'Your MRI identified a finding (PI-RADS 5) that requires prompt urologist review. AUA/NCCN/EAU guidelines recommend biopsy discussion without delay.';
+  } else if (totalPoints >= 56) {
+    biopsyRecommended = true;
+    biopsyReason = 'combined_score_high';
+    biopsyMessage = 'Your combined risk profile is high. AUA/NCCN guidelines recommend discussing biopsy with a urologist. Do not delay this conversation.';
+  } else if (
+    discordanceFlag &&
+    discordanceFlag.severity === 'orange' &&
+    tierIndex >= 2
+  ) {
+    biopsyRecommended = true;
+    biopsyReason = 'high_risk_discordance';
+    biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level alone suggests. Combined with your MRI findings, urologist review and biopsy discussion are recommended.';
+  }
+
   return {
     riskPct: tierDef.psaEquivalent,
     riskPctRange: null,
@@ -765,6 +791,13 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     psadValue,
     psadPoints,
     psadFlag,
+    biopsyRecommended,
+    biopsyReason,
+    biopsyMessage,
+    // If pathwayMode was explicitly set (new sessions via PathwaySelector), use it.
+    // Otherwise infer from data: knowPirads=true → post_mri, PSA-only → post_psa.
+    // This ensures old sessions and pre-pathway JSON imports display correctly.
+    pathwayMode: postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa'),
     modelVersion: config.version
   };
 };
