@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Part1Results.css';
+import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
@@ -154,6 +155,7 @@ const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
+  onContinueToPostPSA = null, onContinueToMRI = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
 
@@ -171,6 +173,7 @@ const Part1Results = ({
     recommendPSA, psaRecommendReason, psaRecommendMessage,
     tierRisk, epsaTierKey, epsaTierLabel, epsaTierScoreRange, epsaTierNormalizedRange,
     recommendationThresholdLabel, epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
+    pathwayMode = 'pre_psa',
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -432,6 +435,24 @@ const Part1Results = ({
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>
       </div>
+
+      {/* ── Continue pathway banner ── */}
+      {pathwayMode === 'pre_psa' && recommendPSA === true && onContinueToPostPSA && (
+        <div className="pathway-continue-banner pathway-continue-banner--teal" role="note">
+          <p className="pathway-continue-banner-text">Have your PSA result? Add it for a fuller picture.</p>
+          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToPostPSA}>
+            Continue to PSA Assessment →
+          </button>
+        </div>
+      )}
+      {pathwayMode === 'post_psa' && onContinueToMRI && (
+        <div className="pathway-continue-banner pathway-continue-banner--navy" role="note">
+          <p className="pathway-continue-banner-text">Had an MRI? Add your PI-RADS score for biopsy guidance.</p>
+          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToMRI}>
+            Continue to MRI Assessment →
+          </button>
+        </div>
+      )}
 
       {/* ── Action buttons ── */}
       <div className="results-actions">

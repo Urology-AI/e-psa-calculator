@@ -33,7 +33,15 @@ export const buildPart1CsvRows = (formData, result, config) => {
   const ipssStr = Array.isArray(fd.ipss) ? fd.ipss.join(',') : '';
   const shimStr = Array.isArray(fd.shim) ? fd.shim.join(',') : '';
 
+  const pathwayLabelMap = {
+    pre_psa: 'Pre-PSA Assessment',
+    post_psa: 'Post-PSA Assessment',
+    post_mri: 'Post-MRI Assessment',
+  };
+  const pathwayLabel = pathwayLabelMap[fd.pathwayMode] || pathwayLabelMap[result?.pathwayMode] || 'Pre-PSA Assessment';
+
   const row = {
+    pathwayMode: pathwayLabel,
     version: '1.0',
     exportDate: new Date().toISOString(),
     part: 'part1',
@@ -72,7 +80,15 @@ export const buildPart1CsvRows = (formData, result, config) => {
 
 export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
   const pd = postData || {};
+  const pathwayLabelMap = {
+    pre_psa: 'Pre-PSA Assessment',
+    post_psa: 'Post-PSA Assessment',
+    post_mri: 'Post-MRI Assessment',
+  };
+  const pathwayLabel = pathwayLabelMap[postResult?.pathwayMode] || pathwayLabelMap[pd.pathwayMode] || 'Post-MRI Assessment';
+
   const row = {
+    pathwayMode: pathwayLabel,
     version: '1.0',
     exportDate: new Date().toISOString(),
     part: 'part2',
