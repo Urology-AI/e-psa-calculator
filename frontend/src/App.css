@@ -401,6 +401,45 @@ body {
   color: #fff;
 }
 
+.stage-mri {
+  background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+  color: #fff;
+}
+
+/* ─── Change Pathway button ─── */
+.change-pathway-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border: 0.0625rem solid var(--line-200);
+  border-radius: var(--radius-full);
+  background: var(--surface-subtle);
+  color: var(--ink-500);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.change-pathway-btn:hover {
+  background: var(--surface-muted);
+  color: var(--ink-800);
+}
+
+.theme-dark .change-pathway-btn {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+  color: var(--ink-500);
+}
+
+.theme-dark .change-pathway-btn:hover {
+  background: var(--surface-muted);
+  color: var(--ink-300);
+}
+
 /* ─── Transitions ─── */
 .pre-results-step,
 .post-results-step {
