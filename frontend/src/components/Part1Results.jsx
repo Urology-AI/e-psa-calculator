@@ -217,8 +217,8 @@ const Part1Results = ({
   const {
     score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age,
     recommendPSA, psaRecommendReason, psaRecommendMessage,
-    tierRisk, epsaTierKey, epsaTierLabel, epsaTierScoreRange, epsaTierNormalizedRange,
-    recommendationThresholdLabel, epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
+    tierRisk, epsaTierKey, epsaTierLabel,
+    epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
   } = result;
 
@@ -240,43 +240,7 @@ const Part1Results = ({
   };
 
   const gaugeScore = mapRawScoreToGaugePercent(rawScore, maxScore);
-  const confidenceLow = Number(result?.confidenceLow);
-  const confidenceHigh = Number(result?.confidenceHigh);
-  const thresholdPctMatch = String(recommendationThresholdLabel || '').match(/(\d+(\.\d+)?)/);
-  const recommendationThresholdPct = thresholdPctMatch ? Number(thresholdPctMatch[1]) : 9;
   const activeTier = tierRisk || risk;
-  const selectedTierKey = epsaTierKey || (activeTier === 'LOWER' ? 'low' : activeTier === 'HIGHER' ? 'elevated' : 'intermediate');
-
-  const thresholdTiers = [
-    { key: 'low', label: 'Low', range: 'score 0-10', colorClass: 'threshold-chip--low' },
-    { key: 'intermediate', label: 'Intermediate', range: 'score 11-17', colorClass: 'threshold-chip--intermediate' },
-    { key: 'elevated', label: 'Elevated', range: 'score >= 18', colorClass: 'threshold-chip--elevated' },
-  ];
-
-  const tierWhyText = Number.isFinite(rawImpactTotal)
-    ? `Selected because your raw point total is ${rawImpactTotal}, which falls in ${epsaTierScoreRange || 'the selected tier range'}.`
-    : `Selected because your total points fall in ${epsaTierScoreRange || 'the selected tier range'}.`;
-
-  let recommendationWhyText = `PSA recommendation trigger is ${recommendationThresholdLabel || '>= 9%'} (different from raw-score tier boundaries).`;
-  let recommendationWhyClass = 'threshold-status threshold-status--neutral';
-  if (Number.isFinite(confidenceLow) && Number.isFinite(confidenceHigh)) {
-    if (confidenceLow >= recommendationThresholdPct) {
-      recommendationWhyText = `Selected as above threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully at or above ${recommendationThresholdPct}%.`;
-      recommendationWhyClass = 'threshold-status threshold-status--met';
-    } else if (confidenceHigh < recommendationThresholdPct) {
-      recommendationWhyText = `Selected as below threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully below ${recommendationThresholdPct}%.`;
-      recommendationWhyClass = 'threshold-status threshold-status--below';
-    } else {
-      recommendationWhyText = `Selected as borderline: your displayed range (${confidenceLow}%-${confidenceHigh}%) crosses the ${recommendationThresholdPct}% threshold.`;
-    }
-  }
-  if (recommendationWhyClass.includes('threshold-status--met')) {
-    if (selectedTierKey === 'elevated') recommendationWhyClass = 'threshold-status threshold-status--met-elevated';
-    else if (selectedTierKey === 'intermediate') recommendationWhyClass = 'threshold-status threshold-status--met-intermediate';
-    else recommendationWhyClass = 'threshold-status threshold-status--met-low';
-  }
-
-  const displayRange = result.displayRange || result.confidenceRange;
   const riskBgClass = epsaTierKey === 'low' ? 'risk-card--lower' : epsaTierKey === 'intermediate' ? 'risk-card--moderate' : epsaTierKey === 'elevated' ? 'risk-card--elevated' : activeTier === 'LOWER' ? 'risk-card--lower' : activeTier === 'HIGHER' ? 'risk-card--elevated' : 'risk-card--moderate';
   const tierAccentColor = epsaTierKey === 'low' ? '#16a34a' : epsaTierKey === 'intermediate' ? '#2563eb' : epsaTierKey === 'elevated' ? '#d97706' : activeTier === 'LOWER' ? '#16a34a' : activeTier === 'HIGHER' ? '#d97706' : '#2563eb';
 
@@ -294,12 +258,6 @@ const Part1Results = ({
     if (k === 'intermediate' || k === 'MODERATE') return "Intermediate Risk suggests an estimated likelihood in the middle range of the model's reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.";
     return "Elevated Risk suggests a higher estimated likelihood relative to others in the model's reference data. Elevated does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.";
   };
-
-  const tierScaleItems = [
-    { key: 'low', tierRiskFallback: 'LOWER', label: 'Low', sub: 'score <= 10 (<= 12.5%)', color: '#16a34a', bg: '#f0fdf4' },
-    { key: 'intermediate', tierRiskFallback: 'MODERATE', label: 'Intermediate', sub: 'score 11-17 (13.75%-21.25%)', color: '#2563eb', bg: '#eff6ff' },
-    { key: 'elevated', tierRiskFallback: 'HIGHER', label: 'Elevated', sub: 'score >= 18 (>= 22.5%)', color: '#d97706', bg: '#fffbeb' },
-  ];
 
   const metrics = [
     { label: 'Age', value: age, unit: 'yrs' },
@@ -343,14 +301,6 @@ const Part1Results = ({
         <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
       </div>
 
-      {/* ── Empirical probability text ── */}
-      {empiricalProbabilityText && (
-        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#4b5563', fontStyle: 'italic', lineHeight: 1.5 }} role="note">
-          <InfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#6b7280' }} />
-          {empiricalProbabilityText}
-        </div>
-      )}
-
       {/* ── PSA Recommendation Banner ──────────────────────────────────────────
        * RED   = high_risk_early_screening | family_history_override
        * AMBER = score_threshold
@@ -390,19 +340,14 @@ const Part1Results = ({
         ))}
       </div>
 
-      {/* ── Risk tier scale ── */}
-      <div className="tier-scale" role="group" aria-label="Risk tier scale">
-        {tierScaleItems.map(({ key, tierRiskFallback, label, sub, color: c, bg }) => {
-          const isActive = epsaTierKey ? epsaTierKey === key : activeTier === tierRiskFallback;
-          return (
-            <div key={key} className={`tier-scale-item ${isActive ? 'tier-scale-item--active' : ''}`}
-              style={isActive ? { background: bg, borderColor: c, color: c } : {}} aria-current={isActive ? 'true' : undefined}>
-              <div className="tier-scale-label">{label}</div>
-              <div className="tier-scale-sub">{sub}</div>
-            </div>
-          );
-        })}
-      </div>
+      {/* ── Next Steps ── */}
+      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
+        <NextStepsSection
+          onContinueToPSA={onContinueToPostPSA}
+          onContinueToMRI={onContinueToMRI}
+          onContinueToBiopsy={onContinueToPostBiopsy}
+        />
+      )}
 
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
@@ -410,28 +355,17 @@ const Part1Results = ({
           <p>Your result is an educational estimate based on the information you entered. It summarises how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but does not determine whether you do or do not have prostate cancer. Use it as a starting point for a conversation with a clinician.</p>
           <p>{getTierDescription(epsaTierKey, activeTier)}</p>
           {epsaGuidelineText && <p>{epsaGuidelineText}</p>}
-        </CollapsibleSection>
-
-        <CollapsibleSection title="How This Score Is Calculated">
-          <p>The ePSA score is a point-based summary of your answers. Each risk factor (e.g. age ≥60, BMI ≥30, urinary symptoms, limited exercise, current or former smoking, high red meat diet, Black ancestry, family history, BRCA, inflammation history, Agent Orange/chemical exposure, or a low SHIM score) contributes points. The total is normalized to a 0–100% scale, and a ±5% range is displayed to avoid over-interpretation.</p>
-          {displayRange && <div className="detail-data-row"><span>Displayed Range</span><strong>{displayRange}</strong></div>}
-          {epsaTierScoreRange && <div className="detail-data-row"><span>Tier Score Range</span><strong>{epsaTierScoreRange}{epsaTierNormalizedRange ? ` (${epsaTierNormalizedRange})` : ''}</strong></div>}
-          <div className="detail-data-row"><span>Risk Tier</span><strong>{epsaTierLabel || activeTier}</strong></div>
-          <div className="threshold-chip-grid" role="group" aria-label="Risk tier thresholds">
-            {thresholdTiers.map((tier) => (
-              <div key={tier.key} className={`threshold-chip ${tier.colorClass} ${selectedTierKey === tier.key ? 'threshold-chip--selected' : ''}`} aria-current={selectedTierKey === tier.key ? 'true' : undefined}>
-                <span className="threshold-chip-title">{tier.label}</span>
-                <span className="threshold-chip-range">Range: {tier.range}</span>
-              </div>
-            ))}
-          </div>
-          <p className="threshold-why-text">{tierWhyText}</p>
-          <div className={recommendationWhyClass}>{recommendationWhyText}</div>
+          {isHighRiskFlagged && (
+            <p>Your result includes at least one independently recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, or confirmed BRCA mutation). Guidelines recommend discussing screening with your physician from age 40 in these groups.</p>
+          )}
+          {empiricalProbabilityText && (
+            <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
+          )}
         </CollapsibleSection>
 
         {itemImpacts.length > 0 && (
-          <CollapsibleSection title="Item Impact Breakdown">
-            <p>Each item below shows the exact point contribution from the scoring engine used to generate your result.</p>
+        <CollapsibleSection title="Risk Factor Breakdown">
+          <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
               <table className="impact-table" aria-label="Item impact breakdown table">
                 <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
@@ -470,15 +404,6 @@ const Part1Results = ({
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>
       </div>
-
-      {/* ── Next Steps ── */}
-      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
-        <NextStepsSection
-          onContinueToPSA={onContinueToPostPSA}
-          onContinueToMRI={onContinueToMRI}
-          onContinueToBiopsy={onContinueToPostBiopsy}
-        />
-      )}
 
       {/* ── Action buttons ── */}
       <div className="results-actions">
