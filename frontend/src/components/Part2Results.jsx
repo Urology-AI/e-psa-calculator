@@ -43,6 +43,25 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
   );
 };
 
+/* ─── Collapsible Notice Item ─── */
+const NoticeItem = ({ label, children }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <li className="p2r-notice-item">
+      <button
+        type="button"
+        className="p2r-notice-toggle"
+        onClick={() => setExpanded(v => !v)}
+        aria-expanded={expanded}
+      >
+        <strong>{label}</strong>
+        {expanded ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+      </button>
+      {expanded && <div className="p2r-notice-body">{children}</div>}
+    </li>
+  );
+};
+
 /* ─── Risk Level Visual Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
   const levels = [
@@ -242,24 +261,24 @@ const Part2Results = ({
           </div>
           <ul className="p2r-notices-list">
             {lowPsaWarning && (
-              <li>
-                <strong>Low PSA:</strong> {lowPsaWarningText}
-              </li>
+              <NoticeItem label="Low PSA Risk">
+                {lowPsaWarningText}
+              </NoticeItem>
             )}
             {psadFlag && (
-              <li>
-                <strong>PSA Density elevated:</strong> Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+              <NoticeItem label="PSA Density Elevated">
+                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
                 <ModalInfoIcon
                   title="Kadeer et al. 2025 — PSA Density (PSAD)"
                   description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
                   sources={fieldReferences.part2.psadKadeer.sources}
                 />
-              </li>
+              </NoticeItem>
             )}
             {discordanceFlag && (
-              <li>
-                <strong>Risk discordance:</strong> {discordanceFlag.text}
-              </li>
+              <NoticeItem label="Risk Discordance">
+                {discordanceFlag.text}
+              </NoticeItem>
             )}
           </ul>
         </div>
@@ -351,7 +370,7 @@ const Part2Results = ({
       {/* ── Part 1 Reference ── */}
       {preResult && (
         <div className="p2r-part1-ref" role="complementary" aria-label="Part 1 reference data">
-          <div className="p2r-part1-ref-label">Based on Part 1 Screening Profile</div>
+          <div className="p2r-part1-ref-label">Part 1 Screening Profile</div>
           <div className="p2r-part1-ref-data">
             <div className="p2r-part1-ref-item">
               <span className="p2r-part1-ref-val">{preResult.score}%</span>
@@ -362,22 +381,6 @@ const Part2Results = ({
               <span className="p2r-part1-ref-val">{preResult.risk}</span>
               <span className="p2r-part1-ref-key">Risk Tier</span>
             </div>
-            <div className="p2r-part1-ref-divider" aria-hidden="true" />
-            <div className="p2r-part1-ref-item">
-              <span className="p2r-part1-ref-val">
-                {postData?.psa != null ? `${postData.psa} ng/mL` : '—'}
-              </span>
-              <span className="p2r-part1-ref-key">PSA Level</span>
-            </div>
-            {postData?.knowPirads && (
-              <>
-                <div className="p2r-part1-ref-divider" aria-hidden="true" />
-                <div className="p2r-part1-ref-item">
-                  <span className="p2r-part1-ref-val">PI-RADS {postData.pirads}</span>
-                  <span className="p2r-part1-ref-key">MRI Score</span>
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}
@@ -475,21 +478,12 @@ const Part2Results = ({
 
       {/* ── Expandable detail sections ── */}
       <div className="p2r-details">
-        <CollapsibleSection title="About This Risk Estimate" defaultOpen>
-          <p>{pointsExplanationText}</p>
-          <p>
-            PSA levels and PI-RADS scores entered here are used solely for educational risk stratification.
-            PSA-based screening in combination with shared decision-making is the recommended standard —
-            this tool is intended to supplement, not replace, that conversation with your clinician.
-          </p>
-          <p>
-            A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or
-            further workup is pursued.
-          </p>
+        <CollapsibleSection title="About This Risk Estimate">
+          <p>{pointsExplanationText} PSA levels and PI-RADS scores are used solely for educational risk stratification — this tool supplements, not replaces, a conversation with your clinician.</p>
+          <p>A newly elevated PSA should generally be confirmed with a repeat test before any biopsy or further workup is pursued.</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="How This Score Is Calculated">
-          <p>Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. Your result is shown as a risk tier based on guideline thresholds from AUA, NCCN, and EAU. No specific value is calculated — only which tier your inputs fall into.</p>
 
           {/* PSA Tier Breakdown */}
           <div className="p2r-breakdown-block">
