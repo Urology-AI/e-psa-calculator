@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
+  FlaskConicalIcon, ScanEyeIcon, MicroscopeIcon, ArrowRightIcon,
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
@@ -157,32 +158,38 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
     <div className="next-steps-cards">
       {onContinueToPSA && (
         <button className="next-step-card next-step-card--psa" onClick={onContinueToPSA}>
-          <div className="nsc-icon-wrap">🔬</div>
+          <div className="nsc-icon-wrap nsc-icon-wrap--psa">
+            <FlaskConicalIcon size={18} />
+          </div>
           <div className="nsc-body">
             <div className="nsc-title">PSA Assessment</div>
             <div className="nsc-desc">Have your PSA result? Add it for a fuller picture.</div>
-            <div className="nsc-cta">Continue to PSA Assessment →</div>
           </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
         </button>
       )}
       {onContinueToMRI && (
         <button className="next-step-card next-step-card--mri" onClick={onContinueToMRI}>
-          <div className="nsc-icon-wrap">🏥</div>
+          <div className="nsc-icon-wrap nsc-icon-wrap--mri">
+            <ScanEyeIcon size={18} />
+          </div>
           <div className="nsc-body">
             <div className="nsc-title">MRI Results</div>
             <div className="nsc-desc">Had an MRI? Add your PI-RADS score for a more complete picture.</div>
-            <div className="nsc-cta">Add MRI Results →</div>
           </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
         </button>
       )}
       {onContinueToBiopsy && (
         <button className="next-step-card next-step-card--biopsy" onClick={onContinueToBiopsy}>
-          <div className="nsc-icon-wrap">🧬</div>
+          <div className="nsc-icon-wrap nsc-icon-wrap--biopsy">
+            <MicroscopeIcon size={18} />
+          </div>
           <div className="nsc-body">
             <div className="nsc-title">Biopsy Evaluation</div>
             <div className="nsc-desc">Had a biopsy? Evaluate whether active surveillance is right for you.</div>
-            <div className="nsc-cta">Biopsy Assessment →</div>
           </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
         </button>
       )}
     </div>
@@ -306,12 +313,9 @@ const Part1Results = ({
 
       {/* ── Top bar ── */}
       <div className="results-top-links-row">
-        <div className="results-mobile-unit-wrap">
-          <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find Mobile Unit location">
-            <MapPinIcon size={16} /><span>Mobile Unit</span>
-          </a>
-          <p className="results-mobile-unit-note">Important: Learn more about screening and upcoming community events.</p>
-        </div>
+        <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find a screening event near you">
+          <MapPinIcon size={15} /><span>Upcoming Screening Events</span>
+        </a>
       </div>
 
       {/* ── Cloud row ── */}
@@ -373,11 +377,6 @@ const Part1Results = ({
       <div className="recommendation-card" style={{ borderLeftColor: tierAccentColor }}>
         <div className="rec-card-label" style={{ color: tierAccentColor }}>Clinician Discussion Guidance</div>
         <p className="rec-card-text">{getSoftenedActionText(epsaTierKey, activeTier, action)}</p>
-        {recommendPSA != null && (
-          <p className="rec-card-sub">
-            {recommendPSA ? 'Threshold-based recommendation from Part 1 assessment' : 'Below recommendation threshold based on Part 1 assessment'}
-          </p>
-        )}
       </div>
 
       {/* ── Clinical metrics ── */}
@@ -407,13 +406,10 @@ const Part1Results = ({
 
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
-        <CollapsibleSection title="About Your Result" defaultOpen>
-          <p>Your result is an educational estimate based on the information you entered. It summarizes how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.</p>
+        <CollapsibleSection title="About Your Result">
+          <p>Your result is an educational estimate based on the information you entered. It summarises how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but does not determine whether you do or do not have prostate cancer. Use it as a starting point for a conversation with a clinician.</p>
           <p>{getTierDescription(epsaTierKey, activeTier)}</p>
           {epsaGuidelineText && <p>{epsaGuidelineText}</p>}
-          {isHighRiskFlagged && (
-            <p>Your result includes at least one independently recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, or confirmed BRCA mutation). Guidelines recommend discussing screening with your physician from age 40 in these groups.</p>
-          )}
         </CollapsibleSection>
 
         <CollapsibleSection title="How This Score Is Calculated">
