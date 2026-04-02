@@ -37,6 +37,7 @@ export const buildPart1CsvRows = (formData, result, config) => {
     pre_psa: 'Pre-PSA Assessment',
     post_psa: 'Post-PSA Assessment',
     post_mri: 'Post-MRI Assessment',
+    post_biopsy: 'Post-Biopsy / AS Assessment',
   };
   const pathwayLabel = pathwayLabelMap[fd.pathwayMode] || pathwayLabelMap[result?.pathwayMode] || 'Pre-PSA Assessment';
 
@@ -84,6 +85,7 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
     pre_psa: 'Pre-PSA Assessment',
     post_psa: 'Post-PSA Assessment',
     post_mri: 'Post-MRI Assessment',
+    post_biopsy: 'Post-Biopsy / AS Assessment',
   };
   const pathwayLabel = pathwayLabelMap[postResult?.pathwayMode] || pathwayLabelMap[pd.pathwayMode] || 'Post-MRI Assessment';
 
@@ -112,6 +114,33 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
     psadPoints: postResult?.psadPoints ?? '',
     psadFlag: postResult?.psadFlag ?? '',
     modelVersion: postResult?.modelVersion ?? config?.version ?? '',
+  };
+  return [row];
+};
+
+export const buildASCsvRows = (preData, preResult, asData, asResult, config) => {
+  const row = {
+    pathwayMode: 'Post-Biopsy / AS Assessment',
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    part: 'post_biopsy',
+    preScore: preResult?.score ?? '',
+    preRisk: preResult?.risk ?? '',
+    preEpsaTierKey: preResult?.epsaTierKey ?? '',
+    biopsyGGG: asResult?.biopsyGGG ?? asData?.biopsyGGG ?? '',
+    coresPositive: asResult?.coresPositive ?? asData?.coresPositive ?? '',
+    coresTotal: asResult?.coresTotal ?? asData?.coresTotal ?? '',
+    corePct: asResult?.corePct ?? '',
+    maxCorePct: asResult?.maxCorePct ?? asData?.maxCorePct ?? '',
+    psaValue: asResult?.psaValue ?? asData?.psaValue ?? '',
+    psadValue: asResult?.psadValue != null ? asResult.psadValue.toFixed(3) : '',
+    psadFlag: asResult?.psadFlag ?? '',
+    piradsValue: asResult?.piradsValue ?? asData?.pirads ?? '',
+    nccnRiskGroup: asResult?.nccnRiskGroup ?? '',
+    asTierKey: asResult?.asTierKey ?? '',
+    asTierLabel: asResult?.asTierLabel ?? '',
+    asScore: asResult?.asScore ?? '',
+    modelVersion: asResult?.modelVersion ?? config?.version ?? '',
   };
   return [row];
 };

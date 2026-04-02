@@ -25,7 +25,9 @@ import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, calculateActiveSurveillance, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import BiopsyForm from './components/BiopsyForm.jsx';
+import ActiveSurveillanceResults from './components/ActiveSurveillanceResults.jsx';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
@@ -155,6 +157,7 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+  const [asResult, setAsResult] = useState(null);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -1089,7 +1092,8 @@ function App() {
     });
     setPreResult(null);
     setPostResult(null);
-    
+    setAsResult(null);
+
     // Clear session ID from state but keep user logged in
     setSessionId(null);
     
@@ -1215,9 +1219,13 @@ function App() {
       }
 
       // For post_psa and post_mri pathways, go directly to Part2Form (PSA input)
-      // User already committed to having PSA data when they selected the pathway
+      // For post_biopsy, go to BiopsyForm
+      // User already committed to having these results when they selected the pathway
       if (pathwayMode === 'post_psa' || pathwayMode === 'post_mri') {
         setStage('post');
+        setCurrentStep(1);
+      } else if (pathwayMode === 'post_biopsy') {
+        setStage('biopsy');
         setCurrentStep(1);
       } else {
         setCurrentStep(3);
@@ -1295,6 +1303,21 @@ function App() {
   };
 
 
+  const handleBiopsySubmit = (asFormData) => {
+    if (!preResult) return;
+    const result = calculateActiveSurveillance(preResult, asFormData, calculatorConfig);
+    setAsResult(result);
+    setCurrentStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleContinueToPostBiopsy = () => {
+    setPathwayMode('post_biopsy');
+    setStage('biopsy');
+    setCurrentStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const canProceedPost = () => {
     // Part2Form handles its own validation
     return true;
@@ -1304,7 +1327,16 @@ function App() {
   const handleGlobalBack = () => {
     if (authStep === 'app') {
       // In main app, handle back based on current step and stage
-      if (stage === 'pre') {
+      if (stage === 'biopsy') {
+        if (currentStep === 1) {
+          // From BiopsyForm go back to Part1Results
+          setStage('pre');
+          setCurrentStep(3);
+        } else if (currentStep === 2) {
+          // From AS results go back to BiopsyForm
+          setCurrentStep(1);
+        }
+      } else if (stage === 'pre') {
         if (currentStep === 1) {
           // From Part1Form, go back to welcome
           setAuthStep('welcome');
@@ -1532,6 +1564,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                onContinueToPostBiopsy={handleContinueToPostBiopsy}
               />
             ) : (
               <div className="loading-results">
@@ -1637,6 +1670,35 @@ function App() {
     }
   };
 
+  const renderBiopsyStage = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <BiopsyForm
+            preResult={preResult}
+            onSubmit={handleBiopsySubmit}
+          />
+        );
+      case 2:
+        return (
+          <ActiveSurveillanceResults
+            result={asResult}
+            onEditAnswers={() => {
+              setCurrentStep(1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onStartOver={async () => {
+              if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
+                await handleClearData();
+              }
+            }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="App">
       <div className="container">
@@ -1702,12 +1764,13 @@ function App() {
 
                 // Pathway-aware labels
                 const PATHWAY_BADGES = {
-                  pre_psa:  { label: 'Pre-PSA Screening',    cls: 'stage-pre'  },
-                  post_psa: { label: 'PSA Assessment',        cls: 'stage-post' },
-                  post_mri: { label: 'Full MRI Assessment',   cls: 'stage-mri'  },
+                  pre_psa:      { label: 'Pre-PSA Screening',       cls: 'stage-pre'     },
+                  post_psa:     { label: 'PSA Assessment',           cls: 'stage-post'    },
+                  post_mri:     { label: 'Full MRI Assessment',      cls: 'stage-mri'     },
+                  post_biopsy:  { label: 'Active Surveillance Eval', cls: 'stage-biopsy'  },
                 };
                 const effectiveMode = pathwayMode
-                  || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                  || (stage === 'biopsy' ? 'post_biopsy' : stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
                 const badge = PATHWAY_BADGES[effectiveMode]
                   || (stage === 'pre'
                     ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
@@ -1751,7 +1814,7 @@ function App() {
         ) : (
           <>
             {showTestPanel && <FirebaseTestPanel />}
-            {stage === 'pre' ? renderPreStage() : renderPostStage()}
+            {stage === 'biopsy' ? renderBiopsyStage() : stage === 'pre' ? renderPreStage() : renderPostStage()}
           </>
         )}
       </div>

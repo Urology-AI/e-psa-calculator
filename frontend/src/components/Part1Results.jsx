@@ -155,7 +155,7 @@ const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
-  onContinueToPostPSA = null, onContinueToMRI = null,
+  onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
 
@@ -173,7 +173,7 @@ const Part1Results = ({
     recommendPSA, psaRecommendReason, psaRecommendMessage,
     tierRisk, epsaTierKey, epsaTierLabel, epsaTierScoreRange, epsaTierNormalizedRange,
     recommendationThresholdLabel, epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
-    pathwayMode = 'pre_psa',
+    pathwayMode = 'pre_psa', empiricalProbabilityText = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -302,6 +302,14 @@ const Part1Results = ({
         </div>
         <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
       </div>
+
+      {/* ── Empirical probability text ── */}
+      {empiricalProbabilityText && (
+        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#4b5563', fontStyle: 'italic', lineHeight: 1.5 }} role="note">
+          <InfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#6b7280' }} />
+          {empiricalProbabilityText}
+        </div>
+      )}
 
       {/* ── PSA Recommendation Banner ──────────────────────────────────────────
        * RED   = high_risk_early_screening | family_history_override
@@ -450,6 +458,14 @@ const Part1Results = ({
           <p className="pathway-continue-banner-text">Had an MRI? Add your PI-RADS score for biopsy guidance.</p>
           <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToMRI}>
             Continue to MRI Assessment →
+          </button>
+        </div>
+      )}
+      {pathwayMode === 'pre_psa' && recommendPSA === true && onContinueToPostBiopsy && (
+        <div className="pathway-continue-banner pathway-continue-banner--biopsy" role="note">
+          <p className="pathway-continue-banner-text">Had a biopsy? Evaluate whether active surveillance is right for you.</p>
+          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToPostBiopsy}>
+            Evaluate Biopsy Results →
           </button>
         </div>
       )}
