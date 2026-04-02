@@ -1360,6 +1360,10 @@ function App() {
           // From Part2Results, go back to Part2Form
           setCurrentStep(1);
         }
+      } else if (stage === 'biopsy') {
+        // From Biopsy placeholder, go back to Part 1 results
+        setStage('pre');
+        setCurrentStep(3);
       }
     } else {
       // In auth flow, handle back based on auth step
@@ -1572,29 +1576,6 @@ function App() {
                 <p style={{ fontSize: '0.75rem', color: '#666' }}>{t('app.loadingResults.note')}</p>
               </div>
             )}
-            <div className="stage-actions">
-              <button
-                onClick={() => {
-                  // Allow continuing to Stage 2 (post) after Part 1 is complete
-                  if (!preResult) {
-                    console.warn('Cannot continue - no result');
-                    return;
-                  }
-                  
-                  setStage('post');
-                  setCurrentStep(0);
-                  // Ensure sessionId is set before moving to post stage
-                  if (user && !sessionId) {
-                    console.warn('No sessionId found when moving to post stage');
-                  }
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="btn btn-primary"
-                disabled={!preResult}
-              >
-                {t('app.continueToRisk')}
-              </button>
-            </div>
           </div>
         );
 
