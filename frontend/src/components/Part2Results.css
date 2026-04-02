@@ -87,32 +87,6 @@
   border-radius: 0.625rem;
 }
 
-.p2r-session-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  border: 0.0625rem solid #d0e0ee;
-  border-radius: 0.5rem;
-  padding: 0.3125rem 0.625rem;
-  font-size: 0.75rem;
-  color: #4a6b84;
-}
-
-.p2r-session-label {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.625rem;
-  color: #6b87a0;
-}
-
-.p2r-session-code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1d5f8a;
-}
 
 .p2r-cloud-saved {
   display: inline-flex;
@@ -672,21 +646,6 @@
   border-color: var(--line-100);
 }
 
-.theme-dark .p2r-session-pill {
-  background: var(--surface);
-  border-color: var(--line-100);
-  color: var(--ink-500);
-}
-
-.theme-dark .p2r-mobile-unit-pill {
-  background: var(--surface);
-  border-color: var(--line-100);
-  color: var(--brand-600);
-}
-
-.theme-dark .p2r-mobile-unit-pill:hover {
-  background: var(--surface-subtle);
-}
 
 .theme-dark .p2r-video-pill {
   background: var(--surface);
@@ -696,11 +655,6 @@
 
 .theme-dark .p2r-video-pill:hover {
   background: var(--surface-subtle);
-}
-
-.theme-dark .p2r-session-pill .p2r-session-code,
-.theme-dark .p2r-session-code {
-  color: var(--brand-600);
 }
 
 .theme-dark .p2r-cloud-saved {
@@ -737,11 +691,6 @@
   color: var(--ink-500);
 }
 
-.theme-dark .p2r-alert--error {
-  background: var(--error-50);
-  border-color: rgba(220, 38, 38, 0.35);
-  color: var(--error-600);
-}
 
 .theme-dark .p2r-risk-card {
   background: var(--surface);
@@ -767,16 +716,6 @@
   border-color: var(--line-100);
 }
 
-.theme-dark .p2r-session-pill {
-  background: var(--surface);
-  border-color: var(--line-100);
-  color: var(--ink-500);
-}
-
-.theme-dark .p2r-session-pill .p2r-session-code,
-.theme-dark .p2r-session-code {
-  color: var(--brand-600);
-}
 
 
 .theme-dark .p2r-part1-ref-label {
