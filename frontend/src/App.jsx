@@ -1722,66 +1722,77 @@ function App() {
                 Logout
               </button>
             )}
-            <div className="stage-indicator">
-              {authStep === 'app' && storageMode === 'cloud' && appSessionId && appSessionId !== 'Local' && (
-                <span className="session-key-badge" title="Anonymous session key">
-                  Session Key: {appSessionId}
+            {authStep === 'app' && (
+              <div className="stage-indicator">
+                {appSessionId && appSessionId !== 'Local' && (
+                  <span className="session-key-badge" title="Your session key — use this to resume your assessment">
+                    Session: {appSessionId}
+                  </span>
+                )}
+                <span className={`stage-step-badge ${stage === 'pre' ? 'stage-step-badge--pre' : 'stage-step-badge--post'}`}>
+                  {stage === 'pre'
+                    ? currentStep === 3
+                      ? 'Part 1 · Results'
+                      : `Part 1 · Step ${Math.min(part1Step + 1, 7)} of 7`
+                    : stage === 'biopsy'
+                      ? currentStep === 3
+                        ? 'Active Surveillance · Results'
+                        : 'Active Surveillance'
+                      : currentStep === 3
+                        ? 'Part 2 · Results'
+                        : currentStep === 0
+                          ? 'Part 2 · Overview'
+                          : `Part 2 · Step ${currentStep} of 2`}
                 </span>
-              )}
-              {authStep === 'app' && storageMode === 'cloud' && (
-                <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
-                  {cloudSyncStatus === 'saving'
-                    ? 'Saving to anonymous cloud...'
-                    : cloudSyncStatus === 'saved'
-                      ? 'Synced to anonymous cloud'
-                      : cloudSyncStatus === 'error'
-                        ? 'Cloud sync issue'
-                        : 'Anonymous cloud ready'}
-                </span>
-              )}
-              {authStep === 'app' && (() => {
-                // On PathwaySelector screen — no badge yet
-                if (pathwayMode === null && !preResult) return null;
+                {storageMode === 'cloud' && cloudSyncStatus !== 'idle' && (
+                  <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
+                    {cloudSyncStatus === 'saving' ? 'Saving…' : cloudSyncStatus === 'saved' ? 'Saved' : 'Sync issue'}
+                  </span>
+                )}
+                {(() => {
+                  // On PathwaySelector screen — no badge yet
+                  if (pathwayMode === null && !preResult) return null;
 
-                // Pathway-aware labels
-                const PATHWAY_BADGES = {
-                  pre_psa:      { label: 'Pre-PSA Screening',       cls: 'stage-pre'     },
-                  post_psa:     { label: 'PSA Assessment',           cls: 'stage-post'    },
-                  post_mri:     { label: 'Full MRI Assessment',      cls: 'stage-mri'     },
-                  post_biopsy:  { label: 'Active Surveillance Eval', cls: 'stage-biopsy'  },
-                };
-                const effectiveMode = pathwayMode
-                  || (stage === 'biopsy' ? 'post_biopsy' : stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
-                const badge = PATHWAY_BADGES[effectiveMode]
-                  || (stage === 'pre'
-                    ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
-                    : { label: t('app.stage.stagePost'), cls: 'stage-post' });
+                  // Pathway-aware labels
+                  const PATHWAY_BADGES = {
+                    pre_psa:      { label: 'Pre-PSA Screening',       cls: 'stage-pre'     },
+                    post_psa:     { label: 'PSA Assessment',           cls: 'stage-post'    },
+                    post_mri:     { label: 'Full MRI Assessment',      cls: 'stage-mri'     },
+                    post_biopsy:  { label: 'Active Surveillance Eval', cls: 'stage-biopsy'  },
+                  };
+                  const effectiveMode = pathwayMode
+                    || (stage === 'biopsy' ? 'post_biopsy' : stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                  const badge = PATHWAY_BADGES[effectiveMode]
+                    || (stage === 'pre'
+                      ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
+                      : { label: t('app.stage.stagePost'), cls: 'stage-post' });
 
-                // Only show "Change pathway" before results are locked in
-                const canChangePathway = pathwayMode !== null && !preResult;
+                  // Only show "Change pathway" before results are locked in
+                  const canChangePathway = pathwayMode !== null && !preResult;
 
-                return (
-                  <>
-                    <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
-                    {canChangePathway && (
-                      <button
-                        type="button"
-                        className="change-pathway-btn"
-                        onClick={() => {
-                          setPathwayMode(null);
-                          setCurrentStep(1);
-                          setPart1Step(0);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        title="Go back to pathway selection"
-                      >
-                        ← Change
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
+                  return (
+                    <>
+                      <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
+                      {canChangePathway && (
+                        <button
+                          type="button"
+                          className="change-pathway-btn"
+                          onClick={() => {
+                            setPathwayMode(null);
+                            setCurrentStep(1);
+                            setPart1Step(0);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          title="Go back to pathway selection"
+                        >
+                          ← Change
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </header>
 
