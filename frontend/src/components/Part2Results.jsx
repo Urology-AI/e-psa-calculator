@@ -46,9 +46,9 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
 /* ─── Risk Level Visual Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
   const levels = [
-    { id: 'low',      label: 'LOW',       color: '#16a34a' },
-    { id: 'moderate', label: 'MODERATE',  color: '#d97706' },
-    { id: 'high',     label: 'HIGH',      color: '#dc2626' },
+    { id: 'low',          label: 'Low',          color: '#16a34a' },
+    { id: 'intermediate', label: 'Intermediate', color: '#d97706' },
+    { id: 'elevated',     label: 'Elevated',     color: '#dc2626' },
   ];
   const cls = String(riskClass || '').toLowerCase();
   const activeIdx = cls.includes('very') || cls.includes('high') ? 2
@@ -189,16 +189,10 @@ const Part2Results = ({
   return (
     <div className="p2r-container" role="main">
 
-      {/* ── Session / Cloud row ── */}
-      {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
+      {/* ── Cloud row ── */}
+      {(storageMode === 'local' && cloudAvailable && onSaveToCloud) && (
         <div className="p2r-cloud-row">
-          {sessionId && (
-            <div className="p2r-session-pill">
-              <span className="p2r-session-label">Session</span>
-              <code className="p2r-session-code">{sessionId}</code>
-            </div>
-          )}
-          {storageMode === 'cloud' && sessionId && (
+          {storageMode === 'cloud' && (
             <div className="p2r-cloud-saved">
               <CloudIcon size={13} /><span>Saved to cloud</span>
             </div>
@@ -220,54 +214,35 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── Low PSA Warning ── */}
-      {lowPsaWarning && (
-        <div className="p2r-alert p2r-alert--warning" role="alert">
-          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Low-PSA Notice</div>
-            <p className="p2r-alert-body">{lowPsaWarningText}</p>
+      {/* ── Clinical Notices (consolidated) ── */}
+      {(lowPsaWarning || psadFlag || discordanceFlag) && (
+        <div className="p2r-notices" role="note" aria-label="Clinical notices">
+          <div className="p2r-notices-title">
+            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
+            <span>Clinical Notices</span>
           </div>
-        </div>
-      )}
-
-      {/* ── PSA Density (PSAD) note ── */}
-      {psadFlag && (
-        <div className="p2r-alert p2r-alert--warning" role="note" aria-label="PSA density elevated note">
-          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">PSA Density Notice</div>
-            <p className="p2r-alert-body">
-              PSA Density elevated (&gt; 0.177 ng/mL/mL) — supports further evaluation per Kadeer et al. 2025.
-            </p>
-            <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.9 }}>
-                Source
-              </span>
-              <ModalInfoIcon
-                title="Kadeer et al. 2025 — PSA Density (PSAD)"
-                description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
-                sources={fieldReferences.part2.psadKadeer.sources}
-              />
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.95 }}>
-                Kadeer et al. 2025 (Front. Oncol. 15:1602134)
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Discordance Flag ── */}
-      {discordanceFlag && (
-        <div
-          className={`p2r-alert p2r-alert--${discordanceFlag.severity === 'high' ? 'error' : 'warning'}`}
-          role="alert"
-        >
-          <AlertCircleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Risk Discordance Detected</div>
-            <p className="p2r-alert-body">{discordanceFlag.text}</p>
-          </div>
+          <ul className="p2r-notices-list">
+            {lowPsaWarning && (
+              <li>
+                <strong>Low PSA:</strong> {lowPsaWarningText}
+              </li>
+            )}
+            {psadFlag && (
+              <li>
+                <strong>PSA Density elevated:</strong> Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+                <ModalInfoIcon
+                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
+                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
+                  sources={fieldReferences.part2.psadKadeer.sources}
+                />
+              </li>
+            )}
+            {discordanceFlag && (
+              <li>
+                <strong>Risk discordance:</strong> {discordanceFlag.text}
+              </li>
+            )}
+          </ul>
         </div>
       )}
 
