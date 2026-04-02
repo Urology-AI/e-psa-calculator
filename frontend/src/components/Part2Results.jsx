@@ -164,6 +164,8 @@ const Part2Results = ({
     biopsyReason = null,
     biopsyMessage = null,
     pathwayMode = 'post_mri',
+    empiricalProbabilityText = null,
+    piradsConfidenceText = null,
   } = result;
 
   const getRiskColor = (rc) => {
@@ -343,6 +345,22 @@ const Part2Results = ({
         </div>
         <RiskLevelBar riskClass={riskClass} />
       </div>
+
+      {/* ── Empirical probability text ── */}
+      {empiricalProbabilityText && (
+        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#4b5563', fontStyle: 'italic', lineHeight: 1.5 }} role="note">
+          <LucideInfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#6b7280' }} />
+          {empiricalProbabilityText}
+        </div>
+      )}
+
+      {/* ── PI-RADS confidence text (post_mri only) ── */}
+      {pathwayMode === 'post_mri' && piradsConfidenceText && (
+        <div style={{ background: '#e6f5f5', border: '1px solid #a7f3d0', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#065f46', lineHeight: 1.5 }} role="note">
+          <LucideInfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#047857' }} />
+          {piradsConfidenceText}
+        </div>
+      )}
 
       {/* ── Part 1 Reference ── */}
       {preResult && (

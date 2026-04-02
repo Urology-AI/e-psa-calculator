@@ -1,5 +1,91 @@
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig.js';
 
+// =============================================================================
+// ePSA CALCULATOR ENGINE v4
+// =============================================================================
+//
+// Four clinical models:
+//
+//   Model 1 — calculateDynamicEPsa()
+//     Pathway: pre_psa — "Should I get a PSA test?"
+//     Input:   27-question questionnaire
+//     Output:  rawScore 0-80, 3-tier (Low/Intermediate/Elevated),
+//              PSA recommendation + reason, empirical csPCa probability
+//     AUC: 0.579 [0.442-0.712]  Sens: 91.3%  NPV: 89.5%  N=94
+//
+//   Model 2 — calculateDynamicEPsaPost() with pathwayMode='post_psa'
+//     Pathway: post_psa — "I have a PSA result"
+//     Input:   Part 1 result + PSA value (+ optional prostate volume for PSAD)
+//     Output:  combined tier, discordance flag, low-PSA warning, PSAD,
+//              empirical csPCa probability by combined tier
+//     AUC: 0.600 [0.463-0.735]  vs PSA alone 0.579  N=94
+//
+//   Model 3 — calculateDynamicEPsaPost() with pathwayMode='post_mri'
+//     Pathway: post_mri — "I had a PSA and an MRI"
+//     Input:   Part 1 result + PSA + PI-RADS + optional prostate volume
+//     Output:  combined tier, biopsy recommendation banner
+//     Note:    PI-RADS scoring guideline-based (AUA/NCCN/EAU); PI-RADS
+//              not yet in validation dataset — Model 3 unvalidated empirically
+//
+//   Model 4 — calculateActiveSurveillance()  ← NEW
+//     Pathway: post_biopsy — "I've had a biopsy — AS or treatment?"
+//     Input:   Part 1 result + biopsy GGG + cores data + optional PSAD/PI-RADS
+//     Output:  AS recommendation tier + clinical rationale
+//     Basis:   AUA/NCCN AS criteria + Kadeer 2025 PSAD cutoff
+//              ePSA predicts GG1 (AUC 0.624) better than PSA (AUC 0.513) N=94
+//
+// Empirical csPCa rates (N=94, 23 csPCa GG≥3):
+//   ePSA Low (0-10):            7%  [95%CI 1%-31%]   N=14
+//   ePSA Intermediate (11-17): 20%  [95%CI 4%-62%]   N=5
+//   ePSA Elevated (≥18):       28%  [95%CI 19%-39%]  N=75
+//   Combined Int-High (28-55): 21%  N=58
+//   Combined High (≥56):       31%  N=32
+//
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// EMPIRICAL CALIBRATION DATA — from N=94 validation cohort
+// Used to display "X in Y patients like you had csPCa" messaging
+// ---------------------------------------------------------------------------
+const EPSA_TIER_CALIBRATION = {
+  low:          { rate: 0.07,  ci_lo: 0.01, ci_hi: 0.31, n: 14,  events: 1  },
+  intermediate: { rate: 0.20,  ci_lo: 0.04, ci_hi: 0.62, n: 5,   events: 1  },
+  elevated:     { rate: 0.28,  ci_lo: 0.19, ci_hi: 0.39, n: 75,  events: 21 }
+};
+
+const COMBINED_TIER_CALIBRATION = {
+  'low':              { rate: null, n: 0,  events: 0,  note: 'No data in referral cohort' },
+  'intermediate-low': { rate: 0.25, n: 4,  events: 1,  note: 'Small N — interpret with caution' },
+  'intermediate-high':{ rate: 0.21, n: 58, events: 12, note: 'N=94 biopsied referral cohort' },
+  'high':             { rate: 0.31, n: 32, events: 10, note: 'N=94 biopsied referral cohort' }
+};
+
+// ---------------------------------------------------------------------------
+// VALIDATION ACCURACY SUMMARY — for display in UI if needed
+// ---------------------------------------------------------------------------
+export const MODEL_ACCURACY = {
+  model1: {
+    auc: 0.579, auc_ci_lo: 0.442, auc_ci_hi: 0.712,
+    sensitivity: 0.913, specificity: 0.239, npv: 0.895, ppv: 0.280,
+    n: 94, events: 23, threshold: 'rawScore >= 18',
+    note: 'Equivalent to PSA ≥4.0 at same sensitivity with 3 fewer false positives'
+  },
+  model2: {
+    auc: 0.600, auc_ci_lo: 0.463, auc_ci_hi: 0.735,
+    n: 94, events: 23,
+    note: 'AUC gain over PSA alone (+0.021) not yet significant at N=94 (p=0.725)'
+  },
+  model3: {
+    auc: null,
+    note: 'PI-RADS not collected in N=94 dataset. Scoring guideline-based (AUA/NCCN/EAU).'
+  },
+  model4: {
+    auc_gg1: 0.624, auc_psa_gg1: 0.513,
+    low_int_as_rate: 0.89,
+    note: 'ePSA predicts GG1 AS-eligibility better than PSA alone (AUC 0.624 vs 0.513)'
+  }
+};
+
 export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => {
   const errors = [];
   const warnings = [];
@@ -52,9 +138,7 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     return total;
   };
 
-  if (!formData?.race) {
-    errors.push('Race is required');
-  }
+  if (!formData?.race) errors.push('Race is required');
 
   if (formData?.exercise === undefined || formData?.exercise === null || formData?.exercise === '') {
     errors.push('Exercise level is required');
@@ -80,9 +164,7 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
     formData?.comorbidityScore !== undefined && formData?.comorbidityScore !== null;
   if (hasComorbidityScore) {
     const s = Number(formData.comorbidityScore);
-    if (s !== 0 && s !== 1 && s !== 2) {
-      errors.push('Comorbidities must be 0, 1, or 2');
-    }
+    if (s !== 0 && s !== 1 && s !== 2) errors.push('Comorbidities must be 0, 1, or 2');
   } else {
     for (const key of Object.keys(comorbidityLabels)) {
       if (formData?.[key] === undefined || formData?.[key] === null || formData?.[key] === '') {
@@ -100,13 +182,9 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
       errors.push(`Age must be between ${validation.minAge} and ${validation.maxAge}`);
     }
     if (bmiNum != null) {
-      if (bmiNum < validation.minBMI) {
-        errors.push(`BMI must be at least ${validation.minBMI}`);
-      }
+      if (bmiNum < validation.minBMI) errors.push(`BMI must be at least ${validation.minBMI}`);
       if (bmiNum > validation.maxBMI) {
-        warnings.push(
-          `BMI is above the validated range (>${validation.maxBMI}); results may be less accurate.`
-        );
+        warnings.push(`BMI is above the validated range (>${validation.maxBMI}); results may be less accurate.`);
       }
     }
   }
@@ -124,6 +202,9 @@ export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => 
   return { errors, warnings };
 };
 
+// =============================================================================
+// MODEL 1 — pre_psa: "Should I get a PSA test?"
+// =============================================================================
 export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
   const { part1 } = config;
@@ -175,7 +256,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     const ageBin = pickBinLabel(ageNum, part1?.encodings?.ageBins, '40-49');
     const bmiBin = pickBinLabel(bmiNum, part1?.encodings?.bmiBins, '<25');
     const ipssSev = pickBinLabel(ipssTotal, part1?.encodings?.ipssSeverity, 'mild');
-
     variableValues.age_50_59 = ageBin === '50-59' ? 1 : 0;
     variableValues.age_60_69 = ageBin === '60-69' ? 1 : 0;
     variableValues.age_70_plus = ageBin === '70+' ? 1 : 0;
@@ -210,22 +290,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // informative Normal priors anchored to AUA/NCCN/EAU literature log-ORs.
   // Scale: 16 pts per log-OR unit (age 70+ anchor). MAX_POINTS = 80.
   // Youden-optimal triage threshold: rawScore >= 18 (J=0.138, sens=91.3%, spec=22.5%)
-  //
-  // v2 change log vs v1:
-  //   Age 60-69:       8 -> 10  posterior OR 1.86
-  //   Age 70+:        16 -> 16  posterior OR 2.58 (anchor, unchanged)
-  //   BMI >= 30:       8 ->  4  posterior OR 1.27
-  //   IPSS mild:       8 ->  8  posterior OR 1.58 (unchanged)
-  //   IPSS moderate:   4 ->  0  posterior OR 0.94 (non-significant, removed)
-  //   IPSS severe:     0 ->  0  reference (unchanged)
-  //   Exercise some:   8 ->  2  posterior OR 1.18
-  //   Exercise none:  16 ->  4  posterior OR 1.21
-  //   Smoking former:  8 ->  2  posterior OR 1.11
-  //   Smoking current:16 ->  6  posterior OR 1.49
-  //   Diet red meat:   8 ->  4  posterior OR 1.24
-  //   Race Black:      8 ->  8  posterior OR 1.52 (unchanged)
-  //   Family history: 16 -> 10  posterior OR 1.71
-  //   Comorbidity:   0-2 -> 0,10,20  posterior OR 1.72/unit (only sig. variable, p=0.001)
   // ---------------------------------------------------------------------------
   let rawScore = 0;
   const MAX_POINTS = 80;
@@ -242,7 +306,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   if (Number.isFinite(bmiNum) && bmiNum >= 30) addImpact('BMI', bmiNum.toFixed(1), 4);
   else addImpact('BMI', Number.isFinite(bmiNum) ? bmiNum.toFixed(1) : 'N/A', 0);
 
-  // Only IPSS mild (0-7) scores. Moderate (8-19) and severe (20-35) both score 0.
+  // Only IPSS mild (0-7) scores. Moderate (8-19) and severe (20-35) score 0.
   if (ipssTotal >= 0 && ipssTotal <= 7) addImpact('IPSS total', `${ipssTotal}/35`, 8);
   else addImpact('IPSS total', `${ipssTotal}/35`, 0);
 
@@ -261,12 +325,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   addImpact('Black ancestry', isBlack ? 'Yes' : 'No', isBlack ? 8 : 0);
   addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
-  // Non-Bayesian variables retained from v1
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
-  const brcaLabel =
-    brcaPositive ? 'Positive' :
-      brcaStatus === 'no' ? 'Negative (tested)' :
-        'Not tested / Unknown';
+  const brcaLabel = brcaPositive ? 'Positive' : brcaStatus === 'no' ? 'Negative (tested)' : 'Not tested / Unknown';
   addImpact('BRCA mutation', brcaLabel, brcaPositive ? 16 : 0);
   addImpact(
     'Inflammation history',
@@ -292,49 +352,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const rangeHigh = Math.min(100, scorePercent + 5);
 
   // ---------------------------------------------------------------------------
-  // Recommendation threshold — aligned with Low/Intermediate tier boundary
-  //
-  // CHANGE: 0.09 (9%) -> 0.1375 (13.75%)
-  //
-  // Why 9% was wrong:
-  //   rawScores 3-10 ALL produced null (ambiguous) because the +/-5% band
-  //   straddles 9% for the entire upper half of the Low tier — 8 consecutive
-  //   score values gave no clean recommendation.
-  //
-  // Why 13.75%:
-  //   13.75% = exactly the Low/Intermediate boundary (rawScore 11/80).
-  //   Low tier (0-10) -> false, Intermediate/Elevated (>=11) -> true. Zero nulls.
-  //   Consistent with what the gauge shows. AUA overrides still handle
-  //   55-69 window, Black/BRCA, and family history independently.
-  // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
   // PSA recommendation threshold — Bayesian-validated operating point
   //
   // VALUE: 0.225 (22.5%) = rawScore 18 / MAX_POINTS 80
-  //
-  // BASIS: Youden-optimal threshold from integer score analysis (N=94):
-  //   Youden J = 0.138 at rawScore >= 18
-  //   Sensitivity = 91.3% (21/23 csPCa caught)
-  //   Specificity = 22.5%
-  //   NPV = 88.9%
-  //
-  // This is the same boundary that defines the Elevated tier.
-  // Recommendation threshold and tier boundary are intentionally identical —
-  // a patient in Intermediate or Low is below the validated operating point;
-  // a patient in Elevated is at or above it.
-  //
-  // The ±5% confidence band creates a small ambiguous zone (rawScore 14-21)
-  // where the band straddles 22.5%. These patients return recommendPSA=null
-  // from score logic, but are caught by the AUA overrides (Steps 2-4) if they
-  // are in the 55-69 age window, are Black/BRCA, or have family history.
-  // The truly uncovered ambiguous patients (White, no FH, no BRCA, age <55
-  // or >69, raw 14-21) are so rare in practice as to be near-zero — age <55
-  // cannot easily reach raw 18+ without a high-risk anchor, and age >69
-  // always gains 16 points from age alone, pushing them well above the zone.
-  //
-  // HISTORY: The previous value of 0.09 (9%) had no statistical basis in the
-  // validation data. It predated the Bayesian analysis and was carried over
-  // from v1. It has been corrected to align with the validated evidence.
+  // BASIS: Youden J = 0.138 at rawScore >= 18 (N=94, 23 csPCa)
+  //        Sensitivity 91.3%, Specificity 22.5%, NPV 89.5%
+  // Same boundary as the Elevated tier — intentionally aligned.
   // ---------------------------------------------------------------------------
   const recommendThreshold =
     typeof part1?.recommendThreshold === 'number' ? part1.recommendThreshold : 0.225;
@@ -343,28 +366,13 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const upperProb = rangeHigh / 100;
 
   // ---------------------------------------------------------------------------
-  // PSA Recommendation Logic
-  //
-  // Step 1: score-based threshold (existing logic, unchanged)
-  // Step 2: AUA/SUO 2026 clinical overrides — applied on top of score
-  //   These never suppress a recommendation, only add one.
-  //
-  // Override hierarchy (lowest to highest priority):
-  //   1. Score threshold (>= 9%)
-  //   2. Average-risk window: AUA recommends PSA discussion for ALL men 55-69
-  //      Source: AUA Early Detection Guideline 2023/2026, Recommendation 4
-  //   3. High-risk early screening: Black men and BRCA carriers, PSA from age 40
-  //      Source: AUA Rec 5 — earlier initiation for high-risk groups
-  //   4. Family history + age >= 40 (existing rule, unchanged)
-  //
-  // psaRecommendReason is passed through to the UI so the correct contextual
-  // message can be displayed for each scenario.
+  // PSA Recommendation Logic — 4-step override hierarchy
+  // Steps 3-4 always win over Steps 1-2.
   // ---------------------------------------------------------------------------
-
   let recommendPSA = null;
   let psaRecommendReason = null;
 
-  // Step 1 — score-based threshold (unchanged from original)
+  // Step 1 — score-based threshold
   if (upperProb < recommendThreshold) {
     recommendPSA = false;
   } else if (lowerProb >= recommendThreshold) {
@@ -372,34 +380,25 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     psaRecommendReason = 'score_threshold';
   }
 
-  // Step 2 — AUA average-risk window: all men 55-69 should discuss PSA
-  // regardless of ePSA score. Does not change tier — only recommendation.
+  // Step 2 — AUA average-risk window: all men 55-69
   if (ageNum >= 55 && ageNum <= 69) {
     recommendPSA = true;
     if (psaRecommendReason === null) psaRecommendReason = 'age_guideline_55_69';
   }
 
-  // Step 3 — AUA high-risk early screening: Black men and BRCA carriers
-  // should discuss PSA from age 40, before the average-risk window opens.
-  // HIGH-RISK REASONS ALWAYS WIN — overwrite score_threshold and age_guideline
-  // so the red banner is shown whenever a guideline-defined high-risk feature
-  // is present, regardless of what fired in Steps 1 or 2.
+  // Step 3 — High-risk early screening (always wins over Steps 1-2)
   if ((isBlack || brcaPositive) && ageNum >= 40 && ageNum < 55) {
     recommendPSA = true;
     psaRecommendReason = 'high_risk_early_screening';
   }
-  // Also upgrade to high_risk_early_screening if Black/BRCA and already in the
-  // 55-69 average-risk window — score or age guideline may have fired but the
-  // high-risk label is more clinically accurate for this group.
   if ((isBlack || brcaPositive) && ageNum >= 55) {
     recommendPSA = true;
-    if (psaRecommendReason === 'score_threshold' || psaRecommendReason === 'age_guideline_55_69' || psaRecommendReason === null) {
+    if (['score_threshold', 'age_guideline_55_69', null].includes(psaRecommendReason)) {
       psaRecommendReason = 'high_risk_early_screening';
     }
   }
 
-  // Step 4 — Family history + age >= 40 always recommends PSA (existing rule)
-  // Also always wins over score_threshold and age_guideline.
+  // Step 4 — Family history + age >= 40 (wins over Steps 1-2, yields to Step 3)
   if (fhBinary === 1 && ageNum >= 40) {
     recommendPSA = true;
     if (psaRecommendReason !== 'high_risk_early_screening') {
@@ -407,10 +406,6 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // PSA recommendation action messages — keyed by reason
-  // UI should use psaRecommendReason to select the appropriate message.
-  // ---------------------------------------------------------------------------
   const PSA_RECOMMEND_MESSAGES = {
     score_threshold:
       'Your ePSA score exceeds the screening threshold. A PSA test is recommended. Please speak with your physician.',
@@ -422,9 +417,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
       'Due to your family history of prostate cancer, AUA/SUO guidelines recommend PSA screening from age 40. Please speak with your physician.'
   };
 
-  const psaRecommendMessage = psaRecommendReason
-    ? PSA_RECOMMEND_MESSAGES[psaRecommendReason]
-    : null;
+  const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
 
   let tierRisk, tierColor, tierScoreRange;
   if (probability < part1.riskCutoffs.lower.threshold) {
@@ -441,13 +434,11 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   let risk, color, action, scoreRange;
   if (recommendPSA === true) {
     risk = 'PSA_RECOMMENDED'; color = '#D4AF37';
-    scoreRange = recommendThreshold != null
-      ? `>= ${(recommendThreshold * 100).toFixed(0)}%` : tierScoreRange;
+    scoreRange = `>= ${(recommendThreshold * 100).toFixed(0)}%`;
     action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
   } else if (recommendPSA === false) {
     risk = 'PSA_NOT_RECOMMENDED'; color = '#27AE60';
-    scoreRange = recommendThreshold != null
-      ? `< ${(recommendThreshold * 100).toFixed(0)}%` : tierScoreRange;
+    scoreRange = `< ${(recommendThreshold * 100).toFixed(0)}%`;
     action = 'Routine screening.\nFollow standard age-based screening guidance.';
   } else {
     risk = tierRisk; color = tierColor; scoreRange = tierScoreRange;
@@ -457,63 +448,40 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   }
 
   // ---------------------------------------------------------------------------
-  // ePSA Risk Tier — 3-tier system (v2, updated March 2026)
-  //
-  // CHANGE from previous 4-tier:
-  //   Old: Low (<=10) | Int-Low (11-17) | Int-High (18-30) | High (>=31)
-  //   New: Low (<=10) | Intermediate (11-17) | Elevated (>=18)
-  //
-  // Rationale:
-  //   csPCa prevalence was 28% Int-High vs 27% High — statistically identical.
-  //   Youden J at old High boundary (>=31) = 0.038, near-worthless discriminator.
-  //   90% of old High-tier patients already had PSA >= 4.
-  //   Validated triage threshold is >=18 (J=0.138, sens=91.3%, spec=22.5%).
-  //   The >=31 boundary was not empirically supported in the N=94 validation cohort.
-  //
-  // PSA-equivalent labels removed from Part 1:
-  //   Part 1 runs before PSA is drawn. PSA-equivalent numbers have no anchor
-  //   and were creating false precision (old High label ">= 10 ng/mL" was wrong —
-  //   median PSA in that cohort was 6.7 ng/mL). Replaced with action language.
-  //   PSA-equivalent labels ARE retained in Part 2 where a real PSA is present.
+  // ePSA Risk Tier — 3-tier system (v2)
+  // Low (≤10) | Intermediate (11-17) | Elevated (≥18)
+  // Boundary at 18 = Youden-optimal threshold (J=0.138, sens=91.3%)
   // ---------------------------------------------------------------------------
   const EPSA_TIER_DEFS = [
     {
-      key: 'low',
-      label: 'Low Risk',
-      scoreRange: 'score 0-10',
-      normalizedRange: '<= 12.5%',
-      guideline:
-        'Your ePSA score is in the low-risk range. Routine screening timeline applies. Discuss with your physician.'
+      key: 'low', label: 'Low Risk', scoreRange: 'score 0-10', normalizedRange: '<= 12.5%',
+      guideline: 'Your ePSA score is in the low-risk range. Routine screening timeline applies. Discuss with your physician.',
+      // Empirical: 7% csPCa rate [1%-31%] N=14
+      empiricalRate: EPSA_TIER_CALIBRATION.low
     },
     {
-      key: 'intermediate',
-      label: 'Intermediate Risk',
-      scoreRange: 'score 11-17',
-      normalizedRange: '13.75%-21.25%',
-      guideline:
-        'Your ePSA score is in the intermediate range. A PSA test is recommended. Speak with your physician.'
+      key: 'intermediate', label: 'Intermediate Risk', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
+      guideline: 'Your ePSA score is in the intermediate range. A PSA test is recommended. Speak with your physician.',
+      empiricalRate: EPSA_TIER_CALIBRATION.intermediate
     },
     {
-      key: 'elevated',
-      label: 'Elevated Risk',
-      scoreRange: 'score >= 18',
-      normalizedRange: '>= 22.5%',
-      guideline:
-        'Your ePSA score is elevated. A PSA test is recommended promptly. Please speak with your physician.'
+      key: 'elevated', label: 'Elevated Risk', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
+      guideline: 'Your ePSA score is elevated. A PSA test is recommended promptly. Please speak with your physician.',
+      empiricalRate: EPSA_TIER_CALIBRATION.elevated
     }
   ];
 
-  // 3-tier assignment (Youden-optimal boundary at rawScore >= 18)
   let epsaTierIndex;
-  if (rawScore <= 10) epsaTierIndex = 0;        // Low
-  else if (rawScore <= 17) epsaTierIndex = 1;   // Intermediate
-  else epsaTierIndex = 2;                       // Elevated (formerly Int-High + High)
+  if (rawScore <= 10) epsaTierIndex = 0;
+  else if (rawScore <= 17) epsaTierIndex = 1;
+  else epsaTierIndex = 2;
 
   const epsaTierDef = EPSA_TIER_DEFS[epsaTierIndex];
   const hasTwoComorbidities =
     (comorbidityScore !== undefined && comorbidityScore !== null)
       ? Number(comorbidityScore) >= 2
       : comorbidityPoints >= 20;
+
   const highRiskAnchors = {
     age70plus: ageNum >= 70,
     blackRace: isBlack,
@@ -524,63 +492,84 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const hasHighRiskAnchor = Object.values(highRiskAnchors).some((v) => v === true);
   const isHighRiskFlagged = rawScore >= 18 && hasHighRiskAnchor;
 
+  // ---------------------------------------------------------------------------
+  // Empirical probability display text
+  // "In our study, X in Y patients with your risk level had significant cancer"
+  // ---------------------------------------------------------------------------
+  const cal = epsaTierDef.empiricalRate;
+  const empiricalProbabilityText = cal
+    ? `In our validation study (N=${cal.n}), ${cal.events} in ${cal.n} patients at this risk tier had clinically significant prostate cancer (${Math.round(cal.rate * 100)}%; 95% CI ${Math.round(cal.ci_lo * 100)}%–${Math.round(cal.ci_hi * 100)}%).`
+    : null;
+
   return {
+    // Core score
     score: scorePercent,
     scoreRange,
     recommendationThresholdLabel,
+    confidenceRange: `${rangeLow}%-${rangeHigh}%`,
+    confidenceLow: rangeLow,
+    confidenceHigh: rangeHigh,
+
+    // PSA recommendation
     risk,
     color,
     action: epsaTierDef.guideline,
     recommendPSA,
     psaRecommendReason,
     psaRecommendMessage,
+
+    // Legacy tier fields
     tierRisk,
     tierColor,
     tierScoreRange,
-    confidenceRange: `${rangeLow}%-${rangeHigh}%`,
-    confidenceLow: rangeLow,
-    confidenceHigh: rangeHigh,
-    ipssTotal: variableValues.ipssTotal,
-    shimTotal: variableValues.shimTotal,
-    bmi: Number(bmi).toFixed(1),
-    age: parseInt(age, 10),
-    isBlack,
-    fhBinary,
-    brcaStatus,
-    // 3-tier result fields
+
+    // 3-tier classification
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
     epsaTierLabel: epsaTierDef.label,
     epsaTierScoreRange: epsaTierDef.scoreRange,
     epsaTierNormalizedRange: epsaTierDef.normalizedRange,
-    epsaTierBoundaries: {
-      lowMax: 10,
-      intermediateMax: 17,
-      maxScore: MAX_POINTS
-    },
-    itemImpacts,
+    epsaTierBoundaries: { lowMax: 10, intermediateMax: 17, maxScore: MAX_POINTS },
+
+    // Empirical calibration
+    empiricalProbabilityText,
+    empiricalRate: cal?.rate ?? null,
+    empiricalRateCiLo: cal?.ci_lo ?? null,
+    empiricalRateCiHi: cal?.ci_hi ?? null,
+
+    // Risk factors
     isHighRiskFlagged,
     highRiskAnchors,
-    // epsaPsaEquivalent intentionally omitted from Part 1 — see comment above
+    itemImpacts,
+
+    // Pass-through fields for Model 2/3/4
+    isBlack,
+    fhBinary,
+    brcaStatus,
+    bmi: Number(bmi).toFixed(1),
+    age: parseInt(age, 10),
+    ipssTotal: ipssTotal,
+    shimTotal: shimTotal,
+
+    // Metadata
     epsaGuidelineText: epsaTierDef.guideline,
     modelVersion: config.version,
     displayRange: `${rangeLow}%-${rangeHigh}%`,
     pathwayMode: formData.pathwayMode || 'pre_psa',
-    calculationDetails: {
-      probability,
-      rawScore,
-      maxScore: MAX_POINTS
-    }
+    calculationDetails: { probability, rawScore, maxScore: MAX_POINTS }
   };
 };
 
+// =============================================================================
+// MODELS 2 & 3 — post_psa / post_mri
+// =============================================================================
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
   const { psa, pirads, knowPirads } = postData || {};
-  const prostateVolumeValRaw = postData?.prostateVolume !== ''
-    && postData?.prostateVolume != null
-    ? Number(postData.prostateVolume)
-    : null;
+  const prostateVolumeValRaw =
+    postData?.prostateVolume !== '' && postData?.prostateVolume != null
+      ? Number(postData.prostateVolume)
+      : null;
 
   const preScorePct = Number(preResult?.score) || 0;
   let baseRawScore = preResult?.calculationDetails?.rawScore;
@@ -591,6 +580,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     baseRawScore = Math.round((preScorePct / 100) * baseMaxScore);
   }
 
+  // PSA scoring
   const psaVal = psa === '' || psa === null || psa === undefined ? null : Number(psa);
   let psaPoints = 0;
   if (psaVal != null && !Number.isNaN(psaVal)) {
@@ -600,6 +590,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     else psaPoints = 45;
   }
 
+  // PI-RADS scoring (Model 3 only)
   const piradsVal = knowPirads
     ? (pirads === '' || pirads === null || pirads === undefined ? null : Number(pirads))
     : null;
@@ -619,11 +610,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   const hasHighRiskFeature =
     isBlack || hasFamilyHistory || brcaPositive || (piradsVal != null && piradsVal >= 3);
 
+  // Low-PSA warning: PSA < 2.0 with high-risk profile
   let psaBonusLow = 0;
   let lowPsaWarning = false;
   let lowPsaWarningText = null;
-  // Clinical amplification: for high-risk feature profiles, a "reassuringly low" PSA
-  // (< 2.0 ng/mL) still triggers extra points to reflect anchors not captured by PSA alone.
   if (psaVal != null && !Number.isNaN(psaVal) && psaVal < 2.0 && hasHighRiskFeature) {
     psaBonusLow = 15;
     lowPsaWarning = true;
@@ -632,11 +622,8 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }
 
   // ---------------------------------------------------------------------------
-  // Optional PSAD (PSA Density = PSA ÷ Prostate Volume) - Part 2 additive
-  //
-  // Source: Kadeer et al. 2025 (Front. Oncol. 15:1602134)
-  // Youden-optimal cutoff: 0.177 ng/mL/mL
-  // Also supported by: Pedraza et al. 2023 (Eur Urol Open Sci 48:72–81)
+  // PSAD — PSA Density (Kadeer 2025, Front. Oncol. 15:1602134)
+  // Youden-optimal cutoff: 0.177 ng/mL/cm³
   // ---------------------------------------------------------------------------
   const prostateVolumeVal =
     prostateVolumeValRaw != null && Number.isFinite(prostateVolumeValRaw) ? prostateVolumeValRaw : null;
@@ -651,64 +638,37 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     prostateVolumeVal > 0
   ) {
     psadValue = psaVal / prostateVolumeVal;
-    if (psadValue > 0.177) {
-      psadPoints = 20;
-      psadFlag = true;
-    } else if (psadValue > 0.10) {
-      psadPoints = 10;
-    }
-    // psadValue <= 0.10 -> 0 points
+    if (psadValue > 0.177) { psadPoints = 20; psadFlag = true; }
+    else if (psadValue > 0.10) { psadPoints = 10; }
   }
 
   const totalPoints = baseRawScore + psaPoints + psaBonusLow + piradsPoints + psadPoints;
 
   // ---------------------------------------------------------------------------
-  // Part 2 tier mapping
-  //
-  // PSA-equivalent labels ARE present here because a real PSA value is available.
-  //
-  // CHANGE: High tier psaEquivalent updated from ">= 10 ng/mL" to ">= 4.0 ng/mL".
-  //   The old label was inherited from v1 scale and was factually wrong for v2:
-  //   - Median PSA in the old High tier (rawScore >= 31) = 6.7 ng/mL
-  //   - Only 20% of those patients actually had PSA >= 10
-  //   - The AUA guideline action threshold is 4.0 ng/mL
-  //   - ">= 4.0 ng/mL" accurately describes this population
-  //
-  // Part 2 combined score tier boundaries (0-80 base + PSA + PI-RADS addons):
-  //   Low        <= 13
-  //   Int-Low    14-27
-  //   Int-High   28-55
-  //   High       >= 56
+  // Combined tier mapping
+  // Boundaries: Low ≤13 | Int-Low 14-27 | Int-High 28-55 | High ≥56
+  // Empirical csPCa rates: Int-High 21% (N=58), High 31% (N=32)
   // ---------------------------------------------------------------------------
   const TIER_DEFS = [
     {
-      key: 'low',
-      label: 'Low Risk',
-      psaEquivalent: '< 1.0 ng/mL',
-      guideline:
-        'Your combined risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8-10 years if under 55, or as directed by your physician.'
+      key: 'low', label: 'Low Risk', psaEquivalent: '< 1.0 ng/mL',
+      guideline: 'Your combined risk profile is consistent with a PSA equivalent below 1.0 ng/mL. Per AUA, NCCN, and EAU guidelines, men in this range may follow routine screening intervals of 8-10 years if under 55, or as directed by your physician.',
+      empiricalRate: COMBINED_TIER_CALIBRATION['low']
     },
     {
-      key: 'intermediate-low',
-      label: 'Intermediate-Low Risk',
-      psaEquivalent: '1.0-2.9 ng/mL',
-      guideline:
-        'Your combined risk profile is consistent with a PSA equivalent of 1.0-2.9 ng/mL. Guidelines recommend re-screening every 2-4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.'
+      key: 'intermediate-low', label: 'Intermediate-Low Risk', psaEquivalent: '1.0-2.9 ng/mL',
+      guideline: 'Your combined risk profile is consistent with a PSA equivalent of 1.0-2.9 ng/mL. Guidelines recommend re-screening every 2-4 years. Discuss with your physician whether earlier follow-up is appropriate given your individual risk factors.',
+      empiricalRate: COMBINED_TIER_CALIBRATION['intermediate-low']
     },
     {
-      key: 'intermediate-high',
-      label: 'Intermediate-High Risk',
-      psaEquivalent: '3.0-9.9 ng/mL',
-      guideline:
-        'Your combined risk profile is consistent with a PSA equivalent of 3.0-9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.'
+      key: 'intermediate-high', label: 'Intermediate-High Risk', psaEquivalent: '3.0-9.9 ng/mL',
+      guideline: 'Your combined risk profile is consistent with a PSA equivalent of 3.0-9.9 ng/mL. AUA, NCCN, and EAU guidelines recommend urology referral and shared decision-making regarding further workup including possible biopsy.',
+      empiricalRate: COMBINED_TIER_CALIBRATION['intermediate-high']
     },
     {
-      key: 'high',
-      label: 'High Risk',
-      // UPDATED from ">= 10 ng/mL" — see comment block above
-      psaEquivalent: '>= 4.0 ng/mL',
-      guideline:
-        'Your combined risk profile warrants prompt evaluation. AUA, NCCN, and EAU guidelines strongly recommend urology referral and biopsy discussion. Do not delay follow-up with your physician.'
+      key: 'high', label: 'High Risk', psaEquivalent: '>= 4.0 ng/mL',
+      guideline: 'Your combined risk profile warrants prompt evaluation. AUA, NCCN, and EAU guidelines strongly recommend urology referral and biopsy discussion. Do not delay follow-up with your physician.',
+      empiricalRate: COMBINED_TIER_CALIBRATION['high']
     }
   ];
 
@@ -723,6 +683,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   const RISK_CLASSES = ['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk'];
   const riskClass = RISK_CLASSES[tierIndex];
 
+  // PSA tier for discordance
   let psaTierIndex = null;
   let psaTierLabel = null;
   if (psaVal != null && !Number.isNaN(psaVal)) {
@@ -737,14 +698,39 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     const diff = tierIndex - psaTierIndex;
     if (diff > 0) {
       const severity = diff === 1 ? 'yellow' : 'orange';
-      const discordanceText =
-        `Risk Discordance Detected. Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`;
-      discordanceFlag = { severity, text: discordanceText };
+      discordanceFlag = {
+        severity,
+        text: `Risk Discordance Detected. Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`
+      };
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Biopsy recommendation — Model 3 (post_mri) only
+  // PI-RADS confidence text (Model 3) — guideline-based
+  // ---------------------------------------------------------------------------
+  let piradsConfidenceText = null;
+  if (piradsVal != null) {
+    const piradsMessages = {
+      1: 'PI-RADS 1: Very low suspicion. Clinically significant cancer is very unlikely.',
+      2: 'PI-RADS 2: Low suspicion. Clinically significant cancer is unlikely.',
+      3: 'PI-RADS 3: Intermediate suspicion. The presence of clinically significant cancer is equivocal. Shared decision-making with your urologist is recommended.',
+      4: 'PI-RADS 4: High suspicion. Clinically significant cancer is likely. AUA/NCCN/EAU guidelines recommend biopsy.',
+      5: 'PI-RADS 5: Very high suspicion. Clinically significant cancer is very likely. AUA/NCCN/EAU guidelines recommend biopsy without delay.'
+    };
+    piradsConfidenceText = piradsMessages[piradsVal] || null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Empirical probability display (Models 2 & 3)
+  // ---------------------------------------------------------------------------
+  const cal = tierDef.empiricalRate;
+  let empiricalProbabilityText = null;
+  if (cal && cal.rate !== null) {
+    empiricalProbabilityText = `In our validation study, approximately ${Math.round(cal.rate * 100)}% of patients at this combined risk tier had clinically significant prostate cancer (N=${cal.n}). ${cal.note}.`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Biopsy recommendation (Model 3 — post_mri pathway)
   // ---------------------------------------------------------------------------
   let biopsyRecommended = false;
   let biopsyReason = null;
@@ -753,22 +739,21 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   if (piradsOverridden) {
     biopsyRecommended = true;
     biopsyReason = 'pirads_5';
-    biopsyMessage = 'Your MRI identified a finding (PI-RADS 5) that requires prompt urologist review. AUA/NCCN/EAU guidelines recommend biopsy discussion without delay.';
+    biopsyMessage = 'Your MRI identified a PI-RADS 5 finding. AUA, NCCN, and EAU guidelines recommend prompt biopsy discussion with a urologist. Do not delay this conversation.';
   } else if (totalPoints >= 56) {
     biopsyRecommended = true;
     biopsyReason = 'combined_score_high';
-    biopsyMessage = 'Your combined risk profile is high. AUA/NCCN guidelines recommend discussing biopsy with a urologist. Do not delay this conversation.';
-  } else if (
-    discordanceFlag &&
-    discordanceFlag.severity === 'orange' &&
-    tierIndex >= 2
-  ) {
+    biopsyMessage = 'Your combined risk score is in the High tier. AUA and NCCN guidelines recommend urology referral and biopsy discussion. Prompt evaluation is advised.';
+  } else if (discordanceFlag && discordanceFlag.severity === 'orange' && tierIndex >= 2) {
     biopsyRecommended = true;
     biopsyReason = 'high_risk_discordance';
-    biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level alone suggests. Combined with your MRI findings, urologist review and biopsy discussion are recommended.';
+    biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level suggests. Combined with your MRI findings, urologist review and biopsy discussion are recommended.';
   }
 
+  const pathwayMode = postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa');
+
   return {
+    // Core combined score
     riskPct: tierDef.psaEquivalent,
     riskPctRange: null,
     riskCat: tierDef.label,
@@ -778,26 +763,302 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     baselineCarryPoints: null,
     psaPoints,
     piradsPoints,
-    nextSteps: [tierDef.guideline],
-    piradsOverridden,
-    psaTier: psaTierLabel,
-    psaValue: psaVal,
+    psadPoints,
+
+    // Tier
     epsaTierIndex: tierIndex,
     epsaTierKey: tierDef.key,
     guidelineText: tierDef.guideline,
+    nextSteps: [tierDef.guideline],
+
+    // Flags
+    piradsOverridden,
     discordanceFlag,
     lowPsaWarning,
     lowPsaWarningText,
     psadValue,
-    psadPoints,
     psadFlag,
+
+    // PSA context
+    psaTier: psaTierLabel,
+    psaValue: psaVal,
+
+    // Biopsy (Model 3)
     biopsyRecommended,
     biopsyReason,
     biopsyMessage,
-    // If pathwayMode was explicitly set (new sessions via PathwaySelector), use it.
-    // Otherwise infer from data: knowPirads=true → post_mri, PSA-only → post_psa.
-    // This ensures old sessions and pre-pathway JSON imports display correctly.
-    pathwayMode: postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa'),
+
+    // Confidence
+    piradsConfidenceText,
+    empiricalProbabilityText,
+    empiricalRate: cal?.rate ?? null,
+
+    // Metadata
+    pathwayMode,
     modelVersion: config.version
+  };
+};
+
+// =============================================================================
+// MODEL 4 — post_biopsy: "I've had a biopsy — active surveillance or treatment?"
+// =============================================================================
+//
+// Clinical basis:
+//   AUA/NCCN Very Low Risk (strong AS): GG1, PSA density ≤0.15, ≤2 cores positive
+//   AUA/NCCN Low Risk (AS recommended): GG1, PSA <10, no high-grade features
+//   AUA/NCCN Intermediate Favourable:  GG2, may be suitable for AS in select patients
+//   AUA/NCCN Intermediate Unfavourable: GG2 + high-volume, or GG3 — treatment preferred
+//   AUA/NCCN High/Very High Risk:       GG4-5 — treatment recommended
+//
+//   ePSA validation: AUC 0.624 for predicting GG1 (vs PSA AUC 0.513, N=94)
+//   Low/Int ePSA (≤17): 89% of patients were GG1 or GG2 (AS-eligible)
+//
+// Inputs (asData object):
+//   biopsyGGG:        number 1-5 (required)
+//   coresPositive:    number (positive cores, required)
+//   coresTotal:       number (total cores taken, required)
+//   maxCorePct:       number 0-100 (highest % core involvement, optional)
+//   psaValue:         number (PSA ng/mL, required if not in preResult)
+//   prostateVolume:   number cm³ (optional — enables PSAD)
+//   pirads:           number 1-5 (optional — MRI if done)
+//
+// =============================================================================
+export const calculateActiveSurveillance = (preResult, asData, customConfig = null) => {
+  const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
+
+  const {
+    biopsyGGG,
+    coresPositive,
+    coresTotal,
+    maxCorePct,
+    psaValue: psaInput,
+    prostateVolume,
+    pirads: mriPirads
+  } = asData || {};
+
+  // Required inputs
+  const ggg = Number(biopsyGGG);
+  const coresPos = Number(coresPositive);
+  const coresTotal_ = Number(coresTotal);
+  const psaVal = psaInput != null && psaInput !== '' ? Number(psaInput) : null;
+
+  if (!ggg || ggg < 1 || ggg > 5) return null;
+  if (isNaN(coresPos) || isNaN(coresTotal_) || coresTotal_ <= 0) return null;
+
+  // Optional
+  const maxPct = maxCorePct != null && maxCorePct !== '' ? Number(maxCorePct) : null;
+  const vol = prostateVolume != null && prostateVolume !== '' && Number(prostateVolume) > 0
+    ? Number(prostateVolume) : null;
+  const piradsVal = mriPirads != null && mriPirads !== '' ? Number(mriPirads) : null;
+
+  // PSAD calculation
+  const psad = (psaVal != null && vol != null && vol > 0) ? psaVal / vol : null;
+
+  // Pull base ePSA raw score
+  const baseRawScore = preResult?.calculationDetails?.rawScore ?? 0;
+  const epsaTierIndex = preResult?.epsaTierIndex ?? 2;
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // AS Scoring — additive model anchored to GGG
+  // Positive score = more evidence for treatment
+  // Negative score = more evidence for AS
+  // ───────────────────────────────────────────────────────────────────────────
+  let asScore = 0;
+  const asFactors = [];
+
+  const addFactor = (label, value, points, note) => {
+    asFactors.push({ label, value, points, note });
+    asScore += points;
+  };
+
+  // --- Gleason Grade Group (primary driver) ---
+  if (ggg === 1) {
+    addFactor('Gleason Grade Group', 'GG1 (3+3=6)', -20,
+      'GG1: AUA/NCCN strongly recommend active surveillance. Risk of cancer progression is very low.');
+  } else if (ggg === 2) {
+    addFactor('Gleason Grade Group', 'GG2 (3+4=7)', -5,
+      'GG2: Active surveillance appropriate for select patients (favourable intermediate risk). Shared decision-making with urologist recommended.');
+  } else if (ggg === 3) {
+    addFactor('Gleason Grade Group', 'GG3 (4+3=7)', +20,
+      'GG3: Unfavourable intermediate risk. Treatment is generally recommended over active surveillance.');
+  } else if (ggg === 4) {
+    addFactor('Gleason Grade Group', 'GG4 (Gleason 8)', +35,
+      'GG4: High-risk cancer. Treatment is strongly recommended. Active surveillance is not appropriate.');
+  } else if (ggg === 5) {
+    addFactor('Gleason Grade Group', 'GG5 (Gleason 9-10)', +45,
+      'GG5: Very high-risk cancer. Immediate treatment is recommended. Active surveillance is not appropriate.');
+  }
+
+  // --- Core involvement ---
+  const corePct = coresPos / coresTotal_;
+  if (corePct <= 2 / 12) { // ≤2 of 12 cores — NCCN Very Low Risk criterion
+    addFactor('Biopsy core involvement', `${coresPos}/${coresTotal_} cores positive`, -10,
+      'Low core involvement (≤2/12 equivalent): consistent with NCCN Very Low Risk AS criteria.');
+  } else if (corePct <= 0.5) {
+    addFactor('Biopsy core involvement', `${coresPos}/${coresTotal_} cores positive`, 0,
+      'Moderate core involvement: does not automatically disqualify AS, but discuss volume with urologist.');
+  } else {
+    addFactor('Biopsy core involvement', `${coresPos}/${coresTotal_} cores positive`, +10,
+      'High core involvement (>50% of cores): suggests higher-volume disease. Active surveillance requires careful consideration.');
+  }
+
+  // --- Maximum core percentage involvement ---
+  if (maxPct != null) {
+    if (maxPct <= 10) {
+      addFactor('Max core involvement', `${maxPct}%`, -5,
+        'Very low maximum core involvement (≤10%): supports AS candidacy.');
+    } else if (maxPct <= 50) {
+      addFactor('Max core involvement', `${maxPct}%`, 0,
+        'Moderate maximum core involvement: acceptable for AS in some cases.');
+    } else {
+      addFactor('Max core involvement', `${maxPct}%`, +10,
+        'High maximum core involvement (>50%): higher tumour burden. AS requires careful discussion.');
+    }
+  }
+
+  // --- PSA Density ---
+  if (psad != null) {
+    if (psad <= 0.10) {
+      addFactor('PSA Density', `${psad.toFixed(3)} ng/mL/cm³`, -10,
+        'Low PSA density (≤0.10): very reassuring. Strongly supports AS candidacy. Source: Kadeer 2025.');
+    } else if (psad <= 0.15) {
+      addFactor('PSA Density', `${psad.toFixed(3)} ng/mL/cm³`, -5,
+        'PSA density ≤0.15 ng/mL/cm³: meets NCCN Very Low Risk criterion. Favours AS.');
+    } else if (psad <= 0.177) {
+      addFactor('PSA Density', `${psad.toFixed(3)} ng/mL/cm³`, 0,
+        'PSA density in intermediate range (0.15-0.177). Discuss with urologist.');
+    } else {
+      addFactor('PSA Density', `${psad.toFixed(3)} ng/mL/cm³`, +10,
+        'Elevated PSA density (>0.177 ng/mL/cm³): associated with higher cancer burden. Youden-optimal cutoff from Kadeer 2025. Reconsider AS.');
+    }
+  }
+
+  // --- MRI / PI-RADS ---
+  if (piradsVal != null) {
+    if (piradsVal <= 2) {
+      addFactor('MRI (PI-RADS)', `PI-RADS ${piradsVal}`, -10,
+        'PI-RADS 1-2: No significant lesion on MRI. Reassuring for AS.');
+    } else if (piradsVal === 3) {
+      addFactor('MRI (PI-RADS)', 'PI-RADS 3', 0,
+        'PI-RADS 3: Equivocal finding. Does not significantly alter AS candidacy in isolation.');
+    } else if (piradsVal === 4) {
+      addFactor('MRI (PI-RADS)', 'PI-RADS 4', +15,
+        'PI-RADS 4: Suspicious MRI finding. Many urologists would recommend repeat biopsy or treatment over AS.');
+    } else if (piradsVal === 5) {
+      addFactor('MRI (PI-RADS)', 'PI-RADS 5', +25,
+        'PI-RADS 5: Highly suspicious MRI finding. Active surveillance is generally not recommended.');
+    }
+  }
+
+  // --- ePSA contextual risk (from Model 1) ---
+  if (epsaTierIndex === 0) {
+    addFactor('ePSA pre-biopsy risk', 'Low tier', -5,
+      'Low pre-biopsy ePSA score: consistent with lower contextual risk. Supports AS for eligible GGG.');
+  } else if (epsaTierIndex === 2) {
+    addFactor('ePSA pre-biopsy risk', 'Elevated tier', +5,
+      'Elevated pre-biopsy ePSA score: higher contextual risk profile. Discuss with urologist when considering AS.');
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // AS Recommendation tier
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // Hard overrides — GGG 3+ with very high score, or GGG 4-5
+  let asTierKey, asTierLabel, asColor, asRecommendation, asGuidelineSource;
+
+  // GG4-5 always treatment regardless of other factors
+  if (ggg >= 4) {
+    asTierKey = 'treatment';
+    asTierLabel = 'Treatment Recommended';
+    asColor = '#dc2626';
+    asRecommendation =
+      'Based on your biopsy results (GG4 or GG5), active surveillance is not appropriate. AUA, NCCN, and EAU guidelines recommend treatment. Please discuss options — including surgery, radiation, or systemic therapy — with your urologist promptly.';
+    asGuidelineSource = 'AUA/NCCN High Risk Prostate Cancer Guidelines';
+  } else if (asScore <= -10) {
+    asTierKey = 'as_recommended';
+    asTierLabel = 'Active Surveillance Recommended';
+    asColor = '#16a34a';
+    asRecommendation =
+      'Your biopsy and risk profile are consistent with active surveillance. AUA and NCCN guidelines support AS for low-risk prostate cancer. AS involves regular PSA tests, repeat biopsies, and periodic MRI to monitor for progression — without immediate treatment. Discuss this approach with your urologist.';
+    asGuidelineSource = 'AUA/NCCN Active Surveillance Guidelines (GG1 low-risk)';
+  } else if (asScore <= 10) {
+    asTierKey = 'shared_decision';
+    asTierLabel = 'Shared Decision-Making';
+    asColor = '#d97706';
+    asRecommendation =
+      'Your risk profile falls in a zone where active surveillance may be appropriate, but treatment is also a reasonable option. AUA guidelines emphasise shared decision-making for intermediate-risk patients. Discuss your values, lifestyle, and priorities with your urologist before deciding.';
+    asGuidelineSource = 'AUA/NCCN Intermediate Risk Shared Decision-Making Guidelines';
+  } else {
+    asTierKey = 'treatment';
+    asTierLabel = 'Treatment Likely Indicated';
+    asColor = '#dc2626';
+    asRecommendation =
+      'Based on the combination of your biopsy results and risk factors, treatment appears more appropriate than active surveillance. Please discuss surgery, radiation, or other options with your urologist.';
+    asGuidelineSource = 'AUA/NCCN Unfavourable Intermediate and High Risk Guidelines';
+  }
+
+  // ---------------------------------------------------------------------------
+  // AS eligibility message with empirical context
+  // ---------------------------------------------------------------------------
+  let asEmpiricalNote = null;
+  if (ggg <= 2) {
+    const lowIntPct = preResult?.epsaTierIndex <= 1 ? 89 : 72;
+    asEmpiricalNote = `In our validation cohort (N=94), ${lowIntPct}% of patients with this ePSA profile had GG1-2 pathology, which is consistent with active surveillance eligibility.`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // NCCN Risk Classification (for reference display)
+  // ---------------------------------------------------------------------------
+  let nccnRiskGroup;
+  const psaLow = psaVal != null && psaVal < 10;
+  const psadLow = psad != null && psad <= 0.15;
+  const coreLow = corePct <= 2 / 12;
+
+  if (ggg === 1 && psaLow && psadLow && coreLow) {
+    nccnRiskGroup = 'Very Low Risk';
+  } else if (ggg === 1 && psaLow) {
+    nccnRiskGroup = 'Low Risk';
+  } else if (ggg === 2) {
+    nccnRiskGroup = 'Favourable Intermediate Risk';
+  } else if (ggg === 3) {
+    nccnRiskGroup = 'Unfavourable Intermediate Risk';
+  } else if (ggg === 4) {
+    nccnRiskGroup = 'High Risk';
+  } else {
+    nccnRiskGroup = 'Very High Risk';
+  }
+
+  return {
+    // AS recommendation
+    asTierKey,
+    asTierLabel,
+    asColor,
+    asRecommendation,
+    asGuidelineSource,
+
+    // Score breakdown
+    asScore,
+    asFactors,
+
+    // Clinical context
+    nccnRiskGroup,
+    biopsyGGG: ggg,
+    coresPositive: coresPos,
+    coresTotal: coresTotal_,
+    corePct: Math.round(corePct * 100),
+    maxCorePct: maxPct,
+    psaValue: psaVal,
+    psadValue: psad,
+    psadFlag: psad != null && psad > 0.177,
+    piradsValue: piradsVal,
+
+    // Empirical context
+    asEmpiricalNote,
+
+    // Metadata
+    pathwayMode: 'post_biopsy',
+    modelVersion: config.version,
+    disclaimer:
+      'This tool provides educational guidance only and is not a substitute for clinical judgment. Active surveillance decisions require careful discussion with a urologist considering all clinical, pathological, and patient-specific factors.'
   };
 };
