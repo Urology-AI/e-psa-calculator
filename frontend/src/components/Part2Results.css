@@ -219,6 +219,79 @@
   letter-spacing: -0.03em;
 }
 
+.p2r-risk-tier-title {
+  font-size: clamp(1.35rem, 5vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Tier Chips (PSA & MRI breakdown) ─── */
+.p2r-breakdown-block {
+  margin-top: 0.875rem;
+}
+
+.p2r-breakdown-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #5f7f99;
+  margin-bottom: 0.5rem;
+}
+
+.p2r-tier-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.p2r-tier-chip {
+  border-radius: 0.625rem;
+  border: 0.0625rem solid #d9e7f4;
+  padding: 0.5rem 0.4375rem;
+  background: #f8fbff;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.p2r-tier-chip--active {
+  box-shadow: 0 0.1875rem 0.75rem rgba(0, 0, 0, 0.09);
+  transform: translateY(-0.0625rem);
+}
+
+.p2r-tier-chip-label {
+  display: block;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: inherit;
+}
+
+.p2r-tier-chip-range {
+  display: block;
+  font-size: 0.625rem;
+  color: #7a94aa;
+  margin-top: 0.125rem;
+  font-weight: 500;
+}
+
+.p2r-tier-chip--active .p2r-tier-chip-range {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.p2r-breakdown-why {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-style: italic;
+}
+
 .p2r-risk-range {
   font-size: 0.78125rem;
   color: #7a94aa;
@@ -708,6 +781,24 @@
 
 .theme-dark .p2r-risk-range strong {
   color: var(--ink-900);
+}
+
+.theme-dark .p2r-breakdown-heading {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-tier-chip {
+  border-color: var(--line-100);
+  background: var(--surface-subtle);
+  color: var(--ink-500);
+}
+
+.theme-dark .p2r-tier-chip-range {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-breakdown-why {
+  color: var(--ink-400);
 }
 
 /* Ensure full readability for all Part 2 results content */
