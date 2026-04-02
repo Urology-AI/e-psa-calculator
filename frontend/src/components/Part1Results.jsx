@@ -150,6 +150,45 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
   );
 };
 
+/* ─── Next Step Cards ─── */
+const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy }) => (
+  <div className="next-steps-section">
+    <div className="next-steps-heading">Continue Your Assessment</div>
+    <div className="next-steps-cards">
+      {onContinueToPSA && (
+        <button className="next-step-card next-step-card--psa" onClick={onContinueToPSA}>
+          <div className="nsc-icon-wrap">🔬</div>
+          <div className="nsc-body">
+            <div className="nsc-title">PSA Assessment</div>
+            <div className="nsc-desc">Have your PSA result? Add it for a fuller picture.</div>
+            <div className="nsc-cta">Continue to PSA Assessment →</div>
+          </div>
+        </button>
+      )}
+      {onContinueToMRI && (
+        <button className="next-step-card next-step-card--mri" onClick={onContinueToMRI}>
+          <div className="nsc-icon-wrap">🏥</div>
+          <div className="nsc-body">
+            <div className="nsc-title">MRI Results</div>
+            <div className="nsc-desc">Had an MRI? Add your PI-RADS score for a more complete picture.</div>
+            <div className="nsc-cta">Add MRI Results →</div>
+          </div>
+        </button>
+      )}
+      {onContinueToBiopsy && (
+        <button className="next-step-card next-step-card--biopsy" onClick={onContinueToBiopsy}>
+          <div className="nsc-icon-wrap">🧬</div>
+          <div className="nsc-body">
+            <div className="nsc-title">Biopsy Evaluation</div>
+            <div className="nsc-desc">Had a biopsy? Evaluate whether active surveillance is right for you.</div>
+            <div className="nsc-cta">Biopsy Assessment →</div>
+          </div>
+        </button>
+      )}
+    </div>
+  </div>
+);
+
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -444,30 +483,13 @@ const Part1Results = ({
         </CollapsibleSection>
       </div>
 
-      {/* ── Continue pathway banner ── */}
-      {pathwayMode === 'pre_psa' && recommendPSA === true && onContinueToPostPSA && (
-        <div className="pathway-continue-banner pathway-continue-banner--teal" role="note">
-          <p className="pathway-continue-banner-text">Have your PSA result? Add it for a fuller picture.</p>
-          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToPostPSA}>
-            Continue to PSA Assessment →
-          </button>
-        </div>
-      )}
-      {pathwayMode === 'post_psa' && onContinueToMRI && (
-        <div className="pathway-continue-banner pathway-continue-banner--navy" role="note">
-          <p className="pathway-continue-banner-text">Had an MRI? Add your PI-RADS score for biopsy guidance.</p>
-          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToMRI}>
-            Continue to MRI Assessment →
-          </button>
-        </div>
-      )}
-      {pathwayMode === 'pre_psa' && recommendPSA === true && onContinueToPostBiopsy && (
-        <div className="pathway-continue-banner pathway-continue-banner--biopsy" role="note">
-          <p className="pathway-continue-banner-text">Had a biopsy? Evaluate whether active surveillance is right for you.</p>
-          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToPostBiopsy}>
-            Evaluate Biopsy Results →
-          </button>
-        </div>
+      {/* ── Next Steps ── */}
+      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
+        <NextStepsSection
+          onContinueToPSA={onContinueToPostPSA}
+          onContinueToMRI={onContinueToMRI}
+          onContinueToBiopsy={onContinueToPostBiopsy}
+        />
       )}
 
       {/* ── Action buttons ── */}

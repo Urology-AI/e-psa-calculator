@@ -826,6 +826,112 @@
   border: 0.0625rem solid #b9d9f2;
 }
 
+/* ─── Next Steps Section ─── */
+.next-steps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 0.0625rem solid #e2eaf2;
+  border-radius: 0.875rem;
+}
+
+.next-steps-heading {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.next-steps-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.next-step-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  border-radius: 0.75rem;
+  border: 0.09375rem solid transparent;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  box-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.06);
+}
+
+.next-step-card:hover {
+  transform: translateY(-0.0625rem);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+}
+
+.next-step-card--psa {
+  border-color: #bfdbfe;
+}
+
+.next-step-card--psa:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.next-step-card--mri {
+  border-color: #bbf7d0;
+}
+
+.next-step-card--mri:hover {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.next-step-card--biopsy {
+  border-color: #e9d5ff;
+}
+
+.next-step-card--biopsy:hover {
+  border-color: #7c3aed;
+  background: #faf5ff;
+}
+
+.nsc-icon-wrap {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.nsc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  flex: 1;
+}
+
+.nsc-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.nsc-desc {
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.nsc-cta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.next-step-card--psa .nsc-cta { color: #2563eb; }
+.next-step-card--mri .nsc-cta { color: #16a34a; }
+.next-step-card--biopsy .nsc-cta { color: #7c3aed; }
+
 /* ─── Action Buttons ─── */
 .results-actions {
   display: flex;
@@ -941,6 +1047,14 @@
   .threshold-chip-grid {
     grid-template-columns: 1fr;
   }
+
+  .next-step-card {
+    gap: 0.75rem;
+  }
+
+  .nsc-icon-wrap {
+    font-size: 1.25rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1052,6 +1166,26 @@
 .theme-dark .risk-gauge-labels {
   color: var(--ink-400);
 }
+
+.theme-dark .next-steps-section {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .next-step-card {
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.theme-dark .next-step-card--psa { border-color: rgba(37, 99, 235, 0.3); }
+.theme-dark .next-step-card--psa:hover { background: rgba(37, 99, 235, 0.08); border-color: #2563eb; }
+.theme-dark .next-step-card--mri { border-color: rgba(22, 163, 74, 0.3); }
+.theme-dark .next-step-card--mri:hover { background: rgba(22, 163, 74, 0.08); border-color: #16a34a; }
+.theme-dark .next-step-card--biopsy { border-color: rgba(124, 58, 237, 0.3); }
+.theme-dark .next-step-card--biopsy:hover { background: rgba(124, 58, 237, 0.08); border-color: #7c3aed; }
+
+.theme-dark .nsc-title { color: var(--ink-200); }
+.theme-dark .nsc-desc { color: var(--ink-400); }
 
 .theme-dark .risk-gauge-score {
   color: var(--ink-900);
