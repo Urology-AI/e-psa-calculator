@@ -163,43 +163,42 @@
   color: #dc2626;
 }
 
-/* ─── Alert Banners ─── */
-.p2r-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: 0.75rem;
-  border: 0.0625rem solid;
-}
-
-.p2r-alert--warning {
+/* ─── Clinical Notices ─── */
+.p2r-notices {
   background: #fffbeb;
-  border-color: #fcd34d;
+  border: 0.0625rem solid #fcd34d;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
   color: #92400e;
 }
 
-.p2r-alert--error {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #991b1b;
-}
-
-.p2r-alert-icon {
-  flex-shrink: 0;
-  margin-top: 0.0625rem;
-}
-
-.p2r-alert-title {
+.p2r-notices-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.8125rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
-.p2r-alert-body {
+.p2r-notices-icon {
+  flex-shrink: 0;
+}
+
+.p2r-notices-list {
   margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.p2r-notices-list li {
   font-size: 0.8125rem;
   line-height: 1.55;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 /* ─── Risk Summary Card ─── */
@@ -724,10 +723,18 @@
   color: var(--error-600);
 }
 
-.theme-dark .p2r-alert--warning {
+.theme-dark .p2r-notices {
   background: var(--warning-50);
   border-color: rgba(217, 119, 6, 0.35);
   color: var(--warning-600);
+}
+
+.theme-dark .p2r-notices-title {
+  color: var(--ink-900);
+}
+
+.theme-dark .p2r-notices-list li {
+  color: var(--ink-500);
 }
 
 .theme-dark .p2r-alert--error {
@@ -771,13 +778,6 @@
   color: var(--brand-600);
 }
 
-.theme-dark .p2r-alert-title {
-  color: var(--ink-900);
-}
-
-.theme-dark .p2r-alert-body {
-  color: var(--ink-500);
-}
 
 .theme-dark .p2r-part1-ref-label {
   color: var(--ink-400);
