@@ -314,19 +314,16 @@ const Part1Results = ({
         </div>
       </div>
 
-      {/* ── Session / Cloud row ── */}
-      {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
+      {/* ── Cloud row ── */}
+      {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
         <div className="results-cloud-row">
-          {sessionId && <div className="session-pill"><span className="session-pill-label">Session</span><code className="session-pill-code">{sessionId}</code></div>}
-          {storageMode === 'cloud' && sessionId && <div className="cloud-saved-badge"><CloudIcon size={13} /><span>Saved to Cloud</span></div>}
-          {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
-            <div className="cloud-move-row">
-              <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
-                <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
-              </button>
-              {saveToCloudError && <span className="cloud-error-msg">{saveToCloudError}</span>}
-            </div>
-          )}
+          {storageMode === 'cloud' && <div className="cloud-saved-badge"><CloudIcon size={13} /><span>Saved to Cloud</span></div>}
+          <div className="cloud-move-row">
+            <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
+              <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
+            </button>
+            {saveToCloudError && <span className="cloud-error-msg">{saveToCloudError}</span>}
+          </div>
         </div>
       )}
 
@@ -362,22 +359,13 @@ const Part1Results = ({
         psaRecommendMessage={psaRecommendMessage}
       />
 
-      {/* ── High-risk anchor flag ── */}
-      {isHighRiskFlagged && (
-        <div className="high-risk-flag-card" role="note" aria-label="High-risk factors present">
-          <div className="high-risk-flag-title">Priority: High-Risk Factors Present</div>
-          <p className="high-risk-flag-text">
-            This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age ≥70, Black ancestry, first-degree family history, confirmed BRCA mutation, or two or more comorbid conditions.
+      {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
+      {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
+        <div className="high-risk-notice" role="note">
+          <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
+          <p>
+            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, BRCA mutation, or multiple comorbidities). Earlier evaluation is recommended.
           </p>
-          <p className="high-risk-flag-disclosure">The High-Risk flag is clinically motivated and guideline-anchored.</p>
-        </div>
-      )}
-
-      {/* ── Guideline text ── */}
-      {epsaGuidelineText && (
-        <div className="guideline-banner" role="note">
-          <InfoIcon size={15} className="guideline-banner-icon" />
-          <p>{epsaGuidelineText}</p>
         </div>
       )}
 
@@ -422,6 +410,10 @@ const Part1Results = ({
         <CollapsibleSection title="About Your Result" defaultOpen>
           <p>Your result is an educational estimate based on the information you entered. It summarizes how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.</p>
           <p>{getTierDescription(epsaTierKey, activeTier)}</p>
+          {epsaGuidelineText && <p>{epsaGuidelineText}</p>}
+          {isHighRiskFlagged && (
+            <p>Your result includes at least one independently recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, or confirmed BRCA mutation). Guidelines recommend discussing screening with your physician from age 40 in these groups.</p>
+          )}
         </CollapsibleSection>
 
         <CollapsibleSection title="How This Score Is Calculated">
