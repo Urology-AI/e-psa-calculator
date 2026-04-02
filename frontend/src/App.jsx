@@ -1729,7 +1729,7 @@ function App() {
                     Session: {appSessionId}
                   </span>
                 )}
-                <span className={`stage-step-badge ${stage === 'pre' ? 'stage-step-badge--pre' : stage === 'biopsy' ? 'stage-step-badge--post' : 'stage-step-badge--post'}`}>
+                <span className={`stage-step-badge ${stage === 'pre' ? 'stage-step-badge--pre' : 'stage-step-badge--post'}`}>
                   {stage === 'pre'
                     ? currentStep === 3
                       ? 'Part 1 · Results'

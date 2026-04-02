@@ -81,32 +81,6 @@
   border-radius: 0.625rem;
 }
 
-.session-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  border: 0.0625rem solid #d0e0ee;
-  border-radius: 0.5rem;
-  padding: 0.3125rem 0.625rem;
-  font-size: 0.75rem;
-  color: #4a6b84;
-}
-
-.session-pill-label {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.625rem;
-  color: #6b87a0;
-}
-
-.session-pill-code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1d5f8a;
-}
 
 .cloud-saved-badge {
   display: inline-flex;
@@ -1111,19 +1085,6 @@
   border-color: var(--line-100);
 }
 
-.theme-dark .session-pill {
-  background: var(--surface);
-  border-color: var(--line-100);
-  color: var(--ink-500);
-}
-
-.theme-dark .session-pill-label {
-  color: var(--ink-400);
-}
-
-.theme-dark .session-pill-code {
-  color: var(--brand-600);
-}
 
 .theme-dark .cloud-saved-badge {
   background: var(--success-50);
