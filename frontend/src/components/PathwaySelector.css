@@ -36,7 +36,7 @@
 
 .pathway-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
@@ -69,9 +69,10 @@
 
 /* ─── Accent top borders by pathway ─── */
 
-.pathway-card--pre  { border-top: 3px solid #008787; }
-.pathway-card--post { border-top: 3px solid var(--brand-700, #1e3a5f); }
-.pathway-card--mri  { border-top: 3px solid #6d28d9; }
+.pathway-card--pre     { border-top: 3px solid #008787; }
+.pathway-card--post    { border-top: 3px solid var(--brand-700, #1e3a5f); }
+.pathway-card--mri     { border-top: 3px solid #6d28d9; }
+.pathway-card--biopsy  { border-top: 3px solid #b45309; }
 
 /* ─── Icon wrapper ─── */
 
@@ -85,9 +86,10 @@
   flex-shrink: 0;
 }
 
-.pathway-card--pre  .pathway-card-icon-wrap { background: #e6f5f5; color: #008787; }
-.pathway-card--post .pathway-card-icon-wrap { background: var(--surface-muted, #e8edf5); color: var(--brand-700, #1e3a5f); }
-.pathway-card--mri  .pathway-card-icon-wrap { background: #ede9fe; color: #6d28d9; }
+.pathway-card--pre     .pathway-card-icon-wrap { background: #e6f5f5; color: #008787; }
+.pathway-card--post    .pathway-card-icon-wrap { background: var(--surface-muted, #e8edf5); color: var(--brand-700, #1e3a5f); }
+.pathway-card--mri     .pathway-card-icon-wrap { background: #ede9fe; color: #6d28d9; }
+.pathway-card--biopsy  .pathway-card-icon-wrap { background: #fef3c7; color: #b45309; }
 
 .pathway-card-icon-svg {
   width: 1.25rem;
@@ -137,9 +139,10 @@
   transform: translateY(0);
 }
 
-.pathway-card--pre  .pathway-card-btn { background: #008787; color: #ffffff; }
-.pathway-card--post .pathway-card-btn { background: var(--brand-700, #1e3a5f); color: #ffffff; }
-.pathway-card--mri  .pathway-card-btn { background: #6d28d9; color: #ffffff; }
+.pathway-card--pre     .pathway-card-btn { background: #008787; color: #ffffff; }
+.pathway-card--post    .pathway-card-btn { background: var(--brand-700, #1e3a5f); color: #ffffff; }
+.pathway-card--mri     .pathway-card-btn { background: #6d28d9; color: #ffffff; }
+.pathway-card--biopsy  .pathway-card-btn { background: #b45309; color: #ffffff; }
 
 /* ─── Continue banners (used in Part1Results) ─── */
 
@@ -159,6 +162,11 @@
 .pathway-continue-banner--navy {
   background: var(--surface-muted, #e8edf5);
   border-left: 4px solid var(--brand-700, #1e3a5f);
+}
+
+.pathway-continue-banner--biopsy {
+  background: #fef3c7;
+  border-left: 4px solid #b45309;
 }
 
 .pathway-continue-banner-text {
@@ -193,6 +201,11 @@
   color: #ffffff;
 }
 
+.pathway-continue-banner--biopsy .pathway-continue-banner-btn {
+  background: #b45309;
+  color: #ffffff;
+}
+
 /* ─── Dark mode ─── */
 
 .theme-dark .pathway-card {
@@ -204,12 +217,14 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
-.theme-dark .pathway-card--pre  .pathway-card-icon-wrap { background: rgba(0, 135, 135, 0.18); color: #2dd4bf; }
-.theme-dark .pathway-card--post .pathway-card-icon-wrap { background: rgba(45, 139, 199, 0.18); color: #93c5fd; }
-.theme-dark .pathway-card--mri  .pathway-card-icon-wrap { background: rgba(109, 40, 217, 0.22); color: #c4b5fd; }
+.theme-dark .pathway-card--pre     .pathway-card-icon-wrap { background: rgba(0, 135, 135, 0.18); color: #2dd4bf; }
+.theme-dark .pathway-card--post    .pathway-card-icon-wrap { background: rgba(45, 139, 199, 0.18); color: #93c5fd; }
+.theme-dark .pathway-card--mri     .pathway-card-icon-wrap { background: rgba(109, 40, 217, 0.22); color: #c4b5fd; }
+.theme-dark .pathway-card--biopsy  .pathway-card-icon-wrap { background: rgba(180, 83, 9, 0.20); color: #fbbf24; }
 
-.theme-dark .pathway-card--pre  .pathway-card-btn { background: #0e7490; }
-.theme-dark .pathway-card--mri  .pathway-card-btn { background: #7c3aed; }
+.theme-dark .pathway-card--pre     .pathway-card-btn { background: #0e7490; }
+.theme-dark .pathway-card--mri     .pathway-card-btn { background: #7c3aed; }
+.theme-dark .pathway-card--biopsy  .pathway-card-btn { background: #92400e; }
 
 .theme-dark .pathway-continue-banner--teal {
   background: rgba(0, 135, 135, 0.14);
@@ -227,3 +242,9 @@
 
 .theme-dark .pathway-continue-banner--teal .pathway-continue-banner-btn { background: #0e7490; }
 .theme-dark .pathway-continue-banner--navy .pathway-continue-banner-btn { background: var(--brand-600); }
+
+.theme-dark .pathway-continue-banner--biopsy {
+  background: rgba(180, 83, 9, 0.16);
+  border-left-color: #fbbf24;
+}
+.theme-dark .pathway-continue-banner--biopsy .pathway-continue-banner-btn { background: #92400e; }

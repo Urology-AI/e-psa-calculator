@@ -9,6 +9,7 @@ import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 import {
   calculateDynamicEPsa as calculateDynamicEPsaEngine,
   calculateDynamicEPsaPost as calculateDynamicEPsaPostEngine,
+  calculateActiveSurveillance as calculateActiveSurveillanceEngine,
   validateInputs,
 } from './epsaEngine';
 
@@ -28,6 +29,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || getCalculatorConfig();
   return calculateDynamicEPsaPostEngine(preResult, postData, config);
+};
+
+// Dynamic Active Surveillance Calculator (Model 4)
+export const calculateActiveSurveillance = (preResult, asData, customConfig = null) => {
+  const config = customConfig || getCalculatorConfig();
+  return calculateActiveSurveillanceEngine(preResult, asData, config);
 };
 
 // Get current config (from localStorage or default)
@@ -172,6 +179,7 @@ export default {
   rollbackToVersion,
   calculateDynamicEPsa,
   calculateDynamicEPsaPost,
+  calculateActiveSurveillance,
   getModelVariant,
   getVariantConfig
 };
