@@ -666,7 +666,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
       empiricalRate: COMBINED_TIER_CALIBRATION['intermediate-high']
     },
     {
-      key: 'high', label: 'High Risk', psaEquivalent: '>= 4.0 ng/mL',
+      key: 'high', label: 'High Risk', psaEquivalent: '>= 10.0 ng/mL',
       guideline: 'Your combined risk profile warrants prompt evaluation. AUA, NCCN, and EAU guidelines strongly recommend urology referral and biopsy discussion. Do not delay follow-up with your physician.',
       empiricalRate: COMBINED_TIER_CALIBRATION['high']
     }
@@ -711,11 +711,11 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   let piradsConfidenceText = null;
   if (piradsVal != null) {
     const piradsMessages = {
-      1: 'PI-RADS 1: Very low suspicion. Clinically significant cancer is very unlikely.',
-      2: 'PI-RADS 2: Low suspicion. Clinically significant cancer is unlikely.',
-      3: 'PI-RADS 3: Intermediate suspicion. The presence of clinically significant cancer is equivocal. Shared decision-making with your urologist is recommended.',
-      4: 'PI-RADS 4: High suspicion. Clinically significant cancer is likely. AUA/NCCN/EAU guidelines recommend biopsy.',
-      5: 'PI-RADS 5: Very high suspicion. Clinically significant cancer is very likely. AUA/NCCN/EAU guidelines recommend biopsy without delay.'
+      1: 'PI-RADS 1: Very low. Clinically significant cancer is highly unlikely to be present. (PI-RADS v2.1)',
+      2: 'PI-RADS 2: Low. Clinically significant cancer is unlikely to be present. (PI-RADS v2.1)',
+      3: 'PI-RADS 3: Intermediate. The presence of clinically significant cancer is equivocal. Shared decision-making with your urologist is recommended. (PI-RADS v2.1)',
+      4: 'PI-RADS 4: High. Clinically significant cancer is likely to be present. AUA/NCCN/EAU guidelines recommend biopsy discussion. (PI-RADS v2.1)',
+      5: 'PI-RADS 5: Very high. Clinically significant cancer is highly likely to be present. AUA/NCCN/EAU guidelines recommend biopsy without delay. (PI-RADS v2.1)'
     };
     piradsConfidenceText = piradsMessages[piradsVal] || null;
   }

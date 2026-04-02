@@ -46,14 +46,17 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
 /* ─── Risk Level Visual Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
   const levels = [
-    { id: 'low',          label: 'Low',          color: '#16a34a' },
-    { id: 'intermediate', label: 'Intermediate', color: '#d97706' },
-    { id: 'elevated',     label: 'Elevated',     color: '#dc2626' },
+    { id: 'low',               label: 'Low',          color: '#16a34a' },
+    { id: 'intermediate-low',  label: 'Int-Low',      color: '#2563eb' },
+    { id: 'intermediate-high', label: 'Int-High',     color: '#d97706' },
+    { id: 'high',              label: 'High',         color: '#dc2626' },
   ];
   const cls = String(riskClass || '').toLowerCase();
-  const activeIdx = cls.includes('very') || cls.includes('high') ? 2
-    : cls.includes('moderate') ? 1
-    : 0;
+  const activeIdx =
+    cls === 'very-high-risk' ? 3 :
+    cls === 'high-risk' ? 2 :
+    cls === 'moderate-risk' ? 1 :
+    0;
 
   return (
     <div className="p2r-risk-bar" role="group" aria-label="Risk level bar">
@@ -85,6 +88,22 @@ const RiskIcon = ({ riskClass }) => {
   }
   return <AlertCircleIcon size={22} className="p2r-risk-icon p2r-risk-icon--high" />;
 };
+
+/* ─── PSA Tier Scale definition ─── */
+const PSA_TIER_SCALE = [
+  { key: 'low',               label: 'Low',              range: '< 1.0 ng/mL',   color: '#16a34a', bg: '#f0fdf4' },
+  { key: 'intermediate-low',  label: 'Intermediate-Low', range: '1.0–2.9 ng/mL', color: '#2563eb', bg: '#eff6ff' },
+  { key: 'intermediate-high', label: 'Intermediate-High',range: '3.0–9.9 ng/mL', color: '#d97706', bg: '#fffbeb' },
+  { key: 'high',              label: 'High',             range: '≥ 10.0 ng/mL',  color: '#dc2626', bg: '#fef2f2' },
+];
+
+/* ─── MRI PI-RADS Scale definition (PI-RADS v2.1 official categories) ─── */
+const MRI_TIER_SCALE = [
+  { pirads: [1, 2], label: 'PI-RADS 1–2', meaning: 'Very Low / Low',          color: '#16a34a', bg: '#f0fdf4' },
+  { pirads: [3],    label: 'PI-RADS 3',   meaning: 'Intermediate (Equivocal)', color: '#2563eb', bg: '#eff6ff' },
+  { pirads: [4],    label: 'PI-RADS 4',   meaning: 'High — Likely',            color: '#d97706', bg: '#fffbeb' },
+  { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Very High — Highly Likely',color: '#dc2626', bg: '#fef2f2' },
+];
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -308,15 +327,7 @@ const Part2Results = ({
         </div>
         <div className="p2r-risk-tier-row">
           <RiskIcon riskClass={riskClass} />
-          <span className="p2r-risk-pct" style={{ color: riskColor }}>{riskPct}</span>
-        </div>
-        {riskPctRange && (
-          <div className="p2r-risk-range">
-            Display range: <strong>{riskPctRange}</strong>
-          </div>
-        )}
-        <div className="p2r-risk-badge" style={{ background: riskColor }}>
-          {cleanRiskCat}
+          <span className="p2r-risk-tier-title" style={{ color: riskColor }}>{cleanRiskCat}</span>
         </div>
         <RiskLevelBar riskClass={riskClass} />
       </div>
@@ -475,6 +486,70 @@ const Part2Results = ({
             A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or
             further workup is pursued.
           </p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="How This Score Is Calculated">
+          <p>Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. Your result is shown as a risk tier based on guideline thresholds from AUA, NCCN, and EAU. No specific value is calculated — only which tier your inputs fall into.</p>
+
+          {/* PSA Tier Breakdown */}
+          <div className="p2r-breakdown-block">
+            <div className="p2r-breakdown-heading">
+              <FlaskConicalIcon size={13} style={{ flexShrink: 0 }} />
+              <span>PSA Level Tier</span>
+            </div>
+            <div className="p2r-tier-chips-grid">
+              {PSA_TIER_SCALE.map(({ key, label, range, color, bg }) => {
+                const activePsaKey = psaTier ? psaTier.toLowerCase() : null;
+                const isActive = activePsaKey === key;
+                return (
+                  <div
+                    key={key}
+                    className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
+                    style={isActive ? { background: bg, borderColor: color, color } : {}}
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    <span className="p2r-tier-chip-label">{label}</span>
+                    <span className="p2r-tier-chip-range">{range}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {psaTier && (
+              <p className="p2r-breakdown-why">
+                Your PSA level falls in the <strong>{psaTier}</strong> tier.
+              </p>
+            )}
+          </div>
+
+          {/* MRI PI-RADS Breakdown */}
+          {postData?.knowPirads && postData?.pirads != null && (
+            <div className="p2r-breakdown-block">
+              <div className="p2r-breakdown-heading">
+                <ActivityIcon size={13} style={{ flexShrink: 0 }} />
+                <span>MRI PI-RADS Tier</span>
+              </div>
+              <div className="p2r-tier-chips-grid">
+                {MRI_TIER_SCALE.map(({ pirads: piradsArr, label, meaning, color, bg }) => {
+                  const piradsNum = Number(postData.pirads);
+                  const isActive = piradsArr.includes(piradsNum);
+                  return (
+                    <div
+                      key={label}
+                      className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
+                      style={isActive ? { background: bg, borderColor: color, color } : {}}
+                      aria-current={isActive ? 'true' : undefined}
+                    >
+                      <span className="p2r-tier-chip-label">{label}</span>
+                      <span className="p2r-tier-chip-range">{meaning}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {piradsConfidenceText && (
+                <p className="p2r-breakdown-why">{piradsConfidenceText}</p>
+              )}
+            </div>
+          )}
         </CollapsibleSection>
 
         <CollapsibleSection title="Understanding PI-RADS / MRI">
