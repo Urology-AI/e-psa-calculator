@@ -294,6 +294,128 @@
 .as-btn--outline { background: transparent; border: 1.5px solid var(--line-200, #dde4ec); color: var(--ink-900, #1e3a5f); }
 .as-btn--danger  { background: transparent; border: 1.5px solid #fca5a5; color: #dc2626; }
 
+/* ── G. Patient Guide ── */
+
+.as-guide-container {
+  border: 1.5px solid var(--line-200, #dde4ec);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.as-guide-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: var(--surface-muted, #e8edf5);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 0.5rem;
+  transition: background 0.15s ease;
+}
+
+.as-guide-toggle:hover {
+  background: var(--line-200, #dde4ec);
+}
+
+.as-guide-toggle-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--brand-700, #1e3a5f);
+  flex: 1;
+}
+
+.as-guide-body {
+  padding: 1.25rem;
+  background: var(--surface, #ffffff);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeUp 0.2s ease;
+}
+
+.as-guide-source-note {
+  font-size: 0.8125rem;
+  color: var(--ink-500, #607286);
+  font-style: italic;
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line-100, #eef1f5);
+}
+
+.as-guide-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.as-guide-subheading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--brand-700, #1e3a5f);
+  margin: 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line-100, #eef1f5);
+}
+
+.as-guide-p {
+  font-size: 0.875rem;
+  color: var(--ink-700, #374151);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.as-guide-ul,
+.as-guide-ol {
+  font-size: 0.875rem;
+  color: var(--ink-700, #374151);
+  margin: 0;
+  padding-left: 1.4rem;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.as-guide-note {
+  font-size: 0.8125rem;
+  color: var(--ink-500, #607286);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-muted, #e8edf5);
+  border-radius: 6px;
+}
+
+.as-guide-refs {
+  font-size: 0.8125rem;
+  color: var(--ink-600, #4b5563);
+  margin: 0;
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  line-height: 1.55;
+}
+
+.as-guide-ref-item {
+  /* inherits list-item display */
+}
+
+.as-guide-ref-link {
+  color: var(--brand-600, #2563eb);
+  text-decoration: underline;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.as-guide-ref-link:hover {
+  opacity: 0.8;
+}
+
 /* ─── Dark mode ─── */
 
 .theme-dark .as-factors-section,
@@ -321,3 +443,10 @@
 .theme-dark .as-points-badge--neg { background: rgba(22, 163, 74, 0.2); color: #86efac; }
 .theme-dark .as-points-badge--pos { background: rgba(220, 38, 38, 0.2); color: #fca5a5; }
 .theme-dark .as-points-badge--zero { background: rgba(45, 139, 199, 0.15); color: var(--ink-500); }
+
+.theme-dark .as-guide-container { border-color: var(--line-200); }
+.theme-dark .as-guide-toggle { background: var(--surface-subtle); }
+.theme-dark .as-guide-toggle:hover { background: rgba(255,255,255,0.06); }
+.theme-dark .as-guide-body { background: var(--surface-subtle); }
+.theme-dark .as-guide-note { background: rgba(255,255,255,0.04); }
+.theme-dark .as-guide-ref-link { color: #93c5fd; }
