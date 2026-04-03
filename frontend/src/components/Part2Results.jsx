@@ -16,7 +16,6 @@ import {
   ChevronUpIcon,
   FlaskConicalIcon,
   ActivityIcon,
-  InfoIcon as LucideInfoIcon,
   CheckCircle2Icon,
   AlertTriangleIcon,
   AlertCircleIcon,
@@ -40,6 +39,25 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
       </button>
       {open && <div className="p2r-collapsible-body">{children}</div>}
     </div>
+  );
+};
+
+/* ─── Collapsible Notice Item ─── */
+const NoticeItem = ({ label, children }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <li className="p2r-notice-item">
+      <button
+        type="button"
+        className="p2r-notice-toggle"
+        onClick={() => setExpanded(v => !v)}
+        aria-expanded={expanded}
+      >
+        <strong>{label}</strong>
+        {expanded ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+      </button>
+      {expanded && <div className="p2r-notice-body">{children}</div>}
+    </li>
   );
 };
 
@@ -202,9 +220,6 @@ const Part2Results = ({
     riskColor === '#d97706' ? 'p2r-risk-card--moderate' :
     'p2r-risk-card--low';
 
-  const pointsExplanationText =
-    'Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. A logistic regression model calculates an estimated probability of high-grade (Gleason Grade Group ≥3) prostate cancer. This is displayed as an educational risk category, not a clinical diagnosis.';
-
   return (
     <div className="p2r-container" role="main">
 
@@ -242,24 +257,24 @@ const Part2Results = ({
           </div>
           <ul className="p2r-notices-list">
             {lowPsaWarning && (
-              <li>
-                <strong>Low PSA:</strong> {lowPsaWarningText}
-              </li>
+              <NoticeItem label="Low PSA Risk">
+                {lowPsaWarningText}
+              </NoticeItem>
             )}
             {psadFlag && (
-              <li>
-                <strong>PSA Density elevated:</strong> Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+              <NoticeItem label="PSA Density Elevated">
+                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
                 <ModalInfoIcon
                   title="Kadeer et al. 2025 — PSA Density (PSAD)"
                   description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
                   sources={fieldReferences.part2.psadKadeer.sources}
                 />
-              </li>
+              </NoticeItem>
             )}
             {discordanceFlag && (
-              <li>
-                <strong>Risk discordance:</strong> {discordanceFlag.text}
-              </li>
+              <NoticeItem label="Risk Discordance">
+                {discordanceFlag.text}
+              </NoticeItem>
             )}
           </ul>
         </div>
@@ -332,26 +347,10 @@ const Part2Results = ({
         <RiskLevelBar riskClass={riskClass} />
       </div>
 
-      {/* ── Empirical probability text ── */}
-      {empiricalProbabilityText && (
-        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#4b5563', fontStyle: 'italic', lineHeight: 1.5 }} role="note">
-          <LucideInfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#6b7280' }} />
-          {empiricalProbabilityText}
-        </div>
-      )}
-
-      {/* ── PI-RADS confidence text (post_mri only) ── */}
-      {pathwayMode === 'post_mri' && piradsConfidenceText && (
-        <div style={{ background: '#e6f5f5', border: '1px solid #a7f3d0', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#065f46', lineHeight: 1.5 }} role="note">
-          <LucideInfoIcon size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#047857' }} />
-          {piradsConfidenceText}
-        </div>
-      )}
-
       {/* ── Part 1 Reference ── */}
       {preResult && (
         <div className="p2r-part1-ref" role="complementary" aria-label="Part 1 reference data">
-          <div className="p2r-part1-ref-label">Based on Part 1 Screening Profile</div>
+          <div className="p2r-part1-ref-label">Part 1 Screening Profile</div>
           <div className="p2r-part1-ref-data">
             <div className="p2r-part1-ref-item">
               <span className="p2r-part1-ref-val">{preResult.score}%</span>
@@ -375,6 +374,24 @@ const Part2Results = ({
                 <div className="p2r-part1-ref-item">
                   <span className="p2r-part1-ref-val">PI-RADS {postData.pirads}</span>
                   <span className="p2r-part1-ref-key">MRI Score</span>
+                </div>
+              </>
+            )}
+            {psaTier && (
+              <>
+                <div className="p2r-part1-ref-divider" aria-hidden="true" />
+                <div className="p2r-part1-ref-item">
+                  <span className="p2r-part1-ref-val">{psaTier}</span>
+                  <span className="p2r-part1-ref-key">PSA Tier</span>
+                </div>
+              </>
+            )}
+            {psadValue != null && !Number.isNaN(psadValue) && (
+              <>
+                <div className="p2r-part1-ref-divider" aria-hidden="true" />
+                <div className="p2r-part1-ref-item">
+                  <span className="p2r-part1-ref-val">{Number(psadValue).toFixed(3)} <span style={{fontSize:'0.8em'}}>ng/mL/mL</span></span>
+                  <span className="p2r-part1-ref-key">PSA Density</span>
                 </div>
               </>
             )}
@@ -430,66 +447,10 @@ const Part2Results = ({
         </ul>
       </div>
 
-      {/* ── Clinical inputs summary ── */}
-      <div className="p2r-clinical-grid" role="group" aria-label="Key clinical inputs">
-        <div className="p2r-clinical-item">
-          <FlaskConicalIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">
-              {psaValue != null ? `${psaValue}` : postData?.psa != null ? `${postData.psa}` : '—'}
-              {(psaValue != null || postData?.psa != null) && <span className="p2r-clinical-unit"> ng/mL</span>}
-            </div>
-            <div className="p2r-clinical-key">PSA Level</div>
-          </div>
-        </div>
-        <div className="p2r-clinical-item">
-          <ActivityIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">{psaTier || '—'}</div>
-            <div className="p2r-clinical-key">PSA Tier</div>
-          </div>
-        </div>
-        <div className="p2r-clinical-item">
-          <LucideInfoIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">
-              {postData?.knowPirads ? `PI-RADS ${postData.pirads}` : 'Not provided'}
-            </div>
-            <div className="p2r-clinical-key">MRI Score</div>
-          </div>
-        </div>
-
-        {psadValue != null && !Number.isNaN(psadValue) && (
-          <div className="p2r-clinical-item">
-            <LucideInfoIcon size={16} className="p2r-clinical-icon" />
-            <div>
-              <div className="p2r-clinical-val">
-                {Number(psadValue).toFixed(3)}
-                <span className="p2r-clinical-unit"> ng/mL/mL</span>
-              </div>
-              <div className="p2r-clinical-key">PSA Density</div>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* ── Expandable detail sections ── */}
       <div className="p2r-details">
-        <CollapsibleSection title="About This Risk Estimate" defaultOpen>
-          <p>{pointsExplanationText}</p>
-          <p>
-            PSA levels and PI-RADS scores entered here are used solely for educational risk stratification.
-            PSA-based screening in combination with shared decision-making is the recommended standard —
-            this tool is intended to supplement, not replace, that conversation with your clinician.
-          </p>
-          <p>
-            A newly elevated PSA should usually be confirmed with a repeat test before any biopsy or
-            further workup is pursued.
-          </p>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="How This Score Is Calculated">
-          <p>Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. Your result is shown as a risk tier based on guideline thresholds from AUA, NCCN, and EAU. No specific value is calculated — only which tier your inputs fall into.</p>
+        <CollapsibleSection title="How This Was Calculated" defaultOpen>
+          <p>Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. Your result is placed into a risk tier based on guideline thresholds from AUA, NCCN, and EAU. PSA-based screening combined with shared decision-making is the recommended standard — this is an educational supplement, not a clinical diagnosis. A newly elevated PSA should be confirmed with a repeat test before any biopsy or further workup.</p>
 
           {/* PSA Tier Breakdown */}
           <div className="p2r-breakdown-block">
@@ -509,7 +470,6 @@ const Part2Results = ({
                     aria-current={isActive ? 'true' : undefined}
                   >
                     <span className="p2r-tier-chip-label">{label}</span>
-                    <span className="p2r-tier-chip-range">{range}</span>
                   </div>
                 );
               })}
@@ -540,7 +500,6 @@ const Part2Results = ({
                       aria-current={isActive ? 'true' : undefined}
                     >
                       <span className="p2r-tier-chip-label">{label}</span>
-                      <span className="p2r-tier-chip-range">{meaning}</span>
                     </div>
                   );
                 })}
@@ -549,6 +508,9 @@ const Part2Results = ({
                 <p className="p2r-breakdown-why">{piradsConfidenceText}</p>
               )}
             </div>
+          )}
+          {empiricalProbabilityText && (
+            <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
           )}
         </CollapsibleSection>
 
@@ -576,13 +538,13 @@ const Part2Results = ({
           </p>
         </CollapsibleSection>
 
+        {postData?.knowPirads && (
         <CollapsibleSection title="Understanding PI-RADS / MRI">
           <p>
-            {postData?.knowPirads
-              ? 'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.'
-              : 'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.'}
+            MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist's interpretation of multiparametric MRI findings.
           </p>
         </CollapsibleSection>
+        )}
 
         <CollapsibleSection title="Important Disclaimer">
           <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
