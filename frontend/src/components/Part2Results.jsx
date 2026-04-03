@@ -514,12 +514,34 @@ const Part2Results = ({
           )}
         </CollapsibleSection>
 
+        <CollapsibleSection title="Shared Decision-Making Guide">
+          <p style={{ marginBottom: '0.6rem' }}>
+            Choosing the next step after a risk assessment is not just about the numbers — it is about how each option could affect your everyday life. Shared decision-making means you and your doctor decide together, based on your risk level, your health, and what matters most to you.
+          </p>
+          <p style={{ fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.85rem' }}>Key topics to discuss with your clinician:</p>
+          <ol style={{ paddingLeft: '1.3rem', lineHeight: 1.7, fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+            <li><strong>How serious your risk is</strong> — your risk tier and what it means for next steps.</li>
+            <li><strong>Your overall health and life expectancy</strong> — age and other health conditions help guide whether watchful waiting, monitoring, or biopsy makes more sense.</li>
+            <li><strong>Chances of finding clinically significant cancer</strong> — risk calculators (like this tool) can help estimate likelihood, but they do not replace biopsy for diagnosis.</li>
+            <li><strong>Possible side effects of further workup</strong> — a biopsy carries risks (bleeding, infection, anxiety). These should be weighed against the benefit of early detection.</li>
+            <li><strong>Your starting point</strong> — current urinary and sexual function (assessed via IPSS, SHIM) is important context for any treatment discussion.</li>
+            <li><strong>Your preferences and goals</strong> — what matters most to you (peace of mind, avoiding procedures, preserving function) should guide the plan.</li>
+          </ol>
+          <p style={{ fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.85rem' }}>Psychological aspects to be aware of:</p>
+          <ul style={{ paddingLeft: '1.3rem', lineHeight: 1.7, fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+            <li>Waiting for further test results can cause stress, sleep problems, or persistent worry — this is normal.</li>
+            <li>Talking openly with your doctor about what results could mean may help reduce fear of the unknown.</li>
+            <li>Support groups, counselors, and loved ones can help manage anxiety during the evaluation process.</li>
+          </ul>
+          <p style={{ fontSize: '0.8125rem', color: '#607286', fontStyle: 'italic', marginBottom: 0 }}>
+            Sources: Eastham JA et al. AUA/ASTRO Guideline Part I–II. <em>J Urol.</em> 2022;208(1):10–25. &nbsp;|&nbsp; Schaeffer EM et al. NCCN Guidelines® Insights, Version 3.2024. PMID: 38626801. &nbsp;|&nbsp; Cornford P et al. EAU Guidelines 2024. <em>Eur Urol.</em> 86(2):148–163.
+          </p>
+        </CollapsibleSection>
+
         {postData?.knowPirads && (
         <CollapsibleSection title="Understanding PI-RADS / MRI">
           <p>
-            {postData?.knowPirads
-              ? 'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.'
-              : 'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.'}
+            MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist's interpretation of multiparametric MRI findings.
           </p>
         </CollapsibleSection>
         )}
