@@ -259,14 +259,46 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
 
           <section className="docs-section">
             <h3>{t('riskDocs.referencesTitle')}</h3>
+            <p className="reference-note" style={{marginBottom: '0.5rem'}}>
+              <strong>Active Surveillance &amp; Localized Prostate Cancer Management</strong>
+            </p>
+            <ol className="limitations-list" style={{listStyleType: 'decimal', paddingLeft: '1.4rem'}}>
+              <li>
+                Eastham JA, Auffenberg GB, Barocas DA, et al. Clinically localized prostate cancer: AUA/ASTRO guideline, part I: introduction, risk assessment, staging, and risk-based management.{' '}
+                <em>J Urol.</em> 2022;208(1):10–18.{' '}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Eastham+AUA+ASTRO+guideline+part+I+J+Urol+2022" target="_blank" rel="noopener noreferrer" className="ref-link">PubMed</a>
+              </li>
+              <li>
+                Eastham JA, Auffenberg GB, Barocas DA, et al. Clinically localized prostate cancer: AUA/ASTRO guideline, part II: principles of active surveillance, principles of surgery, and follow-up.{' '}
+                <em>J Urol.</em> 2022;208(1):19–25.{' '}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Eastham+AUA+ASTRO+guideline+part+II+J+Urol+2022" target="_blank" rel="noopener noreferrer" className="ref-link">PubMed</a>
+              </li>
+              <li>
+                Eastham JA, Auffenberg GB, Barocas DA, et al. Clinically localized prostate cancer: AUA/ASTRO guideline, part III: principles of radiation and future directions.{' '}
+                <em>J Urol.</em> 2022;208(1):26–33.{' '}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Eastham+AUA+ASTRO+guideline+part+III+J+Urol+2022" target="_blank" rel="noopener noreferrer" className="ref-link">PubMed</a>
+              </li>
+              <li>
+                Schaeffer EM, Srinivas S, Adra N, et al. NCCN Guidelines® Insights: Prostate Cancer, Version 3.2024.{' '}
+                <em>J Natl Compr Canc Netw.</em> 2024;22(3):140–150. doi: 10.6004/jnccn.2024.0019. PMID: 38626801.{' '}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/38626801/" target="_blank" rel="noopener noreferrer" className="ref-link">PubMed</a>
+              </li>
+              <li>
+                Cornford P, et al. EAU-EANM-ESTRO-ESUR-ISUP-SIOG Guidelines on Prostate Cancer—2024 Update. Part I: Screening, Diagnosis, and Local Treatment with Curative Intent.{' '}
+                <em>European Urology.</em> 2024;86(2):148–163.{' '}
+                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Cornford+EAU+prostate+cancer+guidelines+2024" target="_blank" rel="noopener noreferrer" className="ref-link">PubMed</a>
+              </li>
+            </ol>
+            <p className="reference-note" style={{marginTop: '0.75rem', marginBottom: '0.5rem'}}>
+              <strong>Risk Assessment &amp; Screening</strong>
+            </p>
             <ul className="limitations-list">
               <li>NCCN Clinical Practice Guidelines for Prostate Cancer Early Detection</li>
-              <li>EAU Guidelines on Prostate Cancer (2023)</li>
               <li>PI-RADS v2.1: Prostate Imaging Reporting and Data System</li>
               <li>PCPT Risk Calculator 2.0 (Thompson et al.)</li>
             </ul>
-            <p className="reference-note">
-              For questions about the risk assessment model, please contact the 
+            <p className="reference-note" style={{marginTop: '0.75rem'}}>
+              For questions about the risk assessment model, please contact the
               Department of Urology, Mount Sinai Health System.
             </p>
             <p className="reference-note">
