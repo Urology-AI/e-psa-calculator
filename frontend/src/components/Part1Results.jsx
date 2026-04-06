@@ -75,6 +75,21 @@ const RiskIcon = ({ risk, epsaTierKey }) => {
   return <AlertCircleIcon size={22} className="risk-icon risk-icon--elevated" />;
 };
 
+/* ─── Papers shown inside the PSA banner when recommendation exceeds universal consensus ─── */
+const BEYOND_GUIDELINE_PAPERS = {
+  high_risk_early_screening: [
+    'Tewari A, et al. Urol Onc. 2005 — Race as a risk factor in prostate cancer prognosis.',
+    'Godtman RA, et al. Eur Urol. 2022 — Race and prostate cancer early detection outcomes.',
+    'Brawley O. World J Urol. 2012 — Epidemiology of prostate cancer in Black men.',
+    'Giri VN, et al. J Clin Oncol. 2018 — BRCA gene mutations and increased prostate cancer risk.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+  family_history_override: [
+    'Loeb S, et al. Urology. 2006 — Family history of prostate cancer and PSA screening outcomes.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+};
+
 /* ─── PSA Recommendation Banner ───────────────────────────────────────────────
  *
  * Colour logic keyed to psaRecommendReason from the engine:
@@ -90,35 +105,36 @@ const PSA_BANNER_CONFIG = {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
     label: 'PSA SCREENING RECOMMENDED — HIGH-RISK PROFILE', labelColor: '#991b1b',
     Icon: AlertCircleIcon,
-    source: 'Source: AUA/SUO Guideline Rec. 5 — Black men and BRCA carriers should discuss PSA from age 40.',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a BRCA mutation. AUA is the most explicit about starting from age 40.',
   },
   family_history_override: {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
     label: 'PSA SCREENING RECOMMENDED — FAMILY HISTORY', labelColor: '#991b1b',
     Icon: AlertCircleIcon,
-    source: 'Source: AUA/SUO Guideline Rec. 5 — men with first-degree family history should discuss PSA from age 40.',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with a first-degree family history of prostate cancer. AUA is the most explicit about starting from age 40.',
   },
   score_threshold: {
     bg: '#fffbeb', border: '#d97706', iconColor: '#d97706',
     label: 'PSA SCREENING RECOMMENDED', labelColor: '#92400e',
     Icon: AlertTriangleIcon,
-    source: 'Based on your ePSA score exceeding the screening threshold.',
+    source: 'Your ePSA score is above the screening threshold. Based on AUA, NCCN, and ERUS guidelines.',
   },
   age_guideline_55_69: {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
     label: 'PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
     Icon: InfoIcon,
-    source: 'Source: AUA/SUO Early Detection Guideline 2023/2026, Rec. 4 — all men 55–69 should discuss PSA screening with their physician.',
+    source: 'AUA guideline Rec. 4 — all men aged 55–69 should discuss PSA screening with their physician.',
   },
   not_recommended: {
     bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
     label: 'PSA NOT CURRENTLY RECOMMENDED', labelColor: '#166534',
     Icon: CheckCircle2Icon,
-    source: 'Threshold-based assessment from Part 1. Routine age-based screening guidance applies.',
+    source: 'Your score is below the screening threshold. Follow standard age-based guidance from AUA, NCCN, and ERUS.',
   },
 };
 
 const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommendMessage }) => {
+  const [showPapers, setShowPapers] = useState(false);
   let configKey = 'not_recommended';
   if (recommendPSA === true) {
     configKey = (psaRecommendReason && PSA_BANNER_CONFIG[psaRecommendReason])
@@ -132,6 +148,7 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       ? 'A PSA test is recommended. Please speak with your physician.'
       : 'Your ePSA score is below the recommendation threshold. Follow standard age-based screening guidance.'
   );
+  const papers = BEYOND_GUIDELINE_PAPERS[configKey] || null;
   return (
     <div
       className="psa-recommendation-banner"
@@ -147,6 +164,23 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       </div>
       <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{message}</p>
       <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{cfg.source}</p>
+      {papers && (
+        <div style={{ marginTop: '4px' }}>
+          <button
+            type="button"
+            onClick={() => setShowPapers(!showPapers)}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: cfg.labelColor, display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            {showPapers ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+            {showPapers ? 'Hide' : 'Show'} supporting research ({papers.length} studies)
+          </button>
+          {showPapers && (
+            <ul style={{ margin: '6px 0 0 16px', padding: 0, fontSize: '12px', color: '#6b7280', lineHeight: 1.7 }}>
+              {papers.map((paper) => <li key={paper}>{paper}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -196,21 +230,6 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
   </div>
 );
 
-/* ─── Papers cited when recommendation goes beyond universal guideline consensus ─── */
-const BEYOND_GUIDELINE_PAPERS = {
-  high_risk_early_screening: [
-    'Tewari A, et al. Urol Onc. 2005 — Race as a risk factor in prostate cancer prognosis.',
-    'Godtman RA, et al. Eur Urol. 2022 — Race and prostate cancer early detection outcomes.',
-    'Brawley O. World J Urol. 2012 — Epidemiology of prostate cancer in Black men.',
-    'Giri VN, et al. J Clin Oncol. 2018 — BRCA gene mutations and increased prostate cancer risk.',
-    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
-  ],
-  family_history_override: [
-    'Loeb S, et al. Urology. 2006 — Family history of prostate cancer and PSA screening outcomes.',
-    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
-  ],
-};
-
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -259,13 +278,6 @@ const Part1Results = ({
   const riskBgClass = epsaTierKey === 'low' ? 'risk-card--lower' : epsaTierKey === 'intermediate' ? 'risk-card--moderate' : epsaTierKey === 'elevated' ? 'risk-card--elevated' : activeTier === 'LOWER' ? 'risk-card--lower' : activeTier === 'HIGHER' ? 'risk-card--elevated' : 'risk-card--moderate';
   const tierAccentColor = epsaTierKey === 'low' ? '#16a34a' : epsaTierKey === 'intermediate' ? '#2563eb' : epsaTierKey === 'elevated' ? '#d97706' : activeTier === 'LOWER' ? '#16a34a' : activeTier === 'HIGHER' ? '#d97706' : '#2563eb';
 
-  const getSoftenedActionText = (key, tier, fallback) => {
-    if (typeof fallback === 'string' && fallback.trim().length > 0) return fallback;
-    const k = key || tier;
-    if (k === 'low' || k === 'LOWER') return 'Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.';
-    if (k === 'intermediate' || k === 'MODERATE') return 'Consider discussing this result with your healthcare provider. Together you can decide whether PSA screening makes sense based on your age, preferences, and prior results.';
-    return 'Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation — such as PSA testing or follow-up — is appropriate.';
-  };
 
   const getTierDescription = (key, tier) => {
     const k = key || tier;
@@ -280,6 +292,11 @@ const Part1Results = ({
     { label: 'IPSS Score', value: `${ipssTotal}/35`, unit: '', note: Number(ipssTotal) >= 20 ? 'Severe range in v2 contributes 0 points' : null },
     { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '' },
   ];
+
+  const topFactors = [...itemImpacts]
+    .filter((i) => Number(i.points) > 0)
+    .sort((a, b) => Number(b.points) - Number(a.points))
+    .slice(0, 4);
 
   return (
     <div className="results-container" role="main">
@@ -316,15 +333,6 @@ const Part1Results = ({
         <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
       </div>
 
-      {/* ── Guideline Basis Strip ── */}
-      <div
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: '7px', padding: '8px 14px', margin: '10px 0', fontSize: '12px', color: '#3730a3', flexWrap: 'wrap' }}
-        role="note"
-        aria-label="Guideline alignment"
-      >
-        <InfoIcon size={13} style={{ flexShrink: 0, color: '#4338ca' }} />
-        <span>This result is based on three sets of expert guidelines: <strong>AUA</strong> (American Urological Association), <strong>NCCN</strong> (National Comprehensive Cancer Network), and <strong>ERUS</strong> (European guidelines on prostate cancer).</span>
-      </div>
 
 
       {/* ── PSA Recommendation Banner ──────────────────────────────────────────
@@ -339,28 +347,6 @@ const Part1Results = ({
         psaRecommendMessage={psaRecommendMessage}
       />
 
-      {/* ── Beyond-Guidelines Guardrail ── */}
-      {(psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override') && (
-        <div
-          style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}
-          role="note"
-          aria-label="Guideline scope notice"
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '6px' }}>
-            <AlertTriangleIcon size={13} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
-            <strong>Why earlier screening is suggested for you:</strong>
-          </div>
-          <p style={{ margin: '0 0 8px 0' }}>
-            Based on your risk profile, U.S. guidelines (AUA) recommend discussing a PSA test starting at age 40 — earlier than the general recommendation of 55. European guidelines (ERUS) and NCCN may suggest slightly different starting ages. The most important step is to have this conversation with your doctor, who can decide what is right for you.
-          </p>
-          <p style={{ margin: '0 0 4px 0', fontWeight: 600, fontSize: '12px', color: '#92400e' }}>Research supporting this recommendation:</p>
-          <ul style={{ margin: '0 0 0 16px', padding: 0, fontSize: '12px', color: '#92400e', lineHeight: 1.7 }}>
-            {(BEYOND_GUIDELINE_PAPERS[psaRecommendReason] || []).map((paper) => (
-              <li key={paper}>{paper}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
       {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
@@ -372,11 +358,6 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Clinician Discussion Guidance ── */}
-      <div className="recommendation-card" style={{ borderLeftColor: tierAccentColor }}>
-        <div className="rec-card-label" style={{ color: tierAccentColor }}>Clinician Discussion Guidance</div>
-        <p className="rec-card-text">{getSoftenedActionText(epsaTierKey, activeTier, action)}</p>
-      </div>
 
       {/* ── Clinical metrics ── */}
       <div className="metrics-grid" role="list" aria-label="Clinical summary metrics">
@@ -401,15 +382,22 @@ const Part1Results = ({
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
         <CollapsibleSection title="About Your Result">
-          <p>Your result is an educational estimate based on the information you entered. It summarises how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but does not determine whether you do or do not have prostate cancer. Use it as a starting point for a conversation with a clinician.</p>
-          <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-          {epsaGuidelineText && <p>{epsaGuidelineText}</p>}
-          {isHighRiskFlagged && (
-            <p>Your result includes at least one independently recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, or confirmed BRCA mutation). Guidelines recommend discussing screening with your physician from age 40 in these groups.</p>
+          {topFactors.length > 0 ? (
+            <p>
+              Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
+              {' '}The factors that contributed most to your score were:{' '}
+              {topFactors.map((f, i) => (
+                <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
+              ))}
+            </p>
+          ) : (
+            <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.</p>
           )}
+          <p>{getTierDescription(epsaTierKey, activeTier)}</p>
           {empiricalProbabilityText && (
             <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
           )}
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.</p>
         </CollapsibleSection>
 
         {itemImpacts.length > 0 && (
