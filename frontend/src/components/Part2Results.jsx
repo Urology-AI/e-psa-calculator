@@ -203,6 +203,7 @@ const Part2Results = ({
     pathwayMode = 'post_mri',
     empiricalProbabilityText = null,
     piradsConfidenceText = null,
+    epsaTierKey = null,
   } = result;
 
   const getRiskColor = (rc) => {
@@ -509,9 +510,70 @@ const Part2Results = ({
               )}
             </div>
           )}
-          {empiricalProbabilityText && (
-            <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
-          )}
+          {/* Cohort validation data card */}
+          <div className="p2r-cohort-card">
+            <div className="p2r-cohort-heading">
+              <FlaskConicalIcon size={13} />
+              <span>Cohort Validation Data — Mount Sinai (N=94)</span>
+            </div>
+            <p className="p2r-cohort-note">
+              These rates are from our prospectively collected biopsied referral cohort (N=94, 23 clinically
+              significant cancers, GG≥3). All patients were referred for biopsy; rates reflect a biopsied
+              population, not a general screening population.
+            </p>
+            <div className="p2r-cohort-table-wrap">
+              <table className="p2r-cohort-table">
+                <thead>
+                  <tr>
+                    <th>Combined Risk Tier</th>
+                    <th>Score Range</th>
+                    <th>N</th>
+                    <th>csPCa Events</th>
+                    <th>csPCa Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className={result.epsaTierKey === 'low' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Low</td><td>≤ 13 pts</td><td>—</td><td>—</td>
+                    <td><span className="p2r-cohort-na">No data (low-risk referrals not biopsied)</span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'intermediate-low' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Int-Low</td><td>14–27 pts</td><td>4</td><td>1</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--yellow">25% <span className="p2r-cohort-caution">(small N)</span></span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'intermediate-high' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Int-High</td><td>28–55 pts</td><td>58</td><td>12</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--amber">21%</span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'high' ? 'p2r-cohort-row--active' : ''}>
+                    <td>High</td><td>≥ 56 pts</td><td>32</td><td>10</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--red">31%</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="p2r-cohort-model-row">
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">0.600</span>
+                <span className="p2r-cohort-model-key">Post-PSA Model AUC <span className="p2r-cohort-model-ci">[0.463–0.735]</span></span>
+              </div>
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">0.579</span>
+                <span className="p2r-cohort-model-key">PSA Alone AUC <span className="p2r-cohort-model-ci">[0.442–0.712]</span></span>
+              </div>
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">94</span>
+                <span className="p2r-cohort-model-key">Biopsied patients (N)</span>
+              </div>
+            </div>
+            {pathwayMode === 'post_mri' && (
+              <p className="p2r-cohort-mri-note">
+                MRI (PI-RADS) was not collected in the N=94 validation cohort. Post-MRI PI-RADS
+                scoring is based on AUA/NCCN/EAU v2.1 guidelines — empirical calibration for
+                Model 3 is pending.
+              </p>
+            )}
+          </div>
         </CollapsibleSection>
 
         <CollapsibleSection title="Shared Decision-Making Guide">

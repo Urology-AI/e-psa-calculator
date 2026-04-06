@@ -187,7 +187,16 @@ const ActiveSurveillanceResults = ({ result, onStartOver, onEditAnswers }) => {
         <p className="as-disclaimer">{disclaimer}</p>
       )}
 
-      {/* ── G. Patient Guide ── */}
+      {/* ── G. AI Surveillance Tool CTA ── */}
+      <div className="as-cta-banner">
+        <span className="as-cta-badge">AI Surveillance Tool</span>
+        <p className="as-cta-text">
+          For a complete multi-modal assessment — genomic biomarkers (Decipher, Oncotype DX, Prolaris),
+          PSMA PET/CT staging, and personalised monitoring protocols — use the standalone AI Surveillance Tool.
+        </p>
+      </div>
+
+      {/* ── H. Patient Guide ── */}
       <div className="as-guide-container">
         <button
           className="as-guide-toggle"
