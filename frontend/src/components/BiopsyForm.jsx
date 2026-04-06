@@ -93,10 +93,7 @@ const BiopsyForm = ({ onSubmit, preResult }) => {
           <input
             id="coresPositive"
             className={`biopsy-input ${errors.coresPositive ? 'biopsy-input--error' : ''}`}
-            type="number"
-            min="1"
-            max="36"
-            placeholder="e.g. 2"
+            type="number" min="1" max="36" placeholder="e.g. 2"
             value={coresPositive}
             onChange={e => { setCoresPositive(e.target.value); setErrors(prev => ({ ...prev, coresPositive: undefined })); }}
           />
@@ -111,10 +108,7 @@ const BiopsyForm = ({ onSubmit, preResult }) => {
           <input
             id="coresTotal"
             className={`biopsy-input ${errors.coresTotal ? 'biopsy-input--error' : ''}`}
-            type="number"
-            min="1"
-            max="36"
-            placeholder="e.g. 12"
+            type="number" min="1" max="36" placeholder="e.g. 12"
             value={coresTotal}
             onChange={e => { setCoresTotal(e.target.value); setErrors(prev => ({ ...prev, coresTotal: undefined })); }}
           />
@@ -128,14 +122,11 @@ const BiopsyForm = ({ onSubmit, preResult }) => {
           Highest core involvement %
           <span className="biopsy-optional"> (optional)</span>
         </label>
-        <p className="biopsy-help">What was the highest percentage of cancer in any single core? Found on your biopsy report — leave blank if unknown.</p>
+        <p className="biopsy-help">What was the highest percentage of cancer in any single core? Leave blank if unknown.</p>
         <input
           id="maxCorePct"
           className="biopsy-input biopsy-input--short"
-          type="number"
-          min="0"
-          max="100"
-          placeholder="e.g. 15"
+          type="number" min="0" max="100" placeholder="e.g. 15"
           value={maxCorePct}
           onChange={e => setMaxCorePct(e.target.value)}
         />
@@ -150,10 +141,7 @@ const BiopsyForm = ({ onSubmit, preResult }) => {
         <input
           id="psaValue"
           className="biopsy-input biopsy-input--short"
-          type="number"
-          min="0"
-          step="0.01"
-          placeholder="e.g. 5.2"
+          type="number" min="0" step="0.01" placeholder="e.g. 5.2"
           value={psaValue}
           onChange={e => setPsaValue(e.target.value)}
         />
@@ -163,16 +151,13 @@ const BiopsyForm = ({ onSubmit, preResult }) => {
       <div className="biopsy-field">
         <label className="biopsy-label" htmlFor="prostateVolume">
           Prostate volume in cm³
-          <span className="biopsy-optional"> (optional)</span>
+          <span className="biopsy-optional"> (optional — enables PSA Density)</span>
         </label>
-        <p className="biopsy-help">From MRI or ultrasound — leave blank if not known. Needed to calculate PSA density.</p>
+        <p className="biopsy-help">From MRI or ultrasound — leave blank if not known.</p>
         <input
           id="prostateVolume"
           className="biopsy-input biopsy-input--short"
-          type="number"
-          min="0"
-          step="0.1"
-          placeholder="e.g. 35"
+          type="number" min="0" step="0.1" placeholder="e.g. 35"
           value={prostateVolume}
           onChange={e => setProstateVolume(e.target.value)}
         />
