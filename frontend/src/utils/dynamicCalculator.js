@@ -31,11 +31,12 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   return calculateDynamicEPsaPostEngine(preResult, postData, config);
 };
 
-// Dynamic Active Surveillance Calculator (Model 4)
+// Dynamic Active Surveillance Calculator (Model 4 — basic)
 export const calculateActiveSurveillance = (preResult, asData, customConfig = null) => {
   const config = customConfig || getCalculatorConfig();
   return calculateActiveSurveillanceEngine(preResult, asData, config);
 };
+
 
 // Get current config (from localStorage or default)
 export const getCalculatorConfig = () => {

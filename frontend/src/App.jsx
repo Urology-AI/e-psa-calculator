@@ -1736,8 +1736,8 @@ function App() {
                       : `Part 1 · Step ${Math.min(part1Step + 1, 7)} of 7`
                     : stage === 'biopsy'
                       ? currentStep === 3
-                        ? 'Active Surveillance · Results'
-                        : 'Active Surveillance'
+                        ? 'AI Surveillance Tool · Results'
+                        : 'AI Surveillance Tool'
                       : currentStep === 3
                         ? 'Part 2 · Results'
                         : currentStep === 0
@@ -1758,7 +1758,7 @@ function App() {
                     pre_psa:      { label: 'Pre-PSA Screening',       cls: 'stage-pre'     },
                     post_psa:     { label: 'PSA Assessment',           cls: 'stage-post'    },
                     post_mri:     { label: 'Full MRI Assessment',      cls: 'stage-mri'     },
-                    post_biopsy:  { label: 'Active Surveillance Eval', cls: 'stage-biopsy'  },
+                    post_biopsy:  { label: 'AI Surveillance Tool', cls: 'stage-biopsy'  },
                   };
                   const effectiveMode = pathwayMode
                     || (stage === 'biopsy' ? 'post_biopsy' : stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
