@@ -196,6 +196,21 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
   </div>
 );
 
+/* ─── Papers cited when recommendation goes beyond universal guideline consensus ─── */
+const BEYOND_GUIDELINE_PAPERS = {
+  high_risk_early_screening: [
+    'Tewari A, et al. Urol Onc. 2005 — Race as a risk factor in prostate cancer prognosis.',
+    'Godtman RA, et al. Eur Urol. 2022 — Race and prostate cancer early detection outcomes.',
+    'Brawley O. World J Urol. 2012 — Epidemiology of prostate cancer in Black men.',
+    'Giri VN, et al. J Clin Oncol. 2018 — BRCA gene mutations and increased prostate cancer risk.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+  family_history_override: [
+    'Loeb S, et al. Urology. 2006 — Family history of prostate cancer and PSA screening outcomes.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+};
+
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -301,6 +316,17 @@ const Part1Results = ({
         <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
       </div>
 
+      {/* ── Guideline Basis Strip ── */}
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: '7px', padding: '8px 14px', margin: '10px 0', fontSize: '12px', color: '#3730a3', flexWrap: 'wrap' }}
+        role="note"
+        aria-label="Guideline alignment"
+      >
+        <InfoIcon size={13} style={{ flexShrink: 0, color: '#4338ca' }} />
+        <span>This result is based on three sets of expert guidelines: <strong>AUA</strong> (American Urological Association), <strong>NCCN</strong> (National Comprehensive Cancer Network), and <strong>ERUS</strong> (European guidelines on prostate cancer).</span>
+      </div>
+
+
       {/* ── PSA Recommendation Banner ──────────────────────────────────────────
        * RED   = high_risk_early_screening | family_history_override
        * AMBER = score_threshold
@@ -312,6 +338,29 @@ const Part1Results = ({
         psaRecommendReason={psaRecommendReason}
         psaRecommendMessage={psaRecommendMessage}
       />
+
+      {/* ── Beyond-Guidelines Guardrail ── */}
+      {(psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override') && (
+        <div
+          style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '7px', padding: '10px 14px', margin: '10px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}
+          role="note"
+          aria-label="Guideline scope notice"
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '6px' }}>
+            <AlertTriangleIcon size={13} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
+            <strong>Why earlier screening is suggested for you:</strong>
+          </div>
+          <p style={{ margin: '0 0 8px 0' }}>
+            Based on your risk profile, U.S. guidelines (AUA) recommend discussing a PSA test starting at age 40 — earlier than the general recommendation of 55. European guidelines (ERUS) and NCCN may suggest slightly different starting ages. The most important step is to have this conversation with your doctor, who can decide what is right for you.
+          </p>
+          <p style={{ margin: '0 0 4px 0', fontWeight: 600, fontSize: '12px', color: '#92400e' }}>Research supporting this recommendation:</p>
+          <ul style={{ margin: '0 0 0 16px', padding: 0, fontSize: '12px', color: '#92400e', lineHeight: 1.7 }}>
+            {(BEYOND_GUIDELINE_PAPERS[psaRecommendReason] || []).map((paper) => (
+              <li key={paper}>{paper}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
       {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
@@ -394,13 +443,42 @@ const Part1Results = ({
           </CollapsibleSection>
         )}
 
-        <CollapsibleSection title="Screening Guidelines (AUA/SUO 2026)">
-          <p>Screening should begin at age 40–45 for people at increased risk — specifically those with Black ancestry, germline mutations, or strong family history of prostate cancer. For average-risk individuals, a baseline PSA can be offered between ages 45–50, with regular screening every 2–4 years for those aged 50–69. Age-based PSA thresholds used clinically are approximately: 2.5 ng/mL (ages 40–49), 3.5 (50–59), 4.5 (60–69), and 6.5 (70–79).</p>
-          <p className="detail-note">Current guidelines do not adjust screening thresholds for race, family history, or age under 50 as standalone triggers. The ePSA tool intentionally flags these high-risk profiles for earlier evaluation — the clinical gap this project is designed to address.</p>
+        <CollapsibleSection title="Screening Guidelines (AUA / NCCN / ERUS)">
+          <p>Three major organisations publish guidelines on when men should consider a PSA test. Here is what each recommends:</p>
+          <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+            <li><strong>AUA (American Urological Association) 2023/2026</strong> — All men aged 55–69 should talk to their doctor about PSA testing. Men at higher risk — including those with Black ancestry, a family history of prostate cancer, or a BRCA gene mutation — should have that conversation from age 40.</li>
+            <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — A first PSA test is recommended at age 45 for most men, or at 40 for higher-risk men. Testing every 1–2 years is suggested between ages 45 and 75, adjusted based on results.</li>
+            <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening is recommended from age 50 for most men, or from 45 if there are high-risk factors. How often to test is based on the PSA result and the patient's preferences, decided together with a doctor.</li>
+          </ul>
+          <p>For men at average risk, a typical PSA value considered normal rises slightly with age: roughly 2.5 ng/mL for ages 40–49, 3.5 for ages 50–59, 4.5 for ages 60–69, and 6.5 for ages 70–79.</p>
+          <p className="detail-note"><strong>Where the guidelines don't fully agree:</strong> AUA is the most specific about starting at age 40 for high-risk men. NCCN and ERUS agree on high-risk earlier screening but differ slightly on exact ages and frequency. When this tool recommends earlier screening for your profile, a yellow notice appears above explaining why — and encourages you to confirm the right approach with your doctor.</p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Key Publications">
+          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '10px' }}>The risk factors used in this tool are based on the following published research studies:</p>
+          <ul style={{ margin: '0 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+            <li>Godtman RA, et al. <em>Eur Urol.</em> 2022 — Race and prostate cancer early detection outcomes.</li>
+            <li>Nemesure B, et al. <em>Res Rep Urol.</em> 2022 — Racial disparities in prostate cancer screening uptake.</li>
+            <li>Tewari A, et al. <em>Urol Onc.</em> 2005 — Race as a risk factor in prostate cancer prognosis.</li>
+            <li>Loeb S, et al. <em>Urology.</em> 2006 — Family history and PSA screening outcomes.</li>
+            <li>Giri VN, et al. <em>J Clin Oncol.</em> 2018 — BRCA mutations and prostate cancer risk.</li>
+            <li>Hemminki H, et al. <em>Eur Urol Open Sci.</em> 2024 — Hereditary factors and early-onset prostate cancer.</li>
+            <li>Su ZT, et al. <em>JAMA Oncol.</em> 2024 — Diet and prostate cancer risk.</li>
+            <li>Blanc-Lapierre A, et al. <em>BMC Public Health.</em> 2015 — Lifestyle factors and prostate cancer.</li>
+            <li>van Leeuwen PJ, et al. <em>Can J Urol.</em> 2011 — Comorbidities and prostate cancer screening.</li>
+            <li>Brawley O. <em>World J Urol.</em> 2012 — Epidemiology of prostate cancer in Black men.</li>
+            <li>Andersson SO, et al. <em>Int J Cancer.</em> 1996 — Body mass index and prostate cancer risk.</li>
+            <li>Rogers LQ, et al. <em>BMC Public Health.</em> 2008 — Physical activity and prostate cancer.</li>
+            <li>Zhu D, et al. <em>Clin Genitourin Cancer.</em> 2022 — Smoking, diet, and urological cancer risk.</li>
+            <li>Plaskon LA, et al. <em>Cancer Epidemiol Biomarkers Prev.</em> 2003 — Obesity and prostate cancer detection.</li>
+            <li>Tiruye et al. <em>PubMed.</em> 2024 — Impact of comorbidities on prostate cancer-specific mortality.</li>
+            <li>Madersbacher S, et al. <em>BJU Int.</em> 2010 — IPSS and lower urinary tract symptoms in prostate cancer context.</li>
+          </ul>
+          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>All studies are peer-reviewed and indexed in PubMed. Full links available on request.</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
-          <p className="detail-disclaimer">ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review.</p>
+          <p className="detail-disclaimer">ePSA is an educational tool designed to help you understand your prostate cancer risk. It is not a medical diagnosis. Your risk category is based on population research and the AUA, NCCN, and ERUS guidelines. In some cases — particularly for men with high-risk factors — this tool may suggest earlier screening than the general population guidelines recommend. This is intentional, and a notice appears on screen when this happens. Always discuss your result with a doctor before making any decisions about testing or treatment.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>
       </div>
