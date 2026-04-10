@@ -684,6 +684,54 @@ const Part2Results = ({
           )}
         </div>
       </div>
+
+      {/* ── Biopsy / AS Tool CTA ── */}
+      {(epsaTierKey === 'intermediate-high' || epsaTierKey === 'high') && (
+        <div
+          style={{
+            background: '#eff6ff',
+            borderLeft: '4px solid #2563eb',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            marginTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: '13px',
+              color: '#1e40af',
+              letterSpacing: '0.03em',
+            }}
+          >
+            Already had a biopsy?
+          </span>
+          <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+            Use our AI Surveillance Tool to assess your active surveillance options.
+          </p>
+          <a
+            href={`https://as.millionstrongmen.com?psa=${encodeURIComponent(psaValue ?? '')}&source=epsa`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              alignSelf: 'flex-start',
+              background: '#2563eb',
+              color: '#fff',
+              fontSize: '13px',
+              fontWeight: 600,
+              padding: '8px 14px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Open AS Tool →
+          </a>
+        </div>
+      )}
     </div>
   );
 };
