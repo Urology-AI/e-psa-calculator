@@ -25,9 +25,7 @@ import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, calculateActiveSurveillance, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
-import BiopsyForm from './components/BiopsyForm.jsx';
-import ActiveSurveillanceResults from './components/ActiveSurveillanceResults.jsx';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
@@ -157,7 +155,6 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
-  const [asResult, setAsResult] = useState(null);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -1219,13 +1216,9 @@ function App() {
       }
 
       // For post_psa and post_mri pathways, go directly to Part2Form (PSA input)
-      // For post_biopsy, go to BiopsyForm
       // User already committed to having these results when they selected the pathway
       if (pathwayMode === 'post_psa' || pathwayMode === 'post_mri') {
         setStage('post');
-        setCurrentStep(1);
-      } else if (pathwayMode === 'post_biopsy') {
-        setStage('biopsy');
         setCurrentStep(1);
       } else {
         setCurrentStep(3);
@@ -1303,19 +1296,13 @@ function App() {
   };
 
 
-  const handleBiopsySubmit = (asFormData) => {
-    if (!preResult) return;
-    const result = calculateActiveSurveillance(preResult, asFormData, calculatorConfig);
-    setAsResult(result);
-    setCurrentStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleContinueToPostBiopsy = () => {
-    setPathwayMode('post_biopsy');
-    setStage('biopsy');
-    setCurrentStep(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const params = new URLSearchParams({
+      source: 'epsa',
+      epsaTier: preResult?.epsaTierKey ?? '',
+      epsaScore: preResult?.score ?? '',
+    });
+    window.open(`https://as.millionstrongmen.com?${params}`, '_blank');
   };
 
   const canProceedPost = () => {
@@ -1327,16 +1314,7 @@ function App() {
   const handleGlobalBack = () => {
     if (authStep === 'app') {
       // In main app, handle back based on current step and stage
-      if (stage === 'biopsy') {
-        if (currentStep === 1) {
-          // From BiopsyForm go back to Part1Results
-          setStage('pre');
-          setCurrentStep(3);
-        } else if (currentStep === 2) {
-          // From AS results go back to BiopsyForm
-          setCurrentStep(1);
-        }
-      } else if (stage === 'pre') {
+      if (stage === 'pre') {
         if (currentStep === 1) {
           // From Part1Form, go back to welcome
           setAuthStep('welcome');
@@ -1360,10 +1338,6 @@ function App() {
           // From Part2Results, go back to Part2Form
           setCurrentStep(1);
         }
-      } else if (stage === 'biopsy') {
-        // From Biopsy placeholder, go back to Part 1 results
-        setStage('pre');
-        setCurrentStep(3);
       }
     } else {
       // In auth flow, handle back based on auth step
@@ -1507,6 +1481,10 @@ function App() {
       return (
         <PathwaySelector
           onSelect={(mode) => {
+            if (mode === 'post_biopsy') {
+              window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
+              return;
+            }
             setPathwayMode(mode);
             setCurrentStep(1);
             setPart1Step(0);
@@ -1651,35 +1629,6 @@ function App() {
     }
   };
 
-  const renderBiopsyStage = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <BiopsyForm
-            preResult={preResult}
-            onSubmit={handleBiopsySubmit}
-          />
-        );
-      case 2:
-        return (
-          <ActiveSurveillanceResults
-            result={asResult}
-            onEditAnswers={() => {
-              setCurrentStep(1);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onStartOver={async () => {
-              if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
-                await handleClearData();
-              }
-            }}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="App">
       <div className="container">
@@ -1734,15 +1683,11 @@ function App() {
                     ? currentStep === 3
                       ? 'Part 1 · Results'
                       : `Part 1 · Step ${Math.min(part1Step + 1, 7)} of 7`
-                    : stage === 'biopsy'
-                      ? currentStep === 3
-                        ? 'AI Surveillance Tool · Results'
-                        : 'AI Surveillance Tool'
-                      : currentStep === 3
-                        ? 'Part 2 · Results'
-                        : currentStep === 0
-                          ? 'Part 2 · Overview'
-                          : `Part 2 · Step ${currentStep} of 2`}
+                    : currentStep === 3
+                      ? 'Part 2 · Results'
+                      : currentStep === 0
+                        ? 'Part 2 · Overview'
+                        : `Part 2 · Step ${currentStep} of 2`}
                 </span>
                 {storageMode === 'cloud' && cloudSyncStatus !== 'idle' && (
                   <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
@@ -1755,13 +1700,12 @@ function App() {
 
                   // Pathway-aware labels
                   const PATHWAY_BADGES = {
-                    pre_psa:      { label: 'Pre-PSA Screening',       cls: 'stage-pre'     },
-                    post_psa:     { label: 'PSA Assessment',           cls: 'stage-post'    },
-                    post_mri:     { label: 'Full MRI Assessment',      cls: 'stage-mri'     },
-                    post_biopsy:  { label: 'AI Surveillance Tool', cls: 'stage-biopsy'  },
+                    pre_psa:  { label: 'Pre-PSA Screening',  cls: 'stage-pre'  },
+                    post_psa: { label: 'PSA Assessment',      cls: 'stage-post' },
+                    post_mri: { label: 'Full MRI Assessment', cls: 'stage-mri'  },
                   };
                   const effectiveMode = pathwayMode
-                    || (stage === 'biopsy' ? 'post_biopsy' : stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                    || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
                   const badge = PATHWAY_BADGES[effectiveMode]
                     || (stage === 'pre'
                       ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
@@ -1806,7 +1750,7 @@ function App() {
         ) : (
           <>
             {showTestPanel && <FirebaseTestPanel />}
-            {stage === 'biopsy' ? renderBiopsyStage() : stage === 'pre' ? renderPreStage() : renderPostStage()}
+            {stage === 'pre' ? renderPreStage() : renderPostStage()}
           </>
         )}
       </div>
