@@ -118,29 +118,3 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
   return [row];
 };
 
-export const buildASCsvRows = (preData, preResult, asData, asResult, config) => {
-  const row = {
-    pathwayMode: 'Post-Biopsy / AS Assessment',
-    version: '1.0',
-    exportDate: new Date().toISOString(),
-    part: 'post_biopsy',
-    preScore: preResult?.score ?? '',
-    preRisk: preResult?.risk ?? '',
-    preEpsaTierKey: preResult?.epsaTierKey ?? '',
-    biopsyGGG: asResult?.biopsyGGG ?? asData?.biopsyGGG ?? '',
-    coresPositive: asResult?.coresPositive ?? asData?.coresPositive ?? '',
-    coresTotal: asResult?.coresTotal ?? asData?.coresTotal ?? '',
-    corePct: asResult?.corePct ?? '',
-    maxCorePct: asResult?.maxCorePct ?? asData?.maxCorePct ?? '',
-    psaValue: asResult?.psaValue ?? asData?.psaValue ?? '',
-    psadValue: asResult?.psadValue != null ? asResult.psadValue.toFixed(3) : '',
-    psadFlag: asResult?.psadFlag ?? '',
-    piradsValue: asResult?.piradsValue ?? asData?.pirads ?? '',
-    nccnRiskGroup: asResult?.nccnRiskGroup ?? '',
-    asTierKey: asResult?.asTierKey ?? '',
-    asTierLabel: asResult?.asTierLabel ?? '',
-    asScore: asResult?.asScore ?? '',
-    modelVersion: asResult?.modelVersion ?? config?.version ?? '',
-  };
-  return [row];
-};
