@@ -578,11 +578,39 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   // PSA scoring
   const psaVal = psa === '' || psa === null || psa === undefined ? null : Number(psa);
+
+  // ---------------------------------------------------------------------------
+  // 5-ARI PSA Correction — AUA/SUO 2026 Guideline + REDUCE Trial
+  //
+  // Finasteride and dutasteride suppress PSA by ~50% after ≥6 months of use.
+  // The established clinical correction is to multiply the reported PSA by 2
+  // before applying any screening threshold (REDUCE trial; AUA/SUO 2026 §5-ARI).
+  //
+  // Limitation: The 2026 AUA/SUO guideline acknowledges individual variability —
+  // only ~1/3 of patients achieve a 40–60% decline at 1 year. A ×2 correction
+  // is the standard clinical default but may over- or under-correct in some
+  // patients. A UI warning is surfaced to inform the user of this limitation.
+  //
+  // "Other" hormonal therapy: no validated correction factor exists in guidelines;
+  // we flag but do not numerically adjust, consistent with AUA practice guidance.
+  // ---------------------------------------------------------------------------
+  const onHormonalTherapy = postData?.onHormonalTherapy === true;
+  const hormonalTherapyType = postData?.hormonalTherapyType || '';
+  const is5ARI = onHormonalTherapy && (hormonalTherapyType === 'finasteride' || hormonalTherapyType === 'dutasteride');
+  const isOtherHormonal = onHormonalTherapy && !is5ARI;
+
+  let psaAdjusted = psaVal;
+  let psaAdjustedFlag = false;
+  if (psaVal != null && !Number.isNaN(psaVal) && is5ARI) {
+    psaAdjusted = psaVal * 2;
+    psaAdjustedFlag = true;
+  }
+
   let psaPoints = 0;
-  if (psaVal != null && !Number.isNaN(psaVal)) {
-    if (psaVal < 1.0) psaPoints = 0;
-    else if (psaVal < 3.0) psaPoints = 10;
-    else if (psaVal < 10.0) psaPoints = 25;
+  if (psaAdjusted != null && !Number.isNaN(psaAdjusted)) {
+    if (psaAdjusted < 1.0) psaPoints = 0;
+    else if (psaAdjusted < 3.0) psaPoints = 10;
+    else if (psaAdjusted < 10.0) psaPoints = 25;
     else psaPoints = 45;
   }
 
@@ -726,7 +754,18 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }
 
   // ---------------------------------------------------------------------------
-  // Biopsy recommendation (Model 3 — post_mri pathway)
+  // Biopsy / urology referral recommendation
+  //
+  // AUA/SUO 2026 Guideline: urology referral and biopsy discussion are
+  // recommended for patients with elevated combined risk profiles regardless
+  // of whether MRI was performed. An elevated PSA in the context of a high
+  // ePSA risk score warrants the same shared decision-making conversation.
+  //
+  // PI-RADS 5 override: AUA/NCCN/EAU uniformly recommend biopsy discussion
+  // for PI-RADS 5 findings without delay.
+  //
+  // High discordance: when ePSA profile significantly exceeds what PSA alone
+  // suggests, referral is warranted regardless of MRI status.
   // ---------------------------------------------------------------------------
   let biopsyRecommended = false;
   let biopsyReason = null;
@@ -739,11 +778,11 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   } else if (totalPoints >= 56) {
     biopsyRecommended = true;
     biopsyReason = 'combined_score_high';
-    biopsyMessage = 'Your combined risk score is in the High tier. AUA and NCCN guidelines recommend urology referral and biopsy discussion. Prompt evaluation is advised.';
+    biopsyMessage = 'Your combined risk profile is high. AUA/NCCN/EAU 2026 guidelines recommend discussing biopsy with a urologist. Do not delay this conversation.';
   } else if (discordanceFlag && discordanceFlag.severity === 'orange' && tierIndex >= 2) {
     biopsyRecommended = true;
     biopsyReason = 'high_risk_discordance';
-    biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level suggests. Combined with your MRI findings, urologist review and biopsy discussion are recommended.';
+    biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level alone suggests. Combined with your other risk factors, urologist review and biopsy discussion are recommended per AUA/SUO 2026 guidelines.';
   }
 
   const pathwayMode = postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa');
@@ -778,6 +817,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     // PSA context
     psaTier: psaTierLabel,
     psaValue: psaVal,
+    psaAdjusted,
+    psaAdjustedFlag,
+    isOtherHormonal,
 
     // Biopsy (Model 3)
     biopsyRecommended,
