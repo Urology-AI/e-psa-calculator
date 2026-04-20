@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
+  FlaskConicalIcon, ScanEyeIcon, MicroscopeIcon, ArrowRightIcon,
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
@@ -74,6 +75,21 @@ const RiskIcon = ({ risk, epsaTierKey }) => {
   return <AlertCircleIcon size={22} className="risk-icon risk-icon--elevated" />;
 };
 
+/* ─── Papers shown inside the PSA banner when recommendation exceeds universal consensus ─── */
+const BEYOND_GUIDELINE_PAPERS = {
+  high_risk_early_screening: [
+    'Tewari A, et al. Urol Onc. 2005 — Race as a risk factor in prostate cancer prognosis.',
+    'Godtman RA, et al. Eur Urol. 2022 — Race and prostate cancer early detection outcomes.',
+    'Brawley O. World J Urol. 2012 — Epidemiology of prostate cancer in Black men.',
+    'Giri VN, et al. J Clin Oncol. 2018 — BRCA gene mutations and increased prostate cancer risk.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+  family_history_override: [
+    'Loeb S, et al. Urology. 2006 — Family history of prostate cancer and PSA screening outcomes.',
+    'Hemminki H, et al. Eur Urol Open Sci. 2024 — Hereditary factors and early-onset prostate cancer.',
+  ],
+};
+
 /* ─── PSA Recommendation Banner ───────────────────────────────────────────────
  *
  * Colour logic keyed to psaRecommendReason from the engine:
@@ -89,35 +105,36 @@ const PSA_BANNER_CONFIG = {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
     label: 'PSA SCREENING RECOMMENDED — HIGH-RISK PROFILE', labelColor: '#991b1b',
     Icon: AlertCircleIcon,
-    source: 'Source: AUA/SUO Guideline Rec. 5 — Black men and BRCA carriers should discuss PSA from age 40.',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a BRCA mutation. AUA is the most explicit about starting from age 40.',
   },
   family_history_override: {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
     label: 'PSA SCREENING RECOMMENDED — FAMILY HISTORY', labelColor: '#991b1b',
     Icon: AlertCircleIcon,
-    source: 'Source: AUA/SUO Guideline Rec. 5 — men with first-degree family history should discuss PSA from age 40.',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with a first-degree family history of prostate cancer. AUA is the most explicit about starting from age 40.',
   },
   score_threshold: {
     bg: '#fffbeb', border: '#d97706', iconColor: '#d97706',
     label: 'PSA SCREENING RECOMMENDED', labelColor: '#92400e',
     Icon: AlertTriangleIcon,
-    source: 'Based on your ePSA score exceeding the screening threshold.',
+    source: 'Your ePSA score is above the screening threshold. Based on AUA, NCCN, and ERUS guidelines.',
   },
   age_guideline_55_69: {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
     label: 'PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
     Icon: InfoIcon,
-    source: 'Source: AUA/SUO Early Detection Guideline 2023/2026, Rec. 4 — all men 55–69 should discuss PSA screening with their physician.',
+    source: 'AUA guideline Rec. 4 — all men aged 55–69 should discuss PSA screening with their physician.',
   },
   not_recommended: {
     bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
     label: 'PSA NOT CURRENTLY RECOMMENDED', labelColor: '#166534',
     Icon: CheckCircle2Icon,
-    source: 'Threshold-based assessment from Part 1. Routine age-based screening guidance applies.',
+    source: 'Your score is below the screening threshold. Follow standard age-based guidance from AUA, NCCN, and ERUS.',
   },
 };
 
 const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommendMessage }) => {
+  const [showPapers, setShowPapers] = useState(false);
   let configKey = 'not_recommended';
   if (recommendPSA === true) {
     configKey = (psaRecommendReason && PSA_BANNER_CONFIG[psaRecommendReason])
@@ -131,6 +148,7 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       ? 'A PSA test is recommended. Please speak with your physician.'
       : 'Your ePSA score is below the recommendation threshold. Follow standard age-based screening guidance.'
   );
+  const papers = BEYOND_GUIDELINE_PAPERS[configKey] || null;
   return (
     <div
       className="psa-recommendation-banner"
@@ -146,16 +164,78 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       </div>
       <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{message}</p>
       <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{cfg.source}</p>
+      {papers && (
+        <div style={{ marginTop: '4px' }}>
+          <button
+            type="button"
+            onClick={() => setShowPapers(!showPapers)}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: cfg.labelColor, display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            {showPapers ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+            {showPapers ? 'Hide' : 'Show'} supporting research ({papers.length} studies)
+          </button>
+          {showPapers && (
+            <ul style={{ margin: '6px 0 0 16px', padding: 0, fontSize: '12px', color: '#6b7280', lineHeight: 1.7 }}>
+              {papers.map((paper) => <li key={paper}>{paper}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
+/* ─── Next Step Cards ─── */
+const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy }) => (
+  <div className="next-steps-section">
+    <div className="next-steps-heading">Continue Your Assessment</div>
+    <div className="next-steps-cards">
+      {onContinueToPSA && (
+        <button className="next-step-card next-step-card--psa" onClick={onContinueToPSA}>
+          <div className="nsc-icon-wrap nsc-icon-wrap--psa">
+            <FlaskConicalIcon size={18} />
+          </div>
+          <div className="nsc-body">
+            <div className="nsc-title">PSA Assessment</div>
+            <div className="nsc-desc">Have your PSA result? Add it for a fuller picture.</div>
+          </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
+        </button>
+      )}
+      {onContinueToMRI && (
+        <button className="next-step-card next-step-card--mri" onClick={onContinueToMRI}>
+          <div className="nsc-icon-wrap nsc-icon-wrap--mri">
+            <ScanEyeIcon size={18} />
+          </div>
+          <div className="nsc-body">
+            <div className="nsc-title">MRI Results</div>
+            <div className="nsc-desc">Had an MRI? Add your PI-RADS score for a more complete picture.</div>
+          </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
+        </button>
+      )}
+      {onContinueToBiopsy && (
+        <button className="next-step-card next-step-card--biopsy" onClick={onContinueToBiopsy}>
+          <div className="nsc-icon-wrap nsc-icon-wrap--biopsy">
+            <MicroscopeIcon size={18} />
+          </div>
+          <div className="nsc-body">
+            <div className="nsc-title">Biopsy Evaluation</div>
+            <div className="nsc-desc">Had a biopsy? Evaluate whether active surveillance is right for you.</div>
+          </div>
+          <ArrowRightIcon size={15} className="nsc-arrow" />
+        </button>
+      )}
+    </div>
+  </div>
+);
 
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
-  onContinueToPostPSA = null, onContinueToMRI = null,
+  onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
 
@@ -171,9 +251,9 @@ const Part1Results = ({
   const {
     score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age,
     recommendPSA, psaRecommendReason, psaRecommendMessage,
-    tierRisk, epsaTierKey, epsaTierLabel, epsaTierScoreRange, epsaTierNormalizedRange,
-    recommendationThresholdLabel, epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
-    pathwayMode = 'pre_psa',
+    tierRisk, epsaTierKey, epsaTierLabel,
+    epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
+    pathwayMode = 'pre_psa', empiricalProbabilityText = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -194,53 +274,10 @@ const Part1Results = ({
   };
 
   const gaugeScore = mapRawScoreToGaugePercent(rawScore, maxScore);
-  const confidenceLow = Number(result?.confidenceLow);
-  const confidenceHigh = Number(result?.confidenceHigh);
-  const thresholdPctMatch = String(recommendationThresholdLabel || '').match(/(\d+(\.\d+)?)/);
-  const recommendationThresholdPct = thresholdPctMatch ? Number(thresholdPctMatch[1]) : 9;
   const activeTier = tierRisk || risk;
-  const selectedTierKey = epsaTierKey || (activeTier === 'LOWER' ? 'low' : activeTier === 'HIGHER' ? 'elevated' : 'intermediate');
-
-  const thresholdTiers = [
-    { key: 'low', label: 'Low', range: 'score 0-10', colorClass: 'threshold-chip--low' },
-    { key: 'intermediate', label: 'Intermediate', range: 'score 11-17', colorClass: 'threshold-chip--intermediate' },
-    { key: 'elevated', label: 'Elevated', range: 'score >= 18', colorClass: 'threshold-chip--elevated' },
-  ];
-
-  const tierWhyText = Number.isFinite(rawImpactTotal)
-    ? `Selected because your raw point total is ${rawImpactTotal}, which falls in ${epsaTierScoreRange || 'the selected tier range'}.`
-    : `Selected because your total points fall in ${epsaTierScoreRange || 'the selected tier range'}.`;
-
-  let recommendationWhyText = `PSA recommendation trigger is ${recommendationThresholdLabel || '>= 9%'} (different from raw-score tier boundaries).`;
-  let recommendationWhyClass = 'threshold-status threshold-status--neutral';
-  if (Number.isFinite(confidenceLow) && Number.isFinite(confidenceHigh)) {
-    if (confidenceLow >= recommendationThresholdPct) {
-      recommendationWhyText = `Selected as above threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully at or above ${recommendationThresholdPct}%.`;
-      recommendationWhyClass = 'threshold-status threshold-status--met';
-    } else if (confidenceHigh < recommendationThresholdPct) {
-      recommendationWhyText = `Selected as below threshold: your displayed range (${confidenceLow}%-${confidenceHigh}%) is fully below ${recommendationThresholdPct}%.`;
-      recommendationWhyClass = 'threshold-status threshold-status--below';
-    } else {
-      recommendationWhyText = `Selected as borderline: your displayed range (${confidenceLow}%-${confidenceHigh}%) crosses the ${recommendationThresholdPct}% threshold.`;
-    }
-  }
-  if (recommendationWhyClass.includes('threshold-status--met')) {
-    if (selectedTierKey === 'elevated') recommendationWhyClass = 'threshold-status threshold-status--met-elevated';
-    else if (selectedTierKey === 'intermediate') recommendationWhyClass = 'threshold-status threshold-status--met-intermediate';
-    else recommendationWhyClass = 'threshold-status threshold-status--met-low';
-  }
-
-  const displayRange = result.displayRange || result.confidenceRange;
   const riskBgClass = epsaTierKey === 'low' ? 'risk-card--lower' : epsaTierKey === 'intermediate' ? 'risk-card--moderate' : epsaTierKey === 'elevated' ? 'risk-card--elevated' : activeTier === 'LOWER' ? 'risk-card--lower' : activeTier === 'HIGHER' ? 'risk-card--elevated' : 'risk-card--moderate';
   const tierAccentColor = epsaTierKey === 'low' ? '#16a34a' : epsaTierKey === 'intermediate' ? '#2563eb' : epsaTierKey === 'elevated' ? '#d97706' : activeTier === 'LOWER' ? '#16a34a' : activeTier === 'HIGHER' ? '#d97706' : '#2563eb';
 
-  const getSoftenedActionText = (key, tier, fallback) => {
-    if (typeof fallback === 'string' && fallback.trim().length > 0) return fallback;
-    const k = key || tier;
-    if (k === 'low' || k === 'LOWER') return 'Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.';
-    if (k === 'intermediate' || k === 'MODERATE') return 'Consider discussing this result with your healthcare provider. Together you can decide whether PSA screening makes sense based on your age, preferences, and prior results.';
-    return 'Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation — such as PSA testing or follow-up — is appropriate.';
-  };
 
   const getTierDescription = (key, tier) => {
     const k = key || tier;
@@ -249,12 +286,6 @@ const Part1Results = ({
     return "Elevated Risk suggests a higher estimated likelihood relative to others in the model's reference data. Elevated does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.";
   };
 
-  const tierScaleItems = [
-    { key: 'low', tierRiskFallback: 'LOWER', label: 'Low', sub: 'score <= 10 (<= 12.5%)', color: '#16a34a', bg: '#f0fdf4' },
-    { key: 'intermediate', tierRiskFallback: 'MODERATE', label: 'Intermediate', sub: 'score 11-17 (13.75%-21.25%)', color: '#2563eb', bg: '#eff6ff' },
-    { key: 'elevated', tierRiskFallback: 'HIGHER', label: 'Elevated', sub: 'score >= 18 (>= 22.5%)', color: '#d97706', bg: '#fffbeb' },
-  ];
-
   const metrics = [
     { label: 'Age', value: age, unit: 'yrs' },
     { label: 'BMI', value: bmi, unit: '' },
@@ -262,32 +293,31 @@ const Part1Results = ({
     { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '' },
   ];
 
+  const topFactors = [...itemImpacts]
+    .filter((i) => Number(i.points) > 0)
+    .sort((a, b) => Number(b.points) - Number(a.points))
+    .slice(0, 4);
+
   return (
     <div className="results-container" role="main">
 
       {/* ── Top bar ── */}
       <div className="results-top-links-row">
-        <div className="results-mobile-unit-wrap">
-          <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find Mobile Unit location">
-            <MapPinIcon size={16} /><span>Mobile Unit</span>
-          </a>
-          <p className="results-mobile-unit-note">Important: Learn more about screening and upcoming community events.</p>
-        </div>
+        <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find a screening event near you">
+          <MapPinIcon size={15} /><span>Upcoming Screening Events</span>
+        </a>
       </div>
 
-      {/* ── Session / Cloud row ── */}
-      {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
+      {/* ── Cloud row ── */}
+      {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
         <div className="results-cloud-row">
-          {sessionId && <div className="session-pill"><span className="session-pill-label">Session</span><code className="session-pill-code">{sessionId}</code></div>}
-          {storageMode === 'cloud' && sessionId && <div className="cloud-saved-badge"><CloudIcon size={13} /><span>Saved to Cloud</span></div>}
-          {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
-            <div className="cloud-move-row">
-              <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
-                <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
-              </button>
-              {saveToCloudError && <span className="cloud-error-msg">{saveToCloudError}</span>}
-            </div>
-          )}
+          {storageMode === 'cloud' && <div className="cloud-saved-badge"><CloudIcon size={13} /><span>Saved to Cloud</span></div>}
+          <div className="cloud-move-row">
+            <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
+              <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
+            </button>
+            {saveToCloudError && <span className="cloud-error-msg">{saveToCloudError}</span>}
+          </div>
         </div>
       )}
 
@@ -303,6 +333,8 @@ const Part1Results = ({
         <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
       </div>
 
+
+
       {/* ── PSA Recommendation Banner ──────────────────────────────────────────
        * RED   = high_risk_early_screening | family_history_override
        * AMBER = score_threshold
@@ -315,35 +347,17 @@ const Part1Results = ({
         psaRecommendMessage={psaRecommendMessage}
       />
 
-      {/* ── High-risk anchor flag ── */}
-      {isHighRiskFlagged && (
-        <div className="high-risk-flag-card" role="note" aria-label="High-risk factors present">
-          <div className="high-risk-flag-title">Priority: High-Risk Factors Present</div>
-          <p className="high-risk-flag-text">
-            This result has been flagged because your score is elevated AND you have at least one factor independently recognised as high-risk by AUA/SUO (2023), NCCN (2024), and EAU (2024) guidelines: age ≥70, Black ancestry, first-degree family history, confirmed BRCA mutation, or two or more comorbid conditions.
+
+      {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
+      {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
+        <div className="high-risk-notice" role="note">
+          <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
+          <p>
+            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, BRCA mutation, or multiple comorbidities). Earlier evaluation is recommended.
           </p>
-          <p className="high-risk-flag-disclosure">The High-Risk flag is clinically motivated and guideline-anchored.</p>
         </div>
       )}
 
-      {/* ── Guideline text ── */}
-      {epsaGuidelineText && (
-        <div className="guideline-banner" role="note">
-          <InfoIcon size={15} className="guideline-banner-icon" />
-          <p>{epsaGuidelineText}</p>
-        </div>
-      )}
-
-      {/* ── Clinician Discussion Guidance ── */}
-      <div className="recommendation-card" style={{ borderLeftColor: tierAccentColor }}>
-        <div className="rec-card-label" style={{ color: tierAccentColor }}>Clinician Discussion Guidance</div>
-        <p className="rec-card-text">{getSoftenedActionText(epsaTierKey, activeTier, action)}</p>
-        {recommendPSA != null && (
-          <p className="rec-card-sub">
-            {recommendPSA ? 'Threshold-based recommendation from Part 1 assessment' : 'Below recommendation threshold based on Part 1 assessment'}
-          </p>
-        )}
-      </div>
 
       {/* ── Clinical metrics ── */}
       <div className="metrics-grid" role="list" aria-label="Clinical summary metrics">
@@ -356,47 +370,39 @@ const Part1Results = ({
         ))}
       </div>
 
-      {/* ── Risk tier scale ── */}
-      <div className="tier-scale" role="group" aria-label="Risk tier scale">
-        {tierScaleItems.map(({ key, tierRiskFallback, label, sub, color: c, bg }) => {
-          const isActive = epsaTierKey ? epsaTierKey === key : activeTier === tierRiskFallback;
-          return (
-            <div key={key} className={`tier-scale-item ${isActive ? 'tier-scale-item--active' : ''}`}
-              style={isActive ? { background: bg, borderColor: c, color: c } : {}} aria-current={isActive ? 'true' : undefined}>
-              <div className="tier-scale-label">{label}</div>
-              <div className="tier-scale-sub">{sub}</div>
-            </div>
-          );
-        })}
-      </div>
+      {/* ── Next Steps ── */}
+      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
+        <NextStepsSection
+          onContinueToPSA={onContinueToPostPSA}
+          onContinueToMRI={onContinueToMRI}
+          onContinueToBiopsy={onContinueToPostBiopsy}
+        />
+      )}
 
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
-        <CollapsibleSection title="About Your Result" defaultOpen>
-          <p>Your result is an educational estimate based on the information you entered. It summarizes how many prostate cancer risk flags you have — including age, BMI, urinary symptoms, exercise, smoking, diet, family and genetic factors, and others — but it does not determine whether you do or do not have prostate cancer. Use this as a starting point for a conversation with a clinician who can interpret your risk in context.</p>
+        <CollapsibleSection title="About Your Result">
+          {topFactors.length > 0 ? (
+            <p>
+              Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
+              {' '}The factors that contributed most to your score were:{' '}
+              {topFactors.map((f, i) => (
+                <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
+              ))}
+            </p>
+          ) : (
+            <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.</p>
+          )}
           <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="How This Score Is Calculated">
-          <p>The ePSA score is a point-based summary of your answers. Each risk factor (e.g. age ≥60, BMI ≥30, urinary symptoms, limited exercise, current or former smoking, high red meat diet, Black ancestry, family history, BRCA, inflammation history, Agent Orange/chemical exposure, or a low SHIM score) contributes points. The total is normalized to a 0–100% scale, and a ±5% range is displayed to avoid over-interpretation.</p>
-          {displayRange && <div className="detail-data-row"><span>Displayed Range</span><strong>{displayRange}</strong></div>}
-          {epsaTierScoreRange && <div className="detail-data-row"><span>Tier Score Range</span><strong>{epsaTierScoreRange}{epsaTierNormalizedRange ? ` (${epsaTierNormalizedRange})` : ''}</strong></div>}
-          <div className="detail-data-row"><span>Risk Tier</span><strong>{epsaTierLabel || activeTier}</strong></div>
-          <div className="threshold-chip-grid" role="group" aria-label="Risk tier thresholds">
-            {thresholdTiers.map((tier) => (
-              <div key={tier.key} className={`threshold-chip ${tier.colorClass} ${selectedTierKey === tier.key ? 'threshold-chip--selected' : ''}`} aria-current={selectedTierKey === tier.key ? 'true' : undefined}>
-                <span className="threshold-chip-title">{tier.label}</span>
-                <span className="threshold-chip-range">Range: {tier.range}</span>
-              </div>
-            ))}
-          </div>
-          <p className="threshold-why-text">{tierWhyText}</p>
-          <div className={recommendationWhyClass}>{recommendationWhyText}</div>
+          {empiricalProbabilityText && (
+            <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
+          )}
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.</p>
         </CollapsibleSection>
 
         {itemImpacts.length > 0 && (
-          <CollapsibleSection title="Item Impact Breakdown">
-            <p>Each item below shows the exact point contribution from the scoring engine used to generate your result.</p>
+        <CollapsibleSection title="Risk Factor Breakdown">
+          <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
               <table className="impact-table" aria-label="Item impact breakdown table">
                 <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
@@ -425,34 +431,45 @@ const Part1Results = ({
           </CollapsibleSection>
         )}
 
-        <CollapsibleSection title="Screening Guidelines (AUA/SUO 2026)">
-          <p>Screening should begin at age 40–45 for people at increased risk — specifically those with Black ancestry, germline mutations, or strong family history of prostate cancer. For average-risk individuals, a baseline PSA can be offered between ages 45–50, with regular screening every 2–4 years for those aged 50–69. Age-based PSA thresholds used clinically are approximately: 2.5 ng/mL (ages 40–49), 3.5 (50–59), 4.5 (60–69), and 6.5 (70–79).</p>
-          <p className="detail-note">Current guidelines do not adjust screening thresholds for race, family history, or age under 50 as standalone triggers. The ePSA tool intentionally flags these high-risk profiles for earlier evaluation — the clinical gap this project is designed to address.</p>
+        <CollapsibleSection title="Screening Guidelines (AUA / NCCN / ERUS)">
+          <p>Three major organisations publish guidelines on when men should consider a PSA test. Here is what each recommends:</p>
+          <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+            <li><strong>AUA (American Urological Association) 2023/2026</strong> — All men aged 55–69 should talk to their doctor about PSA testing. Men at higher risk — including those with Black ancestry, a family history of prostate cancer, or a BRCA gene mutation — should have that conversation from age 40.</li>
+            <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — A first PSA test is recommended at age 45 for most men, or at 40 for higher-risk men. Testing every 1–2 years is suggested between ages 45 and 75, adjusted based on results.</li>
+            <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening is recommended from age 50 for most men, or from 45 if there are high-risk factors. How often to test is based on the PSA result and the patient's preferences, decided together with a doctor.</li>
+          </ul>
+          <p>For men at average risk, a typical PSA value considered normal rises slightly with age: roughly 2.5 ng/mL for ages 40–49, 3.5 for ages 50–59, 4.5 for ages 60–69, and 6.5 for ages 70–79.</p>
+          <p className="detail-note"><strong>Where the guidelines don't fully agree:</strong> AUA is the most specific about starting at age 40 for high-risk men. NCCN and ERUS agree on high-risk earlier screening but differ slightly on exact ages and frequency. When this tool recommends earlier screening for your profile, a yellow notice appears above explaining why — and encourages you to confirm the right approach with your doctor.</p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Key Publications">
+          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '10px' }}>The risk factors used in this tool are based on the following published research studies:</p>
+          <ul style={{ margin: '0 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+            <li>Godtman RA, et al. <em>Eur Urol.</em> 2022 — Race and prostate cancer early detection outcomes.</li>
+            <li>Nemesure B, et al. <em>Res Rep Urol.</em> 2022 — Racial disparities in prostate cancer screening uptake.</li>
+            <li>Tewari A, et al. <em>Urol Onc.</em> 2005 — Race as a risk factor in prostate cancer prognosis.</li>
+            <li>Loeb S, et al. <em>Urology.</em> 2006 — Family history and PSA screening outcomes.</li>
+            <li>Giri VN, et al. <em>J Clin Oncol.</em> 2018 — BRCA mutations and prostate cancer risk.</li>
+            <li>Hemminki H, et al. <em>Eur Urol Open Sci.</em> 2024 — Hereditary factors and early-onset prostate cancer.</li>
+            <li>Su ZT, et al. <em>JAMA Oncol.</em> 2024 — Diet and prostate cancer risk.</li>
+            <li>Blanc-Lapierre A, et al. <em>BMC Public Health.</em> 2015 — Lifestyle factors and prostate cancer.</li>
+            <li>van Leeuwen PJ, et al. <em>Can J Urol.</em> 2011 — Comorbidities and prostate cancer screening.</li>
+            <li>Brawley O. <em>World J Urol.</em> 2012 — Epidemiology of prostate cancer in Black men.</li>
+            <li>Andersson SO, et al. <em>Int J Cancer.</em> 1996 — Body mass index and prostate cancer risk.</li>
+            <li>Rogers LQ, et al. <em>BMC Public Health.</em> 2008 — Physical activity and prostate cancer.</li>
+            <li>Zhu D, et al. <em>Clin Genitourin Cancer.</em> 2022 — Smoking, diet, and urological cancer risk.</li>
+            <li>Plaskon LA, et al. <em>Cancer Epidemiol Biomarkers Prev.</em> 2003 — Obesity and prostate cancer detection.</li>
+            <li>Tiruye et al. <em>PubMed.</em> 2024 — Impact of comorbidities on prostate cancer-specific mortality.</li>
+            <li>Madersbacher S, et al. <em>BJU Int.</em> 2010 — IPSS and lower urinary tract symptoms in prostate cancer context.</li>
+          </ul>
+          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>All studies are peer-reviewed and indexed in PubMed. Full links available on request.</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
-          <p className="detail-disclaimer">ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review.</p>
+          <p className="detail-disclaimer">ePSA is an educational tool designed to help you understand your prostate cancer risk. It is not a medical diagnosis. Your risk category is based on population research and the AUA, NCCN, and ERUS guidelines. In some cases — particularly for men with high-risk factors — this tool may suggest earlier screening than the general population guidelines recommend. This is intentional, and a notice appears on screen when this happens. Always discuss your result with a doctor before making any decisions about testing or treatment.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>
       </div>
-
-      {/* ── Continue pathway banner ── */}
-      {pathwayMode === 'pre_psa' && recommendPSA === true && onContinueToPostPSA && (
-        <div className="pathway-continue-banner pathway-continue-banner--teal" role="note">
-          <p className="pathway-continue-banner-text">Have your PSA result? Add it for a fuller picture.</p>
-          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToPostPSA}>
-            Continue to PSA Assessment →
-          </button>
-        </div>
-      )}
-      {pathwayMode === 'post_psa' && onContinueToMRI && (
-        <div className="pathway-continue-banner pathway-continue-banner--navy" role="note">
-          <p className="pathway-continue-banner-text">Had an MRI? Add your PI-RADS score for biopsy guidance.</p>
-          <button type="button" className="pathway-continue-banner-btn" onClick={onContinueToMRI}>
-            Continue to MRI Assessment →
-          </button>
-        </div>
-      )}
 
       {/* ── Action buttons ── */}
       <div className="results-actions">

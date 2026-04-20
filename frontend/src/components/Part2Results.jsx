@@ -16,13 +16,13 @@ import {
   ChevronUpIcon,
   FlaskConicalIcon,
   ActivityIcon,
-  InfoIcon as LucideInfoIcon,
   CheckCircle2Icon,
   AlertTriangleIcon,
   AlertCircleIcon,
   ExternalLinkIcon,
   MapPinIcon,
   PillIcon,
+  InfoIcon as LucideInfoIcon,
 } from 'lucide-react';
 
 /* ─── Collapsible ─── */
@@ -44,17 +44,39 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
   );
 };
 
+/* ─── Collapsible Notice Item ─── */
+const NoticeItem = ({ label, children }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <li className="p2r-notice-item">
+      <button
+        type="button"
+        className="p2r-notice-toggle"
+        onClick={() => setExpanded(v => !v)}
+        aria-expanded={expanded}
+      >
+        <strong>{label}</strong>
+        {expanded ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+      </button>
+      {expanded && <div className="p2r-notice-body">{children}</div>}
+    </li>
+  );
+};
+
 /* ─── Risk Level Visual Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
   const levels = [
-    { id: 'low',      label: 'LOW',       color: '#16a34a' },
-    { id: 'moderate', label: 'MODERATE',  color: '#d97706' },
-    { id: 'high',     label: 'HIGH',      color: '#dc2626' },
+    { id: 'low',               label: 'Low',          color: '#16a34a' },
+    { id: 'intermediate-low',  label: 'Int-Low',      color: '#2563eb' },
+    { id: 'intermediate-high', label: 'Int-High',     color: '#d97706' },
+    { id: 'high',              label: 'High',         color: '#dc2626' },
   ];
   const cls = String(riskClass || '').toLowerCase();
-  const activeIdx = cls.includes('very') || cls.includes('high') ? 2
-    : cls.includes('moderate') ? 1
-    : 0;
+  const activeIdx =
+    cls === 'very-high-risk' ? 3 :
+    cls === 'high-risk' ? 2 :
+    cls === 'moderate-risk' ? 1 :
+    0;
 
   return (
     <div className="p2r-risk-bar" role="group" aria-label="Risk level bar">
@@ -187,7 +209,6 @@ const Part1ProfileCard = ({ preResult, preData, postData }) => {
 
   return (
     <div className="p2r-profile-card" role="complementary" aria-label="Part 1 profile summary">
-      {/* Header row */}
       <div className="p2r-profile-card-header">
         <div className="p2r-profile-card-title">Your Part 1 Screening Profile</div>
         <button
@@ -201,7 +222,6 @@ const Part1ProfileCard = ({ preResult, preData, postData }) => {
         </button>
       </div>
 
-      {/* Always-visible summary pills */}
       <div className="p2r-profile-summary-pills">
         <div className="p2r-profile-pill">
           <span className="p2r-profile-pill-val" style={{ color: tierColor }}>{preResult?.score}%</span>
@@ -231,7 +251,6 @@ const Part1ProfileCard = ({ preResult, preData, postData }) => {
         )}
       </div>
 
-      {/* Expanded full detail */}
       {expanded && (
         <div className="p2r-profile-detail">
           <div className="p2r-profile-section-label">Demographics &amp; Physical</div>
@@ -296,6 +315,22 @@ const Part1ProfileCard = ({ preResult, preData, postData }) => {
     </div>
   );
 };
+
+/* ─── PSA Tier Scale definition ─── */
+const PSA_TIER_SCALE = [
+  { key: 'low',               label: 'Low',              range: '< 1.0 ng/mL',   color: '#16a34a', bg: '#f0fdf4' },
+  { key: 'intermediate-low',  label: 'Intermediate-Low', range: '1.0–2.9 ng/mL', color: '#2563eb', bg: '#eff6ff' },
+  { key: 'intermediate-high', label: 'Intermediate-High',range: '3.0–9.9 ng/mL', color: '#d97706', bg: '#fffbeb' },
+  { key: 'high',              label: 'High',             range: '≥ 10.0 ng/mL',  color: '#dc2626', bg: '#fef2f2' },
+];
+
+/* ─── MRI PI-RADS Scale definition (PI-RADS v2.1 official categories) ─── */
+const MRI_TIER_SCALE = [
+  { pirads: [1, 2], label: 'PI-RADS 1–2', meaning: 'Very Low / Low',          color: '#16a34a', bg: '#f0fdf4' },
+  { pirads: [3],    label: 'PI-RADS 3',   meaning: 'Intermediate (Equivocal)', color: '#2563eb', bg: '#eff6ff' },
+  { pirads: [4],    label: 'PI-RADS 4',   meaning: 'High — Likely',            color: '#d97706', bg: '#fffbeb' },
+  { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Very High — Highly Likely',color: '#dc2626', bg: '#fef2f2' },
+];
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -378,6 +413,9 @@ const Part2Results = ({
     biopsyReason = null,
     biopsyMessage = null,
     pathwayMode = 'post_mri',
+    empiricalProbabilityText = null,
+    piradsConfidenceText = null,
+    epsaTierKey = null,
   } = result;
 
   const getRiskColor = (rc) => {
@@ -395,22 +433,13 @@ const Part2Results = ({
     riskColor === '#d97706' ? 'p2r-risk-card--moderate' :
     'p2r-risk-card--low';
 
-  const pointsExplanationText =
-    'Your Part 2 result combines your questionnaire profile with your PSA level (and MRI score, if provided). Together, these are used to estimate your risk of prostate cancer that may need treatment — specifically Gleason Grade Group ≥2, which is the standard clinical definition per the AUA/SUO 2026 Early Detection Guideline. This is shown as an educational risk category, not a diagnosis.';
-
   return (
     <div className="p2r-container" role="main">
 
-      {/* ── Session / Cloud row ── */}
-      {(sessionId || (storageMode === 'local' && cloudAvailable && onSaveToCloud)) && (
+      {/* ── Cloud row ── */}
+      {(storageMode === 'local' && cloudAvailable && onSaveToCloud) && (
         <div className="p2r-cloud-row">
-          {sessionId && (
-            <div className="p2r-session-pill">
-              <span className="p2r-session-label">Session</span>
-              <code className="p2r-session-code">{sessionId}</code>
-            </div>
-          )}
-          {storageMode === 'cloud' && sessionId && (
+          {storageMode === 'cloud' && (
             <div className="p2r-cloud-saved">
               <CloudIcon size={13} /><span>Saved to cloud</span>
             </div>
@@ -432,40 +461,35 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── Low PSA Warning ── */}
-      {lowPsaWarning && (
-        <div className="p2r-alert p2r-alert--warning" role="alert">
-          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Low-PSA Notice</div>
-            <p className="p2r-alert-body">{lowPsaWarningText}</p>
+      {/* ── Clinical Notices (consolidated) ── */}
+      {(lowPsaWarning || psadFlag || discordanceFlag) && (
+        <div className="p2r-notices" role="note" aria-label="Clinical notices">
+          <div className="p2r-notices-title">
+            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
+            <span>Clinical Notices</span>
           </div>
-        </div>
-      )}
-
-      {/* ── PSA Density (PSAD) note ── */}
-      {psadFlag && (
-        <div className="p2r-alert p2r-alert--warning" role="note" aria-label="PSA density elevated note">
-          <AlertTriangleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">PSA Density Notice</div>
-            <p className="p2r-alert-body">
-              PSA Density elevated (&gt; 0.177 ng/mL/mL) — supports further evaluation per Kadeer et al. 2025.
-            </p>
-            <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.9 }}>
-                Source
-              </span>
-              <ModalInfoIcon
-                title="Kadeer et al. 2025 — PSA Density (PSAD)"
-                description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
-                sources={fieldReferences.part2.psadKadeer.sources}
-              />
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'inherit', opacity: 0.95 }}>
-                Kadeer et al. 2025 (Front. Oncol. 15:1602134)
-              </span>
-            </div>
-          </div>
+          <ul className="p2r-notices-list">
+            {lowPsaWarning && (
+              <NoticeItem label="Low PSA Risk">
+                {lowPsaWarningText}
+              </NoticeItem>
+            )}
+            {psadFlag && (
+              <NoticeItem label="PSA Density Elevated">
+                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+                <ModalInfoIcon
+                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
+                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
+                  sources={fieldReferences.part2.psadKadeer.sources}
+                />
+              </NoticeItem>
+            )}
+            {discordanceFlag && (
+              <NoticeItem label="Risk Discordance">
+                {discordanceFlag.text}
+              </NoticeItem>
+            )}
+          </ul>
         </div>
       )}
 
@@ -523,20 +547,6 @@ const Part2Results = ({
               for this therapy type in current AUA/NCCN guidelines. Your PSA has been used
               as reported. Inform your physician of all medications when interpreting your PSA results.
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Discordance Flag ── */}
-      {discordanceFlag && (
-        <div
-          className={`p2r-alert p2r-alert--${discordanceFlag.severity === 'high' ? 'error' : 'warning'}`}
-          role="alert"
-        >
-          <AlertCircleIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Risk Discordance Detected</div>
-            <p className="p2r-alert-body">{discordanceFlag.text}</p>
           </div>
         </div>
       )}
@@ -605,7 +615,7 @@ const Part2Results = ({
         </div>
         <div className="p2r-risk-tier-row">
           <RiskIcon riskClass={riskClass} />
-          <span className="p2r-risk-pct" style={{ color: riskColor }}>{cleanRiskCat}</span>
+          <span className="p2r-risk-tier-title" style={{ color: riskColor }}>{cleanRiskCat}</span>
         </div>
         <RiskLevelBar riskClass={riskClass} />
         <div className="p2r-risk-card-note">
@@ -666,67 +676,165 @@ const Part2Results = ({
         </ul>
       </div>
 
-      {/* ── Clinical inputs summary ── */}
-      <div className="p2r-clinical-grid" role="group" aria-label="Key clinical inputs">
-        <div className="p2r-clinical-item">
-          <FlaskConicalIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">
-              {psaValue != null ? `${psaValue}` : postData?.psa != null ? `${postData.psa}` : '—'}
-              {(psaValue != null || postData?.psa != null) && <span className="p2r-clinical-unit"> ng/mL</span>}
-            </div>
-            <div className="p2r-clinical-key">PSA Level</div>
-          </div>
-        </div>
-        <div className="p2r-clinical-item">
-          <ActivityIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">{psaTier || '—'}</div>
-            <div className="p2r-clinical-key">PSA Tier</div>
-          </div>
-        </div>
-        <div className="p2r-clinical-item">
-          <LucideInfoIcon size={16} className="p2r-clinical-icon" />
-          <div>
-            <div className="p2r-clinical-val">
-              {postData?.knowPirads ? `PI-RADS ${postData.pirads}` : 'Not provided'}
-            </div>
-            <div className="p2r-clinical-key">MRI Score</div>
-          </div>
-        </div>
-
-        {psadValue != null && !Number.isNaN(psadValue) && (
-          <div className="p2r-clinical-item">
-            <LucideInfoIcon size={16} className="p2r-clinical-icon" />
-            <div>
-              <div className="p2r-clinical-val">
-                {Number(psadValue).toFixed(3)}
-                <span className="p2r-clinical-unit"> ng/mL/mL</span>
-              </div>
-              <div className="p2r-clinical-key">PSA Density</div>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* ── Expandable detail sections ── */}
       <div className="p2r-details">
-        <CollapsibleSection title="About This Risk Estimate" defaultOpen>
-          <p>{pointsExplanationText}</p>
-          <p>
-            Your risk category is a starting point for a conversation with your doctor — not a final answer.
-            PSA-based screening works best when paired with shared decision-making between you and your physician,
-            taking your full health picture into account.
+        <CollapsibleSection title="How This Was Calculated" defaultOpen>
+          <p>Part 2 combines your Part 1 risk profile with your PSA level and — if provided — MRI PI-RADS score. Your result is placed into a risk tier based on guideline thresholds from AUA, NCCN, and EAU. PSA-based screening combined with shared decision-making is the recommended standard — this is an educational supplement, not a clinical diagnosis. A newly elevated PSA should be confirmed with a repeat test before any biopsy or further workup.</p>
+
+          {/* PSA Tier Breakdown */}
+          <div className="p2r-breakdown-block">
+            <div className="p2r-breakdown-heading">
+              <FlaskConicalIcon size={13} style={{ flexShrink: 0 }} />
+              <span>PSA Level Tier</span>
+            </div>
+            <div className="p2r-tier-chips-grid">
+              {PSA_TIER_SCALE.map(({ key, label, range, color, bg }) => {
+                const activePsaKey = psaTier ? psaTier.toLowerCase() : null;
+                const isActive = activePsaKey === key;
+                return (
+                  <div
+                    key={key}
+                    className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
+                    style={isActive ? { background: bg, borderColor: color, color } : {}}
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    <span className="p2r-tier-chip-label">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {psaTier && (
+              <p className="p2r-breakdown-why">
+                Your PSA level falls in the <strong>{psaTier}</strong> tier.
+              </p>
+            )}
+          </div>
+
+          {/* MRI PI-RADS Breakdown */}
+          {postData?.knowPirads && postData?.pirads != null && (
+            <div className="p2r-breakdown-block">
+              <div className="p2r-breakdown-heading">
+                <ActivityIcon size={13} style={{ flexShrink: 0 }} />
+                <span>MRI PI-RADS Tier</span>
+              </div>
+              <div className="p2r-tier-chips-grid">
+                {MRI_TIER_SCALE.map(({ pirads: piradsArr, label, meaning, color, bg }) => {
+                  const piradsNum = Number(postData.pirads);
+                  const isActive = piradsArr.includes(piradsNum);
+                  return (
+                    <div
+                      key={label}
+                      className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
+                      style={isActive ? { background: bg, borderColor: color, color } : {}}
+                      aria-current={isActive ? 'true' : undefined}
+                    >
+                      <span className="p2r-tier-chip-label">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {piradsConfidenceText && (
+                <p className="p2r-breakdown-why">{piradsConfidenceText}</p>
+              )}
+            </div>
+          )}
+          {/* Cohort validation data card */}
+          <div className="p2r-cohort-card">
+            <div className="p2r-cohort-heading">
+              <FlaskConicalIcon size={13} />
+              <span>Cohort Validation Data — Mount Sinai (N=94)</span>
+            </div>
+            <p className="p2r-cohort-note">
+              These rates are from our prospectively collected biopsied referral cohort (N=94, 23 clinically
+              significant cancers, GG≥3). All patients were referred for biopsy; rates reflect a biopsied
+              population, not a general screening population.
+            </p>
+            <div className="p2r-cohort-table-wrap">
+              <table className="p2r-cohort-table">
+                <thead>
+                  <tr>
+                    <th>Combined Risk Tier</th>
+                    <th>Score Range</th>
+                    <th>N</th>
+                    <th>csPCa Events</th>
+                    <th>csPCa Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className={result.epsaTierKey === 'low' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Low</td><td>≤ 13 pts</td><td>—</td><td>—</td>
+                    <td><span className="p2r-cohort-na">No data (low-risk referrals not biopsied)</span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'intermediate-low' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Int-Low</td><td>14–27 pts</td><td>4</td><td>1</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--yellow">25% <span className="p2r-cohort-caution">(small N)</span></span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'intermediate-high' ? 'p2r-cohort-row--active' : ''}>
+                    <td>Int-High</td><td>28–55 pts</td><td>58</td><td>12</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--amber">21%</span></td>
+                  </tr>
+                  <tr className={result.epsaTierKey === 'high' ? 'p2r-cohort-row--active' : ''}>
+                    <td>High</td><td>≥ 56 pts</td><td>32</td><td>10</td>
+                    <td><span className="p2r-cohort-rate p2r-cohort-rate--red">31%</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="p2r-cohort-model-row">
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">0.600</span>
+                <span className="p2r-cohort-model-key">Post-PSA Model AUC <span className="p2r-cohort-model-ci">[0.463–0.735]</span></span>
+              </div>
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">0.579</span>
+                <span className="p2r-cohort-model-key">PSA Alone AUC <span className="p2r-cohort-model-ci">[0.442–0.712]</span></span>
+              </div>
+              <div className="p2r-cohort-model-item">
+                <span className="p2r-cohort-model-val">94</span>
+                <span className="p2r-cohort-model-key">Biopsied patients (N)</span>
+              </div>
+            </div>
+            {pathwayMode === 'post_mri' && (
+              <p className="p2r-cohort-mri-note">
+                MRI (PI-RADS) was not collected in the N=94 validation cohort. Post-MRI PI-RADS
+                scoring is based on AUA/NCCN/EAU v2.1 guidelines — empirical calibration for
+                Model 3 is pending.
+              </p>
+            )}
+          </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Shared Decision-Making Guide">
+          <p style={{ marginBottom: '0.6rem' }}>
+            Choosing the next step after a risk assessment is not just about the numbers — it is about how each option could affect your everyday life. Shared decision-making means you and your doctor decide together, based on your risk level, your health, and what matters most to you.
+          </p>
+          <p style={{ fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.85rem' }}>Key topics to discuss with your clinician:</p>
+          <ol style={{ paddingLeft: '1.3rem', lineHeight: 1.7, fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+            <li><strong>How serious your risk is</strong> — your risk tier and what it means for next steps.</li>
+            <li><strong>Your overall health and life expectancy</strong> — age and other health conditions help guide whether watchful waiting, monitoring, or biopsy makes more sense.</li>
+            <li><strong>Chances of finding clinically significant cancer</strong> — risk calculators (like this tool) can help estimate likelihood, but they do not replace biopsy for diagnosis.</li>
+            <li><strong>Possible side effects of further workup</strong> — a biopsy carries risks (bleeding, infection, anxiety). These should be weighed against the benefit of early detection.</li>
+            <li><strong>Your starting point</strong> — current urinary and sexual function (assessed via IPSS, SHIM) is important context for any treatment discussion.</li>
+            <li><strong>Your preferences and goals</strong> — what matters most to you (peace of mind, avoiding procedures, preserving function) should guide the plan.</li>
+          </ol>
+          <p style={{ fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.85rem' }}>Psychological aspects to be aware of:</p>
+          <ul style={{ paddingLeft: '1.3rem', lineHeight: 1.7, fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+            <li>Waiting for further test results can cause stress, sleep problems, or persistent worry — this is normal.</li>
+            <li>Talking openly with your doctor about what results could mean may help reduce fear of the unknown.</li>
+            <li>Support groups, counselors, and loved ones can help manage anxiety during the evaluation process.</li>
+          </ul>
+          <p style={{ fontSize: '0.8125rem', color: '#607286', fontStyle: 'italic', marginBottom: 0 }}>
+            Sources: Eastham JA et al. AUA/ASTRO Guideline Part I–II. <em>J Urol.</em> 2022;208(1):10–25. &nbsp;|&nbsp; Schaeffer EM et al. NCCN Guidelines® Insights, Version 3.2024. PMID: 38626801. &nbsp;|&nbsp; Cornford P et al. EAU Guidelines 2024. <em>Eur Urol.</em> 86(2):148–163.
           </p>
         </CollapsibleSection>
 
+        {postData?.knowPirads && (
         <CollapsibleSection title="Understanding PI-RADS / MRI">
           <p>
-            {postData?.knowPirads
-              ? 'MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist\'s interpretation of multiparametric MRI findings.'
-              : 'If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.'}
+            MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist's interpretation of multiparametric MRI findings.
           </p>
         </CollapsibleSection>
+        )}
 
         <CollapsibleSection title="Important Disclaimer" defaultOpen>
           <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
@@ -833,6 +941,54 @@ const Part2Results = ({
           )}
         </div>
       </div>
+
+      {/* ── Biopsy / AS Tool CTA ── */}
+      {(epsaTierKey === 'intermediate-high' || epsaTierKey === 'high') && (
+        <div
+          style={{
+            background: '#eff6ff',
+            borderLeft: '4px solid #2563eb',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            marginTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: '13px',
+              color: '#1e40af',
+              letterSpacing: '0.03em',
+            }}
+          >
+            Already had a biopsy?
+          </span>
+          <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+            Use our AI Surveillance Tool to assess your active surveillance options.
+          </p>
+          <a
+            href={`https://as.millionstrongmen.com?psa=${encodeURIComponent(psaValue ?? '')}&source=epsa`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              alignSelf: 'flex-start',
+              background: '#2563eb',
+              color: '#fff',
+              fontSize: '13px',
+              fontWeight: 600,
+              padding: '8px 14px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Open AS Tool →
+          </a>
+        </div>
+      )}
     </div>
   );
 };

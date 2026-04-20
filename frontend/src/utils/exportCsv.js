@@ -37,6 +37,7 @@ export const buildPart1CsvRows = (formData, result, config) => {
     pre_psa: 'Pre-PSA Assessment',
     post_psa: 'Post-PSA Assessment',
     post_mri: 'Post-MRI Assessment',
+    post_biopsy: 'Post-Biopsy / AS Assessment',
   };
   const pathwayLabel = pathwayLabelMap[fd.pathwayMode] || pathwayLabelMap[result?.pathwayMode] || 'Pre-PSA Assessment';
 
@@ -84,6 +85,7 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
     pre_psa: 'Pre-PSA Assessment',
     post_psa: 'Post-PSA Assessment',
     post_mri: 'Post-MRI Assessment',
+    post_biopsy: 'Post-Biopsy / AS Assessment',
   };
   const pathwayLabel = pathwayLabelMap[postResult?.pathwayMode] || pathwayLabelMap[pd.pathwayMode] || 'Post-MRI Assessment';
 
@@ -115,3 +117,4 @@ export const buildPart2CsvRows = (postData, preResult, postResult, config) => {
   };
   return [row];
 };
+

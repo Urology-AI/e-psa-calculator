@@ -127,6 +127,27 @@ export const fieldReferences = {
       { name: 'Zhu D, et al., Clin Genitourin Cancer 2022', url: pubmedSearch('Zhu D Clin Genitourin Cancer 2022') },
     ],
   },
+  // Active Surveillance pathway — biopsy and AS decision support sources.
+  activeSurveillance: {
+    sources: [
+      {
+        name: 'Eastham JA, et al. AUA/ASTRO Guideline Part I — J Urol. 2022;208(1):10–18',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/?term=Eastham+AUA+ASTRO+guideline+part+I+J+Urol+2022',
+      },
+      {
+        name: 'Eastham JA, et al. AUA/ASTRO Guideline Part II (Active Surveillance) — J Urol. 2022;208(1):19–25',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/?term=Eastham+AUA+ASTRO+guideline+part+II+J+Urol+2022',
+      },
+      {
+        name: 'Schaeffer EM, et al. NCCN Guidelines® Insights: Prostate Cancer, Version 3.2024 — PMID 38626801',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/38626801/',
+      },
+      {
+        name: 'Cornford P, et al. EAU Guidelines on Prostate Cancer — 2024 Update. Eur Urol. 2024;86(2):148–163',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/?term=Cornford+EAU+prostate+cancer+guidelines+2024',
+      },
+    ],
+  },
   // Part 2 evidence sources used for PSAD/PSA/MRI tooltips/modals.
   part2: {
     psaLevel: {

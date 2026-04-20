@@ -1089,7 +1089,8 @@ function App() {
     });
     setPreResult(null);
     setPostResult(null);
-    
+    setAsResult(null);
+
     // Clear session ID from state but keep user logged in
     setSessionId(null);
     
@@ -1215,7 +1216,7 @@ function App() {
       }
 
       // For post_psa and post_mri pathways, go directly to Part2Form (PSA input)
-      // User already committed to having PSA data when they selected the pathway
+      // User already committed to having these results when they selected the pathway
       if (pathwayMode === 'post_psa' || pathwayMode === 'post_mri') {
         setStage('post');
         setCurrentStep(1);
@@ -1294,6 +1295,15 @@ function App() {
     }
   };
 
+
+  const handleContinueToPostBiopsy = () => {
+    const params = new URLSearchParams({
+      source: 'epsa',
+      epsaTier: preResult?.epsaTierKey ?? '',
+      epsaScore: preResult?.score ?? '',
+    });
+    window.open(`https://as.millionstrongmen.com?${params}`, '_blank');
+  };
 
   const canProceedPost = () => {
     // Part2Form handles its own validation
@@ -1471,6 +1481,10 @@ function App() {
       return (
         <PathwaySelector
           onSelect={(mode) => {
+            if (mode === 'post_biopsy') {
+              window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
+              return;
+            }
             setPathwayMode(mode);
             setCurrentStep(1);
             setPart1Step(0);
@@ -1532,6 +1546,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                onContinueToPostBiopsy={handleContinueToPostBiopsy}
               />
             ) : (
               <div className="loading-results">
@@ -1539,29 +1554,6 @@ function App() {
                 <p style={{ fontSize: '0.75rem', color: '#666' }}>{t('app.loadingResults.note')}</p>
               </div>
             )}
-            <div className="stage-actions">
-              <button
-                onClick={() => {
-                  // Allow continuing to Stage 2 (post) after Part 1 is complete
-                  if (!preResult) {
-                    console.warn('Cannot continue - no result');
-                    return;
-                  }
-                  
-                  setStage('post');
-                  setCurrentStep(0);
-                  // Ensure sessionId is set before moving to post stage
-                  if (user && !sessionId) {
-                    console.warn('No sessionId found when moving to post stage');
-                  }
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="btn btn-primary"
-                disabled={!preResult}
-              >
-                {t('app.continueToRisk')}
-              </button>
-            </div>
           </div>
         );
 
@@ -1679,65 +1671,72 @@ function App() {
                 Logout
               </button>
             )}
-            <div className="stage-indicator">
-              {authStep === 'app' && storageMode === 'cloud' && appSessionId && appSessionId !== 'Local' && (
-                <span className="session-key-badge" title="Anonymous session key">
-                  Session Key: {appSessionId}
+            {authStep === 'app' && (
+              <div className="stage-indicator">
+                {appSessionId && appSessionId !== 'Local' && (
+                  <span className="session-key-badge" title="Your session key — use this to resume your assessment">
+                    Session: {appSessionId}
+                  </span>
+                )}
+                <span className={`stage-step-badge ${stage === 'pre' ? 'stage-step-badge--pre' : 'stage-step-badge--post'}`}>
+                  {stage === 'pre'
+                    ? currentStep === 3
+                      ? 'Part 1 · Results'
+                      : `Part 1 · Step ${Math.min(part1Step + 1, 7)} of 7`
+                    : currentStep === 3
+                      ? 'Part 2 · Results'
+                      : currentStep === 0
+                        ? 'Part 2 · Overview'
+                        : `Part 2 · Step ${currentStep} of 2`}
                 </span>
-              )}
-              {authStep === 'app' && storageMode === 'cloud' && (
-                <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
-                  {cloudSyncStatus === 'saving'
-                    ? 'Saving to anonymous cloud...'
-                    : cloudSyncStatus === 'saved'
-                      ? 'Synced to anonymous cloud'
-                      : cloudSyncStatus === 'error'
-                        ? 'Cloud sync issue'
-                        : 'Anonymous cloud ready'}
-                </span>
-              )}
-              {authStep === 'app' && (() => {
-                // On PathwaySelector screen — no badge yet
-                if (pathwayMode === null && !preResult) return null;
+                {storageMode === 'cloud' && cloudSyncStatus !== 'idle' && (
+                  <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
+                    {cloudSyncStatus === 'saving' ? 'Saving…' : cloudSyncStatus === 'saved' ? 'Saved' : 'Sync issue'}
+                  </span>
+                )}
+                {(() => {
+                  // On PathwaySelector screen — no badge yet
+                  if (pathwayMode === null && !preResult) return null;
 
-                // Pathway-aware labels
-                const PATHWAY_BADGES = {
-                  pre_psa:  { label: 'Pre-PSA Screening',    cls: 'stage-pre'  },
-                  post_psa: { label: 'PSA Assessment',        cls: 'stage-post' },
-                  post_mri: { label: 'Full MRI Assessment',   cls: 'stage-mri'  },
-                };
-                const effectiveMode = pathwayMode
-                  || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
-                const badge = PATHWAY_BADGES[effectiveMode]
-                  || (stage === 'pre'
-                    ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
-                    : { label: t('app.stage.stagePost'), cls: 'stage-post' });
+                  // Pathway-aware labels
+                  const PATHWAY_BADGES = {
+                    pre_psa:  { label: 'Pre-PSA Screening',  cls: 'stage-pre'  },
+                    post_psa: { label: 'PSA Assessment',      cls: 'stage-post' },
+                    post_mri: { label: 'Full MRI Assessment', cls: 'stage-mri'  },
+                  };
+                  const effectiveMode = pathwayMode
+                    || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
+                  const badge = PATHWAY_BADGES[effectiveMode]
+                    || (stage === 'pre'
+                      ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
+                      : { label: t('app.stage.stagePost'), cls: 'stage-post' });
 
-                // Only show "Change pathway" before results are locked in
-                const canChangePathway = pathwayMode !== null && !preResult;
+                  // Only show "Change pathway" before results are locked in
+                  const canChangePathway = pathwayMode !== null && !preResult;
 
-                return (
-                  <>
-                    <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
-                    {canChangePathway && (
-                      <button
-                        type="button"
-                        className="change-pathway-btn"
-                        onClick={() => {
-                          setPathwayMode(null);
-                          setCurrentStep(1);
-                          setPart1Step(0);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        title="Go back to pathway selection"
-                      >
-                        ← Change
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
+                  return (
+                    <>
+                      <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
+                      {canChangePathway && (
+                        <button
+                          type="button"
+                          className="change-pathway-btn"
+                          onClick={() => {
+                            setPathwayMode(null);
+                            setCurrentStep(1);
+                            setPart1Step(0);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          title="Go back to pathway selection"
+                        >
+                          ← Change
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </header>
 
