@@ -240,10 +240,10 @@
 .p2r-risk-icon--high     { color: #dc2626; }
 
 .p2r-risk-pct {
-  font-size: clamp(2.2rem, 8vw, 3rem);
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
   font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .p2r-risk-range {
@@ -265,6 +265,71 @@
   color: #fff;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.p2r-risk-pct-sublabel {
+  font-size: 0.6875rem;
+  color: #7a94aa;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-top: -0.25rem;
+}
+
+.p2r-risk-card-note {
+  font-size: 0.75rem;
+  color: #607286;
+  line-height: 1.55;
+  text-align: center;
+  max-width: 26rem;
+  padding: 0.25rem 0.5rem;
+  border-top: 0.0625rem solid #e8f0f8;
+  padding-top: 0.625rem;
+  margin-top: 0.125rem;
+}
+
+.p2r-risk-card-note strong {
+  color: #334e62;
+}
+
+/* ─── Footer disclaimer ─── */
+.p2r-footer-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  background: #f8fbff;
+  border: 0.0625rem solid #dce8f4;
+  border-radius: 0.75rem;
+}
+
+.p2r-footer-disclaimer-icon {
+  color: #4a85ab;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.p2r-footer-disclaimer p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #4a6b84;
+  line-height: 1.6;
+}
+
+.p2r-footer-disclaimer strong {
+  color: #1a3d59;
+}
+
+.theme-dark .p2r-footer-disclaimer {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .p2r-footer-disclaimer p {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-footer-disclaimer strong {
+  color: var(--ink-900);
 }
 
 /* ─── Risk Level Bar ─── */
@@ -888,6 +953,260 @@
   background: transparent;
   color: var(--error-600);
   border-color: rgba(220, 38, 38, 0.35);
+}
+
+/* ─── Part 1 Profile Card ─── */
+.p2r-profile-card {
+  background: linear-gradient(180deg, #f2f8ff 0%, #eaf3fd 100%);
+  border: 0.0625rem solid #cfe0f0;
+  border-radius: 0.875rem;
+  padding: 1rem 1.125rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.p2r-profile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.p2r-profile-card-title {
+  font-size: 0.65625rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #4a7896;
+}
+
+.p2r-profile-card-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  background: #fff;
+  border: 0.0625rem solid #c5dff5;
+  border-radius: 0.5rem;
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1d6ea3;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.p2r-profile-card-toggle:hover {
+  background: #e8f4fc;
+  border-color: #1d6ea3;
+}
+
+/* Summary pills row */
+.p2r-profile-summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.p2r-profile-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border: 0.0625rem solid #c8dae8;
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.875rem;
+  min-width: 5rem;
+  gap: 0.1875rem;
+  box-shadow: 0 0.125rem 0.375rem rgba(11, 42, 67, 0.06);
+}
+
+.p2r-profile-pill-val {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #1a4a6a;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.p2r-profile-pill-lbl {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b8ea8;
+}
+
+/* Expanded detail section */
+.p2r-profile-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding-top: 0.375rem;
+  border-top: 0.0625rem solid #c8dae8;
+}
+
+.p2r-profile-section-label {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #4a7896;
+  margin-top: 0.5rem;
+  margin-bottom: 0.125rem;
+}
+
+.p2r-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 1rem;
+}
+
+.p2r-profile-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3125rem 0;
+  border-bottom: 0.0625rem solid #e4eff8;
+}
+
+.p2r-profile-row-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a6b84;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.p2r-profile-row-val {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #1a3d59;
+  text-align: right;
+}
+
+.p2r-profile-row-val--hl {
+  color: #b45309;
+}
+
+/* Risk anchors list */
+.p2r-profile-anchors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.p2r-profile-anchor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4375rem;
+  font-size: 0.8125rem;
+  color: #991b1b;
+  line-height: 1.4;
+  background: #fff5f5;
+  border: 0.0625rem solid #fecaca;
+  border-radius: 0.4375rem;
+  padding: 0.375rem 0.625rem;
+}
+
+.p2r-profile-tier-note {
+  font-size: 0.8125rem;
+  color: #334e62;
+  padding: 0.5rem 0.625rem;
+  background: #f0f7ff;
+  border-radius: 0.5rem;
+  border: 0.0625rem solid #c5dff5;
+  margin-top: 0.25rem;
+}
+
+/* Dark mode for profile card */
+.theme-dark .p2r-profile-card {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .p2r-profile-card-title {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-profile-card-toggle {
+  background: var(--surface);
+  border-color: var(--line-100);
+  color: var(--brand-600);
+}
+
+.theme-dark .p2r-profile-card-toggle:hover {
+  background: var(--surface-subtle);
+}
+
+.theme-dark .p2r-profile-pill {
+  background: var(--surface);
+  border-color: var(--line-100);
+}
+
+.theme-dark .p2r-profile-pill-val {
+  color: var(--ink-900);
+}
+
+.theme-dark .p2r-profile-pill-lbl {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-profile-detail {
+  border-top-color: var(--line-100);
+}
+
+.theme-dark .p2r-profile-section-label {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-profile-row {
+  border-bottom-color: var(--line-100);
+}
+
+.theme-dark .p2r-profile-row-label {
+  color: var(--ink-400);
+}
+
+.theme-dark .p2r-profile-row-val {
+  color: var(--ink-900);
+}
+
+.theme-dark .p2r-profile-row-val--hl {
+  color: #fbbf24;
+}
+
+.theme-dark .p2r-profile-anchor-item {
+  background: rgba(185, 28, 28, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: var(--error-400);
+}
+
+.theme-dark .p2r-profile-tier-note {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+/* Responsive adjustments for profile card */
+@media (max-width: 600px) {
+  .p2r-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .p2r-profile-summary-pills {
+    gap: 0.375rem;
+  }
+
+  .p2r-profile-pill {
+    min-width: 4rem;
+    flex: 1;
+  }
 }
 
 .theme-dark .p2r-btn--danger:hover {
