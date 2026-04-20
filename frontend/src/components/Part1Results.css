@@ -36,37 +36,24 @@
   gap: 0.5rem;
 }
 
-.results-mobile-unit-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-}
-
 .results-mobile-unit-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4375rem 0.75rem;
   background: #fff;
   border: 0.0625rem solid #d0e0ee;
   border-radius: 0.75rem;
   text-decoration: none;
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #1d6ea3;
+  transition: all 0.15s ease;
 }
 
 .results-mobile-unit-pill:hover {
   background: #f0f7ff;
-  transform: translateY(-0.0625rem);
-}
-
-.results-mobile-unit-note {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #4a6b84;
+  border-color: #1d6ea3;
 }
 
 /* ─── Cloud / Session row ─── */
@@ -81,32 +68,6 @@
   border-radius: 0.625rem;
 }
 
-.session-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  border: 0.0625rem solid #d0e0ee;
-  border-radius: 0.5rem;
-  padding: 0.3125rem 0.625rem;
-  font-size: 0.75rem;
-  color: #4a6b84;
-}
-
-.session-pill-label {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.625rem;
-  color: #6b87a0;
-}
-
-.session-pill-code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1d5f8a;
-}
 
 .cloud-saved-badge {
   display: inline-flex;
@@ -337,6 +298,30 @@
   text-transform: uppercase;
 }
 
+.high-risk-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: 0.0625rem solid #fbbf24;
+  background: #fffbeb;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  color: #92400e;
+}
+
+.high-risk-notice-icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: #d97706;
+}
+
+.high-risk-notice p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+/* Legacy flag card kept for backward compatibility */
 .high-risk-flag-card {
   border: 0.0625rem solid #fbbf24;
   background: #fffbeb;
@@ -826,6 +811,110 @@
   border: 0.0625rem solid #b9d9f2;
 }
 
+/* ─── Next Steps Section ─── */
+.next-steps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.125rem;
+  background: #f8fafc;
+  border: 0.0625rem solid #e2eaf2;
+  border-radius: 0.875rem;
+}
+
+.next-steps-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a94aa;
+}
+
+.next-steps-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.next-step-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 0.09375rem solid transparent;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  box-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+.next-step-card:hover {
+  transform: translateY(-0.0625rem);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.09);
+}
+
+.next-step-card--psa  { border-color: #bfdbfe; }
+.next-step-card--mri  { border-color: #bbf7d0; }
+.next-step-card--biopsy { border-color: #e9d5ff; }
+
+.next-step-card--psa:hover    { border-color: #2563eb; background: #eff6ff; }
+.next-step-card--mri:hover    { border-color: #16a34a; background: #f0fdf4; }
+.next-step-card--biopsy:hover { border-color: #7c3aed; background: #faf5ff; }
+
+/* Icon badge */
+.nsc-icon-wrap {
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nsc-icon-wrap--psa    { background: #eff6ff; color: #2563eb; }
+.nsc-icon-wrap--mri    { background: #f0fdf4; color: #16a34a; }
+.nsc-icon-wrap--biopsy { background: #faf5ff; color: #7c3aed; }
+
+.nsc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.nsc-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nsc-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.nsc-arrow {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: transform 0.15s ease;
+}
+
+.next-step-card:hover .nsc-arrow {
+  transform: translateX(0.1875rem);
+}
+
+.next-step-card--psa:hover    .nsc-arrow { color: #2563eb; }
+.next-step-card--mri:hover    .nsc-arrow { color: #16a34a; }
+.next-step-card--biopsy:hover .nsc-arrow { color: #7c3aed; }
+
 /* ─── Action Buttons ─── */
 .results-actions {
   display: flex;
@@ -941,6 +1030,14 @@
   .threshold-chip-grid {
     grid-template-columns: 1fr;
   }
+
+  .next-steps-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .nsc-title {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 480px) {
@@ -973,19 +1070,6 @@
   border-color: var(--line-100);
 }
 
-.theme-dark .session-pill {
-  background: var(--surface);
-  border-color: var(--line-100);
-  color: var(--ink-500);
-}
-
-.theme-dark .session-pill-label {
-  color: var(--ink-400);
-}
-
-.theme-dark .session-pill-code {
-  color: var(--brand-600);
-}
 
 .theme-dark .cloud-saved-badge {
   background: var(--success-50);
@@ -1053,6 +1137,36 @@
   color: var(--ink-400);
 }
 
+.theme-dark .next-steps-section {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+}
+
+.theme-dark .next-steps-heading {
+  color: var(--ink-400);
+}
+
+.theme-dark .next-step-card {
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.theme-dark .next-step-card--psa    { border-color: rgba(37, 99, 235, 0.3); }
+.theme-dark .next-step-card--mri    { border-color: rgba(22, 163, 74, 0.3); }
+.theme-dark .next-step-card--biopsy { border-color: rgba(124, 58, 237, 0.3); }
+
+.theme-dark .next-step-card--psa:hover    { background: rgba(37, 99, 235, 0.08); border-color: #2563eb; }
+.theme-dark .next-step-card--mri:hover    { background: rgba(22, 163, 74, 0.08); border-color: #16a34a; }
+.theme-dark .next-step-card--biopsy:hover { background: rgba(124, 58, 237, 0.08); border-color: #7c3aed; }
+
+.theme-dark .nsc-title { color: var(--ink-200); }
+.theme-dark .nsc-desc  { color: var(--ink-400); }
+.theme-dark .nsc-arrow { color: var(--ink-500); }
+
+.theme-dark .nsc-icon-wrap--psa    { background: rgba(37, 99, 235, 0.14); color: #93c5fd; }
+.theme-dark .nsc-icon-wrap--mri    { background: rgba(22, 163, 74, 0.14); color: #86efac; }
+.theme-dark .nsc-icon-wrap--biopsy { background: rgba(124, 58, 237, 0.14); color: #c4b5fd; }
+
 .theme-dark .risk-gauge-score {
   color: var(--ink-900);
 }
@@ -1068,6 +1182,16 @@
 .theme-dark .guideline-banner {
   background: var(--surface-subtle);
   border-color: var(--line-100);
+}
+
+.theme-dark .high-risk-notice {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(217, 119, 6, 0.14);
+  color: #fcd34d;
+}
+
+.theme-dark .high-risk-notice-icon {
+  color: #fbbf24;
 }
 
 .theme-dark .high-risk-flag-card {

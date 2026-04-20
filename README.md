@@ -1,313 +1,338 @@
-# ePSA - Prostate-Specific Awareness Risk Assessment Tool
+# ePSA — Prostate-Specific Awareness Risk Assessment Tool
 
-A comprehensive medical assessment tool for evaluating prostate cancer risk factors and providing educational resources to patients and healthcare providers.
+A web application for **prostate cancer risk education and stratification**: evidence-based questionnaires, configurable statistical models, optional cloud sync via Firebase, and an admin dashboard for operations. It is intended to support shared decision-making, not to replace clinical judgment.
 
-## 🚀 Live Demos
-
-- **Firebase Production**: [https://epsa-30d0b.web.app](https://epsa-30d0b.web.app) - Full cloud version with authentication and data storage
-- **GitHub Pages Demo**: [https://urology-ai.github.io/e-psa-calculator/](https://urology-ai.github.io/e-psa-calculator/) - Static demo version (local storage only)
-
-## 📋 Overview
-
-ePSA is a two-stage risk assessment tool designed to help patients understand their prostate cancer risk factors through evidence-based questionnaires and personalized results.
-
-### Key Features
-
-- **Part 1 Assessment**: Lifestyle, family history, and symptom evaluation
-- **Part 2 Assessment**: Clinical data and PSA level analysis
-- **Risk Calculations**: Evidence-based algorithms for risk stratification
-- **Educational Content**: Comprehensive information and next steps
-- **Data Management**: Import/export functionality for continuity of care
-- **Mobile Responsive**: Optimized for all device sizes
-- **Professional UI**: Medical-appropriate interface design
-
-## 🏗️ Architecture
-
-### Frontend (React + Vite)
-- **Technology**: React 18, Vite, Modern JavaScript
-- **Styling**: CSS with responsive design
-- **State Management**: React Hooks
-- **Build Tools**: Vite for fast development and production builds
-
-### Backend (Firebase + Node.js)
-- **Authentication**: Firebase Auth with phone verification
-- **Database**: Firestore for scalable data storage
-- **Functions**: Cloud Functions for backend logic
-- **Hosting**: Firebase Hosting for production deployment
-
-### Admin Dashboard
-- **Technology**: React + Vite
-- **Features**: User management, data export, session tracking
-- **Security**: Role-based access control
-- **Analytics**: Comprehensive usage statistics
-
-## 🛠️ Development Setup
-
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Git
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Urology-AI/e-psa-calculator.git
-   cd e-psa-calculator
-   ```
-
-2. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-3. **Install admin dashboard dependencies**
-   ```bash
-   cd ../admin
-   npm install
-   ```
-
-4. **Install backend dependencies**
-   ```bash
-   cd ../backend
-   npm install
-   ```
-
-### Environment Configuration
-
-1. **Frontend Environment**
-   ```bash
-   cd frontend
-   cp .env.example .env
-   # Edit .env with your Firebase configuration
-   ```
-
-2. **Backend Environment**
-   ```bash
-   cd backend
-   cp .env.example .env
-   # Edit .env with your Firebase configuration
-   ```
-
-### Local Development
-
-1. **Start frontend development server**
-   ```bash
-   cd frontend
-   npm run dev
-   # Visit http://localhost:3000
-   ```
-
-2. **Start admin dashboard**
-   ```bash
-   cd admin-dashboard
-   npm run dev
-   # Visit http://localhost:3001
-   ```
-
-3. **Start Firebase emulators (auth, firestore, functions, database, hosting)**
-   ```bash
-   firebase emulators:start
-   ```
-
-4. **Run frontend/admin against emulators**
-   - `frontend/.env.local` and `admin-dashboard/.env.local` enable local auth/firestore emulator usage.
-   - Frontend also enables Functions emulator via `VITE_USE_FUNCTIONS_EMULATOR=true`.
-
-## 🚀 Deployment
-
-### Automatic Deployment (GitHub Actions)
-
-The project uses GitHub Actions for automatic deployment:
-
-1. **Firebase Hosting**: Deploys on push to `main` branch
-2. **GitHub Pages**: Deploys static demo on push to `main` branch
-
-#### Required GitHub Secrets
-
-- `FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B`: Firebase service account JSON
-
-### Manual Deployment
-
-#### Firebase Hosting
-```bash
-# Deploy frontend and admin
-firebase deploy --only hosting
-
-# Deploy Firestore rules and indexes
-firebase deploy --only firestore
-
-# Deploy backend functions
-firebase deploy --only functions
-```
-
-#### GitHub Pages
-```bash
-cd frontend
-npm run build:gh-pages
-npm run deploy
-```
-
-## 📁 Project Structure
-
-```
-e-psa-calculator/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── utils/          # Utility functions
-│   │   ├── config/         # Firebase configuration
-│   │   └── services/       # API services
-│   ├── public/             # Static assets
-│   └── package.json
-├── admin/                   # Admin dashboard
-│   ├── src/
-│   │   ├── components/      # Admin components
-│   │   ├── pages/          # Admin pages
-│   │   └── services/       # Admin services
-│   └── package.json
-├── backend/                 # Firebase Functions backend
-│   ├── src/                # TypeScript source
-│   └── package.json
-├── .github/workflows/       # GitHub Actions workflows
-├── firebase.json           # Firebase configuration
-├── firestore.rules         # Firestore security rules
-└── README.md
-```
-
-## 🔧 Configuration
-
-### Firebase Configuration
-
-1. **Create Firebase Project**
-   - Visit [Firebase Console](https://console.firebase.google.com/)
-   - Create new project or use existing one
-
-2. **Enable Services**
-   - Authentication (Phone provider)
-   - Firestore Database
-   - Functions
-   - Hosting
-
-3. **Configure Environment Variables**
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   ```
-
-## 📊 Features
-
-### Assessment Tools
-- **Part 1**: Lifestyle factors, family history, symptoms — score from a **binned logistic model** with optional calibration; “PSA Recommended” uses a sensitivity-based threshold.
-- **Part 2**: Clinical data, PSA levels, optional PI-RADS — risk category from a **logistic model** (log PSA + PI-RADS dummies) with probability thresholds.
-- **Results**: Detailed risk analysis with educational content; results pages describe how each score is calculated.
-
-### Model training and results
-- **Training docs**: See [training/README.md](training/README.md) for how to refit Part 1 and Part 2 models, the new calculation approach, and where to paste coefficients.
-- **Result files** (gitignored; generate locally): `training_output_part1.txt`, `training_output_part2.txt`, `training_results_summary.txt`. The `data/` directory is also gitignored.
-
-### Data Management
-- **Local Storage**: Browser-based storage for demo use
-- **Cloud Storage**: Firebase integration for production
-- **Import/Export**: JSON-based data transfer
-- **Session Management**: Persistent user sessions
-
-### User Experience
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Accessibility**: WCAG compliant interface
-- **Professional UI**: Medical-appropriate design
-- **Multi-language**: Ready for internationalization
-
-## 🔒 Security
-
-- **HIPAA Compliance**: Designed with healthcare privacy in mind
-- **Data Encryption**: End-to-end encryption for sensitive data
-- **Access Control**: Role-based permissions
-- **Audit Logging**: Comprehensive activity tracking
-- **Secure Authentication**: Phone-based verification
-
-## 🧪 Testing
-
-### Running Tests
-```bash
-# Frontend tests
-cd frontend
-npm test
-
-# Admin tests
-cd admin
-npm test
-
-# Backend tests
-cd backend
-npm test
-```
-
-### Build Verification
-```bash
-# Production build test
-cd frontend
-npm run build
-
-# GitHub Pages build test
-npm run build:gh-pages
-```
-
-## 📈 Monitoring
-
-### Firebase Console
-- **Analytics**: User engagement and behavior
-- **Performance**: App performance metrics
-- **Crash Reporting**: Error tracking and reporting
-- **Remote Config**: Dynamic configuration management
-
-### Admin Dashboard
-- **User Management**: Monitor registered users
-- **Session Tracking**: View assessment sessions
-- **Data Export**: Export user data for analysis
-- **System Health**: Monitor backend services
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-### Development Guidelines
-- Follow ESLint configuration
-- Write comprehensive commit messages
-- Include tests for new features
-- Update documentation as needed
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-### Documentation
-- **Redmine**: Project documentation and requirements
-- **GitHub Wiki**: Technical documentation
-- **Code Comments**: Inline documentation
-
-### Contact
-- **Issues**: [GitHub Issues](https://github.com/Urology-AI/e-psa-calculator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Urology-AI/e-psa-calculator/discussions)
-
-## 🙏 Acknowledgments
-
-- **Mount Sinai Health System**: Medical expertise and guidance
-- **Urology Department**: Clinical validation and oversight
-- **Firebase**: Backend infrastructure and hosting
-- **Open Source Community**: Tools and libraries used
+**Medical disclaimer:** This tool is for **educational purposes only**. It does not diagnose disease or replace advice from a qualified clinician. Always discuss screening, PSA testing, imaging, and biopsy decisions with your care team.
 
 ---
 
-**⚠️ Medical Disclaimer**: This tool is for educational purposes only and should not replace professional medical advice. Always consult with qualified healthcare providers for medical decisions.
+## Table of contents
+
+- [Live demos](#live-demos)
+- [What ePSA does](#what-epsa-does)
+- [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Prerequisites](#prerequisites)
+- [Local development](#local-development)
+- [Environment variables](#environment-variables)
+- [Firebase emulators](#firebase-emulators)
+- [Building and deploying](#building-and-deploying)
+- [Models and training](#models-and-training)
+- [Testing](#testing)
+- [Security and privacy](#security-and-privacy)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Live demos
+
+| Environment | URL | Notes |
+|-------------|-----|--------|
+| **Firebase (production)** | [epsa-30d0b.web.app](https://epsa-30d0b.web.app) | Full app with Firebase Auth, Firestore, and Cloud Functions |
+| **GitHub Pages (static)** | [urology-ai.github.io/e-psa-calculator](https://urology-ai.github.io/e-psa-calculator/) | Static build; Firebase disabled; local/browser storage for continuity |
+
+---
+
+## What ePSA does
+
+### Screening and pathways
+
+- **Part 1 (pre-PSA / “Need PSA?”)** — Lifestyle, demographics, family history, and symptom-related inputs feed a **binned logistic model** (with optional calibration). Outputs include an ePSA-style score, risk tier, and a **PSA recommended** flag driven by a sensitivity-tuned probability threshold. Details appear on the in-app results and model documentation screens.
+- **Part 2 (post-PSA / MRI context)** — PSA and optional **PI-RADS** data feed a **logistic model** on log(PSA) and PI-RADS dummies; probabilities map to risk categories via configurable thresholds.
+- **Additional flows** — The app supports **pathway selection** (e.g. pre-PSA vs post-PSA vs post-MRI), **biopsy-related** inputs, and **active surveillance** style calculations where implemented in the calculator layer.
+
+### Data and modes
+
+- **Cloud mode** — When Firebase is configured, users can authenticate and persist session-related data in Firestore (subject to your project rules and deployment).
+- **Local / demo mode** — GitHub Pages and offline-style use rely on **local storage** and export/import patterns; no cloud backend is required.
+- **Import / export** — JSON (and related utilities) support moving answers between sessions or devices where the UI exposes it.
+
+### For clinicians and researchers
+
+- **Admin dashboard** (`admin-dashboard`) — Separate Vite app, deployed as a second Firebase Hosting target, for authorized staff to inspect usage-oriented data (implementation-specific; see that package and backend callable functions).
+- **Model transparency** — Coefficients and thresholds live in frontend config; see [Models and training](#models-and-training) to refit from data.
+
+---
+
+## Architecture
+
+### Patient app (`frontend`)
+
+| Area | Technology |
+|------|------------|
+| UI | React 18, Vite 5 |
+| i18n | i18next / react-i18next |
+| Charts / PDF / capture | Recharts, jsPDF, html2canvas |
+| Backend client | Firebase JS SDK (Auth, Firestore, Functions, Analytics when enabled) |
+| Unit tests | Vitest |
+
+Build output for Firebase Hosting: **`frontend/build`** (see `firebase.json`).
+
+### Admin dashboard (`admin-dashboard`)
+
+React 18 + Vite; build output: **`admin-dashboard/dist`**. Shares Firebase project configuration patterns with the main app.
+
+### Backend (`backend`)
+
+| Area | Technology |
+|------|------------|
+| Runtime | Node.js **20** (matches `firebase.json` functions runtime) |
+| Language | TypeScript → compiled to **`backend/lib`** (Firebase Functions `source` in `firebase.json`) |
+| Validation | Zod |
+| Admin SDK | firebase-admin, firebase-functions |
+
+**Important:** Run `npm run build` in `backend` before deploying functions or running emulators against fresh TypeScript changes.
+
+### Firebase services (typical production setup)
+
+- **Authentication** — Email/password and anonymous auth are reflected in project config; phone flows may be used depending on deployment.
+- **Firestore** — Primary application data store; rules in `firestore.rules`.
+- **Realtime Database** — Rules present (`database.rules.json`); use depends on feature set.
+- **Hosting** — Two targets: `app` (patient app), `admin` (admin dashboard).
+- **Cloud Functions** — PHI-sensitive or privileged operations implemented in `backend/src` (compiled to `lib`).
+
+---
+
+## Repository layout
+
+```
+e-psa-calculator/
+├── frontend/                 # Patient React app (Vite → build/)
+│   ├── src/
+│   │   ├── components/       # Screens, forms, results
+│   │   ├── config/          # Firebase client, calculator config
+│   │   ├── services/        # Analytics and integrations
+│   │   └── utils/           # Calculator engine, export helpers, tests
+│   └── package.json
+├── admin-dashboard/          # Admin React app (Vite → dist/)
+│   └── package.json
+├── backend/                  # Firebase Cloud Functions (TypeScript)
+│   ├── src/index.ts
+│   └── package.json          # build emits to lib/
+├── training/                 # Python scripts + docs to refit models
+│   ├── README.md
+│   ├── refit_part1_psa_model.py
+│   └── refit_part2_cancer_model.py.py
+├── docs/                     # GitHub Pages artifact (from frontend build:gh-pages)
+├── .github/workflows/        # Firebase deploy + GitHub Pages
+├── firebase.json
+├── firestore.rules
+├── database.rules.json
+└── README.md
+```
+
+---
+
+## Prerequisites
+
+- **Node.js 20** (aligned with GitHub Actions and Cloud Functions runtime)
+- **npm** (lockfiles are committed under `frontend` and `admin-dashboard`)
+- **Git**
+- **Firebase CLI** for emulators and manual deploys: `npm install -g firebase-tools` (or use `npx firebase`)
+- **Python 3** (optional) — only if you refit models using `training/`
+
+---
+
+## Local development
+
+### 1. Install dependencies
+
+```bash
+git clone https://github.com/Urology-AI/e-psa-calculator.git
+cd e-psa-calculator
+
+cd frontend && npm install && cd ..
+cd admin-dashboard && npm install && cd ..
+cd backend && npm install && cd ..
+```
+
+### 2. Configure environment
+
+Create a **`.env`** file in `frontend/` with your Firebase web app keys (see [Environment variables](#environment-variables)). The codebase references `.env.example` in comments; if that file is missing in your checkout, copy variable names from the list below or from `.github/workflows/firebase-deploy.yml`.
+
+### 3. Run the patient app
+
+```bash
+cd frontend
+npm run dev
+```
+
+Dev server defaults to **http://localhost:3000** (`vite.config.js`).
+
+### 4. Run the admin dashboard
+
+```bash
+cd admin-dashboard
+npm run dev
+```
+
+Dev server defaults to **http://localhost:3001** (`admin-dashboard/vite.config.js`).
+
+### 5. Build Cloud Functions (when touching backend)
+
+```bash
+cd backend
+npm run build
+```
+
+---
+
+## Environment variables
+
+### Patient app (`frontend/.env`)
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_FIREBASE_API_KEY` | Firebase web API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID |
+| `VITE_FIREBASE_APP_ID` | App ID |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Analytics (optional; omitted on localhost in code) |
+| `VITE_GITHUB_PAGES` | Set to `true` for static GitHub Pages build behavior |
+| `VITE_DISABLE_FIREBASE` | When `true`, disables Firebase client initialization |
+| `VITE_USE_AUTH_EMULATOR` | `true` to point Auth at the emulator |
+| `VITE_USE_FIRESTORE_EMULATOR` | `true` to point Firestore at the emulator |
+| `VITE_USE_FUNCTIONS_EMULATOR` | `true` to point Functions at the emulator |
+
+If Firebase is not configured and GitHub Pages / disable flags are not set, the client may throw at startup; use the demo build flags or provide full config.
+
+### CI (GitHub Actions)
+
+The Firebase hosting workflow injects the `VITE_FIREBASE_*` values from repository **Secrets** when building the frontend. You also need a **Firebase service account** secret for deploy steps (see [Building and deploying](#building-and-deploying)).
+
+---
+
+## Firebase emulators
+
+From the **repository root** (with Firebase CLI logged in and project selected as needed):
+
+```bash
+firebase emulators:start
+```
+
+Ports configured in `firebase.json`:
+
+| Emulator | Port |
+|----------|------|
+| Auth | 9099 |
+| Firestore | 8080 |
+| Functions | 5001 |
+| Hosting | 5000 |
+| Realtime Database | 9000 |
+| Emulator UI | enabled (`singleProjectMode: true`) |
+
+Point the frontend at emulators with the `VITE_USE_*_EMULATOR` variables in `frontend/.env` or `.env.local`.
+
+---
+
+## Building and deploying
+
+### Automatic CI
+
+- **`firebase-deploy.yml`** — On pushes to `main`, builds `frontend` and `admin-dashboard`, deploys both Hosting targets to project `epsa-30d0b`. On pull requests from the **same** repository, deploys **preview** channels; fork PRs skip preview deploy (token limitation).
+- **`gh-pages-deploy.yml`** — Builds `npm run build:gh-pages` in `frontend`, uploads the **`docs/`** output to GitHub Pages.
+
+### Secrets (typical)
+
+- `FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B` — Service account JSON for Hosting deploy action
+- `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`, `FIREBASE_MEASUREMENT_ID` — Passed into the frontend build as `VITE_*` in CI
+
+### Manual Firebase deploy
+
+```bash
+cd backend && npm run build && cd ..
+firebase deploy --only hosting
+firebase deploy --only firestore
+firebase deploy --only functions
+```
+
+### Manual GitHub Pages static build
+
+```bash
+cd frontend
+npm run build:gh-pages
+```
+
+The script builds with the GitHub Pages Vite config and refreshes `docs/index.html`. Deploy via the GitHub Pages workflow or your preferred Pages source.
+
+---
+
+## Models and training
+
+- **Runtime configuration** — Part 1 / Part 2 coefficients, thresholds, and calibration live in `frontend/src/config/calculatorConfig.js` (consumed by `dynamicCalculator.js` / engine utilities).
+- **Refitting from data** — See **[training/README.md](training/README.md)** for Python dependencies, dataset layout, and how to paste new coefficients into the app.
+- **Generated artifacts** — Training may write `training_output_part1.txt`, `training_output_part2.txt`, and `training_results_summary.txt` at the repo root; **`data/`** and these outputs are typically **gitignored** — generate them locally.
+
+**Note:** The Part 2 script in this repo is named `training/refit_part2_cancer_model.py.py` (double `.py`); use that exact name when invoking Python.
+
+---
+
+## Testing
+
+```bash
+# Frontend unit tests (Vitest)
+cd frontend
+npm test
+
+# Optional patient scenario runner (see package.json)
+npm run test:patients
+
+# Watch mode
+npm run test:watch
+```
+
+The **`admin-dashboard`** package currently exposes `dev`, `build`, and `preview` only (no `npm test` script). The **`backend`** package exposes `build`, emulator helpers, and deploy scripts (no `npm test` in `package.json`).
+
+Production build smoke checks:
+
+```bash
+cd frontend
+npm run build
+npm run build:gh-pages
+```
+
+---
+
+## Security and privacy
+
+- **Firestore / Database rules** — Review `firestore.rules` and `database.rules.json` for your environment; they define who can read/write what.
+- **Functions** — Privileged logic and validation run server-side in `backend/src`; keep secrets in Firebase config / environment, not in client bundles.
+- **Compliance language** — The product includes consent and HIPAA-oriented UX, but **whether a deployment satisfies HIPAA, GDPR, or institutional policy** depends on your BAA, hosting choices, logging, and configuration. Treat this README as technical orientation, not legal advice.
+
+---
+
+## Contributing
+
+1. Fork the repository.
+2. Create a branch (`git checkout -b feature/your-feature`).
+3. Make focused commits with clear messages.
+4. Push and open a pull request.
+
+**Guidelines:** Match existing ESLint and code style; add or update tests when you change calculator or export behavior; update this README if you change ports, env vars, or deploy steps.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE).
+
+---
+
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/Urology-AI/e-psa-calculator/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Urology-AI/e-psa-calculator/discussions)
+
+---
+
+## Acknowledgments
+
+- **Mount Sinai Health System** — Clinical context and guidance
+- **Urology collaborators** — Validation and domain expertise
+- **Firebase** — Auth, Firestore, Functions, and Hosting
+- **Open source community** — Libraries listed in each package’s `package.json`
