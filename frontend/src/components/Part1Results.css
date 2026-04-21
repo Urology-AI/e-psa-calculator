@@ -124,7 +124,7 @@
   border-radius: 1.125rem;
   padding: 1.5rem 1.375rem 1.25rem;
   border: 0.0625rem solid #e3ebf4;
-  box-shadow: 0 0.625rem 1.75rem rgba(11, 42, 67, 0.09);
+  box-shadow: 0 0.25rem 1rem rgba(11, 42, 67, 0.07);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -424,7 +424,7 @@
 }
 
 .metric-value {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #1a3d59;
   line-height: 1.1;
@@ -441,7 +441,7 @@
 .metric-label {
   font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8aaccb;
   margin-top: 0.3125rem;
@@ -532,6 +532,11 @@
 .collapsible-toggle svg {
   flex-shrink: 0;
   color: #7a94aa;
+  transition: transform 0.15s ease;
+}
+
+.collapsible-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
 .collapsible-body {
@@ -720,22 +725,22 @@
 
 .impact-table th:nth-child(1),
 .impact-table td:nth-child(1) {
-  width: 34%;
+  width: 32%;
 }
 
 .impact-table th:nth-child(2),
 .impact-table td:nth-child(2) {
-  width: 25%;
+  width: 24%;
 }
 
 .impact-table th:nth-child(3),
 .impact-table td:nth-child(3) {
-  width: 25%;
+  width: 24%;
 }
 
 .impact-table th:nth-child(4),
 .impact-table td:nth-child(4) {
-  width: 16%;
+  width: 20%;
 }
 
 .impact-table tbody tr:last-child td {
@@ -797,7 +802,19 @@
   border-top: 0.09375rem solid #d9e7f4;
   border-bottom: none;
   font-weight: 700;
+  vertical-align: middle;
 }
+
+.impact-table tfoot td:last-child {
+  text-align: center;
+}
+
+.impact-table tfoot .impact-total-badge {
+  font-size: 0.6875rem;
+  padding: 0.15rem 0.375rem;
+  white-space: nowrap;
+}
+
 
 .impact-total-badge {
   display: inline-flex;
@@ -952,14 +969,15 @@
 }
 
 .btn-results--solid {
-  background: linear-gradient(135deg, #145582 0%, #1d72ab 100%);
+  background: #1a6898;
   color: #fff;
   border: none;
-  box-shadow: 0 0.25rem 0.75rem rgba(20, 85, 130, 0.25);
+  box-shadow: 0 0.125rem 0.375rem rgba(20, 85, 130, 0.2);
 }
 
 .btn-results--solid:hover {
-  box-shadow: 0 0.5rem 1.125rem rgba(20, 85, 130, 0.3);
+  background: #1e77ab;
+  box-shadow: 0 0.25rem 0.75rem rgba(20, 85, 130, 0.28);
 }
 
 .btn-results--outline {
@@ -1116,7 +1134,7 @@
 }
 
 .theme-dark .btn-results--solid {
-  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
+  background: var(--brand-800);
 }
 
 .theme-dark .btn-results--danger-outline {
@@ -1288,6 +1306,15 @@
   color: var(--ink-500);
 }
 
+.theme-dark .collapsible-body ul,
+.theme-dark .collapsible-body ul li {
+  color: var(--ink-500) !important;
+}
+
+.theme-dark .collapsible-body ul li strong {
+  color: var(--ink-700) !important;
+}
+
 .theme-dark .detail-sections {
   color: inherit;
 }
@@ -1311,6 +1338,10 @@
 
 .theme-dark .detail-attribution {
   color: var(--ink-400) !important;
+}
+
+.theme-dark .collapsible-body [style*="color"] {
+  color: var(--ink-500) !important;
 }
 
 .theme-dark .threshold-chip {

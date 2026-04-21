@@ -3,10 +3,12 @@
 }
 
 .section-title {
-  margin: 2rem 0 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #D4AF37;
-  color: #003A5D;
-  font-size: 1.3rem;
-  font-weight: 600;
+  margin: 1.5rem 0 0.875rem;
+  padding: 0.3125rem 0 0.3125rem 0.875rem;
+  border-bottom: none;
+  border-left: 3px solid #2a76a9;
+  color: #0f1c2d;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
