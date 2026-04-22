@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Part2Form.css';
+import './epsa-v2-layout.css';
 import { useTranslation } from 'react-i18next';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -76,8 +77,9 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   const renderStep1 = () => (
     <div className="part2-step">
-      <div className="section-header">
-        {hasPsaPathway ? 'Your PSA Result' : t('part2.steps.psa.sectionTitle')}
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 1 · PSA</span>
+        <span className="v2-section-title">{hasPsaPathway ? 'Your PSA Result' : t('part2.steps.psa.sectionTitle')}</span>
       </div>
 
       {/* "Do you know your PSA?" toggle — only shown for users who didn't pre-select a PSA pathway */}
@@ -230,8 +232,9 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   const renderStep2 = () => (
     <div className="part2-step">
-      <div className="section-header">
-        {hasMriPathway ? 'Your MRI Results' : t('part2.steps.mri.sectionTitle')}
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 2 · MRI</span>
+        <span className="v2-section-title">{hasMriPathway ? 'Your MRI Results' : t('part2.steps.mri.sectionTitle')}</span>
       </div>
 
       {/* "Do you know your PI-RADS?" toggle — hidden for post_mri (user confirmed MRI at pathway select) */}
@@ -339,6 +342,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     return t('part2.flow.note');
   })();
 
+  const topFactors = (preResult.itemImpacts || []).filter(f => f.points > 0).sort((a, b) => b.points - a.points).slice(0, 4);
+
   return (
     <div className="part2-form-container">
       <div className="flow-header">
@@ -349,16 +354,35 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${(currentStep / totalPart2Steps) * 100}%` }} />
       </div>
-      <div className="part1-summary-box">
-        <div className="summary-label">{t('part2.summary.label')}</div>
-        <div className="summary-content">
-          <span>{t('part2.summary.scoreLabel')}: <strong>{preResult.score}%</strong></span>
-          <span>{t('part2.summary.riskLabel')}: <strong>{preResult.risk}</strong></span>
+
+      <div className="v2-p2-layout">
+        <div className="v2-p2-form-col">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+        </div>
+
+        <div className="v2-p1-summary-card">
+          <div className="v2-p1-summary-head">Part 1 Baseline</div>
+          <div className="v2-p1-summary-body">
+            <div className="v2-p1-summary-score">
+              {preResult.score}<span className="v2-p1-summary-max">%</span>
+            </div>
+            <span className="v2-p1-summary-tier" style={{ background: 'var(--surface-subtle)', color: 'var(--ink-700)' }}>
+              {preResult.risk || preResult.epsaTierLabel}
+            </span>
+            {topFactors.length > 0 && (
+              <div className="v2-p1-summary-rows">
+                {topFactors.map(f => (
+                  <div key={f.item} className="v2-p1-summary-row">
+                    <span className="v2-p1-summary-row-label">{f.item}</span>
+                    <span className="v2-p1-summary-row-val">+{f.points}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
 
       <div className="form-navigation">
         <div className="form-navigation-inner">

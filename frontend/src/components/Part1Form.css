@@ -404,9 +404,9 @@
 }
 
 .theme-dark .step-error-box {
-  background: var(--error-50);
+  background: rgba(220, 38, 38, 0.1);
   border-color: rgba(220, 38, 38, 0.35);
-  border-left-color: var(--error-600);
+  border-left-color: #dc2626;
 }
 
 .theme-dark .step-error-title,
