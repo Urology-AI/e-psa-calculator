@@ -1417,6 +1417,10 @@
 }
 
 .theme-dark .p2r-cohort-card { background: rgba(15,108,191,0.1); border-color: rgba(37,99,235,0.3); }
+.theme-dark .p2r-cohort-rate--yellow { background: rgba(180,83,9,0.2);  color: #fcd34d; }
+.theme-dark .p2r-cohort-rate--amber  { background: rgba(217,119,6,0.2); color: #fbbf24; }
+.theme-dark .p2r-cohort-rate--red    { background: rgba(220,38,38,0.2); color: #fca5a5; }
+.theme-dark .p2r-cohort-na           { color: var(--ink-500); }
 .theme-dark .p2r-cohort-heading { color: #93c5fd; }
 .theme-dark .p2r-cohort-note { color: var(--ink-600); }
 .theme-dark .p2r-cohort-table th { color: var(--ink-700); border-color: rgba(37,99,235,0.3); }

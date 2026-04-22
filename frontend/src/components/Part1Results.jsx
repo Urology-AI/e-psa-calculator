@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Part1Results.css';
+import './epsa-v2-layout.css';
 import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
@@ -321,32 +322,108 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Risk Summary Card ── */}
+      {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
-        <div className="risk-summary-header">
-          <div className="risk-summary-label">Your ePSA Risk Assessment</div>
-          <div className="risk-summary-tier-row">
-            <RiskIcon risk={activeTier} epsaTierKey={epsaTierKey} />
-            <span className="risk-tier-text" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</span>
+        <div className="v2-res-eyebrow">
+          <span>ePSA Risk Assessment · Part 1 Baseline</span>
+          <span>Assessed today</span>
+        </div>
+        <div className="v2-gauge-layout">
+          <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
+          <div className="v2-tier-info">
+            <div className="v2-tier-label">Your Risk Tier</div>
+            <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
+            <div className="v2-tier-score">
+              Score <strong>{impactTotalDisplay}</strong>
+              {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
+            </div>
+            <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
           </div>
         </div>
-        <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
+
+        {/* "What drove this score" cards */}
+        {topFactors.length > 0 && (
+          <div className="v2-why">
+            <div className="v2-why-head">
+              <span className="v2-why-head-title">What drove this score</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }}>See full breakdown ›</span>
+            </div>
+            <div className="v2-why-items">
+              {topFactors.slice(0, 3).map(f => (
+                <div key={f.item} className="v2-why-item">
+                  <div className="v2-why-item-label">{f.item}</div>
+                  <div className="v2-why-item-val">{f.value || '—'}</div>
+                  <div className="v2-why-item-pts" style={{ color: tierAccentColor }}>+{f.points}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* ── PSA Recommendation Hero ── */}
+      {(() => {
+        const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
+        const isAmber = psaRecommendReason === 'score_threshold';
+        const isGreen = !recommendPSA;
+        const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
+        const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
+        const heroTitle = isRed ? 'PSA Test Strongly Recommended' : isAmber ? 'PSA Test Recommended' : isGreen ? 'PSA Test Not Currently Indicated' : 'PSA Test May Be Appropriate';
+        return (
+          <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
+            <div className="v2-psa-hero-top">
+              <div className="v2-psa-hero-icon">{heroIcon}</div>
+              <div className="v2-psa-hero-body">
+                <h3 className="v2-psa-hero-title">{heroTitle}</h3>
+                <p className="v2-psa-hero-desc">{psaRecommendMessage}</p>
+              </div>
+            </div>
+            <div className="v2-psa-hero-ctas">
+              <a
+                href="https://www.mountsinai.org/care/cancer/services/prostate/mobile-screening"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-results btn-results--solid v2-psa-hero-btn-solid"
+              >
+                {recommendPSA ? 'Book PSA screening →' : 'Learn about PSA →'}
+              </a>
+              <a
+                href="https://www.mountsinai.org/care/urology/team"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-results btn-results--outline v2-psa-hero-btn-outline"
+              >
+                Meet the urology team ↗
+              </a>
+            </div>
+          </div>
+        );
+      })()}
 
-
-      {/* ── PSA Recommendation Banner ──────────────────────────────────────────
-       * RED   = high_risk_early_screening | family_history_override
-       * AMBER = score_threshold
-       * BLUE  = age_guideline_55_69  (calm/informational)
-       * GREEN = not recommended
-       * ─────────────────────────────────────────────────────────────────────── */}
-      <PsaRecommendationBanner
-        recommendPSA={recommendPSA}
-        psaRecommendReason={psaRecommendReason}
-        psaRecommendMessage={psaRecommendMessage}
-      />
-
+      {/* ── What happens next — 4-step timeline ── */}
+      <div className="v2-timeline">
+        <div className="v2-timeline-head">
+          <span className="v2-timeline-title">What happens next</span>
+        </div>
+        <div className="v2-timeline-track">
+          <div className="v2-timeline-step v2-timeline-step--current">
+            <span className="v2-timeline-when">Today</span>
+            <span className="v2-timeline-desc">Review your results and share with your GP or urologist</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Week 1–2</span>
+            <span className="v2-timeline-desc">{recommendPSA ? 'Book a PSA blood test at your clinic' : 'Discuss your lifestyle risk factors with your doctor'}</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Week 3–4</span>
+            <span className="v2-timeline-desc">{recommendPSA ? 'Receive PSA result — continue to Part 2 here' : 'Continue monitoring annually as recommended'}</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Ongoing</span>
+            <span className="v2-timeline-desc">Re-assess with ePSA if your health status changes</span>
+          </div>
+        </div>
+      </div>
 
       {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
       {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
@@ -379,9 +456,15 @@ const Part1Results = ({
         />
       )}
 
+      {/* ── Essential reading label ── */}
+      <div className="v2-essential-label">
+        <span className="v2-essential-badge">ESSENTIAL</span>
+        <span className="v2-essential-text">Understanding your result</span>
+      </div>
+
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
-        <CollapsibleSection title="About Your Result">
+        <CollapsibleSection title="About Your Result" defaultOpen={true}>
           {topFactors.length > 0 ? (
             <p>
               Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
@@ -401,7 +484,7 @@ const Part1Results = ({
         </CollapsibleSection>
 
         {itemImpacts.length > 0 && (
-        <CollapsibleSection title="Risk Factor Breakdown">
+        <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
           <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
               <table className="impact-table" aria-label="Item impact breakdown table">
