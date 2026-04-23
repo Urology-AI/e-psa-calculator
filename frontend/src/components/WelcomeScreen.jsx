@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import { ArrowRightIcon, UploadIcon, FileTextIcon } from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ShareQrCode from './ShareQrCode';
 import './ShareQrCode.css';
@@ -60,6 +60,10 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               <p className="ws-cta-note">
                 {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
               </p>
+              <a href="/demo" className="ws-demo-link">
+                <PlayIcon size={13} />
+                <span>Watch demo</span>
+              </a>
             </div>
           </div>
         </div>
