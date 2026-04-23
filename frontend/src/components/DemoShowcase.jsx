@@ -10,21 +10,21 @@ const DEMOS = [
     label: 'Part 1',
     title: 'Pre-Screen Assessment',
     description: 'Lifestyle, demographics, family history, and symptoms — see how ePSA determines whether a PSA blood test is recommended.',
-    src: `${STORAGE_BASE}/videos%2Fdemo-pre-screen.mp4?alt=media`,
+    src: `${STORAGE_BASE}/media1.mp4?alt=media`,
   },
   {
     id: 'with-psa',
     label: 'Part 2',
     title: 'With PSA Values',
     description: 'Once a PSA result is available, ePSA stratifies cancer risk and guides next steps based on PSA level.',
-    src: `${STORAGE_BASE}/videos%2Fdemo-with-psa.mp4?alt=media`,
+    src: `${STORAGE_BASE}/media2.mp4?alt=media`,
   },
   {
     id: 'with-mri',
     label: 'Part 3',
     title: 'With MRI Results',
     description: 'Adding PI-RADS score from MRI refines risk stratification and personalizes the clinical recommendation.',
-    src: `${STORAGE_BASE}/videos%2Fdemo-with-mri.mp4?alt=media`,
+    src: `${STORAGE_BASE}/media3.mp4?alt=media`,
   },
 ];
 
