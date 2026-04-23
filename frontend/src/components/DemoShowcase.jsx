@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import './DemoShowcase.css';
 import { PlayIcon, ArrowRightIcon } from 'lucide-react';
 
+
 const STORAGE_BASE = 'https://firebasestorage.googleapis.com/v0/b/epsa-30d0b.firebasestorage.app/o';
 
 const DEMOS = [
@@ -80,9 +81,6 @@ export default function DemoShowcase() {
             <img src="/logo.png" alt="ePSA" className="ds-logo" onError={e => { e.target.style.display = 'none'; }} />
             <span className="ds-brand-name">ePSA</span>
           </div>
-          <a href="/" className="ds-cta-header">
-            Start Assessment <ArrowRightIcon size={15} />
-          </a>
         </div>
       </header>
 
