@@ -109,16 +109,17 @@
 
 /* ─── Section Header ─── */
 .section-header {
-  padding: 0.75rem 1rem;
-  border-radius: 0.6875rem;
+  padding: 0.375rem 0 0.375rem 0.875rem;
+  border-radius: 0;
   margin-bottom: 0.75rem;
-  font-size: 0.84375rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(135deg, #0e4070 0%, #1c6898 100%);
-  box-shadow: 0 0.375rem 1rem rgba(14, 64, 112, 0.22);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: #0f1c2d;
+  background: none;
+  border-left: 3px solid #2a76a9;
+  box-shadow: none;
 }
 
 /* ─── Question Cards ─── */
@@ -384,8 +385,10 @@
 }
 
 .theme-dark .section-header {
-  background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-800) 100%);
-  box-shadow: var(--shadow-sm);
+  background: none;
+  box-shadow: none;
+  color: var(--ink-800);
+  border-left-color: var(--brand-600);
 }
 
 .theme-dark .question-card {

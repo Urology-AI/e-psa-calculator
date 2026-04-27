@@ -1417,6 +1417,10 @@
 }
 
 .theme-dark .p2r-cohort-card { background: rgba(15,108,191,0.1); border-color: rgba(37,99,235,0.3); }
+.theme-dark .p2r-cohort-rate--yellow { background: rgba(180,83,9,0.2);  color: #fcd34d; }
+.theme-dark .p2r-cohort-rate--amber  { background: rgba(217,119,6,0.2); color: #fbbf24; }
+.theme-dark .p2r-cohort-rate--red    { background: rgba(220,38,38,0.2); color: #fca5a5; }
+.theme-dark .p2r-cohort-na           { color: var(--ink-500); }
 .theme-dark .p2r-cohort-heading { color: #93c5fd; }
 .theme-dark .p2r-cohort-note { color: var(--ink-600); }
 .theme-dark .p2r-cohort-table th { color: var(--ink-700); border-color: rgba(37,99,235,0.3); }
@@ -1425,3 +1429,26 @@
 .theme-dark .p2r-cohort-model-val { color: #93c5fd; }
 .theme-dark .p2r-cohort-model-key { color: var(--ink-600); }
 .theme-dark .p2r-cohort-model-row { border-color: rgba(37,99,235,0.3); }
+
+/* ─── Chevron rotation on collapsible toggle ─── */
+.p2r-collapsible-toggle svg {
+  transition: transform 0.15s ease;
+}
+
+.p2r-collapsible-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* ─── Dark mode: collapsible list readability ─── */
+.theme-dark .p2r-collapsible-body ul,
+.theme-dark .p2r-collapsible-body ul li {
+  color: var(--ink-500) !important;
+}
+
+.theme-dark .p2r-collapsible-body ul li strong {
+  color: var(--ink-700) !important;
+}
+
+.theme-dark .p2r-collapsible-body [style*="color"] {
+  color: var(--ink-500) !important;
+}

@@ -142,6 +142,35 @@
   align-self: start;
 }
 
+/* Watch Demo link */
+.ws-demo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #4a7a9b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.1875rem;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  margin-top: 0.125rem;
+}
+
+.ws-demo-link:hover {
+  color: #0f4f7a;
+  text-decoration-color: currentColor;
+}
+
+.theme-dark .ws-demo-link {
+  color: var(--brand-600);
+}
+
+.theme-dark .ws-demo-link:hover {
+  color: var(--brand-500);
+  text-decoration-color: currentColor;
+}
+
 /* ── How it works ── */
 .ws-flow {
   margin-bottom: 1.5rem;

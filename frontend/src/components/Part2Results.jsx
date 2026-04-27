@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Part2Results.css';
+import './epsa-v2-layout.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
@@ -495,39 +496,21 @@ const Part2Results = ({
 
       {/* ── 5-ARI PSA Correction Notice ── */}
       {psaAdjustedFlag && (
-        <div
-          role="alert"
-          style={{
-            background: '#fffbeb',
-            border: '1px solid #fcd34d',
-            borderLeft: '4px solid #d97706',
-            borderRadius: '8px',
-            padding: '14px 16px',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'flex-start',
-          }}
-        >
-          <PillIcon size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: '13px', color: '#92400e', marginBottom: '6px', letterSpacing: '0.02em' }}>
-              PSA ADJUSTED FOR 5-ARI MEDICATION
+        <div className="v2-ari-notice" role="alert">
+          <PillIcon size={18} className="v2-ari-notice-icon" />
+          <div className="v2-ari-notice-body">
+            <div className="v2-ari-notice-title">PSA ADJUSTED FOR 5-ARI MEDICATION</div>
+            <div className="v2-ari-notice-pills">
+              <div className="v2-ari-pill v2-ari-pill--reported">Reported: <strong>{psaValue} ng/mL</strong></div>
+              <div className="v2-ari-arrow">→</div>
+              <div className="v2-ari-pill v2-ari-pill--adjusted">Adjusted: {psaAdjusted} ng/mL (×2)</div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <div style={{ background: '#fef3c7', borderRadius: '6px', padding: '6px 12px', fontSize: '13px', color: '#78350f' }}>
-                Reported: <strong>{psaValue} ng/mL</strong>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', color: '#d97706', fontSize: '13px', fontWeight: 700 }}>→</div>
-              <div style={{ background: '#d97706', borderRadius: '6px', padding: '6px 12px', fontSize: '13px', color: '#fff', fontWeight: 700 }}>
-                Adjusted: {psaAdjusted} ng/mL (×2)
-              </div>
-            </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>
+            <p className="v2-ari-notice-text">
               Finasteride and dutasteride suppress PSA by ~50%. Per the{' '}
               <strong>AUA/SUO 2026 Early Detection Guideline</strong> and REDUCE trial,
               the reported PSA is multiplied by 2 before risk scoring.
             </p>
-            <p style={{ margin: '6px 0 0', fontSize: '11.5px', color: '#92400e', lineHeight: 1.4, fontStyle: 'italic' }}>
+            <p className="v2-ari-notice-note">
               Note: The AUA/SUO 2026 guideline acknowledges individual variability — only ~1/3 of patients
               achieve the expected 40–60% PSA decline at 1 year. This is a standard clinical default.
               Discuss your adjusted PSA with your physician.
@@ -556,44 +539,19 @@ const Part2Results = ({
       {/* combined risk score warrants biopsy discussion regardless of MRI status */}
       {biopsyRecommended && biopsyMessage && (
         <div
-          className="p2r-biopsy-banner"
+          className={`v2-alert-banner v2-alert-banner--${biopsyReason === 'high_risk_discordance' ? 'amber' : 'red'}`}
           role="alert"
-          style={{
-            background: biopsyReason === 'high_risk_discordance' ? '#fffbeb' : '#fef2f2',
-            borderLeft: `4px solid ${biopsyReason === 'high_risk_discordance' ? '#d97706' : '#dc2626'}`,
-            borderRadius: '8px',
-            padding: '14px 16px',
-            marginBottom: '0',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-          }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertCircleIcon
-              size={18}
-              style={{
-                color: biopsyReason === 'high_risk_discordance' ? '#d97706' : '#dc2626',
-                flexShrink: 0,
-              }}
-            />
-            <span
-              style={{
-                fontWeight: 700,
-                fontSize: '13px',
-                color: biopsyReason === 'high_risk_discordance' ? '#92400e' : '#991b1b',
-                letterSpacing: '0.03em',
-              }}
-            >
+          <div className="v2-alert-banner-head">
+            <AlertCircleIcon size={18} className="v2-alert-banner-icon" />
+            <span className="v2-alert-banner-title">
               {biopsyReason === 'high_risk_discordance'
                 ? 'UROLOGIST REVIEW RECOMMENDED'
                 : 'BIOPSY DISCUSSION RECOMMENDED'}
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
-            {biopsyMessage}
-          </p>
-          <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
+          <p className="v2-alert-banner-body">{biopsyMessage}</p>
+          <p className="v2-alert-banner-source">
             Source: AUA/SUO 2026 Early Detection Guideline —{' '}
             {biopsyReason === 'pirads_5'
               ? 'PI-RADS 5 findings require biopsy discussion without delay (Rec. 28).'
@@ -620,6 +578,70 @@ const Part2Results = ({
         <RiskLevelBar riskClass={riskClass} />
         <div className="p2r-risk-card-note">
           Educational estimate — discuss with your doctor before taking action.
+        </div>
+      </div>
+
+      {/* ── v2 Tier bar — "you are here" ── */}
+      {(() => {
+        const cls = String(riskClass || '').toLowerCase();
+        const activeIdx = cls === 'very-high-risk' ? 3 : cls === 'high-risk' ? 2 : cls === 'moderate-risk' ? 1 : 0;
+        const tiers = [
+          { label: 'Low',          range: '< 14 pts',  color: '#16a34a' },
+          { label: 'Int-Low',      range: '14–27 pts', color: '#2563eb' },
+          { label: 'Int-High',     range: '28–55 pts', color: '#d97706' },
+          { label: 'High',         range: '≥ 56 pts',  color: '#dc2626' },
+        ];
+        return (
+          <div className="v2-tier-bar">
+            {tiers.map((t, i) => (
+              <div
+                key={t.label}
+                className={`v2-tier-bar-seg${i === activeIdx ? ' v2-tier-bar-seg--active' : ''}`}
+                style={i === activeIdx ? { background: t.color } : {}}
+              >
+                <span className="v2-tier-bar-you">▲ you</span>
+                <span className="v2-tier-bar-label">{t.label}</span>
+                <span className="v2-tier-bar-range">{t.range}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* ── 3-Step Action Plan ── */}
+      <div className="v2-action-plan">
+        <div className="v2-action-plan-header">
+          <div className="v2-action-plan-eyebrow" style={{ color: riskColor }}>
+            Your personalised action plan
+          </div>
+          <h3 className="v2-action-plan-title">What to do next</h3>
+          <p className="v2-action-plan-desc">Based on your combined risk profile, here are the recommended next steps.</p>
+        </div>
+        <div className="v2-action-steps">
+          <div className="v2-action-step">
+            <div className="v2-action-step-num" style={{ background: riskColor }}>1</div>
+            <div>
+              <div className="v2-action-step-title">Book a urology referral</div>
+              <div className="v2-action-step-desc">Ask your GP to refer you to a urologist for evaluation of your PSA result and risk profile.</div>
+            </div>
+            <div className="v2-action-step-when">Today</div>
+          </div>
+          <div className="v2-action-step">
+            <div className="v2-action-step-num" style={{ background: riskColor }}>2</div>
+            <div>
+              <div className="v2-action-step-title">Bring your ePSA results</div>
+              <div className="v2-action-step-desc">Print or download your ePSA report to share with your specialist at the appointment.</div>
+            </div>
+            <div className="v2-action-step-when">Week 1</div>
+          </div>
+          <div className="v2-action-step">
+            <div className="v2-action-step-num" style={{ background: riskColor }}>3</div>
+            <div>
+              <div className="v2-action-step-title">Discuss biopsy options</div>
+              <div className="v2-action-step-desc">Your urologist will advise whether a repeat PSA, MRI, or biopsy is the right next step for you.</div>
+            </div>
+            <div className="v2-action-step-when">Week 2–4</div>
+          </div>
         </div>
       </div>
 
@@ -675,6 +697,82 @@ const Part2Results = ({
           })}
         </ul>
       </div>
+
+      {/* ── How your score was composed ── */}
+      <div className="v2-score-stack">
+        <div className="v2-score-stack-head">
+          <span className="v2-score-stack-title">How your score was composed</span>
+          <span className="v2-score-stack-sub">Component breakdown</span>
+        </div>
+        <div className="v2-score-stack-row">
+          <span className="v2-score-stack-label">Part 1 Baseline (ePSA)</span>
+          <span className="v2-score-stack-val">{preResult?.score ?? '—'}%</span>
+          <div className="v2-score-stack-bar-track">
+            <div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, preResult?.score ?? 0)}%` }} />
+          </div>
+          <span className="v2-score-stack-pts">{preResult?.epsaTierLabel || preResult?.risk || '—'}</span>
+        </div>
+        <div className="v2-score-stack-row">
+          <span className="v2-score-stack-label">PSA Level</span>
+          <span className="v2-score-stack-val">{postData?.psa ? `${postData.psa} ng/mL` : '—'}</span>
+          <div className="v2-score-stack-bar-track">
+            <div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, (parseFloat(postData?.psa) / 20) * 100)}%` }} />
+          </div>
+          <span className="v2-score-stack-pts">{psaTier || '—'}</span>
+        </div>
+        {psadValue != null && (
+          <div className="v2-score-stack-row">
+            <span className="v2-score-stack-label">PSA Density</span>
+            <span className="v2-score-stack-val">{psadValue.toFixed(3)} ng/mL/mL</span>
+            <div className="v2-score-stack-bar-track">
+              <div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, (psadValue / 0.4) * 100)}%` }} />
+            </div>
+            <span className="v2-score-stack-pts" style={{ color: psadFlag ? '#d97706' : undefined }}>{psadFlag ? 'Elevated' : 'Normal'}</span>
+          </div>
+        )}
+        {postData?.knowPirads && postData?.pirads && (
+          <div className="v2-score-stack-row">
+            <span className="v2-score-stack-label">MRI PI-RADS</span>
+            <span className="v2-score-stack-val">PI-RADS {postData.pirads}</span>
+            <div className="v2-score-stack-bar-track">
+              <div className="v2-score-stack-bar-fill" style={{ width: `${(Number(postData.pirads) / 5) * 100}%` }} />
+            </div>
+            <span className="v2-score-stack-pts">{Number(postData.pirads) >= 4 ? 'High' : Number(postData.pirads) === 3 ? 'Equivocal' : 'Low'}</span>
+          </div>
+        )}
+        <div className="v2-score-stack-total">
+          <span className="v2-score-stack-total-label">Combined Risk Category</span>
+          <span className="v2-score-stack-total-val" style={{ color: riskColor }}>{cleanRiskCat}</span>
+        </div>
+      </div>
+
+      {/* ── What happens next timeline ── */}
+      <div className="v2-timeline">
+        <div className="v2-timeline-head">
+          <span className="v2-timeline-title">What happens next</span>
+        </div>
+        <div className="v2-timeline-track">
+          <div className="v2-timeline-step v2-timeline-step--current">
+            <span className="v2-timeline-when">Today</span>
+            <span className="v2-timeline-desc">Review results and download your report</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Week 1</span>
+            <span className="v2-timeline-desc">Book urology referral via your GP</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Week 2–4</span>
+            <span className="v2-timeline-desc">Attend specialist appointment with results</span>
+          </div>
+          <div className="v2-timeline-step">
+            <span className="v2-timeline-when">Week 4–8</span>
+            <span className="v2-timeline-desc">Decide on further workup (biopsy / watchful waiting)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Your inputs label ── */}
+      <div className="v2-inputs-label">YOUR INPUTS &amp; DETAILED BREAKDOWN</div>
 
       {/* ── Expandable detail sections ── */}
       <div className="p2r-details">
@@ -944,46 +1042,14 @@ const Part2Results = ({
 
       {/* ── Biopsy / AS Tool CTA ── */}
       {(epsaTierKey === 'intermediate-high' || epsaTierKey === 'high') && (
-        <div
-          style={{
-            background: '#eff6ff',
-            borderLeft: '4px solid #2563eb',
-            borderRadius: '8px',
-            padding: '14px 16px',
-            marginTop: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: '13px',
-              color: '#1e40af',
-              letterSpacing: '0.03em',
-            }}
-          >
-            Already had a biopsy?
-          </span>
-          <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
-            Use our AI Surveillance Tool to assess your active surveillance options.
-          </p>
+        <div className="v2-as-tool-cta">
+          <span className="v2-as-tool-cta-label">Already had a biopsy?</span>
+          <p className="v2-as-tool-cta-desc">Use our AI Surveillance Tool to assess your active surveillance options.</p>
           <a
             href={`https://as.millionstrongmen.com?psa=${encodeURIComponent(psaValue ?? '')}&source=epsa`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              alignSelf: 'flex-start',
-              background: '#2563eb',
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: 600,
-              padding: '8px 14px',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              letterSpacing: '0.01em',
-            }}
+            className="v2-as-tool-cta-btn"
           >
             Open AS Tool →
           </a>
