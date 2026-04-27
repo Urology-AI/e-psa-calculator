@@ -407,7 +407,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
+          <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem' }}>
             {t('part1.step1.inflammationHistory.prompt')}
             <br />
             <span style={{ fontSize: '0.8125rem', fontStyle: 'italic' }}>
@@ -558,7 +558,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </div>
           )}
 
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
             {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
@@ -746,7 +746,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
+          <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem' }}>
             {t('part1.step4.comorbidities.prompt')}
           </div>
           <div style={{ marginBottom: '16px' }}>
@@ -825,13 +825,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </span>
           )}
           {!ipssComplete && !attemptedNext && (
-            <span style={{ color: '#7F8C8D', fontSize: '0.75rem' }}>
+            <span className="question-subtext" style={{ fontSize: '0.75rem' }}>
               {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
             </span>
           )}
         </div>
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.ipss.note')}
       </div>
       {ipssQuestions.map((q, index) => (
@@ -859,7 +859,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : '#7F8C8D' }}>
+      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
         {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
       </div>
     </div>
@@ -885,13 +885,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <InfoIcon {...fieldReferences.shim} />
           {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!shimComplete && (
-            <span style={{ color: attemptedNext ? '#E74C3C' : '#7F8C8D', fontSize: '0.75rem' }}>
+            <span className={!attemptedNext ? 'question-subtext' : undefined} style={{ color: attemptedNext ? '#E74C3C' : undefined, fontSize: '0.75rem' }}>
               {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
             </span>
           )}
         </div>
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.shim.note')}
       </div>
       {shimQuestions.map((item, index) => (
@@ -915,7 +915,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : '#7F8C8D' }}>
+      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
         {t('part1.shim.totalLabel')}: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
       </div>
     </div>
