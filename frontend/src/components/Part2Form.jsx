@@ -148,7 +148,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 </div>
               )}
 
-              <div style={{ marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600, color: '#1C2833' }}>
+              <div className="question-subtext" style={{ marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600 }}>
                 Prostate Volume (mL) (optional)
               </div>
               <input
@@ -161,7 +161,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 value={localData.prostateVolume}
                 onChange={(e) => updateField('prostateVolume', e.target.value)}
               />
-              <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem', color: '#7F8C8D' }}>
+              <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem' }}>
                 {t('part2.psa.psaNote')}
               </div>
             </div>
@@ -200,7 +200,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               </div>
               {localData.onHormonalTherapy && (
                 <div style={{ marginTop: '12px' }}>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: '500', marginBottom: '8px', color: '#1C2833' }}>
+                  <div className="question-subtext" style={{ fontSize: '0.8125rem', fontWeight: '500', marginBottom: '8px' }}>
                     {t('part2.psa.q4Label')}
                   </div>
                   <div className="option-grid c2">
@@ -292,7 +292,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 </button>
               ))}
             </div>
-            <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem', color: '#7F8C8D' }}>
+            <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem' }}>
               {t('part2.mri.q2Note')}
             </div>
           </div>
