@@ -322,8 +322,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
-  const brcaLabel = brcaPositive ? 'Positive' : brcaStatus === 'no' ? 'Negative (tested)' : 'Not tested / Unknown';
-  addImpact('BRCA mutation', brcaLabel, brcaPositive ? 16 : 0);
+  const brcaLabel = brcaPositive ? 'Reported' : brcaStatus === 'no' ? 'None reported' : 'Not tested / Unknown';
+  addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0);
   addImpact(
     'Inflammation history',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
@@ -408,7 +408,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     age_guideline_55_69:
       'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician, regardless of ePSA score. Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
-      'Due to your high-risk profile (Black ancestry or BRCA mutation), AUA/SUO guidelines recommend discussing PSA screening from age 40. Please speak with your physician.',
+      'Due to your high-risk profile (Black ancestry or a hereditary genetic mutation), AUA/SUO guidelines recommend discussing PSA screening from age 40. Please speak with your physician.',
     family_history_override:
       'Due to your family history of prostate cancer, AUA/SUO guidelines recommend PSA screening from age 40. Please speak with your physician.'
   };
@@ -847,4 +847,3 @@ export const calculateActiveSurveillance = () => {
   console.error('calculateActiveSurveillance has moved to the standalone AI Surveillance Tool repo.');
   return null;
 };
-

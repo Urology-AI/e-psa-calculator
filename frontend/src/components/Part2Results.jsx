@@ -159,8 +159,10 @@ const formatFh = (fh) => {
 };
 const formatBrca = (b) => {
   if (!b || b === 'no' || b === 'none' || b === false) return 'None reported';
+  if (b === 'yes' || b === true || b === 'positive') return 'Reported';
   if (b === 'brca1') return 'BRCA1 mutation';
   if (b === 'brca2') return 'BRCA2 mutation';
+  if (b === 'hoxb13') return 'HOXB13 mutation';
   if (b === 'unknown') return 'Unknown';
   return b;
 };
@@ -260,7 +262,7 @@ const Part1ProfileCard = ({ preResult, preData, postData }) => {
             <ProfileRow label="Race / Ethnicity" value={formatRace(preData?.race)} />
             <ProfileRow label="BMI" value={formatBmi(preResult?.bmi ?? preData?.bmi)} />
             <ProfileRow label="Family History (PCa)" value={formatFh(preResult?.fhBinary ?? preData?.familyHistory)} highlight={preResult?.fhBinary === 1 || preData?.familyHistory === 'yes'} />
-            <ProfileRow label="BRCA Status" value={formatBrca(preResult?.brcaStatus ?? preData?.brcaStatus)} highlight={preData?.brcaStatus === 'brca1' || preData?.brcaStatus === 'brca2'} />
+            <ProfileRow label="Genetic Mutation" value={formatBrca(preResult?.brcaStatus ?? preData?.brcaStatus)} highlight={preData?.brcaStatus === 'yes' || preData?.brcaStatus === 'positive'} />
           </div>
 
           <div className="p2r-profile-section-label">Symptoms &amp; Function</div>
