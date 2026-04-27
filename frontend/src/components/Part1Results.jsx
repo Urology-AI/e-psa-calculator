@@ -386,16 +386,12 @@ const Part1Results = ({
         </div>
       )}
 
-<<<<<<< claude/elastic-northcutt-48f78c
       {/* ── Research Participation ID ── */}
       {sessionId && sessionId !== 'Local' && (
         <ResearchIdCard sessionId={sessionId} />
       )}
 
-      {/* ── Risk Summary Card ── */}
-=======
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
->>>>>>> main
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
           <span>ePSA Risk Assessment · Part 1 Baseline</span>
