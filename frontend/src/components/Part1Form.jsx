@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Part1Form.css';
+import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const IPSS_QUESTION_KEYS = [
@@ -289,7 +290,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">{t('part1.steps.aboutYou.sectionTitle')}</div>
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 1 · 2 questions</span>
+        <span className="v2-section-title">{t('part1.steps.aboutYou.sectionTitle')}</span>
+      </div>
 
       <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -325,19 +329,23 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <select 
-            className="input-field" 
-            style={{ width: '100%' }}
-            value={localData.race || ''} 
-            onChange={(e) => updateField('race', e.target.value)}
-          >
-            <option value="">{t('part1.fields.race.selectPlaceholder')}</option>
-            <option value="white">{t('part1.race.white')}</option>
-            <option value="black">{t('part1.race.black')}</option>
-            <option value="hispanic">{t('part1.race.hispanic')}</option>
-            <option value="asian">{t('part1.race.asian')}</option>
-            <option value="other">{t('part1.race.other')}</option>
-          </select>
+          <div className="option-grid c2">
+            {[
+              { value: 'white', label: t('part1.race.white') },
+              { value: 'black', label: t('part1.race.black') },
+              { value: 'hispanic', label: t('part1.race.hispanic') },
+              { value: 'asian', label: t('part1.race.asian') },
+              { value: 'other', label: t('part1.race.other') },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.race === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('race', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           {attemptedNext && !raceValid && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.raceInline')}
@@ -356,7 +364,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">{t('part1.steps.familyGeneticRisk.sectionTitle')}</div>
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 2 · 3 questions</span>
+        <span className="v2-section-title">{t('part1.steps.familyGeneticRisk.sectionTitle')}</span>
+      </div>
 
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -466,7 +477,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">{t('part1.steps.bodyMetrics.sectionTitle')}</div>
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 3 · 2 measurements</span>
+        <span className="v2-section-title">{t('part1.steps.bodyMetrics.sectionTitle')}</span>
+      </div>
 
       <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -561,7 +575,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">{t('part1.steps.lifestyle.sectionTitle')}</div>
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 4 · 3 questions</span>
+        <span className="v2-section-title">{t('part1.steps.lifestyle.sectionTitle')}</span>
+      </div>
 
       <div className="question-card" style={{ borderColor: exerciseValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -573,16 +590,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 0, label: t('part1.step3.exercise.regular') },
-              { value: 1, label: t('part1.step3.exercise.some') },
-              { value: 2, label: t('part1.step3.exercise.none') },
+              { value: 0, label: t('part1.step3.exercise.regular'), Icon: Dumbbell },
+              { value: 1, label: t('part1.step3.exercise.some'), Icon: Activity },
+              { value: 2, label: t('part1.step3.exercise.none'), Icon: Sofa },
             ].map(opt => (
               <button
                 key={opt.value}
                 className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('exercise', opt.value)}
               >
-                {opt.label}
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <opt.Icon size={18} />
+                  {opt.label}
+                </span>
               </button>
             ))}
           </div>
@@ -604,16 +624,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-body">
           <div className="option-grid c3">
             {[
-              { value: 2, label: t('part1.step3.smoking.current') },
-              { value: 1, label: t('part1.step3.smoking.former') },
-              { value: 0, label: t('part1.step3.smoking.never') },
+              { value: 2, label: t('part1.step3.smoking.current'), Icon: Flame },
+              { value: 1, label: t('part1.step3.smoking.former'), Icon: Cigarette },
+              { value: 0, label: t('part1.step3.smoking.never'), Icon: CigaretteOff },
             ].map(opt => (
               <button
                 key={opt.value}
                 className={`option-btn ${localData.smoking === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('smoking', opt.value)}
               >
-                {opt.label}
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <opt.Icon size={18} />
+                  {opt.label}
+                </span>
               </button>
             ))}
           </div>
@@ -635,15 +658,18 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: 'yes', label: t('part1.options.yes') },
-              { value: 'no', label: t('part1.options.no') },
+              { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
+              { value: 'no', label: t('part1.options.no'), Icon: CheckCircle2 },
             ].map(opt => (
               <button
                 key={opt.value}
                 className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('chemicalExposure', opt.value)}
               >
-                {opt.label}
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <opt.Icon size={18} />
+                  {opt.label}
+                </span>
               </button>
             ))}
           </div>
@@ -668,7 +694,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">{t('part1.steps.additionalInfo.sectionTitle')}</div>
+      <div className="v2-section-label">
+        <span className="v2-section-eyebrow">Section 5 · 2 questions</span>
+        <span className="v2-section-title">{t('part1.steps.additionalInfo.sectionTitle')}</span>
+      </div>
 
       <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -680,21 +709,24 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-body">
           <div className="option-grid c2">
             {[
-              { value: 'western', label: t('part1.step4.diet.western') },
-              { value: 'mediterranean', label: t('part1.step4.diet.mediterranean') },
-              { value: 'indian', label: t('part1.step4.diet.indian') },
-              { value: 'dash', label: t('part1.step4.diet.dash') },
-              { value: 'plant-based', label: t('part1.step4.diet.plantBased') },
-              { value: 'pescatarian', label: t('part1.step4.diet.pescatarian') },
-              { value: 'low-carb-keto', label: t('part1.step4.diet.lowCarbKeto') },
-              { value: 'other', label: t('part1.step4.diet.other') },
+              { value: 'western', label: t('part1.step4.diet.western'), Icon: Beef },
+              { value: 'mediterranean', label: t('part1.step4.diet.mediterranean'), Icon: Salad },
+              { value: 'indian', label: t('part1.step4.diet.indian'), Icon: Flame },
+              { value: 'dash', label: t('part1.step4.diet.dash'), Icon: Heart },
+              { value: 'plant-based', label: t('part1.step4.diet.plantBased'), Icon: Leaf },
+              { value: 'pescatarian', label: t('part1.step4.diet.pescatarian'), Icon: Fish },
+              { value: 'low-carb-keto', label: t('part1.step4.diet.lowCarbKeto'), Icon: Apple },
+              { value: 'other', label: t('part1.step4.diet.other'), Icon: CheckCircle2 },
             ].map(opt => (
               <button
                 key={opt.value}
                 className={`option-btn ${localData.dietPattern === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('dietPattern', opt.value)}
               >
-                {opt.label}
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <opt.Icon size={18} />
+                  {opt.label}
+                </span>
               </button>
             ))}
           </div>
@@ -779,20 +811,25 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">
-        {t('part1.steps.ipss.sectionTitle')}
-        <InfoIcon {...fieldReferences.ipss} />
-        {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
-        {!ipssComplete && attemptedNext && (
-          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
-            {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
-          </span>
-        )}
-        {!ipssComplete && !attemptedNext && (
-          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
-            {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
-          </span>
-        )}
+      <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <span className="v2-section-eyebrow">Section 6 · 7 questions</span>
+          <span className="v2-section-title">{t('part1.steps.ipss.sectionTitle')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+          <InfoIcon {...fieldReferences.ipss} />
+          {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
+          {!ipssComplete && attemptedNext && (
+            <span style={{ color: '#E74C3C', fontSize: '0.75rem' }}>
+              {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
+            </span>
+          )}
+          {!ipssComplete && !attemptedNext && (
+            <span style={{ color: '#7F8C8D', fontSize: '0.75rem' }}>
+              {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
+            </span>
+          )}
+        </div>
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
         {t('part1.ipss.note')}
@@ -839,20 +876,20 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     
     return (
     <div className="part1-step">
-      <div className="section-header">
-        {t('part1.steps.shim.sectionTitle')}
-        <InfoIcon {...fieldReferences.shim} />
-        {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '12px' }} />}
-        {!shimComplete && attemptedNext && (
-          <span style={{ color: '#E74C3C', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
-            {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
-          </span>
-        )}
-        {!shimComplete && !attemptedNext && (
-          <span style={{ color: '#7F8C8D', marginLeft: '12px', fontSize: '0.875rem', fontWeight: '400' }}>
-            {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
-          </span>
-        )}
+      <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <span className="v2-section-eyebrow">Section 7 · 5 questions</span>
+          <span className="v2-section-title">{t('part1.steps.shim.sectionTitle')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+          <InfoIcon {...fieldReferences.shim} />
+          {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
+          {!shimComplete && (
+            <span style={{ color: attemptedNext ? '#E74C3C' : '#7F8C8D', fontSize: '0.75rem' }}>
+              {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
+            </span>
+          )}
+        </div>
       </div>
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
         {t('part1.shim.note')}
@@ -1001,45 +1038,75 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   // Total distinct answerable items: 11 core + 4 comorbidities + 7 IPSS + 5 SHIM = 27
   const totalQuestions = 27;
 
+  const remainingOnStep = (() => {
+    const stepValidation = validateStep(part1Step);
+    return stepValidation.length;
+  })();
+
   return (
     <div className="part1-form-container">
+      {/* v2 flow header */}
       <div className="flow-header">
-        <div className="flow-step-chip">{t('part1.form.stepChip', { current: part1Step + 1, total: steps.length })}</div>
-        <h3 className="flow-step-title">{steps[part1Step]?.label}</h3>
-        <p className="flow-step-note">{t('part1.form.flowNote')}</p>
-      </div>
-      <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
+        <div className="v2-flow-head">
+          <div>
+            <div className="v2-flow-eyebrow">Step {part1Step + 1} of {steps.length} · Part 1 · Baseline</div>
+            <h3 className="v2-flow-title">{steps[part1Step]?.label}</h3>
+          </div>
+          <div className="v2-flow-estimate">
+            <span className="v2-flow-estimate-lbl">Answered</span>
+            <div className="v2-flow-estimate-val">{answeredCount}<span className="v2-flow-estimate-max">/{totalQuestions}</span></div>
+          </div>
+        </div>
       </div>
 
-      <div className="answer-counter">
-        {t('part1.form.answeredCounter', { answeredCount, totalQuestions })}
+      {/* Progress bar */}
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${((part1Step + 1) / steps.length) * 100}%` }}></div>
       </div>
+
+      {/* Step dots */}
+      <div className="v2-step-dots">
+        {steps.map((_, i) => {
+          const isComplete = validateStep(i).length === 0;
+          const isCurrent = i === part1Step;
+          return (
+            <div
+              key={i}
+              className={`v2-step-dot ${isCurrent ? 'v2-step-dot--current' : isComplete ? 'v2-step-dot--done' : ''}`}
+            />
+          );
+        })}
+      </div>
+
       {renderStepErrors()}
       {steps[part1Step]?.render()}
-      <div className="form-navigation">
-        <div className="form-navigation-inner">
-          {part1Step > 0 && (
-            <button className="btn-back" onClick={onBack}>
-              {t('part1.nav.back')}
-            </button>
-          )}
-          {part1Step < steps.length - 1 ? (
-            <button className="btn-next" onClick={handleNext}>
-              {t('part1.nav.next')}
-            </button>
-          ) : (
-            <button
-              className="btn-calculate"
-              onClick={onNext}
-              disabled={!canProceedResult}
-              title={!canProceedResult ? t('part1.nav.calculateTitleDisabled') : t('part1.nav.calculateTitleEnabled')}
-            >
-              {canProceedResult
-                ? t('part1.nav.calculate')
-                : t('part1.nav.calculateIncomplete', { answeredCount, totalQuestions })}
-            </button>
-          )}
+
+      {/* v2 sticky bottom nav */}
+      <div className="v2-form-nav">
+        <div className="v2-form-nav-inner">
+          <div className="v2-form-nav-status">
+            <span><strong>{answeredCount} of {totalQuestions}</strong> answered</span>
+            {remainingOnStep > 0 && <span>{remainingOnStep} remaining on this step</span>}
+          </div>
+          <div className="v2-form-nav-btns">
+            {part1Step > 0 && (
+              <button className="btn-back" onClick={onBack}>{t('part1.nav.back')}</button>
+            )}
+            {part1Step < steps.length - 1 ? (
+              <button className="btn-next" onClick={handleNext}>{t('part1.nav.next')}</button>
+            ) : (
+              <button
+                className="btn-calculate"
+                onClick={onNext}
+                disabled={!canProceedResult}
+                title={!canProceedResult ? t('part1.nav.calculateTitleDisabled') : t('part1.nav.calculateTitleEnabled')}
+              >
+                {canProceedResult
+                  ? t('part1.nav.calculate')
+                  : t('part1.nav.calculateIncomplete', { answeredCount, totalQuestions })}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
