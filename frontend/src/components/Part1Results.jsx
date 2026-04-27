@@ -231,6 +231,70 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
   </div>
 );
 
+/* ─── Research ID Card ─── */
+const ResearchIdCard = ({ sessionId }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(sessionId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <div style={{
+      background: '#f0f7ff',
+      border: '1.5px solid #3b82f6',
+      borderRadius: '10px',
+      padding: '14px 16px',
+      margin: '12px 0',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '6px',
+    }} role="region" aria-label="Research participation ID">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <FlaskConicalIcon size={15} color="#3b82f6" />
+        <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e40af' }}>
+          Research Participation ID
+        </span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{
+          fontFamily: 'monospace',
+          fontSize: '22px',
+          fontWeight: 700,
+          letterSpacing: '4px',
+          color: '#1e3a8a',
+          background: '#dbeafe',
+          borderRadius: '6px',
+          padding: '4px 12px',
+        }}>
+          {sessionId}
+        </span>
+        <button
+          onClick={handleCopy}
+          style={{
+            background: copied ? '#22c55e' : '#3b82f6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+          }}
+          aria-label="Copy research ID to clipboard"
+        >
+          {copied ? '✓ Copied' : 'Copy'}
+        </button>
+      </div>
+      <p style={{ margin: 0, fontSize: '12px', color: '#1e40af' }}>
+        Show this code to your clinic staff to link your responses to your visit — no personal information is stored.
+      </p>
+    </div>
+  );
+};
+
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -322,7 +386,16 @@ const Part1Results = ({
         </div>
       )}
 
+<<<<<<< claude/elastic-northcutt-48f78c
+      {/* ── Research Participation ID ── */}
+      {sessionId && sessionId !== 'Local' && (
+        <ResearchIdCard sessionId={sessionId} />
+      )}
+
+      {/* ── Risk Summary Card ── */}
+=======
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
+>>>>>>> main
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
           <span>ePSA Risk Assessment · Part 1 Baseline</span>
