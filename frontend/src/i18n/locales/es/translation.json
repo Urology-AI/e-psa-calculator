@@ -295,7 +295,7 @@
     },
     "sectionRiskExplanationTitle": "Explicación del riesgo",
     "sectionHowCalculatedTitle": "Cómo se calcula esta puntuación",
-    "explanationHowScoreCalculated": "La puntuación ePSA es un resumen basado en puntos de sus respuestas. Cada factor de riesgo (por ejemplo, edad de 60 años o más, IMC ≥30, síntomas urinarios leves, poco o ningún ejercicio, tabaquismo actual o anterior, dieta rica en carnes rojas, raza negra, antecedentes familiares, BRCA, inflamación, exposición al agente naranja/químicos o una puntuación SHIM baja) suma puntos. Luego, los puntos totales se normalizan a una escala de 0 a 100 %, y se muestra un rango de ±5 % en lugar de un solo número.",
+    "explanationHowScoreCalculated": "La puntuación ePSA es un resumen basado en puntos de sus respuestas. Cada factor de riesgo (por ejemplo, edad de 60 años o más, IMC ≥30, síntomas urinarios leves, poco o ningún ejercicio, tabaquismo actual o anterior, dieta rica en carnes rojas, raza negra, antecedentes familiares, mutación genética, inflamación, exposición al agente naranja/químicos o una puntuación SHIM baja) suma puntos. Luego, los puntos totales se normalizan a una escala de 0 a 100 %, y se muestra un rango de ±5 % en lugar de un solo número.",
     "sectionWhatTierMeansTitle": "Qué significa tu nivel",
     "sectionGuidelineContextTitle": "Contexto de la directriz (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Umbral de recomendación",
@@ -456,7 +456,7 @@
     "shimPlaceholder": "por ejemplo, 25",
     "defaultsTitle": "Valores predeterminados (opcional)",
     "editDefaults": "Editar valores predeterminados",
-    "defaultsHint": "Uso: Fumar = Nunca, Dieta = Regular (occidental), Exposición a sustancias químicas = No, BRCA = No, Inflamación = No, Comorbilidades = Ninguna, Ejercicio = Regular.",
+    "defaultsHint": "Uso: Fumar = Nunca, Dieta = Regular (occidental), Exposición a sustancias químicas = No, Mutación genética = No, Inflamación = No, Comorbilidades = Ninguna, Ejercicio = Regular.",
     "exerciseLabel": "Nivel de ejercicio",
     "exercise": {
       "regular": "Regular (3+ días/semana)",
@@ -485,7 +485,7 @@
       "lowCarbKeto": "Bajo en carbohidratos/ceto",
       "other": "Otro / Prefiero no decirlo"
     },
-    "brcaLabel": "mutación BRCA",
+    "brcaLabel": "mutación genética",
     "inflammationLabel": "Historial de inflamación",
     "chemicalExposureLabel": "Exposición química",
     "defaultsAffectHint": "Los incumplimientos afectan la puntuación de riesgo (y la recomendación de PSA) junto con SHIM/IPSS.",
@@ -744,8 +744,8 @@
         "description": "Las afecciones inflamatorias crónicas como la prostatitis, la colitis ulcerosa y la enfermedad de Crohn pueden aumentar el riesgo de cáncer de próstata a través de mecanismos de inflamación crónica."
       },
       "brcaStatus": {
-        "title": "Mutaciones BRCA",
-        "description": "Las mutaciones de los genes BRCA1 y BRCA2 aumentan el riesgo de cáncer de próstata. Los hombres con mutaciones BRCA2 tienen un riesgo de por vida del 20-25%."
+        "title": "Mutación genética conocida",
+        "description": "Seleccione Sí si le han informado que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13. Las mutaciones BRCA2 se asocian con mayor riesgo de cáncer de próstata y pueden relacionarse con enfermedad más agresiva. HOXB13, especialmente la variante G84E en algunas familias, es un gen de susceptibilidad hereditaria al cáncer de próstata."
       },
       "heightWeight": {
         "title": "Altura y peso (IMC)",
@@ -831,7 +831,7 @@
         },
         "step1": {
           "familyHistoryInvalid": "Por favor responda la pregunta de historia familiar.",
-          "brcaInvalid": "Por favor responda la pregunta sobre el estado de BRCA"
+          "brcaInvalid": "Por favor responda la pregunta sobre mutación genética"
         },
         "step2": {
           "heightInvalid": "Por favor ingresa una altura válida",

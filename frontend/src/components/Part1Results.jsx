@@ -106,7 +106,7 @@ const PSA_BANNER_CONFIG = {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
     label: 'PSA SCREENING RECOMMENDED — HIGH-RISK PROFILE', labelColor: '#991b1b',
     Icon: AlertCircleIcon,
-    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a BRCA mutation. AUA is the most explicit about starting from age 40.',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a hereditary genetic mutation. AUA is the most explicit about starting from age 40.',
   },
   family_history_override: {
     bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
@@ -430,7 +430,7 @@ const Part1Results = ({
         <div className="high-risk-notice" role="note">
           <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
           <p>
-            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, BRCA mutation, or multiple comorbidities). Earlier evaluation is recommended.
+            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, hereditary genetic mutation, or multiple comorbidities). Earlier evaluation is recommended.
           </p>
         </div>
       )}
