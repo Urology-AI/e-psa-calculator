@@ -275,8 +275,8 @@
         "description": "Chronic inflammatory conditions like prostatitis, ulcerative colitis, and Crohn's disease may increase prostate cancer risk through chronic inflammation mechanisms."
       },
       "brcaStatus": {
-        "title": "BRCA Mutations",
-        "description": "BRCA1 and BRCA2 gene mutations increase prostate cancer risk. Men with BRCA2 mutations have a 20-25% lifetime risk."
+        "title": "Known Genetic Mutation",
+        "description": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13. BRCA2 mutations are associated with increased prostate cancer risk and can be linked to more aggressive disease. HOXB13, especially the G84E variant in some families, is a hereditary prostate cancer susceptibility gene."
       },
       "heightWeight": {
         "title": "Height & Weight (BMI)",
@@ -363,7 +363,7 @@
         },
         "step1": {
           "familyHistoryInvalid": "Please answer family history question",
-          "brcaInvalid": "Please answer BRCA status question"
+          "brcaInvalid": "Please answer genetic mutation question"
         },
         "step2": {
           "heightInvalid": "Please enter valid height",
@@ -632,7 +632,7 @@
     },
     "sectionRiskExplanationTitle": "Risk explanation",
     "sectionHowCalculatedTitle": "How this score is calculated",
-    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, BRCA, inflammation, Agent Orange/chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
+    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, Agent Orange/chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
     "sectionWhatTierMeansTitle": "What your tier means",
     "sectionGuidelineContextTitle": "Guideline context (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Recommendation Threshold",
@@ -794,7 +794,7 @@
     "shimPlaceholder": "e.g., 25",
     "defaultsTitle": "Defaults (optional)",
     "editDefaults": "Edit defaults",
-    "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, BRCA = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
+    "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, Genetic mutation = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
     "exerciseLabel": "Exercise level",
     "exercise": {
       "regular": "Regular (3+ days/week)",
@@ -823,7 +823,7 @@
       "lowCarbKeto": "Low-carb / Keto",
       "other": "Other / Prefer not to say"
     },
-    "brcaLabel": "BRCA mutation",
+    "brcaLabel": "Genetic mutation",
     "inflammationLabel": "Inflammation history",
     "chemicalExposureLabel": "Chemical exposure",
     "defaultsAffectHint": "Defaults affect the risk score (and PSA recommendation) alongside SHIM/IPSS.",
@@ -1058,4 +1058,3 @@
     }
   }
 }
-
