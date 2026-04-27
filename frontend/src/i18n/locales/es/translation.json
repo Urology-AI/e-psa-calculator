@@ -728,15 +728,18 @@
       "age": {
         "title": "Edad",
         "placeholder": "Edad (18+)",
+        "helper": "Su edad ayuda a calibrar la prioridad de detección porque el riesgo de cáncer de próstata aumenta con el tiempo.",
         "description": "El riesgo aumenta con la edad, especialmente después de los 50 años. La edad promedio de diagnóstico es 66 años."
       },
       "race": {
         "title": "Raza/Etnia",
         "selectPlaceholder": "Seleccione raza/etnia",
+        "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
         "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
       },
       "familyHistory": {
         "title": "Historia familiar",
+        "helper": "Incluya familiares consanguíneos cercanos, como padre, hermano o hijo, que hayan tenido cáncer de próstata.",
         "description": "Tener un padre o un hermano con cáncer de próstata duplica con creces el riesgo de un hombre. El riesgo es aún mayor si hay varios familiares afectados."
       },
       "inflammationHistory": {
@@ -745,6 +748,7 @@
       },
       "brcaStatus": {
         "title": "Mutación genética conocida",
+        "helper": "Seleccione Sí si le han dicho que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13.",
         "description": "Seleccione Sí si le han informado que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13. Las mutaciones BRCA2 se asocian con mayor riesgo de cáncer de próstata y pueden relacionarse con enfermedad más agresiva. HOXB13, especialmente la variante G84E en algunas familias, es un gen de susceptibilidad hereditaria al cáncer de próstata."
       },
       "heightWeight": {
@@ -753,18 +757,22 @@
       },
       "exercise": {
         "title": "Nivel de ejercicio",
+        "helper": "Piense en una semana típica y elija la opción que mejor refleje su actividad física planificada.",
         "description": "La actividad física regular se asocia con un riesgo reducido de cáncer de próstata agresivo."
       },
       "smoking": {
         "title": "Estado de fumar",
+        "helper": "Incluya cigarrillos u otro consumo regular de tabaco al elegir su estado actual o anterior.",
         "description": "Fumar está relacionado con un mayor riesgo de cáncer de próstata agresivo y mayores tasas de mortalidad."
       },
       "chemicalExposure": {
         "title": "Exposición química",
+        "helper": "Responda Sí si ha tenido una exposición ocupacional, militar o ambiental significativa.",
         "description": "La exposición al Agente Naranja, pesticidas y ciertos químicos industriales puede aumentar el riesgo de cáncer de próstata."
       },
       "diet": {
         "title": "Patrón de dieta",
+        "helper": "Elija el patrón que describa mejor sus hábitos alimentarios habituales.",
         "description": "Las dietas ricas en carnes rojas y lácteos ricos en grasas pueden aumentar el riesgo. Las dietas basadas en plantas pueden tener un efecto protector."
       },
       "ipss": {
@@ -873,6 +881,8 @@
     "step2": {
       "heightQuestion": "Altura",
       "weightQuestion": "Peso",
+      "heightHelper": "La altura se usa con el peso para estimar el IMC, uno de los factores incluidos en este perfil de detección.",
+      "weightHelper": "El peso se usa con la altura para calcular automáticamente el IMC; una estimación está bien si no conoce el peso exacto.",
       "heightUnit": {
         "imperial": "Pies/pulgadas",
         "metric": "Centímetros"
@@ -944,6 +954,7 @@
     },
     "ipss": {
       "note": "Durante el último mes, ¿con qué frecuencia ha tenido:",
+      "helper": "Responda según sus síntomas urinarios durante el último mes.",
       "answeredCount": "({{answeredCount}}/{{total}} respondió)",
       "totalLabel": "IPSS Total",
       "q1": "Vaciado incompleto: ¿no vaciar completamente la vejiga?",
@@ -962,6 +973,7 @@
     },
     "shim": {
       "note": "Durante los últimos 6 meses:",
+      "helper": "Responda según su función sexual durante los últimos 6 meses.",
       "answeredCount": "({{answeredCount}}/{{total}} respondió)",
       "totalLabel": "CUÑA Total",
       "q1": "¿Cómo califica su confianza en que podrá lograr y mantener una erección?",

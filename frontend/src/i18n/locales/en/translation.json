@@ -259,15 +259,18 @@
       "age": {
         "title": "Age",
         "placeholder": "Age (18+)",
+        "helper": "Your age helps calibrate screening priority because prostate cancer risk rises over time.",
         "description": "Risk increases with age, particularly after 50. The average age of diagnosis is 66."
       },
       "race": {
         "title": "Race/Ethnicity",
         "selectPlaceholder": "Select race/ethnicity",
+        "helper": "Choose the category that best fits how you identify; ancestry can affect screening recommendations.",
         "description": "Black/African American men have higher risk and are more likely to develop prostate cancer at a younger age."
       },
       "familyHistory": {
         "title": "Family History",
+        "helper": "Count close blood relatives, such as a father, brother, or son, who have had prostate cancer.",
         "description": "Having a father or brother with prostate cancer more than doubles a man's risk. The risk is even higher with multiple affected relatives."
       },
       "inflammationHistory": {
@@ -276,6 +279,7 @@
       },
       "brcaStatus": {
         "title": "Known Genetic Mutation",
+        "helper": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13.",
         "description": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13. BRCA2 mutations are associated with increased prostate cancer risk and can be linked to more aggressive disease. HOXB13, especially the G84E variant in some families, is a hereditary prostate cancer susceptibility gene."
       },
       "heightWeight": {
@@ -284,18 +288,22 @@
       },
       "exercise": {
         "title": "Exercise Level",
+        "helper": "Think about a typical week and choose the option that best reflects planned physical activity.",
         "description": "Regular physical activity is associated with reduced risk of aggressive prostate cancer."
       },
       "smoking": {
         "title": "Smoking Status",
+        "helper": "Include cigarettes or other regular tobacco use when choosing your current or past smoking status.",
         "description": "Smoking is linked to increased risk of aggressive prostate cancer and higher mortality rates."
       },
       "chemicalExposure": {
         "title": "Chemical Exposure",
+        "helper": "Answer Yes if you have had meaningful occupational, military, or environmental exposure.",
         "description": "Exposure to Agent Orange, pesticides, and certain industrial chemicals may increase prostate cancer risk."
       },
       "diet": {
         "title": "Diet Pattern",
+        "helper": "Pick the pattern that most closely describes your usual eating habits.",
         "description": "Diets high in red meat and high-fat dairy may increase risk. Plant-based diets may be protective."
       },
       "ipss": {
@@ -405,6 +413,8 @@
     "step2": {
       "heightQuestion": "Height",
       "weightQuestion": "Weight",
+      "heightHelper": "Height is used with weight to estimate BMI, one of the factors included in this screening profile.",
+      "weightHelper": "Weight is used with height to auto-calculate BMI; an estimate is okay if exact weight is not available.",
       "heightUnit": {
         "imperial": "Feet / Inches",
         "metric": "Centimeters"
@@ -476,6 +486,7 @@
     },
     "ipss": {
       "note": "Over the past month, how often have you had:",
+      "helper": "Answer based on your urinary symptoms during the past month.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "IPSS Total",
       "q1": "Incomplete emptying — not fully emptying your bladder?",
@@ -494,6 +505,7 @@
     },
     "shim": {
       "note": "Over the past 6 months:",
+      "helper": "Answer based on your sexual function over the past 6 months.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "SHIM Total",
       "q1": "How do you rate your confidence that you could get and keep an erection?",

@@ -84,6 +84,11 @@ const SHIM_QUESTION_KEYS = [
 
 const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1Step }) => {
   const { t } = useTranslation();
+  const QuestionSubtext = ({ i18nKey, children, style }) => (
+    <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem', lineHeight: 1.5, ...style }}>
+      {i18nKey ? t(i18nKey) : children}
+    </div>
+  );
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
@@ -303,6 +308,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.age.helper" />
           <input
             type="number"
             className="input-field"
@@ -329,6 +335,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.race.helper" />
           <div className="option-grid c2">
             {[
               { value: 'white', label: t('part1.race.white') },
@@ -377,6 +384,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
           <div className="option-grid c3">
             {[
               { value: 0, label: t('part1.options.no') },
@@ -407,13 +415,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem' }}>
+          <QuestionSubtext>
             {t('part1.step1.inflammationHistory.prompt')}
             <br />
             <span style={{ fontSize: '0.8125rem', fontStyle: 'italic' }}>
               {t('part1.step1.inflammationHistory.example')}
             </span>
-          </div>
+          </QuestionSubtext>
           <div className="option-grid c3">
             {[
               { value: 0, label: t('part1.options.no') },
@@ -444,6 +452,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
           <div className="option-grid c3">
             {[
               { value: 'yes', label: t('part1.options.yes') },
@@ -490,6 +499,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.heightHelper" />
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
               {t('part1.step2.heightUnit.imperial')}
@@ -533,6 +543,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.weightHelper" />
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
               {t('part1.step2.weightUnit.lbs')}
@@ -588,6 +599,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.exercise.helper" />
           <div className="option-grid c3">
             {[
               { value: 0, label: t('part1.step3.exercise.regular'), Icon: Dumbbell },
@@ -622,6 +634,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.smoking.helper" />
           <div className="option-grid c3">
             {[
               { value: 2, label: t('part1.step3.smoking.current'), Icon: Flame },
@@ -656,6 +669,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
           <div className="option-grid c2">
             {[
               { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
@@ -707,6 +721,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.diet.helper" />
           <div className="option-grid c2">
             {[
               { value: 'western', label: t('part1.step4.diet.western'), Icon: Beef },
@@ -746,9 +761,9 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem' }}>
+          <QuestionSubtext>
             {t('part1.step4.comorbidities.prompt')}
-          </div>
+          </QuestionSubtext>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>{t('part1.step4.comorbidities.askAnyLabel')}</div>
             <div className="option-grid c2">
@@ -845,6 +860,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             {localData.ipss[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
           <div className="question-body">
+            <QuestionSubtext i18nKey="part1.ipss.helper" />
             <div className="option-grid c3">
               {ipssLabels.map(({ value, label }) => (
                 <button
@@ -905,6 +921,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             {localData.shim[index] !== null && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
           </div>
           <div className="question-body">
+            <QuestionSubtext i18nKey="part1.shim.helper" />
             <div className="option-grid c3">
               {item.opts.map(([score, label]) => (
                 <button key={score} className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`} onClick={() => updateSHIM(index, score)}>
