@@ -392,65 +392,60 @@ const Part1Results = ({
         <ResearchIdCard sessionId={sessionId} />
       )}
 
-      {/* ── Under-40 notice ── */}
-      {belowMinAge && (
-        <div className="under-age-notice" role="note" aria-label="Age eligibility notice">
-          <div className="under-age-notice-icon">ℹ️</div>
-          <div className="under-age-notice-body">
-            <strong>ePSA score not determined for patients under 40.</strong>
-            <p>
-              The ePSA model is not validated below age 40. No PSA screening is currently
-              recommended at your age unless you have a very high-risk family history (more than
-              one first-degree relative diagnosed with prostate cancer at an early age).
-            </p>
-            <p>
-              Per American Cancer Society guidelines, the earliest recommended age to discuss
-              PSA screening is <strong>age 40</strong> (very high risk: multiple first-degree
-              relatives), <strong>age 45</strong> (high risk: African American men or one
-              first-degree relative diagnosed before age 65), or <strong>age 50</strong> for
-              men at average risk.
-            </p>
-            <p>Please speak with your physician if you have concerns.</p>
-          </div>
-        </div>
-      )}
-
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
           <span>ePSA Risk Assessment · Part 1 Baseline</span>
           <span>Assessed today</span>
         </div>
-        <div className="v2-gauge-layout">
-          <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
-          <div className="v2-tier-info">
-            <div className="v2-tier-label">Your Risk Tier</div>
-            <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
-            <div className="v2-tier-score">
-              Score <strong>{impactTotalDisplay}</strong>
-              {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
-            </div>
-            <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
-          </div>
-        </div>
 
-        {/* "What drove this score" cards */}
-        {topFactors.length > 0 && (
-          <div className="v2-why">
-            <div className="v2-why-head">
-              <span className="v2-why-head-title">What drove this score</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }}>See full breakdown ›</span>
-            </div>
-            <div className="v2-why-items">
-              {topFactors.slice(0, 3).map(f => (
-                <div key={f.item} className="v2-why-item">
-                  <div className="v2-why-item-label">{f.item}</div>
-                  <div className="v2-why-item-val">{f.value || '—'}</div>
-                  <div className="v2-why-item-pts" style={{ color: tierAccentColor }}>+{f.points}</div>
-                </div>
-              ))}
+        {belowMinAge ? (
+          /* ── Under-40: suppress score, show N/A card ── */
+          <div className="under-age-notice" role="note">
+            <div className="under-age-notice-icon">ℹ️</div>
+            <div className="under-age-notice-body">
+              <strong>Score not determined — patient is under 40.</strong>
+              <p>
+                Per ACS guidelines, routine PSA screening discussions begin at age 50 (average risk),
+                45 (African American men or first-degree family history), or 40 (multiple first-degree relatives).
+                Speak with your physician if you have concerns.
+              </p>
             </div>
           </div>
+        ) : (
+          <>
+            <div className="v2-gauge-layout">
+              <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
+              <div className="v2-tier-info">
+                <div className="v2-tier-label">Your Risk Tier</div>
+                <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
+                <div className="v2-tier-score">
+                  Score <strong>{impactTotalDisplay}</strong>
+                  {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
+                </div>
+                <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
+              </div>
+            </div>
+
+            {/* "What drove this score" cards */}
+            {topFactors.length > 0 && (
+              <div className="v2-why">
+                <div className="v2-why-head">
+                  <span className="v2-why-head-title">What drove this score</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }}>See full breakdown ›</span>
+                </div>
+                <div className="v2-why-items">
+                  {topFactors.slice(0, 3).map(f => (
+                    <div key={f.item} className="v2-why-item">
+                      <div className="v2-why-item-label">{f.item}</div>
+                      <div className="v2-why-item-val">{f.value || '—'}</div>
+                      <div className="v2-why-item-pts" style={{ color: tierAccentColor }}>+{f.points}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -463,11 +458,11 @@ const Part1Results = ({
         const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
           : isAmber ? 'PSA Test Recommended'
-          : belowMinAge ? 'PSA Test Not Required — Score Not Determined Below Age 40'
+          : belowMinAge ? 'PSA Test Not Required'
           : isGreen ? 'PSA Test Not Currently Indicated'
           : 'PSA Test May Be Appropriate';
         const displayMessage = belowMinAge
-          ? 'ePSA is not validated for patients under 40. Your score is shown as Low Risk (0) and no PSA screening is currently indicated. Please return when you reach the appropriate screening age, or speak with your physician if you have a significant family history.'
+          ? 'No PSA screening is recommended below age 40. Speak with your physician if you have a significant family history of prostate cancer.'
           : psaRecommendMessage;
         return (
           <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
@@ -565,27 +560,36 @@ const Part1Results = ({
       {/* ── Expandable sections ── */}
       <div className="detail-sections">
         <CollapsibleSection title="About Your Result" defaultOpen={true}>
-          {topFactors.length > 0 ? (
-            <p>
-              Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
-              {' '}The factors that contributed most to your score were:{' '}
-              {topFactors.map((f, i) => (
-                <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
-              ))}
-            </p>
+          {belowMinAge ? (
+            <>
+              <p>ePSA is not validated below age 40. No score or risk tier has been calculated. When you reach the appropriate screening age, come back and complete a full assessment.</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>Speak with your physician if you have concerns before that age.</p>
+            </>
           ) : (
-            <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.</p>
+            <>
+              {topFactors.length > 0 ? (
+                <p>
+                  Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
+                  {' '}The factors that contributed most to your score were:{' '}
+                  {topFactors.map((f, i) => (
+                    <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
+                  ))}
+                </p>
+              ) : (
+                <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.</p>
+              )}
+              <p>{getTierDescription(epsaTierKey, activeTier)}</p>
+              {empiricalProbabilityText && (
+                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
+              )}
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.</p>
+            </>
           )}
-          <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-          {empiricalProbabilityText && (
-            <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
-          )}
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.</p>
         </CollapsibleSection>
 
-        {itemImpacts.length > 0 && (
-        <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
-          <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
+        {!belowMinAge && itemImpacts.length > 0 && (
+          <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
+            <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
               <table className="impact-table" aria-label="Item impact breakdown table">
                 <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
@@ -614,15 +618,15 @@ const Part1Results = ({
           </CollapsibleSection>
         )}
 
-        <CollapsibleSection title="Screening Guidelines (AUA / NCCN / ERUS)">
-          <p>Three major organisations publish guidelines on when men should consider a PSA test. Here is what each recommends:</p>
+        <CollapsibleSection title="Screening Guidelines (ACS / AUA / NCCN / ERUS)">
+          <p>When should men consider discussing a PSA test with their doctor?</p>
           <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
-            <li><strong>AUA (American Urological Association) 2023/2026</strong> — All men aged 55–69 should talk to their doctor about PSA testing. Men at higher risk — including those with Black ancestry, a family history of prostate cancer, or a BRCA gene mutation — should have that conversation from age 40.</li>
-            <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — A first PSA test is recommended at age 45 for most men, or at 40 for higher-risk men. Testing every 1–2 years is suggested between ages 45 and 75, adjusted based on results.</li>
-            <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening is recommended from age 50 for most men, or from 45 if there are high-risk factors. How often to test is based on the PSA result and the patient's preferences, decided together with a doctor.</li>
+            <li><strong>ACS (American Cancer Society)</strong> — Age 50 for average-risk men; age 45 for African American men or those with a first-degree relative diagnosed before 65; age 40 for men with more than one first-degree relative diagnosed at an early age.</li>
+            <li><strong>AUA (American Urological Association) 2023/2026</strong> — All men aged 55–69 should discuss PSA testing. High-risk men (Black ancestry, family history, BRCA mutation) should start that conversation from age 40.</li>
+            <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — First PSA at age 45 for most men, or 40 for higher-risk men. Testing every 1–2 years between ages 45 and 75.</li>
+            <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening from age 50 for most men, or 45 for high-risk men.</li>
           </ul>
-          <p>For men at average risk, a typical PSA value considered normal rises slightly with age: roughly 2.5 ng/mL for ages 40–49, 3.5 for ages 50–59, 4.5 for ages 60–69, and 6.5 for ages 70–79.</p>
-          <p className="detail-note"><strong>Where the guidelines don't fully agree:</strong> AUA is the most specific about starting at age 40 for high-risk men. NCCN and ERUS agree on high-risk earlier screening but differ slightly on exact ages and frequency. When this tool recommends earlier screening for your profile, a yellow notice appears above explaining why — and encourages you to confirm the right approach with your doctor.</p>
+          <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="Key Publications">
