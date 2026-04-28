@@ -302,8 +302,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   if (Number.isFinite(bmiNum) && bmiNum >= 30) addImpact('BMI', bmiNum.toFixed(1), 4);
   else addImpact('BMI', Number.isFinite(bmiNum) ? bmiNum.toFixed(1) : 'N/A', 0);
 
-  // Only IPSS mild (0-7) scores. Moderate (8-19) and severe (20-35) score 0.
-  if (ipssTotal >= 0 && ipssTotal <= 7) addImpact('IPSS total', `${ipssTotal}/35`, 8);
+  // Only IPSS moderate (8-19) and severe (20-35) score points. Mild (0-7) scores 0.
+  if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8);
   else addImpact('IPSS total', `${ipssTotal}/35`, 0);
 
   if (exerciseCode === 1) addImpact('Exercise', 'Some', 2);
@@ -318,7 +318,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4);
   else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0);
 
-  addImpact('Black ancestry', isBlack ? 'Yes' : 'No', isBlack ? 8 : 0);
+  addImpact('Black ancestry', isBlack ? 'Yes' : 'No', (isBlack && ageNum >= 40) ? 8 : 0);
   addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
