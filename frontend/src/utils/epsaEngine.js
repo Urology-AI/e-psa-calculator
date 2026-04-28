@@ -406,11 +406,11 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     score_threshold:
       'Your ePSA score exceeds the screening threshold. A PSA test is recommended. Please speak with your physician.',
     age_guideline_55_69:
-      'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician, regardless of ePSA score. Please speak with your doctor about whether PSA testing is right for you.',
+      'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician. The American Cancer Society also recommends that men at average risk discuss screening from age 50. Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
-      'Due to your high-risk profile (Black ancestry or a hereditary genetic mutation), AUA/SUO guidelines recommend discussing PSA screening from age 40. Please speak with your physician.',
+      'Due to your high-risk profile (Black ancestry or a hereditary genetic mutation), both AUA/SUO and American Cancer Society guidelines recommend discussing PSA screening from age 40–45. The ACS specifically recommends African American men and those with a first-degree relative diagnosed before age 65 begin discussions at age 45. Please speak with your physician.',
     family_history_override:
-      'Due to your family history of prostate cancer, AUA/SUO guidelines recommend PSA screening from age 40. Please speak with your physician.'
+      'Due to your family history of prostate cancer, both AUA/SUO and American Cancer Society guidelines recommend PSA screening from age 40–45. The ACS recommends age 45 for men with one first-degree relative diagnosed before 65, and age 40 for men with more than one first-degree relative diagnosed at an early age. Please speak with your physician.'
   };
 
   const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
@@ -546,6 +546,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     age: parseInt(age, 10),
     ipssTotal: ipssTotal,
     shimTotal: shimTotal,
+
+    // Age eligibility
+    belowMinAge: ageNum < 40,
 
     // Metadata
     epsaGuidelineText: epsaTierDef.guideline,
