@@ -434,7 +434,7 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = !recommendPSA;
+        const isGreen = recommendPSA === false;
         const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
         const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended' : isAmber ? 'PSA Test Recommended' : isGreen ? 'PSA Test Not Currently Indicated' : 'PSA Test May Be Appropriate';
