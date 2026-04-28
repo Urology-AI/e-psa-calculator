@@ -319,6 +319,7 @@ const Part1Results = ({
     tierRisk, epsaTierKey, epsaTierLabel,
     epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
+    belowMinAge = false,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -391,6 +392,29 @@ const Part1Results = ({
         <ResearchIdCard sessionId={sessionId} />
       )}
 
+      {/* ── Under-40 notice ── */}
+      {belowMinAge && (
+        <div className="under-age-notice" role="note" aria-label="Age eligibility notice">
+          <div className="under-age-notice-icon">ℹ️</div>
+          <div className="under-age-notice-body">
+            <strong>ePSA score not determined for patients under 40.</strong>
+            <p>
+              The ePSA model is not validated below age 40. No PSA screening is currently
+              recommended at your age unless you have a very high-risk family history (more than
+              one first-degree relative diagnosed with prostate cancer at an early age).
+            </p>
+            <p>
+              Per American Cancer Society guidelines, the earliest recommended age to discuss
+              PSA screening is <strong>age 40</strong> (very high risk: multiple first-degree
+              relatives), <strong>age 45</strong> (high risk: African American men or one
+              first-degree relative diagnosed before age 65), or <strong>age 50</strong> for
+              men at average risk.
+            </p>
+            <p>Please speak with your physician if you have concerns.</p>
+          </div>
+        </div>
+      )}
+
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
@@ -434,17 +458,24 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = recommendPSA === false;
+        const isGreen = belowMinAge || recommendPSA === false;
         const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
         const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
-        const heroTitle = isRed ? 'PSA Test Strongly Recommended' : isAmber ? 'PSA Test Recommended' : isGreen ? 'PSA Test Not Currently Indicated' : 'PSA Test May Be Appropriate';
+        const heroTitle = isRed ? 'PSA Test Strongly Recommended'
+          : isAmber ? 'PSA Test Recommended'
+          : belowMinAge ? 'PSA Test Not Required — Score Not Determined Below Age 40'
+          : isGreen ? 'PSA Test Not Currently Indicated'
+          : 'PSA Test May Be Appropriate';
+        const displayMessage = belowMinAge
+          ? 'ePSA is not validated for patients under 40. Your score is shown as Low Risk (0) and no PSA screening is currently indicated. Please return when you reach the appropriate screening age, or speak with your physician if you have a significant family history.'
+          : psaRecommendMessage;
         return (
           <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
             <div className="v2-psa-hero-top">
               <div className="v2-psa-hero-icon">{heroIcon}</div>
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
-                <p className="v2-psa-hero-desc">{psaRecommendMessage}</p>
+                <p className="v2-psa-hero-desc">{displayMessage}</p>
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
