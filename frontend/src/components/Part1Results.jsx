@@ -500,6 +500,17 @@ const Part1Results = ({
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
                 <p className="v2-psa-hero-desc">{displayMessage}</p>
+                {psaRecommendReason === 'score_threshold' && (
+                  <div style={{ marginTop: '10px', padding: '8px 10px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                    <strong>⚠️ Model-based recommendation — not an AUA/SUO guideline.</strong>
+                    <br />
+                    <strong>AUA/SUO Guideline:</strong> Routine PSA screening is recommended for men aged 55–69.
+                    For men aged 40–54 with high-risk factors (Black ancestry, BRCA mutation, or first-degree family history),
+                    earlier discussions are recommended. Screening above age 70–75 should be individualized based on health
+                    status and life expectancy. This ePSA result should be used as a starting point for a conversation with
+                    your physician — not as a standalone diagnostic recommendation.
+                  </div>
+                )}
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
