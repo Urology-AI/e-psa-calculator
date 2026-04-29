@@ -297,9 +297,9 @@
         "description": "Smoking is linked to increased risk of aggressive prostate cancer and higher mortality rates."
       },
       "chemicalExposure": {
-        "title": "Chemical Exposure",
-        "helper": "Answer Yes if you have had meaningful occupational, military, or environmental exposure.",
-        "description": "Exposure to Agent Orange, pesticides, and certain industrial chemicals may increase prostate cancer risk."
+        "title": "9/11 or Chemical Exposure",
+        "helper": "Answer Yes if you were present at the World Trade Center site after 9/11, or have had meaningful occupational, military, or environmental chemical exposure (e.g., pesticides, industrial chemicals). Answer Unknown if you are unsure.",
+        "description": "9/11 first responders and survivors have elevated rates of several cancers. Exposure to pesticides and certain industrial chemicals may also increase prostate cancer risk. Note: this factor is not part of AUA/SUO screening guidelines — it is an ePSA model variable."
       },
       "diet": {
         "title": "Diet Pattern",
@@ -450,7 +450,7 @@
         "former": "Former",
         "never": "Never"
       },
-      "chemicalQuestion": "Chemical Exposure (e.g., Agent Orange or pesticides)"
+      "chemicalQuestion": "9/11 or Chemical Exposure (e.g., WTC site, Agent Orange, pesticides)"
     },
     "step4": {
       "diet": {
@@ -644,7 +644,7 @@
     },
     "sectionRiskExplanationTitle": "Risk explanation",
     "sectionHowCalculatedTitle": "How this score is calculated",
-    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, Agent Orange/chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
+    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, 9/11 or chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
     "sectionWhatTierMeansTitle": "What your tier means",
     "sectionGuidelineContextTitle": "Guideline context (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Recommendation Threshold",
@@ -974,7 +974,7 @@
       "familyGeneticsLabel": "Family & genetics:",
       "familyGenetics": "Family history of prostate cancer, BRCA status",
       "lifestyleLabel": "Lifestyle:",
-      "lifestyle": "Exercise level, smoking, diet pattern, chemical/Agent Orange exposure",
+      "lifestyle": "Exercise level, smoking, diet pattern, 9/11 or chemical exposure",
       "medicalHistoryLabel": "Medical history:",
       "medicalHistory": "Prostatitis/inflammation, hypertension, hyperlipidemia, coronary artery disease, diabetes",
       "validatedLabel": "Validated instruments:",

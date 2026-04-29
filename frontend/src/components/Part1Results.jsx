@@ -98,7 +98,8 @@ const BEYOND_GUIDELINE_PAPERS = {
  *   high_risk_early_screening → RED   — high-risk group, urgent
  *   family_history_override   → RED   — family history, urgent
  *   score_threshold           → AMBER — score exceeded threshold
- *   age_guideline_55_69       → BLUE  — AUA average-risk window, informational
+ *   age_guideline_50_69       → BLUE  — AUA average-risk window (50–69), informational
+ *   baseline_psa_45_50        → BLUE  — AUA baseline PSA offered (45–50), informational
  *   not_recommended           → GREEN — below threshold, routine
  * ─────────────────────────────────────────────────────────────────────────── */
 const PSA_BANNER_CONFIG = {
@@ -120,11 +121,17 @@ const PSA_BANNER_CONFIG = {
     Icon: AlertTriangleIcon,
     source: 'Your ePSA score is above the screening threshold. Based on AUA, NCCN, and ERUS guidelines.',
   },
-  age_guideline_55_69: {
+  age_guideline_50_69: {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
-    label: 'PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
+    label: 'PSA SCREENING RECOMMENDED', labelColor: '#1e40af',
     Icon: InfoIcon,
-    source: 'AUA guideline Rec. 4 — all men aged 55–69 should discuss PSA screening with their physician.',
+    source: 'AUA/SUO guideline Statement 6 (Strong Recommendation, Grade A) — regular PSA screening every 2–4 years for people aged 50–69.',
+  },
+  baseline_psa_45_50: {
+    bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
+    label: 'BASELINE PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
+    Icon: InfoIcon,
+    source: 'AUA/SUO guideline Statement 4 (Conditional Recommendation, Grade B) — a baseline PSA test may be offered to people aged 45–50.',
   },
   not_recommended: {
     bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
@@ -320,6 +327,7 @@ const Part1Results = ({
     epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
+    aboveMaxScreeningAge = false,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -404,11 +412,43 @@ const Part1Results = ({
           <div className="under-age-notice" role="note">
             <div className="under-age-notice-icon">ℹ️</div>
             <div className="under-age-notice-body">
-              <strong>Score not determined — patient is under 40.</strong>
-              <p>
-                Per ACS guidelines, routine PSA screening discussions begin at age 50 (average risk),
-                45 (African American men or first-degree family history), or 40 (multiple first-degree relatives).
-                Speak with your physician if you have concerns.
+              <strong>PSA screening not indicated — per AUA/SUO guidelines, patient is under 40.</strong>
+              <p style={{ marginTop: '6px' }}>
+                <strong>AUA/SUO Guideline (2023, amended 2026):</strong>
+              </p>
+              <ul style={{ marginTop: '4px', paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                <li><strong>Ages 40–45 (high-risk only):</strong> Screening discussions recommended for people at increased risk — Black race, germline mutations (e.g. BRCA1/2, ATM, Lynch Syndrome), or strong family history of prostate cancer. <em>(Statement 5; Strong Recommendation, Grade B)</em></li>
+                <li><strong>Ages 45–50:</strong> A baseline PSA test may be offered to all people. <em>(Statement 4; Conditional Recommendation, Grade B)</em></li>
+                <li><strong>Ages 50–69:</strong> Regular PSA screening every 2–4 years. <em>(Statement 6; Strong Recommendation, Grade A)</em></li>
+              </ul>
+              <p style={{ marginTop: '6px', fontSize: '13px', color: '#6b7280' }}>
+                Speak with your physician if there are risk factors (Black ancestry, family history, or known germline mutation) that may warrant earlier discussion.
+              </p>
+            </div>
+          </div>
+        ) : aboveMaxScreeningAge ? (
+          /* ── Over-75: suppress score, refer to life expectancy tool ── */
+          <div className="under-age-notice" role="note">
+            <div className="under-age-notice-icon">ℹ️</div>
+            <div className="under-age-notice-body">
+              <strong>Screening decisions require individualized assessment — per AUA/SUO guidelines, patient is over 75.</strong>
+              <p style={{ marginTop: '6px' }}>
+                <strong>AUA/SUO Guideline (Statement 7; Conditional Recommendation, Grade B):</strong> Clinicians
+                may personalize or discontinue screening based on patient preference, age, PSA level, prostate
+                cancer risk, life expectancy, and general health following shared decision-making (SDM).
+                Specifically for patients 75 and older:
+              </p>
+              <ul style={{ marginTop: '4px', paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                <li>Screening may be discontinued or the re-screening interval substantially lengthened if PSA is &lt;3 ng/mL.</li>
+                <li>For very healthy patients with an estimated life expectancy of <strong>at least 10 years</strong>, ongoing screening every 2–4 years remains reasonable via SDM.</li>
+                <li>For patients with &lt;10-year estimated life expectancy, screening is unlikely to provide benefit in terms of disease-specific or overall mortality.</li>
+              </ul>
+              <p style={{ marginTop: '6px', fontSize: '13px', color: '#6b7280' }}>
+                Use the{' '}
+                <a href="https://eprognosis.ucsf.edu/calculators/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}>
+                  ePrognosis Life Expectancy Calculator (Lee / Schonberg Index)
+                </a>
+                {' '}to estimate 10-year mortality risk and support SDM with your physician.
               </p>
             </div>
           </div>
@@ -453,16 +493,19 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = belowMinAge || recommendPSA === false;
+        const isGreen = belowMinAge || aboveMaxScreeningAge || recommendPSA === false;
         const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
         const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
           : isAmber ? 'PSA Test Recommended'
           : belowMinAge ? 'PSA Test Not Required'
+          : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
           : isGreen ? 'PSA Test Not Currently Indicated'
           : 'PSA Test May Be Appropriate';
         const displayMessage = belowMinAge
-          ? 'No PSA screening is recommended below age 40. Speak with your physician if you have a significant family history of prostate cancer.'
+          ? 'No AUA/SUO guideline recommends routine screening below age 40. High-risk individuals (Black ancestry, germline mutations, strong family history) may begin discussions at age 40–45 (Statement 5, Strong Rec Grade B). A baseline PSA may be offered at ages 45–50 (Statement 4, Conditional Rec Grade B). Speak with your physician.'
+          : aboveMaxScreeningAge
+          ? 'AUA/SUO guidelines recommend individualizing screening decisions above age 75 through shared decision-making (Statement 7, Conditional Rec Grade B). Screening may continue for very healthy patients with >10-year life expectancy; consider discontinuing or lengthening the interval if PSA <3 ng/mL. Use the ePrognosis Life Expectancy Calculator to guide this decision.'
           : psaRecommendMessage;
         return (
           <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
@@ -471,6 +514,46 @@ const Part1Results = ({
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
                 <p className="v2-psa-hero-desc">{displayMessage}</p>
+                {psaRecommendReason === 'score_threshold' && (() => {
+                  let guidelineSays, deviationType, deviationReason;
+                  if (age < 45) {
+                    deviationType = 'Model recommendation — outside AUA/SUO guideline age window.';
+                    guidelineSays = 'AUA/SUO guidelines have no routine screening recommendation for average-risk individuals under 45. Screening discussions begin at 40–45 only for high-risk individuals (Black ancestry, germline mutations, strong family history — Statement 5, Strong Rec, Grade B).';
+                    deviationReason = 'The ePSA model identifies elevated individual risk based on symptoms, BMI, comorbidities, and other factors that age-based guidelines do not capture. This result suggests your individual risk profile may warrant a PSA discussion even before the standard guideline window — but it is not an endorsed recommendation. Discuss with your physician.';
+                  } else if (age < 50) {
+                    deviationType = 'Model recommendation — stronger than AUA/SUO guideline for this age.';
+                    guidelineSays = 'AUA/SUO guidelines suggest only that a baseline PSA test may be offered at ages 45–50 (Statement 4, Conditional Recommendation, Grade B) — not a strong recommendation for screening.';
+                    deviationReason = 'The ePSA model score exceeds the screening threshold, suggesting elevated individual risk beyond what a baseline assessment alone would capture. The model may be identifying risk factors (symptoms, BMI, etc.) that make earlier or more urgent evaluation appropriate — but this goes beyond what the guideline currently endorses. Discuss with your physician.';
+                  } else if (age <= 69) {
+                    deviationType = 'Model score reinforces AUA/SUO guideline — but adds individual risk specificity.';
+                    guidelineSays = 'AUA/SUO guidelines already recommend regular PSA screening every 2–4 years for ages 50–69 (Statement 6, Strong Recommendation, Grade A).';
+                    deviationReason = 'Your ePSA score exceeds the model threshold, indicating elevated individual risk above the population average for this age group. While the guideline recommends screening regardless of score, the elevated score suggests more urgent follow-up may be warranted. Discuss timing and urgency with your physician.';
+                  } else {
+                    deviationType = 'Model recommendation — AUA/SUO guideline requires SDM at this age.';
+                    guidelineSays = 'AUA/SUO guidelines recommend individualizing screening decisions for ages 70+ through shared decision-making (SDM) based on PSA level, life expectancy, and general health (Statement 7, Conditional Rec, Grade B). Routine screening is not automatically recommended.';
+                    deviationReason = 'The ePSA model score suggests elevated risk, but at this age the guideline requires weighing benefits against risks of overdiagnosis based on life expectancy. The model does not account for competing mortality risks. Use the ePrognosis Life Expectancy Calculator and discuss with your physician before proceeding.';
+                  }
+                  const NON_GUIDELINE_FACTORS = new Set([
+                    'IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern',
+                    'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden'
+                  ]);
+                  const drivingNonGuidelineFactors = itemImpacts.filter(b => b.points > 0 && NON_GUIDELINE_FACTORS.has(b.item));
+                  return (
+                    <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.6 }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>⚠️ {deviationType}</div>
+                      <div style={{ marginBottom: '4px' }}><strong>What AUA/SUO says for this age:</strong> {guidelineSays}</div>
+                      <div style={{ marginBottom: drivingNonGuidelineFactors.length > 0 ? '6px' : 0 }}><strong>Why the model may still apply:</strong> {deviationReason}</div>
+                      {drivingNonGuidelineFactors.length > 0 && (
+                        <div style={{ borderTop: '1px solid rgba(0,0,0,0.12)', paddingTop: '6px', marginTop: '2px' }}>
+                          <strong>Non-guideline factors driving this score:</strong> The following ePSA model variables are <em>not</em> AUA/SUO-endorsed PSA screening criteria but contributed to this recommendation:{' '}
+                          {drivingNonGuidelineFactors.map((b, i) => (
+                            <span key={b.item}><strong>{b.item}</strong>{i < drivingNonGuidelineFactors.length - 1 ? ', ' : '.'}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
@@ -562,8 +645,31 @@ const Part1Results = ({
         <CollapsibleSection title="About Your Result" defaultOpen={true}>
           {belowMinAge ? (
             <>
-              <p>ePSA is not validated below age 40. No score or risk tier has been calculated. When you reach the appropriate screening age, come back and complete a full assessment.</p>
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>Speak with your physician if you have concerns before that age.</p>
+              <p>ePSA is not validated below age 40. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px' }}><strong>AUA/SUO Guideline (2023, amended 2026):</strong></p>
+              <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '4px' }}>
+                <li><strong>Ages 40–45:</strong> Screening discussions recommended for high-risk individuals — Black race, germline mutations, or strong family history. <em>(Statement 5; Strong Recommendation, Grade B)</em></li>
+                <li><strong>Ages 45–50:</strong> A baseline PSA test may be offered to all people. <em>(Statement 4; Conditional Recommendation, Grade B)</em></li>
+                <li><strong>Ages 50–69:</strong> Regular screening every 2–4 years. <em>(Statement 6; Strong Recommendation, Grade A)</em></li>
+              </ul>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>Return to complete a full ePSA assessment once the patient reaches age 40 or older.</p>
+            </>
+          ) : aboveMaxScreeningAge ? (
+            <>
+              <p>ePSA is not validated above age 75. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px' }}><strong>AUA/SUO Guideline — Statement 7 (Conditional Recommendation, Grade B):</strong> Clinicians may personalize or discontinue re-screening based on patient preference, age, PSA level, cancer risk, life expectancy, and general health following SDM. For patients 75 and older:</p>
+              <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '4px' }}>
+                <li>Screening may be discontinued or intervals substantially lengthened when PSA is &lt;3 ng/mL.</li>
+                <li>Healthy patients with an estimated life expectancy of ≥10 years may continue screening every 2–4 years via SDM.</li>
+                <li>For patients with &lt;10-year estimated life expectancy, screening is unlikely to reduce disease-specific or overall mortality.</li>
+              </ul>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Use the{' '}
+                <a href="https://eprognosis.ucsf.edu/calculators/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}>
+                  ePrognosis Lee / Schonberg Index
+                </a>
+                {' '}to estimate 10-year mortality risk and support SDM with your physician.
+              </p>
             </>
           ) : (
             <>
@@ -587,7 +693,7 @@ const Part1Results = ({
           )}
         </CollapsibleSection>
 
-        {!belowMinAge && itemImpacts.length > 0 && (
+        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (
           <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
             <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
@@ -622,7 +728,7 @@ const Part1Results = ({
           <p>When should men consider discussing a PSA test with their doctor?</p>
           <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
             <li><strong>ACS (American Cancer Society)</strong> — Age 50 for average-risk men; age 45 for African American men or those with a first-degree relative diagnosed before 65; age 40 for men with more than one first-degree relative diagnosed at an early age.</li>
-            <li><strong>AUA (American Urological Association) 2023/2026</strong> — All men aged 55–69 should discuss PSA testing. High-risk men (Black ancestry, family history, BRCA mutation) should start that conversation from age 40.</li>
+            <li><strong>AUA/SUO (2023, amended 2026)</strong> — Baseline PSA may be offered at ages 45–50 (Conditional Rec, Grade B). Regular screening every 2–4 years for ages 50–69 (Strong Rec, Grade A). High-risk individuals (Black ancestry, germline mutations, strong family history) should begin discussions at age 40–45 (Strong Rec, Grade B). Above age 75, individualize via SDM based on health and life expectancy.</li>
             <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — First PSA at age 45 for most men, or 40 for higher-risk men. Testing every 1–2 years between ages 45 and 75.</li>
             <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening from age 50 for most men, or 45 for high-risk men.</li>
           </ul>

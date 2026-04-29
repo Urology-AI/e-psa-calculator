@@ -329,7 +329,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0
   );
-  addImpact('Chemical/Agent Orange exposure', chemicalExposure === 'yes' ? 'Yes' : 'No', chemicalExposure === 'yes' ? 4 : 0);
+  addImpact('9/11 / Chemical exposure', chemicalExposure === 'yes' ? 'Yes' : chemicalExposure === 'unknown' ? 'Unknown' : 'No', chemicalExposure === 'yes' ? 4 : chemicalExposure === 'unknown' ? 2 : 0);
   addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0);
 
   const isYes = (v) => v === 'yes' || v === true || v === 1;
@@ -376,20 +376,31 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     psaRecommendReason = 'score_threshold';
   }
 
-  // Step 2 — AUA average-risk window: all men 55-69
-  if (ageNum >= 55 && ageNum <= 69) {
+  // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
+  // (Statement 4, Conditional Recommendation, Evidence Level: Grade B)
+  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason === null) {
     recommendPSA = true;
-    if (psaRecommendReason === null) psaRecommendReason = 'age_guideline_55_69';
+    psaRecommendReason = 'baseline_psa_45_50';
+  }
+
+  // Step 2 — AUA regular screening window: ages 50–69 every 2–4 years
+  // (Statement 6, Strong Recommendation, Evidence Level: Grade A)
+  if (ageNum >= 50 && ageNum <= 69) {
+    recommendPSA = true;
+    if (psaRecommendReason === null || psaRecommendReason === 'baseline_psa_45_50') {
+      psaRecommendReason = 'age_guideline_50_69';
+    }
   }
 
   // Step 3 — High-risk early screening (always wins over Steps 1-2)
-  if ((isBlack || brcaPositive) && ageNum >= 40 && ageNum < 55) {
+  // (Statement 5, Strong Recommendation, Evidence Level: Grade B)
+  if ((isBlack || brcaPositive) && ageNum >= 40 && ageNum < 50) {
     recommendPSA = true;
     psaRecommendReason = 'high_risk_early_screening';
   }
-  if ((isBlack || brcaPositive) && ageNum >= 55) {
+  if ((isBlack || brcaPositive) && ageNum >= 50) {
     recommendPSA = true;
-    if (['score_threshold', 'age_guideline_55_69', null].includes(psaRecommendReason)) {
+    if (['score_threshold', 'age_guideline_50_69', 'baseline_psa_45_50', null].includes(psaRecommendReason)) {
       psaRecommendReason = 'high_risk_early_screening';
     }
   }
@@ -404,13 +415,15 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   const PSA_RECOMMEND_MESSAGES = {
     score_threshold:
-      'Your ePSA score exceeds the screening threshold. A PSA test is recommended. Please speak with your physician.',
-    age_guideline_55_69:
-      'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician. The American Cancer Society also recommends that men at average risk discuss screening from age 50. Please speak with your doctor about whether PSA testing is right for you.',
+      'Your ePSA score exceeds the model\'s screening threshold. A PSA test may be warranted. Note: this recommendation is based on the ePSA predictive model — it is not an official AUA/SUO guideline recommendation. Please speak with your physician to discuss whether PSA testing is appropriate for you.',
+    baseline_psa_45_50:
+      'AUA/SUO guidelines suggest clinicians may offer a baseline PSA test to people between ages 45 and 50 (Conditional Recommendation; Evidence Level: Grade B). A baseline PSA at this age helps establish a reference value for future comparisons. Discuss with your physician whether baseline testing is appropriate for you.',
+    age_guideline_50_69:
+      'AUA/SUO guidelines recommend regular prostate cancer screening every 2 to 4 years for people aged 50 to 69 (Strong Recommendation; Evidence Level: Grade A). Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
-      'Due to your high-risk profile (Black ancestry or a hereditary genetic mutation), both AUA/SUO and American Cancer Society guidelines recommend discussing PSA screening from age 40–45. The ACS specifically recommends African American men and those with a first-degree relative diagnosed before age 65 begin discussions at age 45. Please speak with your physician.',
+      'Due to your high-risk profile (Black ancestry or a germline mutation such as BRCA1/2, ATM, or Lynch Syndrome), AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.',
     family_history_override:
-      'Due to your family history of prostate cancer, both AUA/SUO and American Cancer Society guidelines recommend PSA screening from age 40–45. The ACS recommends age 45 for men with one first-degree relative diagnosed before 65, and age 40 for men with more than one first-degree relative diagnosed at an early age. Please speak with your physician.'
+      'Due to your strong family history of prostate cancer, AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.'
   };
 
   const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
@@ -457,12 +470,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     },
     {
       key: 'intermediate', label: 'Intermediate Risk', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
-      guideline: 'Your ePSA score is in the intermediate range. A PSA test is recommended. Speak with your physician.',
+      guideline: 'Your ePSA score is in the intermediate range. Based on this model score, a PSA test may be appropriate — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Speak with your physician.',
       empiricalRate: EPSA_TIER_CALIBRATION.intermediate
     },
     {
       key: 'elevated', label: 'Elevated Risk', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
-      guideline: 'Your ePSA score is elevated. A PSA test is recommended promptly. Please speak with your physician.',
+      guideline: 'Your ePSA score is elevated. Based on this model score, a PSA test is strongly suggested — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Please speak with your physician promptly.',
       empiricalRate: EPSA_TIER_CALIBRATION.elevated
     }
   ];
@@ -549,6 +562,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
     // Age eligibility
     belowMinAge: ageNum < 40,
+    aboveMaxScreeningAge: ageNum > 75,
 
     // Metadata
     epsaGuidelineText: epsaTierDef.guideline,

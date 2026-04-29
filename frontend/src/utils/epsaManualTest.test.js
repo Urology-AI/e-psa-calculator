@@ -107,10 +107,22 @@ describe('ePSA Part 1 — Clinical test patients', () => {
     expect(r.epsaTierKey).toBe('low');
   });
 
-  it('Age 55–69 always PSA recommended regardless of low score', () => {
+  it('Age 50–69 always PSA recommended regardless of low score', () => {
     const r = calculateDynamicEPsa({ age: 57, race: 'white', bmi: 22, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
     expect(r.recommendPSA).toBe(true);
-    expect(r.psaRecommendReason).toBe('age_guideline_55_69');
+    expect(r.psaRecommendReason).toBe('age_guideline_50_69');
+  });
+
+  it('Age 50 average-risk PSA recommended (guideline lower bound)', () => {
+    const r = calculateDynamicEPsa({ age: 50, race: 'white', bmi: 22, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
+    expect(r.recommendPSA).toBe(true);
+    expect(r.psaRecommendReason).toBe('age_guideline_50_69');
+  });
+
+  it('Age 47 average-risk gets baseline PSA recommendation', () => {
+    const r = calculateDynamicEPsa({ age: 47, race: 'white', bmi: 22, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
+    expect(r.recommendPSA).toBe(true);
+    expect(r.psaRecommendReason).toBe('baseline_psa_45_50');
   });
 
   it('Family history + age 45 → PSA recommended (family_history_override)', () => {

@@ -3,7 +3,7 @@ import './Part1Form.css';
 import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
-import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple } from 'lucide-react';
+import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const IPSS_QUESTION_KEYS = [
@@ -670,10 +670,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
-          <div className="option-grid c2">
+          <div className="option-grid c3">
             {[
               { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
               { value: 'no', label: t('part1.options.no'), Icon: CheckCircle2 },
+              { value: 'unknown', label: t('part1.options.unknown'), Icon: HelpCircle },
             ].map(opt => (
               <button
                 key={opt.value}
