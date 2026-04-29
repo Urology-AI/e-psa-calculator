@@ -320,6 +320,7 @@ const Part1Results = ({
     epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
+    aboveMaxScreeningAge = false,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -404,11 +405,36 @@ const Part1Results = ({
           <div className="under-age-notice" role="note">
             <div className="under-age-notice-icon">ℹ️</div>
             <div className="under-age-notice-body">
-              <strong>Score not determined — patient is under 40.</strong>
-              <p>
-                Per ACS guidelines, routine PSA screening discussions begin at age 50 (average risk),
-                45 (African American men or first-degree family history), or 40 (multiple first-degree relatives).
-                Speak with your physician if you have concerns.
+              <strong>PSA screening not recommended — per AUA/SUO guidelines, patient is under 40.</strong>
+              <p style={{ marginTop: '6px' }}>
+                <strong>AUA/SUO Guideline:</strong> Routine PSA screening is not recommended below age 40. Shared
+                decision-making discussions should begin at age 50 for average-risk men, age 45 for African American
+                men or those with a first-degree relative diagnosed before age 65, and age 40 for men with more than
+                one first-degree relative diagnosed at an early age.
+              </p>
+              <p style={{ marginTop: '6px', fontSize: '13px', color: '#6b7280' }}>
+                Speak with your physician if you have concerns or a significant family history of prostate cancer.
+              </p>
+            </div>
+          </div>
+        ) : aboveMaxScreeningAge ? (
+          /* ── Over-75: suppress score, refer to life expectancy tool ── */
+          <div className="under-age-notice" role="note">
+            <div className="under-age-notice-icon">ℹ️</div>
+            <div className="under-age-notice-body">
+              <strong>Routine PSA screening not recommended — per AUA/SUO guidelines, patient is over 75.</strong>
+              <p style={{ marginTop: '6px' }}>
+                <strong>AUA/SUO Guideline:</strong> Routine PSA screening is not recommended above age 75. For
+                patients who are otherwise very healthy, screening may still be appropriate if life expectancy
+                exceeds 10 years. Decisions should be made through shared decision-making, weighing the risk of
+                overdiagnosis against individual health status.
+              </p>
+              <p style={{ marginTop: '6px', fontSize: '13px', color: '#6b7280' }}>
+                Use the{' '}
+                <a href="https://eprognosis.ucsf.edu/calculators/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}>
+                  ePrognosis Life Expectancy Calculator (Lee / Schonberg Index)
+                </a>
+                {' '}to estimate 10-year mortality and guide shared decision-making. Speak with your physician.
               </p>
             </div>
           </div>
@@ -453,16 +479,19 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = belowMinAge || recommendPSA === false;
+        const isGreen = belowMinAge || aboveMaxScreeningAge || recommendPSA === false;
         const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
         const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
           : isAmber ? 'PSA Test Recommended'
           : belowMinAge ? 'PSA Test Not Required'
+          : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
           : isGreen ? 'PSA Test Not Currently Indicated'
           : 'PSA Test May Be Appropriate';
         const displayMessage = belowMinAge
-          ? 'No PSA screening is recommended below age 40. Speak with your physician if you have a significant family history of prostate cancer.'
+          ? 'AUA/SUO guidelines do not recommend routine PSA screening below age 40. Screening discussions begin at age 50 (average risk), 45 (African American men or family history), or 40 (multiple first-degree relatives). Speak with your physician if you have concerns.'
+          : aboveMaxScreeningAge
+          ? 'AUA/SUO guidelines do not recommend routine PSA screening above age 75. Screening may still be appropriate if life expectancy exceeds 10 years — use the ePrognosis Life Expectancy Calculator (Lee / Schonberg Index) to guide shared decision-making with your physician.'
           : psaRecommendMessage;
         return (
           <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
@@ -562,8 +591,21 @@ const Part1Results = ({
         <CollapsibleSection title="About Your Result" defaultOpen={true}>
           {belowMinAge ? (
             <>
-              <p>ePSA is not validated below age 40. No score or risk tier has been calculated. When you reach the appropriate screening age, come back and complete a full assessment.</p>
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>Speak with your physician if you have concerns before that age.</p>
+              <p>ePSA is not validated below age 40. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px' }}><strong>AUA/SUO Guideline:</strong> Routine PSA screening is not recommended below age 40. Screening discussions begin at age 50 for average-risk men, age 45 for African American men or those with a first-degree relative diagnosed before 65, and age 40 for men with more than one first-degree relative diagnosed at an early age.</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>When you or your patient reaches the appropriate screening age, return to complete a full assessment. Speak with a physician if there are concerns in the interim.</p>
+            </>
+          ) : aboveMaxScreeningAge ? (
+            <>
+              <p>ePSA is not validated above age 75. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px' }}><strong>AUA/SUO Guideline:</strong> Routine PSA screening is not recommended above age 75. For patients who are otherwise very healthy, screening may still be appropriate if life expectancy exceeds 10 years. Decisions should be individualized through shared decision-making, weighing the benefits of early detection against the risks of overdiagnosis and overtreatment.</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
+                Use the{' '}
+                <a href="https://eprognosis.ucsf.edu/calculators/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}>
+                  ePrognosis Lee / Schonberg Index
+                </a>
+                {' '}to estimate 10-year mortality risk and support shared decision-making with your physician.
+              </p>
             </>
           ) : (
             <>
@@ -587,7 +629,7 @@ const Part1Results = ({
           )}
         </CollapsibleSection>
 
-        {!belowMinAge && itemImpacts.length > 0 && (
+        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (
           <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
             <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
             <div className="impact-table-wrap">
