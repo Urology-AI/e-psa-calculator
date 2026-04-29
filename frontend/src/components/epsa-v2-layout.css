@@ -132,6 +132,17 @@
 .v2-form-nav-btns .btn-next,
 .v2-form-nav-btns .btn-calculate { min-width: 8rem; }
 
+@media (max-width: 540px) {
+  .v2-form-nav { padding: 0.625rem 0.75rem; }
+  .v2-form-nav-inner { flex-direction: column; gap: 0.375rem; }
+  .v2-form-nav-status { order: 0; display: flex; justify-content: space-between; width: 100%; }
+  .v2-form-nav-status span { display: inline; }
+  .v2-form-nav-btns { order: 1; width: 100%; }
+  .v2-form-nav-btns .btn-back,
+  .v2-form-nav-btns .btn-next,
+  .v2-form-nav-btns .btn-calculate { flex: 1; min-width: 0; padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+
 /* ── Part 1 Results: gauge + tier side-by-side ── */
 .v2-res-eyebrow {
   display: flex;
