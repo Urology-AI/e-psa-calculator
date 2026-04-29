@@ -57,6 +57,10 @@ yarn-error.log*
 .npm
 .eslintcache
 
+# MSIP disclosure and internal documents — keep local only
+MSIP_DISCLOSURE.md
+ePSA_Manuscript.docx
+
 # parcel-bundler cache
 .parcel-cache/
 .cache
