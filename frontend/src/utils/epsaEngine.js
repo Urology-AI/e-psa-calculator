@@ -329,7 +329,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0
   );
-  addImpact('Chemical/Agent Orange exposure', chemicalExposure === 'yes' ? 'Yes' : 'No', chemicalExposure === 'yes' ? 4 : 0);
+  addImpact('9/11 / Chemical exposure', chemicalExposure === 'yes' ? 'Yes' : chemicalExposure === 'unknown' ? 'Unknown' : 'No', chemicalExposure === 'yes' ? 4 : chemicalExposure === 'unknown' ? 2 : 0);
   addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0);
 
   const isYes = (v) => v === 'yes' || v === true || v === 1;
