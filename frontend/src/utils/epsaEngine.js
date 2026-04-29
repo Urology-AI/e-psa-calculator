@@ -549,6 +549,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
     // Age eligibility
     belowMinAge: ageNum < 40,
+    aboveMaxScreeningAge: ageNum > 75,
 
     // Metadata
     epsaGuidelineText: epsaTierDef.guideline,
