@@ -404,7 +404,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   const PSA_RECOMMEND_MESSAGES = {
     score_threshold:
-      'Your ePSA score exceeds the screening threshold. A PSA test is recommended. Please speak with your physician.',
+      'Your ePSA score exceeds the model\'s screening threshold. A PSA test may be warranted. Note: this recommendation is based on the ePSA predictive model — it is not an official AUA/SUO guideline recommendation. Please speak with your physician to discuss whether PSA testing is appropriate for you.',
     age_guideline_55_69:
       'AUA/SUO guidelines recommend that all men aged 55–69 discuss PSA screening with their physician. The American Cancer Society also recommends that men at average risk discuss screening from age 50. Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
@@ -457,12 +457,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     },
     {
       key: 'intermediate', label: 'Intermediate Risk', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
-      guideline: 'Your ePSA score is in the intermediate range. A PSA test is recommended. Speak with your physician.',
+      guideline: 'Your ePSA score is in the intermediate range. Based on this model score, a PSA test may be appropriate — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Speak with your physician.',
       empiricalRate: EPSA_TIER_CALIBRATION.intermediate
     },
     {
       key: 'elevated', label: 'Elevated Risk', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
-      guideline: 'Your ePSA score is elevated. A PSA test is recommended promptly. Please speak with your physician.',
+      guideline: 'Your ePSA score is elevated. Based on this model score, a PSA test is strongly suggested — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Please speak with your physician promptly.',
       empiricalRate: EPSA_TIER_CALIBRATION.elevated
     }
   ];
