@@ -514,13 +514,33 @@ const Part1Results = ({
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
                 <p className="v2-psa-hero-desc">{displayMessage}</p>
-                {psaRecommendReason === 'score_threshold' && (
-                  <div style={{ marginTop: '10px', padding: '8px 10px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
-                    <strong>⚠️ Model-based recommendation — not an AUA/SUO guideline.</strong>
-                    <br />
-                    <strong>AUA/SUO Guideline (2023, amended 2026):</strong> A baseline PSA may be offered at ages 45–50 (Statement 4, Conditional Rec, Grade B). Regular screening every 2–4 years is recommended for ages 50–69 (Statement 6, Strong Rec, Grade A). High-risk individuals (Black ancestry, germline mutations, strong family history) should begin discussions at age 40–45 (Statement 5, Strong Rec, Grade B). Above age 75, decisions should be individualized via SDM based on health status and life expectancy (Statement 7). This ePSA result is a starting point for a conversation with your physician — not a standalone diagnostic recommendation.
-                  </div>
-                )}
+                {psaRecommendReason === 'score_threshold' && (() => {
+                  let guidelineSays, deviationType, deviationReason;
+                  if (age < 45) {
+                    deviationType = 'Model recommendation — outside AUA/SUO guideline age window.';
+                    guidelineSays = 'AUA/SUO guidelines have no routine screening recommendation for average-risk individuals under 45. Screening discussions begin at 40–45 only for high-risk individuals (Black ancestry, germline mutations, strong family history — Statement 5, Strong Rec, Grade B).';
+                    deviationReason = 'The ePSA model identifies elevated individual risk based on symptoms, BMI, comorbidities, and other factors that age-based guidelines do not capture. This result suggests your individual risk profile may warrant a PSA discussion even before the standard guideline window — but it is not an endorsed recommendation. Discuss with your physician.';
+                  } else if (age < 50) {
+                    deviationType = 'Model recommendation — stronger than AUA/SUO guideline for this age.';
+                    guidelineSays = 'AUA/SUO guidelines suggest only that a baseline PSA test may be offered at ages 45–50 (Statement 4, Conditional Recommendation, Grade B) — not a strong recommendation for screening.';
+                    deviationReason = 'The ePSA model score exceeds the screening threshold, suggesting elevated individual risk beyond what a baseline assessment alone would capture. The model may be identifying risk factors (symptoms, BMI, etc.) that make earlier or more urgent evaluation appropriate — but this goes beyond what the guideline currently endorses. Discuss with your physician.';
+                  } else if (age <= 69) {
+                    deviationType = 'Model score reinforces AUA/SUO guideline — but adds individual risk specificity.';
+                    guidelineSays = 'AUA/SUO guidelines already recommend regular PSA screening every 2–4 years for ages 50–69 (Statement 6, Strong Recommendation, Grade A).';
+                    deviationReason = 'Your ePSA score exceeds the model threshold, indicating elevated individual risk above the population average for this age group. While the guideline recommends screening regardless of score, the elevated score suggests more urgent follow-up may be warranted. Discuss timing and urgency with your physician.';
+                  } else {
+                    deviationType = 'Model recommendation — AUA/SUO guideline requires SDM at this age.';
+                    guidelineSays = 'AUA/SUO guidelines recommend individualizing screening decisions for ages 70+ through shared decision-making (SDM) based on PSA level, life expectancy, and general health (Statement 7, Conditional Rec, Grade B). Routine screening is not automatically recommended.';
+                    deviationReason = 'The ePSA model score suggests elevated risk, but at this age the guideline requires weighing benefits against risks of overdiagnosis based on life expectancy. The model does not account for competing mortality risks. Use the ePrognosis Life Expectancy Calculator and discuss with your physician before proceeding.';
+                  }
+                  return (
+                    <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.6 }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>⚠️ {deviationType}</div>
+                      <div style={{ marginBottom: '4px' }}><strong>What AUA/SUO says for this age:</strong> {guidelineSays}</div>
+                      <div><strong>Why the model may still apply:</strong> {deviationReason}</div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
