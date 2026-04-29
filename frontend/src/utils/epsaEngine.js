@@ -236,7 +236,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const ageNum = parseInt(age, 10);
   const bmiNum = parseFloat(bmi);
   const exerciseCode = Number(exercise);
-  const fhBinary = familyHistory > 0 ? 1 : 0;
+  const fhBinary = familyHistory === 'unknown' ? 0 : familyHistory > 0 ? 1 : 0;
   const smokingCode = Number(formData.smoking);
   const brcaStatus = formData.brcaStatus;
   const inflammationHistory = formData.inflammationHistory;
@@ -319,7 +319,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0);
 
   addImpact('Black ancestry', isBlack ? 'Yes' : 'No', (isBlack && ageNum >= 40) ? 8 : 0);
-  addImpact('Family history', fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
+  addImpact('Family history', familyHistory === 'unknown' ? 'Unknown' : fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
 
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
   const brcaLabel = brcaPositive ? 'Reported' : brcaStatus === 'no' ? 'None reported' : 'Not tested / Unknown';

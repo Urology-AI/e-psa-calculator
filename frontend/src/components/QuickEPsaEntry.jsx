@@ -128,7 +128,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       const safeIpSsTotal = Number.isFinite(ipssTotalNum) ? ipssTotalNum : '';
       const safeShimTotal = Number.isFinite(shimTotalNum) ? shimTotalNum : '';
 
-      const familyHistoryNum = imported.familyHistory === null || imported.familyHistory === undefined ? 2 : Number(imported.familyHistory);
+      const familyHistoryNum = imported.familyHistory === 'unknown' ? 'unknown' : imported.familyHistory === null || imported.familyHistory === undefined ? 2 : Number(imported.familyHistory);
       const exerciseNum = imported.exercise === null || imported.exercise === undefined ? 0 : Number(imported.exercise);
 
       const isYes = (v) => v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1';
@@ -168,7 +168,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       setBmi(bmiNum === '' ? '' : String(bmiNum));
       setIpssTotal(safeIpSsTotal === '' ? '' : String(safeIpSsTotal));
       setShimTotal(safeShimTotal === '' ? '' : String(safeShimTotal));
-      setFamilyHistory(Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2);
+      setFamilyHistory(familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2);
       setExercise(Number.isFinite(exerciseNum) ? exerciseNum : 0);
       setComorbidityScore(comorbidityNum);
       setSmoking(Number.isFinite(smokingNum) ? smokingNum : 0);
@@ -185,7 +185,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
         ipss: distributeTotalToArray(safeIpSsTotal, 7, 5),
         shim: distributeTotalToArray(safeShimTotal, 5, 5),
         exercise: Number.isFinite(exerciseNum) ? exerciseNum : 0,
-        familyHistory: Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2,
+        familyHistory: familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2,
         smoking: Number.isFinite(smokingNum) ? smokingNum : 0,
         chemicalExposure: mappedChemicalExposure,
         dietPattern: diet,
@@ -402,11 +402,12 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                   <select
                     className="quick-select"
                     value={familyHistory}
-                    onChange={(e) => setFamilyHistory(Number(e.target.value))}
+                    onChange={(e) => { const v = e.target.value; setFamilyHistory(v === 'unknown' ? 'unknown' : Number(v)); }}
                   >
                     <option value={0}>{t('quickEntry.family.none')}</option>
                     <option value={1}>{t('quickEntry.family.one')}</option>
                     <option value={2}>{t('quickEntry.family.twoPlus')}</option>
+                    <option value="unknown">{t('quickEntry.family.unknown')}</option>
                   </select>
                 </label>
               </div>
