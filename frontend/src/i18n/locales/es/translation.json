@@ -448,7 +448,8 @@
     "family": {
       "none": "Ninguno",
       "one": "1 pariente",
-      "twoPlus": "2+ parientes"
+      "twoPlus": "2+ parientes",
+      "unknown": "Desconocido"
     },
     "ipssLabel": "IPSS total (0-35)",
     "ipssPlaceholder": "por ejemplo, 4",
@@ -918,7 +919,7 @@
         "former": "Anterior",
         "never": "Nunca"
       },
-      "chemicalQuestion": "Exposición a sustancias químicas (por ejemplo, agente naranja o pesticidas)"
+      "chemicalQuestion": "Exposición del 11 de septiembre o química (p.ej., sitio WTC, pesticidas, sustancias industriales)"
     },
     "step4": {
       "diet": {

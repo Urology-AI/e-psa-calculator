@@ -92,6 +92,7 @@ export const fieldReferences = {
     titleKey: 'part1.fields.chemicalExposure.title',
     descriptionKey: 'part1.fields.chemicalExposure.description',
     sources: [
+      { name: 'CDC WTC Health Program – Toxins & Health Impacts', url: 'https://www.cdc.gov/wtc/exhibition/toxins-and-health-impacts.html' },
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
     ],

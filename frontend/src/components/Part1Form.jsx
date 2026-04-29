@@ -385,10 +385,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
-          <div className="option-grid c3">
+          <div className="option-grid c4">
             {[
-              { value: 0, label: t('part1.options.no') },
-              { value: 1, label: t('part1.options.yes') },
+              { value: 0, label: t('quickEntry.family.none') },
+              { value: 1, label: t('quickEntry.family.one') },
+              { value: 2, label: t('quickEntry.family.twoPlus') },
+              { value: 'unknown', label: t('part1.options.unknown') },
             ].map(opt => (
               <button
                 key={opt.value}
