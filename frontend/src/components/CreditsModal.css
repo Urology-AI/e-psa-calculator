@@ -1,0 +1,46 @@
+.credits-container {
+  max-width: 560px;
+}
+
+.credits-intro {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #555);
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.credits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.credits-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-secondary, #f8f9fa);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-primary, #2E75B6);
+}
+
+.credits-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.credits-role {
+  font-size: 0.85rem;
+  color: var(--color-primary, #2E75B6);
+  font-style: italic;
+}
+
+.credits-affiliation {
+  font-size: 0.78rem;
+  color: var(--text-tertiary, #888);
+}
