@@ -533,11 +533,24 @@ const Part1Results = ({
                     guidelineSays = 'AUA/SUO guidelines recommend individualizing screening decisions for ages 70+ through shared decision-making (SDM) based on PSA level, life expectancy, and general health (Statement 7, Conditional Rec, Grade B). Routine screening is not automatically recommended.';
                     deviationReason = 'The ePSA model score suggests elevated risk, but at this age the guideline requires weighing benefits against risks of overdiagnosis based on life expectancy. The model does not account for competing mortality risks. Use the ePrognosis Life Expectancy Calculator and discuss with your physician before proceeding.';
                   }
+                  const NON_GUIDELINE_FACTORS = new Set([
+                    'IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern',
+                    'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden'
+                  ]);
+                  const drivingNonGuidelineFactors = itemImpacts.filter(b => b.points > 0 && NON_GUIDELINE_FACTORS.has(b.item));
                   return (
                     <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(0,0,0,0.06)', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.6 }}>
                       <div style={{ fontWeight: 700, marginBottom: '4px' }}>⚠️ {deviationType}</div>
                       <div style={{ marginBottom: '4px' }}><strong>What AUA/SUO says for this age:</strong> {guidelineSays}</div>
-                      <div><strong>Why the model may still apply:</strong> {deviationReason}</div>
+                      <div style={{ marginBottom: drivingNonGuidelineFactors.length > 0 ? '6px' : 0 }}><strong>Why the model may still apply:</strong> {deviationReason}</div>
+                      {drivingNonGuidelineFactors.length > 0 && (
+                        <div style={{ borderTop: '1px solid rgba(0,0,0,0.12)', paddingTop: '6px', marginTop: '2px' }}>
+                          <strong>Non-guideline factors driving this score:</strong> The following ePSA model variables are <em>not</em> AUA/SUO-endorsed PSA screening criteria but contributed to this recommendation:{' '}
+                          {drivingNonGuidelineFactors.map((b, i) => (
+                            <span key={b.item}><strong>{b.item}</strong>{i < drivingNonGuidelineFactors.length - 1 ? ', ' : '.'}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

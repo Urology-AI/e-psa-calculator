@@ -155,7 +155,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       };
 
       const chem = imported.chemicalExposure;
-      const mappedChemicalExposure = chem === true || chem === 'yes' || chem === 'Yes' || chem === 1 || chem === '1' ? 'yes' : 'no';
+      const mappedChemicalExposure = (chem === true || chem === 'yes' || chem === 'Yes' || chem === 1 || chem === '1') ? 'yes' : (chem === 'unknown' || chem === 'Unknown') ? 'unknown' : 'no';
 
       const mappedBrca = mapBrca(imported.brcaStatus);
       const mappedInflammation = imported.inflammationHistory === null || imported.inflammationHistory === undefined ? 0 : (Number(imported.inflammationHistory) ? 1 : 0);

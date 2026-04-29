@@ -399,6 +399,7 @@ const PrintableForm = ({ onBack, formData }) => {
               <span className="field-number">10.</span> {t('part1.fields.chemicalExposure.title')}:
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" defaultChecked={isChecked('chemicalExposure', 'yes')} /> {t('part1.options.yes')}</label>
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" defaultChecked={isChecked('chemicalExposure', 'no')} /> {t('part1.options.no')}</label>
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="unknown" defaultChecked={isChecked('chemicalExposure', 'unknown')} /> {t('part1.options.unknown')}</label>
             </label>
           </div>
         </div>
