@@ -450,7 +450,7 @@
         "former": "Former",
         "never": "Never"
       },
-      "chemicalQuestion": "9/11 or Chemical Exposure (e.g., WTC site, Agent Orange, pesticides)"
+      "chemicalQuestion": "9/11 or Chemical Exposure (e.g., WTC site, pesticides, industrial chemicals)"
     },
     "step4": {
       "diet": {
@@ -798,7 +798,8 @@
     "family": {
       "none": "None",
       "one": "1 relative",
-      "twoPlus": "2+ relatives"
+      "twoPlus": "2+ relatives",
+      "unknown": "Unknown"
     },
     "ipssLabel": "IPSS total (0-35)",
     "ipssPlaceholder": "e.g., 4",
