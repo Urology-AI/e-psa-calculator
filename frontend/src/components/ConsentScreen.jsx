@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './ConsentScreen.css';
-import { 
-  ShieldIcon, 
+import {
+  ShieldIcon,
   HardDriveIcon,
   CloudIcon,
-  LockIcon
+  LockIcon,
+  FlaskConicalIcon,
+  CheckCircle2Icon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ConsentScreen = ({ phone, email, onConsentComplete }) => {
   const { t } = useTranslation();
+  const [researchConsent, setResearchConsent] = useState(null); // null = not answered yet
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,7 +20,9 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
     const consentData = {
       consentToContact: true,
       consentBasis: 'implied_by_use',
-      consentTimestamp: new Date().toISOString()
+      consentTimestamp: new Date().toISOString(),
+      researchConsent: researchConsent === true,
+      researchTimestamp: new Date().toISOString(),
     };
 
     onConsentComplete(consentData);
@@ -76,8 +81,48 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             </p>
           </div>
 
-          <button 
-            type="submit" 
+          {/* ── Research Consent — separate, optional ── */}
+          <div className="consent-research-section">
+            <div className="consent-research-header">
+              <FlaskConicalIcon size={18} className="consent-research-icon" />
+              <span className="consent-research-title">Research Participation <span className="consent-research-optional">(Optional)</span></span>
+            </div>
+            <p className="consent-research-body">
+              Would you like your <strong>de-identified data</strong> to be included in the
+              ePSA prostate cancer research study at Mount Sinai? This helps improve the
+              tool for future patients. Your results are <strong>not affected</strong> by
+              your choice.
+            </p>
+            <div className="consent-research-options">
+              <label className={`consent-research-option ${researchConsent === true ? 'consent-research-option--selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="researchConsent"
+                  value="yes"
+                  checked={researchConsent === true}
+                  onChange={() => setResearchConsent(true)}
+                />
+                <CheckCircle2Icon size={16} className="consent-research-option-icon" />
+                <span>Yes, include my data for research</span>
+              </label>
+              <label className={`consent-research-option ${researchConsent === false ? 'consent-research-option--selected consent-research-option--no' : ''}`}>
+                <input
+                  type="radio"
+                  name="researchConsent"
+                  value="no"
+                  checked={researchConsent === false}
+                  onChange={() => setResearchConsent(false)}
+                />
+                <span>No, keep my data private</span>
+              </label>
+            </div>
+            {researchConsent === null && (
+              <p className="consent-research-skip">You can skip this — your results won't be affected either way.</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
             className="btn btn-primary btn-block"
           >
             {t('consent.continueButton')}

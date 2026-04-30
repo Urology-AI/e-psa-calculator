@@ -150,6 +150,47 @@
   line-height: 1.6;
 }
 
+/* ── Research Consent Section ── */
+.consent-research-section {
+  background: #f0f9ff;
+  border: 0.0625rem solid #bae6fd;
+  border-radius: 0.625rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.consent-research-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.consent-research-icon { color: #0284c7; flex-shrink: 0; }
+.consent-research-title { font-size: 1rem; font-weight: 600; color: #0c4a6e; }
+.consent-research-optional { font-weight: 400; font-size: 0.8rem; color: #0284c7; margin-left: 0.25rem; }
+.consent-research-body { font-size: 0.9rem; color: #334155; margin: 0; line-height: 1.55; }
+.consent-research-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.consent-research-option {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border: 0.0625rem solid #cbd5e1; border-radius: 0.5rem;
+  cursor: pointer; background: white;
+  font-size: 0.9rem; color: #334155;
+  transition: border-color 0.15s, background 0.15s;
+}
+.consent-research-option input[type="radio"] { width: 1rem; height: 1rem; cursor: pointer; accent-color: #0284c7; }
+.consent-research-option-icon { color: #0284c7; }
+.consent-research-option--selected { border-color: #0284c7; background: #e0f2fe; color: #0c4a6e; font-weight: 500; }
+.consent-research-option--no.consent-research-option--selected { border-color: #94a3b8; background: #f8fafc; color: #475569; }
+.consent-research-skip { font-size: 0.8rem; color: #64748b; margin: 0; font-style: italic; }
+.theme-dark .consent-research-section { background: rgba(2,132,199,0.1); border-color: rgba(2,132,199,0.3); }
+.theme-dark .consent-research-title { color: #7dd3fc; }
+.theme-dark .consent-research-optional { color: #38bdf8; }
+.theme-dark .consent-research-body { color: var(--ink-800); }
+.theme-dark .consent-research-option { background: var(--surface); border-color: var(--line-200); color: var(--ink-800); }
+.theme-dark .consent-research-option--selected { border-color: #0284c7; background: rgba(2,132,199,0.18); color: #7dd3fc; }
+.theme-dark .consent-research-skip { color: #94a3b8; }
+
 .error-message {
   background: #ffebee;
   color: #c62828;

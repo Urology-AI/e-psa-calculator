@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { functions } from '../config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import './Part2Results.css';
 import './epsa-v2-layout.css';
 import { RISK_COLORS } from '../utils/riskColors';
@@ -349,8 +351,34 @@ const Part2Results = ({
   cloudAvailable = false,
   saveToCloudPending = false,
   saveToCloudError = null,
+  researchConsent = false,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
+  const [researchSubmitError, setResearchSubmitError] = useState(null);
+
+  const handleSubmitToResearch = async () => {
+    if (!functions) return;
+    setResearchSubmitState('pending');
+    setResearchSubmitError(null);
+    try {
+      const fn = httpsCallable(functions, 'submitToRedcap');
+      await fn({
+        researchConsent: true,
+        step1: preData,
+        result: preResult,
+        step2: postData,
+        finalCategory: result?.riskCat,
+        finalScore: result?.totalPoints,
+        pathwayMode: postData?.pathwayMode || preData?.pathwayMode || 'post_psa',
+        sessionId: sessionId || undefined,
+      });
+      setResearchSubmitState('success');
+    } catch (err) {
+      setResearchSubmitState('error');
+      setResearchSubmitError(err?.message || 'Submission failed. Please try again.');
+    }
+  };
 
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {});
@@ -458,6 +486,42 @@ const Part2Results = ({
               </button>
               {saveToCloudError && <span className="p2r-cloud-err">{saveToCloudError}</span>}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Research consent / REDCap status ── */}
+      {storageMode === 'cloud' && (
+        /* Cloud user — auto-synced if consented */
+        <div className={`p2r-research-badge ${researchConsent ? 'p2r-research-badge--consented' : 'p2r-research-badge--private'}`}>
+          {researchConsent
+            ? <><CheckCircle2Icon size={14} /><span>Your data is included in the ePSA research study</span></>
+            : <><CloudIcon size={14} /><span>Your data is stored privately — not shared for research</span></>}
+        </div>
+      )}
+      {storageMode === 'local' && researchConsent && (
+        /* Local user — must push manually */
+        <div className="p2r-research-submit-row">
+          {researchSubmitState === 'success' ? (
+            <div className="p2r-research-badge p2r-research-badge--consented">
+              <CheckCircle2Icon size={14} />
+              <span>Thank you! Your data has been submitted to the research study.</span>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="p2r-btn-research-submit"
+                onClick={handleSubmitToResearch}
+                disabled={researchSubmitState === 'pending'}
+              >
+                <FlaskConicalIcon size={15} />
+                {researchSubmitState === 'pending' ? 'Submitting…' : 'Submit to Research Study'}
+              </button>
+              {researchSubmitState === 'error' && (
+                <span className="p2r-research-error">{researchSubmitError}</span>
+              )}
+            </>
           )}
         </div>
       )}
