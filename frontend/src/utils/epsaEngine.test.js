@@ -81,12 +81,20 @@ describe('ePSA Engine — Part 1 (many patient types)', () => {
     expect(rObese.score).toBeGreaterThan(rNormal.score);
   });
 
-  it('IPSS moderate (8–19) lowers score vs mild', () => {
-    const mild = makePart1Form({ ipss: [0, 0, 0, 0, 0, 0, 0] }); // 0
-    const moderate = makePart1Form({ ipss: [2, 2, 2, 2, 0, 0, 0] }); // 8
+  it('IPSS moderate (8–19) raises score vs mild (low IPSS is better)', () => {
+    const mild = makePart1Form({ ipss: [0, 0, 0, 0, 0, 0, 0] }); // total 0 — best
+    const moderate = makePart1Form({ ipss: [2, 2, 2, 2, 0, 0, 0] }); // total 8 — moderate
     const rMild = calculateDynamicEPsa(mild);
     const rMod = calculateDynamicEPsa(moderate);
-    expect(rMod.score).toBeLessThan(rMild.score);
+    expect(rMod.score).toBeGreaterThan(rMild.score);
+  });
+
+  it('Black ancestry under 40 does not add risk points', () => {
+    const youngBlack = makePart1Form({ race: 'black', age: 35 });
+    const youngWhite = makePart1Form({ race: 'white', age: 35 });
+    const rBlack = calculateDynamicEPsa(youngBlack);
+    const rWhite = calculateDynamicEPsa(youngWhite);
+    expect(rBlack.score).toBe(rWhite.score);
   });
 
   it('older age (70+): higher score than 50–59', () => {

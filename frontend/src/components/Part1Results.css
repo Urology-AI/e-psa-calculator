@@ -393,6 +393,44 @@
   line-height: 1.55;
 }
 
+/* ── Under-40 age eligibility notice ── */
+.under-age-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 0.0625rem solid #93c5fd;
+  background: #eff6ff;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  color: #1e40af;
+  margin-bottom: 0.5rem;
+}
+
+.under-age-notice-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  margin-top: 0.1rem;
+}
+
+.under-age-notice-body {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.under-age-notice-body strong {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.35rem;
+}
+
+.under-age-notice-body p {
+  margin: 0 0 0.4rem;
+}
+
+.under-age-notice-body p:last-child {
+  margin-bottom: 0;
+}
+
 /* Legacy flag card kept for backward compatibility */
 .high-risk-flag-card {
   border: 0.0625rem solid #fbbf24;
@@ -1287,6 +1325,12 @@
 .theme-dark .high-risk-flag-card {
   border-color: rgba(251, 191, 36, 0.45);
   background: rgba(217, 119, 6, 0.14);
+}
+
+.theme-dark .under-age-notice {
+  border-color: rgba(147, 197, 253, 0.35);
+  background: rgba(37, 99, 235, 0.14);
+  color: #93c5fd;
 }
 
 .theme-dark .high-risk-flag-title {

@@ -3,7 +3,7 @@ import './Part1Form.css';
 import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
-import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple } from 'lucide-react';
+import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const IPSS_QUESTION_KEYS = [
@@ -84,6 +84,11 @@ const SHIM_QUESTION_KEYS = [
 
 const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1Step }) => {
   const { t } = useTranslation();
+  const QuestionSubtext = ({ i18nKey, children, style }) => (
+    <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.875rem', lineHeight: 1.5, ...style }}>
+      {i18nKey ? t(i18nKey) : children}
+    </div>
+  );
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
@@ -303,6 +308,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.age.helper" />
           <input
             type="number"
             className="input-field"
@@ -329,6 +335,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.race.helper" />
           <div className="option-grid c2">
             {[
               { value: 'white', label: t('part1.race.white') },
@@ -377,10 +384,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div className="option-grid c3">
+          <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
+          <div className="option-grid c4">
             {[
-              { value: 0, label: t('part1.options.no') },
-              { value: 1, label: t('part1.options.yes') },
+              { value: 0, label: t('quickEntry.family.none') },
+              { value: 1, label: t('quickEntry.family.one') },
+              { value: 2, label: t('quickEntry.family.twoPlus') },
+              { value: 'unknown', label: t('part1.options.unknown') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -407,13 +417,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
+          <QuestionSubtext>
             {t('part1.step1.inflammationHistory.prompt')}
             <br />
             <span style={{ fontSize: '0.8125rem', fontStyle: 'italic' }}>
               {t('part1.step1.inflammationHistory.example')}
             </span>
-          </div>
+          </QuestionSubtext>
           <div className="option-grid c3">
             {[
               { value: 0, label: t('part1.options.no') },
@@ -444,6 +454,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
           <div className="option-grid c3">
             {[
               { value: 'yes', label: t('part1.options.yes') },
@@ -490,6 +501,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.heightHelper" />
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
               {t('part1.step2.heightUnit.imperial')}
@@ -533,6 +545,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.weightHelper" />
           <div className="option-grid c2" style={{ marginBottom: '12px' }}>
             <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
               {t('part1.step2.weightUnit.lbs')}
@@ -558,7 +571,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </div>
           )}
 
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : '#7F8C8D' }}>
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
             {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
@@ -588,6 +601,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.exercise.helper" />
           <div className="option-grid c3">
             {[
               { value: 0, label: t('part1.step3.exercise.regular'), Icon: Dumbbell },
@@ -622,6 +636,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.smoking.helper" />
           <div className="option-grid c3">
             {[
               { value: 2, label: t('part1.step3.smoking.current'), Icon: Flame },
@@ -656,10 +671,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div className="option-grid c2">
+          <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
+          <div className="option-grid c3">
             {[
               { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
               { value: 'no', label: t('part1.options.no'), Icon: CheckCircle2 },
+              { value: 'unknown', label: t('part1.options.unknown'), Icon: HelpCircle },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -707,6 +724,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.diet.helper" />
           <div className="option-grid c2">
             {[
               { value: 'western', label: t('part1.step4.diet.western'), Icon: Beef },
@@ -746,9 +764,9 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
-          <div style={{ marginBottom: '12px', fontSize: '0.875rem', color: '#666' }}>
+          <QuestionSubtext>
             {t('part1.step4.comorbidities.prompt')}
-          </div>
+          </QuestionSubtext>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>{t('part1.step4.comorbidities.askAnyLabel')}</div>
             <div className="option-grid c2">
@@ -825,13 +843,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </span>
           )}
           {!ipssComplete && !attemptedNext && (
-            <span style={{ color: '#7F8C8D', fontSize: '0.75rem' }}>
+            <span className="question-subtext" style={{ fontSize: '0.75rem' }}>
               {t('part1.ipss.answeredCount', { answeredCount, total: 7 })}
             </span>
           )}
         </div>
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.ipss.note')}
       </div>
       {ipssQuestions.map((q, index) => (
@@ -845,6 +863,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             {localData.ipss[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
           </div>
           <div className="question-body">
+            <QuestionSubtext i18nKey="part1.ipss.helper" />
             <div className="option-grid c3">
               {ipssLabels.map(({ value, label }) => (
                 <button
@@ -859,7 +878,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : '#7F8C8D' }}>
+      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
         {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
       </div>
     </div>
@@ -885,13 +904,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <InfoIcon {...fieldReferences.shim} />
           {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!shimComplete && (
-            <span style={{ color: attemptedNext ? '#E74C3C' : '#7F8C8D', fontSize: '0.75rem' }}>
+            <span className={!attemptedNext ? 'question-subtext' : undefined} style={{ color: attemptedNext ? '#E74C3C' : undefined, fontSize: '0.75rem' }}>
               {t('part1.shim.answeredCount', { answeredCount, total: 5 })}
             </span>
           )}
         </div>
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#7F8C8D' }}>
+      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.shim.note')}
       </div>
       {shimQuestions.map((item, index) => (
@@ -905,6 +924,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             {localData.shim[index] !== null && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
           </div>
           <div className="question-body">
+            <QuestionSubtext i18nKey="part1.shim.helper" />
             <div className="option-grid c3">
               {item.opts.map(([score, label]) => (
                 <button key={score} className={`option-btn ${localData.shim[index] === score ? 'selected' : ''}`} onClick={() => updateSHIM(index, score)}>
@@ -915,7 +935,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : '#7F8C8D' }}>
+      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
         {t('part1.shim.totalLabel')}: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
       </div>
     </div>

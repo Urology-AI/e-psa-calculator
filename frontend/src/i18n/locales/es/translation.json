@@ -295,7 +295,7 @@
     },
     "sectionRiskExplanationTitle": "Explicación del riesgo",
     "sectionHowCalculatedTitle": "Cómo se calcula esta puntuación",
-    "explanationHowScoreCalculated": "La puntuación ePSA es un resumen basado en puntos de sus respuestas. Cada factor de riesgo (por ejemplo, edad de 60 años o más, IMC ≥30, síntomas urinarios leves, poco o ningún ejercicio, tabaquismo actual o anterior, dieta rica en carnes rojas, raza negra, antecedentes familiares, BRCA, inflamación, exposición al agente naranja/químicos o una puntuación SHIM baja) suma puntos. Luego, los puntos totales se normalizan a una escala de 0 a 100 %, y se muestra un rango de ±5 % en lugar de un solo número.",
+    "explanationHowScoreCalculated": "La puntuación ePSA es un resumen basado en puntos de sus respuestas. Cada factor de riesgo (por ejemplo, edad de 60 años o más, IMC ≥30, síntomas urinarios leves, poco o ningún ejercicio, tabaquismo actual o anterior, dieta rica en carnes rojas, raza negra, antecedentes familiares, mutación genética, inflamación, exposición al agente naranja/químicos o una puntuación SHIM baja) suma puntos. Luego, los puntos totales se normalizan a una escala de 0 a 100 %, y se muestra un rango de ±5 % en lugar de un solo número.",
     "sectionWhatTierMeansTitle": "Qué significa tu nivel",
     "sectionGuidelineContextTitle": "Contexto de la directriz (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Umbral de recomendación",
@@ -448,7 +448,8 @@
     "family": {
       "none": "Ninguno",
       "one": "1 pariente",
-      "twoPlus": "2+ parientes"
+      "twoPlus": "2+ parientes",
+      "unknown": "Desconocido"
     },
     "ipssLabel": "IPSS total (0-35)",
     "ipssPlaceholder": "por ejemplo, 4",
@@ -456,7 +457,7 @@
     "shimPlaceholder": "por ejemplo, 25",
     "defaultsTitle": "Valores predeterminados (opcional)",
     "editDefaults": "Editar valores predeterminados",
-    "defaultsHint": "Uso: Fumar = Nunca, Dieta = Regular (occidental), Exposición a sustancias químicas = No, BRCA = No, Inflamación = No, Comorbilidades = Ninguna, Ejercicio = Regular.",
+    "defaultsHint": "Uso: Fumar = Nunca, Dieta = Regular (occidental), Exposición a sustancias químicas = No, Mutación genética = No, Inflamación = No, Comorbilidades = Ninguna, Ejercicio = Regular.",
     "exerciseLabel": "Nivel de ejercicio",
     "exercise": {
       "regular": "Regular (3+ días/semana)",
@@ -485,7 +486,7 @@
       "lowCarbKeto": "Bajo en carbohidratos/ceto",
       "other": "Otro / Prefiero no decirlo"
     },
-    "brcaLabel": "mutación BRCA",
+    "brcaLabel": "mutación genética",
     "inflammationLabel": "Historial de inflamación",
     "chemicalExposureLabel": "Exposición química",
     "defaultsAffectHint": "Los incumplimientos afectan la puntuación de riesgo (y la recomendación de PSA) junto con SHIM/IPSS.",
@@ -728,15 +729,18 @@
       "age": {
         "title": "Edad",
         "placeholder": "Edad (18+)",
+        "helper": "Su edad ayuda a calibrar la prioridad de detección porque el riesgo de cáncer de próstata aumenta con el tiempo.",
         "description": "El riesgo aumenta con la edad, especialmente después de los 50 años. La edad promedio de diagnóstico es 66 años."
       },
       "race": {
         "title": "Raza/Etnia",
         "selectPlaceholder": "Seleccione raza/etnia",
+        "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
         "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
       },
       "familyHistory": {
         "title": "Historia familiar",
+        "helper": "Incluya familiares consanguíneos cercanos, como padre, hermano o hijo, que hayan tenido cáncer de próstata.",
         "description": "Tener un padre o un hermano con cáncer de próstata duplica con creces el riesgo de un hombre. El riesgo es aún mayor si hay varios familiares afectados."
       },
       "inflammationHistory": {
@@ -744,8 +748,9 @@
         "description": "Las afecciones inflamatorias crónicas como la prostatitis, la colitis ulcerosa y la enfermedad de Crohn pueden aumentar el riesgo de cáncer de próstata a través de mecanismos de inflamación crónica."
       },
       "brcaStatus": {
-        "title": "Mutaciones BRCA",
-        "description": "Las mutaciones de los genes BRCA1 y BRCA2 aumentan el riesgo de cáncer de próstata. Los hombres con mutaciones BRCA2 tienen un riesgo de por vida del 20-25%."
+        "title": "Mutación genética conocida",
+        "helper": "Seleccione Sí si le han dicho que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13.",
+        "description": "Seleccione Sí si le han informado que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13. Las mutaciones BRCA2 se asocian con mayor riesgo de cáncer de próstata y pueden relacionarse con enfermedad más agresiva. HOXB13, especialmente la variante G84E en algunas familias, es un gen de susceptibilidad hereditaria al cáncer de próstata."
       },
       "heightWeight": {
         "title": "Altura y peso (IMC)",
@@ -753,18 +758,22 @@
       },
       "exercise": {
         "title": "Nivel de ejercicio",
+        "helper": "Piense en una semana típica y elija la opción que mejor refleje su actividad física planificada.",
         "description": "La actividad física regular se asocia con un riesgo reducido de cáncer de próstata agresivo."
       },
       "smoking": {
         "title": "Estado de fumar",
+        "helper": "Incluya cigarrillos u otro consumo regular de tabaco al elegir su estado actual o anterior.",
         "description": "Fumar está relacionado con un mayor riesgo de cáncer de próstata agresivo y mayores tasas de mortalidad."
       },
       "chemicalExposure": {
         "title": "Exposición química",
+        "helper": "Responda Sí si ha tenido una exposición ocupacional, militar o ambiental significativa.",
         "description": "La exposición al Agente Naranja, pesticidas y ciertos químicos industriales puede aumentar el riesgo de cáncer de próstata."
       },
       "diet": {
         "title": "Patrón de dieta",
+        "helper": "Elija el patrón que describa mejor sus hábitos alimentarios habituales.",
         "description": "Las dietas ricas en carnes rojas y lácteos ricos en grasas pueden aumentar el riesgo. Las dietas basadas en plantas pueden tener un efecto protector."
       },
       "ipss": {
@@ -831,7 +840,7 @@
         },
         "step1": {
           "familyHistoryInvalid": "Por favor responda la pregunta de historia familiar.",
-          "brcaInvalid": "Por favor responda la pregunta sobre el estado de BRCA"
+          "brcaInvalid": "Por favor responda la pregunta sobre mutación genética"
         },
         "step2": {
           "heightInvalid": "Por favor ingresa una altura válida",
@@ -873,6 +882,8 @@
     "step2": {
       "heightQuestion": "Altura",
       "weightQuestion": "Peso",
+      "heightHelper": "La altura se usa con el peso para estimar el IMC, uno de los factores incluidos en este perfil de detección.",
+      "weightHelper": "El peso se usa con la altura para calcular automáticamente el IMC; una estimación está bien si no conoce el peso exacto.",
       "heightUnit": {
         "imperial": "Pies/pulgadas",
         "metric": "Centímetros"
@@ -908,7 +919,7 @@
         "former": "Anterior",
         "never": "Nunca"
       },
-      "chemicalQuestion": "Exposición a sustancias químicas (por ejemplo, agente naranja o pesticidas)"
+      "chemicalQuestion": "Exposición del 11 de septiembre o química (p.ej., sitio WTC, pesticidas, sustancias industriales)"
     },
     "step4": {
       "diet": {
@@ -944,6 +955,7 @@
     },
     "ipss": {
       "note": "Durante el último mes, ¿con qué frecuencia ha tenido:",
+      "helper": "Responda según sus síntomas urinarios durante el último mes.",
       "answeredCount": "({{answeredCount}}/{{total}} respondió)",
       "totalLabel": "IPSS Total",
       "q1": "Vaciado incompleto: ¿no vaciar completamente la vejiga?",
@@ -962,6 +974,7 @@
     },
     "shim": {
       "note": "Durante los últimos 6 meses:",
+      "helper": "Responda según su función sexual durante los últimos 6 meses.",
       "answeredCount": "({{answeredCount}}/{{total}} respondió)",
       "totalLabel": "CUÑA Total",
       "q1": "¿Cómo califica su confianza en que podrá lograr y mantener una erección?",

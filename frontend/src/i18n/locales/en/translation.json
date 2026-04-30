@@ -259,15 +259,18 @@
       "age": {
         "title": "Age",
         "placeholder": "Age (18+)",
+        "helper": "Your age helps calibrate screening priority because prostate cancer risk rises over time.",
         "description": "Risk increases with age, particularly after 50. The average age of diagnosis is 66."
       },
       "race": {
         "title": "Race/Ethnicity",
         "selectPlaceholder": "Select race/ethnicity",
+        "helper": "Choose the category that best fits how you identify; ancestry can affect screening recommendations.",
         "description": "Black/African American men have higher risk and are more likely to develop prostate cancer at a younger age."
       },
       "familyHistory": {
         "title": "Family History",
+        "helper": "Count close blood relatives, such as a father, brother, or son, who have had prostate cancer.",
         "description": "Having a father or brother with prostate cancer more than doubles a man's risk. The risk is even higher with multiple affected relatives."
       },
       "inflammationHistory": {
@@ -275,8 +278,9 @@
         "description": "Chronic inflammatory conditions like prostatitis, ulcerative colitis, and Crohn's disease may increase prostate cancer risk through chronic inflammation mechanisms."
       },
       "brcaStatus": {
-        "title": "BRCA Mutations",
-        "description": "BRCA1 and BRCA2 gene mutations increase prostate cancer risk. Men with BRCA2 mutations have a 20-25% lifetime risk."
+        "title": "Known Genetic Mutation",
+        "helper": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13.",
+        "description": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13. BRCA2 mutations are associated with increased prostate cancer risk and can be linked to more aggressive disease. HOXB13, especially the G84E variant in some families, is a hereditary prostate cancer susceptibility gene."
       },
       "heightWeight": {
         "title": "Height & Weight (BMI)",
@@ -284,18 +288,22 @@
       },
       "exercise": {
         "title": "Exercise Level",
+        "helper": "Think about a typical week and choose the option that best reflects planned physical activity.",
         "description": "Regular physical activity is associated with reduced risk of aggressive prostate cancer."
       },
       "smoking": {
         "title": "Smoking Status",
+        "helper": "Include cigarettes or other regular tobacco use when choosing your current or past smoking status.",
         "description": "Smoking is linked to increased risk of aggressive prostate cancer and higher mortality rates."
       },
       "chemicalExposure": {
-        "title": "Chemical Exposure",
-        "description": "Exposure to Agent Orange, pesticides, and certain industrial chemicals may increase prostate cancer risk."
+        "title": "9/11 or Chemical Exposure",
+        "helper": "Answer Yes if you were present at the World Trade Center site after 9/11, or have had meaningful occupational, military, or environmental chemical exposure (e.g., pesticides, industrial chemicals). Answer Unknown if you are unsure.",
+        "description": "9/11 first responders and survivors have elevated rates of several cancers. Exposure to pesticides and certain industrial chemicals may also increase prostate cancer risk. Note: this factor is not part of AUA/SUO screening guidelines — it is an ePSA model variable."
       },
       "diet": {
         "title": "Diet Pattern",
+        "helper": "Pick the pattern that most closely describes your usual eating habits.",
         "description": "Diets high in red meat and high-fat dairy may increase risk. Plant-based diets may be protective."
       },
       "ipss": {
@@ -363,7 +371,7 @@
         },
         "step1": {
           "familyHistoryInvalid": "Please answer family history question",
-          "brcaInvalid": "Please answer BRCA status question"
+          "brcaInvalid": "Please answer genetic mutation question"
         },
         "step2": {
           "heightInvalid": "Please enter valid height",
@@ -405,6 +413,8 @@
     "step2": {
       "heightQuestion": "Height",
       "weightQuestion": "Weight",
+      "heightHelper": "Height is used with weight to estimate BMI, one of the factors included in this screening profile.",
+      "weightHelper": "Weight is used with height to auto-calculate BMI; an estimate is okay if exact weight is not available.",
       "heightUnit": {
         "imperial": "Feet / Inches",
         "metric": "Centimeters"
@@ -440,7 +450,7 @@
         "former": "Former",
         "never": "Never"
       },
-      "chemicalQuestion": "Chemical Exposure (e.g., Agent Orange or pesticides)"
+      "chemicalQuestion": "9/11 or Chemical Exposure (e.g., WTC site, pesticides, industrial chemicals)"
     },
     "step4": {
       "diet": {
@@ -476,6 +486,7 @@
     },
     "ipss": {
       "note": "Over the past month, how often have you had:",
+      "helper": "Answer based on your urinary symptoms during the past month.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "IPSS Total",
       "q1": "Incomplete emptying — not fully emptying your bladder?",
@@ -494,6 +505,7 @@
     },
     "shim": {
       "note": "Over the past 6 months:",
+      "helper": "Answer based on your sexual function over the past 6 months.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "SHIM Total",
       "q1": "How do you rate your confidence that you could get and keep an erection?",
@@ -632,7 +644,7 @@
     },
     "sectionRiskExplanationTitle": "Risk explanation",
     "sectionHowCalculatedTitle": "How this score is calculated",
-    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, BRCA, inflammation, Agent Orange/chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
+    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, 9/11 or chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
     "sectionWhatTierMeansTitle": "What your tier means",
     "sectionGuidelineContextTitle": "Guideline context (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Recommendation Threshold",
@@ -786,7 +798,8 @@
     "family": {
       "none": "None",
       "one": "1 relative",
-      "twoPlus": "2+ relatives"
+      "twoPlus": "2+ relatives",
+      "unknown": "Unknown"
     },
     "ipssLabel": "IPSS total (0-35)",
     "ipssPlaceholder": "e.g., 4",
@@ -794,7 +807,7 @@
     "shimPlaceholder": "e.g., 25",
     "defaultsTitle": "Defaults (optional)",
     "editDefaults": "Edit defaults",
-    "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, BRCA = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
+    "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, Genetic mutation = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
     "exerciseLabel": "Exercise level",
     "exercise": {
       "regular": "Regular (3+ days/week)",
@@ -823,7 +836,7 @@
       "lowCarbKeto": "Low-carb / Keto",
       "other": "Other / Prefer not to say"
     },
-    "brcaLabel": "BRCA mutation",
+    "brcaLabel": "Genetic mutation",
     "inflammationLabel": "Inflammation history",
     "chemicalExposureLabel": "Chemical exposure",
     "defaultsAffectHint": "Defaults affect the risk score (and PSA recommendation) alongside SHIM/IPSS.",
@@ -962,7 +975,7 @@
       "familyGeneticsLabel": "Family & genetics:",
       "familyGenetics": "Family history of prostate cancer, BRCA status",
       "lifestyleLabel": "Lifestyle:",
-      "lifestyle": "Exercise level, smoking, diet pattern, chemical/Agent Orange exposure",
+      "lifestyle": "Exercise level, smoking, diet pattern, 9/11 or chemical exposure",
       "medicalHistoryLabel": "Medical history:",
       "medicalHistory": "Prostatitis/inflammation, hypertension, hyperlipidemia, coronary artery disease, diabetes",
       "validatedLabel": "Validated instruments:",
@@ -1058,4 +1071,3 @@
     }
   }
 }
-

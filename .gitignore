@@ -57,6 +57,10 @@ yarn-error.log*
 .npm
 .eslintcache
 
+# MSIP disclosure and internal documents — keep local only
+MSIP_DISCLOSURE.md
+ePSA_Manuscript.docx
+
 # parcel-bundler cache
 .parcel-cache/
 .cache
@@ -76,3 +80,6 @@ data/
 training_output_part1.txt
 training_output_part2.txt
 training_results_summary.txt
+
+# Firebase service account key (never commit)
+scripts/serviceAccount.json
