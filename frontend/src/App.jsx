@@ -8,7 +8,8 @@ import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
-import { BookIcon, ShieldCheckIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import CreditsModal from './components/CreditsModal.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +59,7 @@ function App() {
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [showHipaaPopup, setShowHipaaPopup] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
   const [currentStep, setCurrentStep] = useState(1);
@@ -1443,12 +1445,19 @@ function App() {
                   <BookIcon size={16} />
                   <span>{t('app.footer.modelDocs')}</span>
                 </button>
-                <button 
+                <button
                   className="btn-model-docs btn-hipaa"
                   onClick={() => setShowHipaaPopup(true)}
                 >
                   <ShieldCheckIcon size={16} />
                   <span>{t('app.footer.hipaa')}</span>
+                </button>
+                <button
+                  className="btn-model-docs"
+                  onClick={() => setShowCredits(true)}
+                >
+                  <UsersIcon size={16} />
+                  <span>Credits</span>
                 </button>
               </div>
             </footer>
@@ -1768,6 +1777,9 @@ function App() {
       )}
       {showHipaaPopup && (
         <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />
+      )}
+      {showCredits && (
+        <CreditsModal onClose={() => setShowCredits(false)} />
       )}
     </div>
   );

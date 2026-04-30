@@ -31,7 +31,7 @@ const PrintableForm = ({ onBack, formData }) => {
     const formDataOut = {
       age: getInput('input[name="age"]'),
       race: getRadio('race') || null,
-      familyHistory: num(getRadio('family')),
+      familyHistory: (() => { const v = getRadio('family'); return v === 'unknown' ? 'unknown' : num(v); })(),
       inflammationHistory: num(getRadio('inflammation')),
       brcaStatus: getRadio('brca') || null,
       heightUnit: getRadio('heightUnit') || 'imperial',
@@ -309,6 +309,7 @@ const PrintableForm = ({ onBack, formData }) => {
               <label className="checkbox-inline"><input type="radio" name="family" value="0" defaultChecked={isChecked('familyHistory', 0)} /> {t('quickEntry.family.none')}</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="1" defaultChecked={isChecked('familyHistory', 1)} /> {t('quickEntry.family.one')}</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="2" defaultChecked={isChecked('familyHistory', 2)} /> {t('quickEntry.family.twoPlus')}</label>
+              <label className="checkbox-inline"><input type="radio" name="family" value="unknown" defaultChecked={isChecked('familyHistory', 'unknown')} /> {t('part1.options.unknown')}</label>
             </label>
           </div>
         </div>
@@ -399,6 +400,7 @@ const PrintableForm = ({ onBack, formData }) => {
               <span className="field-number">10.</span> {t('part1.fields.chemicalExposure.title')}:
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" defaultChecked={isChecked('chemicalExposure', 'yes')} /> {t('part1.options.yes')}</label>
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" defaultChecked={isChecked('chemicalExposure', 'no')} /> {t('part1.options.no')}</label>
+              <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="unknown" defaultChecked={isChecked('chemicalExposure', 'unknown')} /> {t('part1.options.unknown')}</label>
             </label>
           </div>
         </div>

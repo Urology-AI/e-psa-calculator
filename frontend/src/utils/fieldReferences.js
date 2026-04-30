@@ -56,6 +56,9 @@ export const fieldReferences = {
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'Hemminki H, et al., Eur Urol Open Sci 2024', url: pubmedSearch('Hemminki H Eur Urol Open Sci 2024') },
       { name: 'Giri VN, et al., J Clin Oncol. 2018', url: pubmedSearch('Giri VN J Clin Oncol 2018') },
+      { name: 'Nyberg T, et al., Br J Cancer. 2022 — BRCA1/2 meta-analysis', url: 'https://pubmed.ncbi.nlm.nih.gov/34963702/' },
+      { name: 'Ewing CM, et al., N Engl J Med. 2012 — HOXB13 G84E', url: 'https://pubmed.ncbi.nlm.nih.gov/22236224/' },
+      { name: 'Xu J, et al., Hum Genet. 2013 — HOXB13 susceptibility gene', url: 'https://pubmed.ncbi.nlm.nih.gov/23064873/' },
     ],
   },
   heightWeight: {
@@ -89,6 +92,7 @@ export const fieldReferences = {
     titleKey: 'part1.fields.chemicalExposure.title',
     descriptionKey: 'part1.fields.chemicalExposure.description',
     sources: [
+      { name: 'CDC WTC Health Program – Toxins & Health Impacts', url: 'https://www.cdc.gov/wtc/exhibition/toxins-and-health-impacts.html' },
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
     ],

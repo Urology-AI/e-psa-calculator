@@ -196,10 +196,14 @@
 
 .question-note {
   font-size: 0.78125rem;
-  color: #698398;
+  color: #40576a;
   line-height: 1.55;
   margin-top: 0.5rem;
   font-style: italic;
+}
+
+.question-subtext {
+  color: #40576a;
 }
 
 /* ─── Option Buttons ─── */
@@ -405,7 +409,11 @@
 }
 
 .theme-dark .question-note {
-  color: var(--ink-400);
+  color: #fff !important;
+}
+
+.theme-dark .question-subtext {
+  color: #fff !important;
 }
 
 .theme-dark .info-icon {
