@@ -512,10 +512,13 @@ function App() {
     if (!db) return { success: true };
 
     const consentToContact = consent?.consentToContact === true;
+    const researchConsent  = consent?.researchConsent  === true;
     setCloudSyncStatus('saving');
     await setDoc(doc(db, 'users', user.uid), {
       consentToContact,
       consentTimestamp: consent?.consentTimestamp || new Date().toISOString(),
+      researchConsent,
+      researchTimestamp: consent?.researchTimestamp || new Date().toISOString(),
       updatedAt: serverTimestamp(),
       lastLoginAt: new Date().toISOString(),
       sessionType: 'anonymous',
@@ -1524,6 +1527,7 @@ function App() {
                 cloudAvailable={isFirebaseConfigured()}
                 saveToCloudPending={saveToCloudPending}
                 saveToCloudError={saveToCloudError}
+                researchConsent={consentData?.researchConsent ?? false}
                 onEditAnswers={() => {
                   setPart1Step(0);
                   setCurrentStep(1);
@@ -1610,6 +1614,7 @@ function App() {
                 cloudAvailable={isFirebaseConfigured()}
                 saveToCloudPending={saveToCloudPending}
                 saveToCloudError={saveToCloudError}
+                researchConsent={consentData?.researchConsent ?? false}
                 onEditAnswers={() => {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -101,6 +101,70 @@
   padding: 0.3125rem 0.625rem;
 }
 
+/* ── Research consent / REDCap status badge ── */
+.p2r-research-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.p2r-research-badge--consented {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 0.0625rem solid #bbf7d0;
+}
+.p2r-research-badge--private {
+  color: #475569;
+  background: #f8fafc;
+  border: 0.0625rem solid #cbd5e1;
+}
+.p2r-research-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+.p2r-btn-research-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  background: #e0f2fe;
+  border: 0.0625rem solid #7dd3fc;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.p2r-btn-research-submit:hover:not(:disabled) { background: #bae6fd; border-color: #38bdf8; }
+.p2r-btn-research-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.p2r-research-error { font-size: 0.78rem; color: #dc2626; }
+.theme-dark .p2r-btn-research-submit {
+  color: #7dd3fc;
+  background: rgba(2,132,199,0.15);
+  border-color: rgba(2,132,199,0.4);
+}
+.theme-dark .p2r-btn-research-submit:hover:not(:disabled) { background: rgba(2,132,199,0.25); }
+.theme-dark .p2r-research-error { color: #fca5a5; }
+
+.theme-dark .p2r-research-badge--consented {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.25);
+}
+.theme-dark .p2r-research-badge--private {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
 .p2r-cloud-move {
   display: flex;
   align-items: center;
