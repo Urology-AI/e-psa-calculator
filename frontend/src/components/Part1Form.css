@@ -3,7 +3,7 @@
 .part1-form-container {
   max-width: 51.25rem;
   margin: 0 auto;
-  padding: 0.75rem 0 7.5rem;
+  padding: 0.75rem 0 calc(7.5rem + env(safe-area-inset-bottom));
 }
 
 /* ─── Flow Header ─── */
@@ -179,6 +179,7 @@
 .option-grid { display: grid; gap: 0.4375rem; }
 .option-grid.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .option-grid.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.option-grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .option-btn {
   padding: 0.6875rem 0.625rem;
