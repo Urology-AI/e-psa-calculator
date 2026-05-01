@@ -389,6 +389,57 @@ body {
   margin-right: 0.4rem;
 }
 
+/* Cloud icon status indicator (replaces text badge) */
+.cloud-icon-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  border: 0.0625rem solid var(--line-200);
+  background: var(--surface-subtle);
+  color: var(--ink-400);
+  margin-right: 0.25rem;
+  cursor: default;
+  flex-shrink: 0;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.cloud-icon-badge--saving {
+  color: var(--brand-600);
+  background: var(--brand-50);
+  border-color: var(--brand-300);
+}
+.cloud-icon-badge--saved {
+  color: #16a34a;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.cloud-icon-badge--error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+.cloud-icon-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid white;
+}
+.cloud-icon-badge--saving .cloud-icon-dot { background: var(--brand-600); }
+.cloud-icon-badge--saved .cloud-icon-dot  { background: #16a34a; }
+.cloud-icon-badge--error .cloud-icon-dot  { background: #dc2626; }
+.theme-dark .cloud-icon-badge {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+  color: var(--ink-500);
+}
+.theme-dark .cloud-icon-dot { border-color: var(--surface); }
+
 .session-key-badge {
   display: inline-flex;
   align-items: center;
