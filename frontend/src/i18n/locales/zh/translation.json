@@ -32,9 +32,9 @@
     },
     "continueToRisk": "继续进行风险评估 →",
     "alerts": {
-      "completeRequiredFields": "请在计算分数前完成所有必填字段。请确保您已填写"关于您"、"家族与遗传风险"、"身体指标"、"生活方式"和"症状"中的所有必填字段。",
+      "completeRequiredFields": "请在计算分数前完成所有必填字段。请确保您已填写「关于您」、「家族与遗传风险」、「身体指标」、「生活方式」和「症状」中的所有必填字段。",
       "completePart1BeforeRiskAssessment": "请在进行风险评估前完成第一部分（筛查优先级）。",
-      "cloudSessionRestoreUnavailable": "会话ID恢复仅在云存储中可用。请改用"导入"功能导入JSON文件。",
+      "cloudSessionRestoreUnavailable": "会话ID恢复仅在云存储中可用。请改用「导入」功能导入JSON文件。",
       "cloudDemoNoSessionKey": "在此演示中无法从云端加载。请使用完整的Firebase应用程序来使用您的会话密钥。",
       "completeRequiredFieldsGh": "请在计算分数前完成所有必填字段。",
       "calculationFailedGh": "计算失败。请检查您的答案后重试。"
@@ -192,7 +192,7 @@
     "errors": {
       "generic": "创建会话失败。请重试。",
       "operationNotAllowed": "匿名登录已禁用。请在Auth（或Auth Emulator）中启用匿名提供商后重试。",
-      "adminRestricted": "此Firebase项目中匿名登录受限。请在身份验证设置中"启用匿名提供商"，或使用正确配置的模拟器。",
+      "adminRestricted": "此Firebase项目中匿名登录受限。请在身份验证设置中\"启用匿名提供商\"，或使用正确配置的模拟器。",
       "permissionDenied": "会话已创建，但Firestore写入被拒绝。请检查Firestore规则/模拟器后重试。",
       "firestoreUnavailable": "Firestore不可用。请确保Firestore模拟器正在运行。"
     }
@@ -216,13 +216,13 @@
     "importCloud": {
       "title": "数据导入与云端",
       "fileImportLabel": "文件导入：",
-      "fileImportText": "当您导入JSON文件时，我们不会将该数据关联到任何现有的云会话。数据仅在本地加载。您可以稍后选择"移至云端"，将其保存在新的匿名会话密钥下。",
+      "fileImportText": "当您导入JSON文件时，我们不会将该数据关联到任何现有的云会话。数据仅在本地加载。您可以稍后选择\"移至云端\"，将其保存在新的匿名会话密钥下。",
       "loadCloudLabel": "从云端加载：",
       "loadCloudText": "要继续之前的会话，您必须输入您的会话密钥。我们不使用导入文件中的信息来查找或附加现有会话。"
     },
     "choices": {
       "title": "您的选择",
-      "text": "您可以选择仅在此设备上存储数据（"仅此设备"）或使用匿名会话密钥保存到云端。云存储无需个人联系信息。"
+      "text": "您可以选择仅在此设备上存储数据（\"仅此设备\"）或使用匿名会话密钥保存到云端。云存储无需个人联系信息。"
     },
     "disclaimer": {
       "label": "免责声明：",
@@ -753,7 +753,7 @@
     "loading": "加载中...",
     "load": "加载",
     "uploadJsonData": "上传JSON数据",
-    "uploadDescription": "上传您导出的评估数据文件（来自"导出数据"的JSON）。",
+    "uploadDescription": "上传您导出的评估数据文件（来自\"导出数据\"的JSON）。",
     "dragDrop": "将JSON文件拖放到此处",
     "or": "或",
     "chooseJson": "选择JSON文件",
@@ -762,12 +762,12 @@
     "howToImport": "如何导入",
     "how": {
       "uploadJsonLabel": "上传JSON：",
-      "uploadJsonText": "使用来自结果屏幕上"导出数据"的JSON文件。",
+      "uploadJsonText": "使用来自结果屏幕上\"导出数据\"的JSON文件。",
       "restoreText": "您的数据将被恢复，您可以完成或编辑任何缺失的字段。",
       "cloudLocal": "适用于本地和云存储。"
     },
     "errors": {
-      "uploadJsonOnly": "请上传JSON文件（来自"导出数据"）。",
+      "uploadJsonOnly": "请上传JSON文件（来自\"导出数据\"）。",
       "importFailed": "导入文件失败。请检查文件格式。",
       "invalidSessionKey": "请输入有效的8字符会话密钥（仅字母和数字）",
       "loadCloudFailed": "从云端加载失败。请重试。"
@@ -985,7 +985,7 @@
     },
     "riskTiers": {
       "title": "风险等级和PSA建议",
-      "body": "您的结果被置于三个等级之一（较低、中等、较高）。此外，模型可能会根据阈值指示PSA检测是否"建议"或"不建议"（例如，评分高于约{{recommendPct}}%可能建议考虑与临床医生讨论PSA）。这仅供教育使用，应与您的医生一起审查。"
+      "body": "您的结果被置于三个等级之一（较低、中等、较高）。此外，模型可能会根据阈值指示PSA检测是否\"建议\"或\"不建议\"（例如，评分高于约{{recommendPct}}%可能建议考虑与临床医生讨论PSA）。这仅供教育使用，应与您的医生一起审查。"
     },
     "limitations": {
       "title": "局限性",
