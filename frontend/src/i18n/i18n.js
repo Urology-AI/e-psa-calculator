@@ -5,10 +5,16 @@ import { supportedLanguages } from './supportedLanguages';
 
 import en from './locales/en/translation.json';
 import es from './locales/es/translation.json';
+import zh from './locales/zh/translation.json';
+import hi from './locales/hi/translation.json';
+import it from './locales/it/translation.json';
 
 const resources = {
   en: { translation: en },
   es: { translation: es },
+  zh: { translation: zh },
+  hi: { translation: hi },
+  it: { translation: it },
 };
 
 const normalizeLocale = (lng) => String(lng || '').trim();
@@ -21,6 +27,9 @@ const pickSupportedLanguage = (candidate) => {
 
   if (lower.startsWith('en')) return 'en';
   if (lower.startsWith('es')) return 'es';
+  if (lower.startsWith('zh')) return 'zh';
+  if (lower.startsWith('hi')) return 'hi';
+  if (lower.startsWith('it')) return 'it';
 
   return 'en';
 };
