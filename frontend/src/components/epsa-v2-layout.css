@@ -104,6 +104,7 @@
   -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid var(--line-200);
   padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
   z-index: 20;
