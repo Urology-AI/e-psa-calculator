@@ -4,6 +4,9 @@ export const supportedLanguages = [
   { code: 'zh', label: '中文', dir: 'ltr' },
   { code: 'hi', label: 'हिन्दी', dir: 'ltr' },
   { code: 'it', label: 'Italiano', dir: 'ltr' },
+  { code: 'fr', label: 'Français', dir: 'ltr' },
+  { code: 'pt', label: 'Português', dir: 'ltr' },
+  { code: 'ar', label: 'العربية', dir: 'rtl' },
 ];
 
 export const supportedLanguageCodes = supportedLanguages.map((l) => l.code);
