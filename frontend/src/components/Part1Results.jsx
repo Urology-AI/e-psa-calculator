@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
+import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import {
@@ -51,6 +52,56 @@ const RiskGauge = ({ score, epsaTierKey, epsaTierLabel }) => {
       </div>
       <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>
     </figure>
+  );
+};
+
+/* ─── Inline reference popover (ⓘ) for impact table rows ─── */
+const IMPACT_TO_REF = {
+  'Age': 'age',
+  'Black ancestry': 'race',
+  'Family history': 'familyHistory',
+  'Inflammation history': 'inflammationHistory',
+  'Genetic mutation': 'brcaStatus',
+  'BMI': 'heightWeight',
+  'Exercise': 'exercise',
+  'Smoking': 'smoking',
+  '9/11 / Chemical exposure': 'chemicalExposure',
+  'Diet pattern': 'diet',
+  'IPSS total': 'ipss',
+  'SHIM total': 'shim',
+  'Comorbidity burden': 'comorbidities',
+};
+
+const SourcesPopover = ({ itemName }) => {
+  const [open, setOpen] = useState(false);
+  const refKey = IMPACT_TO_REF[itemName];
+  const refData = refKey ? fieldReferences[refKey] : null;
+  if (!refData?.sources?.length) return null;
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: '3px' }}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', color: '#2563eb', fontSize: '12px', lineHeight: 1 }}
+        title={`References for ${itemName}`}
+        aria-label={`Show references for ${itemName}`}
+      >ⓘ</button>
+      {open && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 50, background: 'var(--surface, #fff)', border: '1px solid #d1e3f3', borderRadius: '8px', padding: '10px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '210px', maxWidth: '290px' }}>
+            <div style={{ fontWeight: 700, fontSize: '11px', color: '#1d3a59', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{itemName}</div>
+            <ul style={{ margin: 0, padding: '0 0 0 14px' }}>
+              {refData.sources.map((src, i) => (
+                <li key={i} style={{ fontSize: '11px', lineHeight: 1.65 }}>
+                  <a href={src.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1d6ea3' }}>{src.name}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+    </span>
   );
 };
 
@@ -310,6 +361,7 @@ const Part1Results = ({
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const breakdownRef = useRef(null);
 
   const handleExportCsv = () => {
     const rows = buildPart1CsvRows(formData, result, {});
@@ -472,7 +524,7 @@ const Part1Results = ({
               <div className="v2-why">
                 <div className="v2-why-head">
                   <span className="v2-why-head-title">What drove this score</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }}>See full breakdown ›</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }} onClick={() => breakdownRef.current?.scrollIntoView({ behavior: 'smooth' })}>See full breakdown ›</span>
                 </div>
                 <div className="v2-why-items">
                   {topFactors.slice(0, 3).map(f => (
@@ -494,10 +546,11 @@ const Part1Results = ({
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
         const isGreen = belowMinAge || aboveMaxScreeningAge || recommendPSA === false;
-        const variant = isRed ? 'red' : isAmber ? 'amber' : isGreen ? 'green' : 'blue';
-        const heroIcon = isRed || isAmber ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
+        const isAgeGuideline = psaRecommendReason === 'age_guideline_50_69';
+        const variant = isRed ? 'red' : (isAmber || isAgeGuideline) ? 'amber' : isGreen ? 'green' : 'blue';
+        const heroIcon = isRed || isAmber || isAgeGuideline ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
-          : isAmber ? 'PSA Test Recommended'
+          : (isAmber || isAgeGuideline) ? 'PSA Test Recommended'
           : belowMinAge ? 'PSA Test Not Required'
           : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
           : isGreen ? 'PSA Test Not Currently Indicated'
@@ -694,34 +747,36 @@ const Part1Results = ({
         </CollapsibleSection>
 
         {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (
-          <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
-            <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
-            <div className="impact-table-wrap">
-              <table className="impact-table" aria-label="Item impact breakdown table">
-                <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
-                <tbody>
-                  {itemImpacts.map((impact) => (
-                    <tr key={impact.item}>
-                      <td>{impact.item}</td>
-                      <td>{impact.value}</td>
-                      <td>
-                        <div className="impact-bar-track" aria-hidden="true">
-                          <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                        </div>
-                      </td>
-                      <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+          <div ref={breakdownRef}>
+            <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
+              <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
+              <div className="impact-table-wrap">
+                <table className="impact-table" aria-label="Item impact breakdown table">
+                  <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
+                  <tbody>
+                    {itemImpacts.map((impact) => (
+                      <tr key={impact.item}>
+                        <td>{impact.item}<SourcesPopover itemName={impact.item} /></td>
+                        <td>{impact.value}</td>
+                        <td>
+                          <div className="impact-bar-track" aria-hidden="true">
+                            <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
+                          </div>
+                        </td>
+                        <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3}>Total score contribution</td>
+                      <td><span className="impact-total-badge">{impactTotalDisplay}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={3}>Total score contribution</td>
-                    <td><span className="impact-total-badge">{impactTotalDisplay}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </CollapsibleSection>
+                  </tfoot>
+                </table>
+              </div>
+            </CollapsibleSection>
+          </div>
         )}
 
         <CollapsibleSection title="Screening Guidelines (ACS / AUA / NCCN / ERUS)">
@@ -733,29 +788,6 @@ const Part1Results = ({
             <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening from age 50 for most men, or 45 for high-risk men.</li>
           </ul>
           <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Key Publications">
-          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '10px' }}>The risk factors used in this tool are based on the following published research studies:</p>
-          <ul style={{ margin: '0 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
-            <li>Godtman RA, et al. <em>Eur Urol.</em> 2022 — Race and prostate cancer early detection outcomes.</li>
-            <li>Nemesure B, et al. <em>Res Rep Urol.</em> 2022 — Racial disparities in prostate cancer screening uptake.</li>
-            <li>Tewari A, et al. <em>Urol Onc.</em> 2005 — Race as a risk factor in prostate cancer prognosis.</li>
-            <li>Loeb S, et al. <em>Urology.</em> 2006 — Family history and PSA screening outcomes.</li>
-            <li>Giri VN, et al. <em>J Clin Oncol.</em> 2018 — BRCA mutations and prostate cancer risk.</li>
-            <li>Hemminki H, et al. <em>Eur Urol Open Sci.</em> 2024 — Hereditary factors and early-onset prostate cancer.</li>
-            <li>Su ZT, et al. <em>JAMA Oncol.</em> 2024 — Diet and prostate cancer risk.</li>
-            <li>Blanc-Lapierre A, et al. <em>BMC Public Health.</em> 2015 — Lifestyle factors and prostate cancer.</li>
-            <li>van Leeuwen PJ, et al. <em>Can J Urol.</em> 2011 — Comorbidities and prostate cancer screening.</li>
-            <li>Brawley O. <em>World J Urol.</em> 2012 — Epidemiology of prostate cancer in Black men.</li>
-            <li>Andersson SO, et al. <em>Int J Cancer.</em> 1996 — Body mass index and prostate cancer risk.</li>
-            <li>Rogers LQ, et al. <em>BMC Public Health.</em> 2008 — Physical activity and prostate cancer.</li>
-            <li>Zhu D, et al. <em>Clin Genitourin Cancer.</em> 2022 — Smoking, diet, and urological cancer risk.</li>
-            <li>Plaskon LA, et al. <em>Cancer Epidemiol Biomarkers Prev.</em> 2003 — Obesity and prostate cancer detection.</li>
-            <li>Tiruye et al. <em>PubMed.</em> 2024 — Impact of comorbidities on prostate cancer-specific mortality.</li>
-            <li>Madersbacher S, et al. <em>BJU Int.</em> 2010 — IPSS and lower urinary tract symptoms in prostate cancer context.</li>
-          </ul>
-          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>All studies are peer-reviewed and indexed in PubMed. Full links available on request.</p>
         </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
