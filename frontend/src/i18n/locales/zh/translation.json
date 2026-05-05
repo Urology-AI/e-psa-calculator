@@ -1,0 +1,1070 @@
+{
+  "common": {
+    "language": "语言",
+    "back": "返回"
+  },
+  "app": {
+    "header": {
+      "title": "前列腺特异性意识",
+      "subtitle": "一种未经验证的教育风险工具"
+    },
+    "textScale": {
+      "groupLabel": "文字大小",
+      "smaller": "A−",
+      "bigger": "A+",
+      "decreaseTitle": "缩小文字",
+      "increaseTitle": "放大文字",
+      "decreaseAria": "减小文字大小",
+      "increaseAria": "增大文字大小"
+    },
+    "stage": {
+      "stagePre": "第一阶段：筛查优先级",
+      "stagePost": "第二阶段：风险评估"
+    },
+    "footer": {
+      "text": "ePSA 前列腺特异性意识 | 一种未经验证的教育风险工具",
+      "modelDocs": "模型文档",
+      "hipaa": "符合HIPAA规定"
+    },
+    "loadingResults": {
+      "title": "正在加载您的结果...",
+      "note": "如果持续出现此情况，请尝试刷新页面。"
+    },
+    "continueToRisk": "继续进行风险评估 →",
+    "alerts": {
+      "completeRequiredFields": "请在计算分数前完成所有必填字段。请确保您已填写「关于您」、「家族与遗传风险」、「身体指标」、「生活方式」和「症状」中的所有必填字段。",
+      "completePart1BeforeRiskAssessment": "请在进行风险评估前完成第一部分（筛查优先级）。",
+      "cloudSessionRestoreUnavailable": "会话ID恢复仅在云存储中可用。请改用「导入」功能导入JSON文件。",
+      "cloudDemoNoSessionKey": "在此演示中无法从云端加载。请使用完整的Firebase应用程序来使用您的会话密钥。",
+      "completeRequiredFieldsGh": "请在计算分数前完成所有必填字段。",
+      "calculationFailedGh": "计算失败。请检查您的答案后重试。"
+    },
+    "confirm": {
+      "clearAllDataStartOver": "您确定要清除所有数据并重新开始吗？这将删除您当前的会话。",
+      "startOverClearAllDataGh": "重新开始？这将清除所有数据。"
+    }
+  },
+  "anonymousAuth": {
+    "header": {
+      "title": "前列腺特异性意识",
+      "subtitle": "一种未经验证的教育风险工具"
+    },
+    "instruction": {
+      "title": "创建匿名会话以开始",
+      "subtitle": "您的会话将使用唯一ID进行跟踪。无需提供个人信息。"
+    },
+    "sessionIdLabel": "您的会话ID：",
+    "regenerate": "重新生成",
+    "creatingSession": "正在创建会话...",
+    "startAssessment": "开始评估",
+    "saveSessionIdStrong": "请保存此会话ID：",
+    "saveSessionIdRest": "您稍后需要用它来访问结果。请截图或记录下来。",
+    "sessionCreatedTitle": "会话已创建！",
+    "importantStrong": "重要提示：",
+    "sessionWarningRest": "请保存此会话ID以便稍后访问您的结果。没有它，您将无法返回到您的评估。",
+    "otherWaysTitle": "其他登录方式：",
+    "phoneNumber": "电话号码",
+    "email": "电子邮件"
+  },
+  "welcome": {
+    "heroBadge": "教育临床支持工具",
+    "heroTitle": "在下次泌尿外科就诊前了解您的基线风险",
+    "heroDescription": "完成简短的循证问卷，生成个性化的ePSA估计值，与您的临床医生讨论。",
+    "featureGuidedQuestions": "27个引导式问题",
+    "featureTime": "约5分钟",
+    "featurePrivate": "以隐私为核心设计",
+    "storageChoiceTitle": "选择如何保存您的进度",
+    "storageDeviceOnlyTitle": "仅使用此设备",
+    "storageDeviceOnlySub": "无需登录 · 数据保留在此浏览器中",
+    "storageCloudTitle": "匿名保存到云端",
+    "storageCloudSub": "获取会话密钥 · 无需手机号或电子邮件",
+    "startAssessment": "开始评估",
+    "importPreviousSession": "导入之前的会话",
+    "quickEntry": "快速录入",
+    "viewPrintableFormTitle": "查看离线表格",
+    "viewPrintableForm": "查看可打印表格",
+    "trustNoAccount": "无需账户",
+    "trustClinicianConversations": "专为与临床医生的对话而设计",
+    "trustClearRiskSummary": "清晰的风险摘要输出",
+    "flow": {
+      "step1Title": "风险档案",
+      "step1Body": "27个关于人口统计、生活方式、家族史和泌尿系统症状的引导式问题。",
+      "step2Title": "临床数据",
+      "step2Body": "可选择添加您的PSA水平和MRI PI-RADS评分来优化估计值。",
+      "step3Title": "个性化结果",
+      "step3Body": "获取带有可打印指导的ePSA风险分级，用于与临床医生的讨论。"
+    },
+    "footerInstitution": "西奈山伊坎医学院 · 泌尿外科",
+    "footerGuidelines": "基于以下指南：AUA · NCCN · EAU · SUO",
+    "footerDisclaimer": "本工具仅供教育目的，不构成诊断。本工具未经临床验证，不能单独用于决策，应与持牌医疗专业人员的指导配合使用。"
+  },
+  "welcome2": {
+    "stage2Title": "第二阶段：风险评估",
+    "stage2Subtitle": "详细评估您的前列腺癌风险因素",
+    "priorityResultHeading": "您的筛查优先级结果",
+    "priorityBadge": "{{riskTier}} 风险 ({{probability}}%)",
+    "priorityDescription": "根据您的初始评估，您前列腺癌筛查的优先级为{{priorityTierLower}}。此阶段将收集额外的临床信息，以优化您的风险档案。",
+    "modelDetails": {
+      "heading": "风险评估模型详情",
+      "intro": "此阶段将您的初始筛查优先级与额外的临床变量相结合，以产生全面的风险评分：",
+      "factors": {
+        "clinical": {
+          "title": "临床测量",
+          "desc": "PSA历史、DRE结果、泌尿系统症状（IPSS）"
+        },
+        "history": {
+          "title": "病史",
+          "desc": "既往活检、感染、药物"
+        },
+        "genetic": {
+          "title": "遗传与家族因素",
+          "desc": "详细的家族史、遗传标记（如已知）"
+        }
+      }
+    },
+    "modelBreakdown": {
+      "heading": "风险评估模型",
+      "combined": {
+        "heading": "综合风险计算",
+        "desc": "此阶段将您的初始筛查优先级与额外的临床变量相结合，以产生全面的风险评分："
+      },
+      "formula": {
+        "stage1": {
+          "label": "第一阶段评分：",
+          "value": "来自初始评估的基线概率"
+        },
+        "stage2": {
+          "label": "第二阶段调整：",
+          "value": "基线结转 + PSA分值 + PI-RADS分值/覆盖"
+        },
+        "final": {
+          "label": "最终风险评分：",
+          "value": "基于总分的动态类别映射"
+        }
+      },
+      "riskCategories": {
+        "heading": "风险类别",
+        "probabilityLabel": "概率"
+      }
+    },
+    "references": {
+      "label": "参考资料：",
+      "item1": "NCCN前列腺癌早期检测临床实践指南",
+      "item2": "EAU前列腺癌指南",
+      "item3": "PCPT风险计算器2.0"
+    },
+    "hideDetails": "隐藏详情",
+    "viewModelDetails": "查看风险评估模型详情",
+    "importantNote": {
+      "label": "重要提示：",
+      "text": "本评估仅供教育目的，不构成医疗建议。风险模型基于已发表的研究，但不应替代与合格医疗专业人员的咨询。在做出任何健康决定之前，请始终与您的医生讨论您的结果。"
+    },
+    "estimatedTime": "预计时间：约5-7分钟",
+    "beginStage2Button": "开始风险评估 →",
+    "footerText": "ePSA 前列腺特异性意识 | 一种未经验证的教育风险工具",
+    "viewDocsButton": "查看风险评估文档"
+  },
+  "consent": {
+    "title": "同意书",
+    "intro": "在继续之前，请查看您的评估数据如何被存储和使用。",
+    "reasonStorage": "您的评估数据将存储在此设备上或云端（取决于您的选择）。",
+    "reasonCloudKey": "云存储使用匿名会话密钥（无需电子邮件或电话）。",
+    "reasonPrivacy": "我们不在应用程序中收集或存储您的姓名、电子邮件或电话号码。",
+    "reasonDataUse": "去识别化的评估数据可能被匿名用于改善和验证未来版本的模型。",
+    "acknowledgement": "使用本工具即表示您认可并同意上述数据处理方式。",
+    "disclaimerNotePrefix": "注意：",
+    "disclaimerMain": "使用该工具表示您同意这些条款。",
+    "firstVisitDisclaimer": "此同意确认在每个浏览器/设备的首次访问时显示。",
+    "dataUseTitle": "数据使用通知：",
+    "dataUseBody": "云会话数据存储最多30天，去识别化数据可能被匿名用于改善和验证未来版本的模型。本地模式下，数据保留在您的设备上并由您控制；如果数据从您的设备移出或通过第三方设备收集，则可能被共享。请与数据收集者确认，因为我们对从您设备或其他第三方设备移出的数据不承担责任。对于云会话，我们使用安全传输和合规导向的保障措施。",
+    "continueButton": "继续",
+    "errorNoSelection": "请选择一个选项以继续"
+  },
+  "auth": {
+    "createSessionHeading": "创建匿名会话以保存到云端",
+    "subtitle": "您将获得一个会话密钥。保存它以便稍后加载您的数据。不收集电子邮件或电话。",
+    "sessionPreviewLabel": "您将获得如下会话密钥：",
+    "sessionExample": "A1B2C3D4",
+    "sessionNote": "保存此密钥以便稍后从云端加载您的评估。",
+    "buttonCreating": "创建中...",
+    "buttonCreateSession": "创建会话",
+    "infoLine": "您的数据仅存储在此密钥下。不收集任何个人信息。",
+    "errors": {
+      "generic": "创建会话失败。请重试。",
+      "operationNotAllowed": "匿名登录已禁用。请在Auth（或Auth Emulator）中启用匿名提供商后重试。",
+      "adminRestricted": "此Firebase项目中匿名登录受限。请在身份验证设置中\"启用匿名提供商\"，或使用正确配置的模拟器。",
+      "permissionDenied": "会话已创建，但Firestore写入被拒绝。请检查Firestore规则/模拟器后重试。",
+      "firestoreUnavailable": "Firestore不可用。请确保Firestore模拟器正在运行。"
+    }
+  },
+  "hipaa": {
+    "title": "HIPAA合规性",
+    "closeButton": "关闭",
+    "privacy": {
+      "title": "隐私与数据保护",
+      "text": "ePSA工具的设计旨在根据HIPAA考虑因素保护您的健康信息。我们不收集、存储或关联任何个人身份信息（PII）或受保护健康信息（PHI），如姓名、电子邮件或电话号码。"
+    },
+    "sessionOnly": {
+      "title": "仅匿名会话密钥",
+      "noEmailPhoneLabel": "无需电子邮件或电话：",
+      "noEmailPhoneText": "云存储仅使用匿名会话密钥。您将收到一个短密钥（例如A1B2C3D4）以便稍后加载数据。我们不收集或存储您的电子邮件地址或电话号码。",
+      "noIdentityLabel": "无身份关联：",
+      "noIdentityText": "您的评估数据不与任何可以揭示您身份的标识符相关联。只有拥有您会话密钥的人才能访问该会话的数据。",
+      "saveKeyLabel": "保存您的密钥：",
+      "saveKeyText": "如果您丢失了会话密钥，我们无法恢复您的数据。我们没有办法将数据与您关联。"
+    },
+    "importCloud": {
+      "title": "数据导入与云端",
+      "fileImportLabel": "文件导入：",
+      "fileImportText": "当您导入JSON文件时，我们不会将该数据关联到任何现有的云会话。数据仅在本地加载。您可以稍后选择\"移至云端\"，将其保存在新的匿名会话密钥下。",
+      "loadCloudLabel": "从云端加载：",
+      "loadCloudText": "要继续之前的会话，您必须输入您的会话密钥。我们不使用导入文件中的信息来查找或附加现有会话。"
+    },
+    "choices": {
+      "title": "您的选择",
+      "text": "您可以选择仅在此设备上存储数据（\"仅此设备\"）或使用匿名会话密钥保存到云端。云存储无需个人联系信息。"
+    },
+    "disclaimer": {
+      "label": "免责声明：",
+      "text": "本摘要描述了ePSA应用程序如何处理数据以保护隐私。这不是法律建议。如有关于HIPAA或您的健康信息的问题，请咨询您的医疗保健提供者或法律顾问。"
+    }
+  },
+  "storage": {
+    "cloudTitle": "云存储",
+    "cloudDescription": "通过电子邮件或电话号码安全存储您的数据。从任何设备访问并与医疗提供者共享。",
+    "cloudFeatureSecure": "安全云存储",
+    "cloudFeatureAnyDevice": "从任何设备访问",
+    "cloudFeatureCollaboration": "提供者协作",
+    "cloudFeatureBackups": "自动备份",
+    "cloudFeatureAuth": "电子邮件或电话身份验证",
+    "cloudContinue": "继续使用云存储",
+    "localTitle": "本地存储",
+    "localDescription": "仅在此设备上存储您的数据。无需账户或电话号码。使用导入/导出来保存或移动数据。",
+    "localFeatureNoSignIn": "无需登录",
+    "localFeatureSame": "相同的问卷和结果",
+    "localFeatureExport": "导出为JSON或打印",
+    "localFeaturePrivacy": "设备上的隐私保护",
+    "localContinue": "继续使用本地存储",
+    "importPrompt": "已有评估？",
+    "importButton": "导入之前的数据",
+    "footerText": "您的健康数据安全私密地存储。我们从不共享或出售您的信息。",
+    "privacyNote": "符合HIPAA的安全存储"
+  },
+  "info": {
+    "learnMore": "了解更多关于{{title}}的信息",
+    "sources": "来源："
+  },
+  "part1": {
+    "fields": {
+      "age": {
+        "title": "年龄",
+        "placeholder": "年龄（18岁以上）",
+        "helper": "您的年龄有助于校准筛查优先级，因为前列腺癌风险会随时间增加。",
+        "description": "风险随年龄增长而增加，尤其是在50岁以后。诊断的平均年龄为66岁。"
+      },
+      "race": {
+        "title": "种族/民族",
+        "selectPlaceholder": "选择种族/民族",
+        "helper": "选择最符合您身份认同的类别；祖先可能影响筛查建议。",
+        "description": "黑人/非裔美国男性患病风险更高，更可能在更年轻的年龄发展为前列腺癌。"
+      },
+      "familyHistory": {
+        "title": "家族史",
+        "helper": "统计患有前列腺癌的近亲血亲，如父亲、兄弟或儿子。",
+        "description": "有父亲或兄弟患前列腺癌使男性风险翻倍以上。有多个受影响亲属时风险更高。"
+      },
+      "inflammationHistory": {
+        "title": "炎症史",
+        "description": "慢性炎症性疾病（如前列腺炎、溃疡性结肠炎和克罗恩病）可能通过慢性炎症机制增加前列腺癌风险。"
+      },
+      "brcaStatus": {
+        "title": "已知遗传突变",
+        "helper": "如果您被告知携带遗传性前列腺癌相关突变（如BRCA2或HOXB13），请选择是。",
+        "description": "如果您被告知携带遗传性前列腺癌相关突变（如BRCA2或HOXB13），请选择是。BRCA2突变与前列腺癌风险增加相关，且可能与更具侵袭性的疾病相关。HOXB13，尤其是某些家族中的G84E变体，是遗传性前列腺癌易感基因。"
+      },
+      "heightWeight": {
+        "title": "身高与体重（BMI）",
+        "description": "肥胖与侵袭性前列腺癌的风险增加有关。较高的身高可能是轻微的风险因素。"
+      },
+      "exercise": {
+        "title": "运动水平",
+        "helper": "考虑典型的一周，选择最能反映您计划的体力活动的选项。",
+        "description": "定期体力活动与侵袭性前列腺癌风险降低有关。"
+      },
+      "smoking": {
+        "title": "吸烟状况",
+        "helper": "选择您当前或过去的吸烟状态时，请包括香烟或其他定期烟草使用。",
+        "description": "吸烟与侵袭性前列腺癌风险增加和更高的死亡率有关。"
+      },
+      "chemicalExposure": {
+        "title": "9/11或化学物质暴露",
+        "helper": "如果您在9/11事件后曾在世贸中心遗址，或有过有意义的职业、军事或环境化学物质暴露（如农药、工业化学品），请回答是。如果不确定，请回答未知。",
+        "description": "9/11急救人员和幸存者的多种癌症发病率较高。接触农药和某些工业化学品也可能增加前列腺癌风险。注意：此因素不是AUA/SUO筛查指南的一部分——它是ePSA模型变量。"
+      },
+      "diet": {
+        "title": "饮食模式",
+        "helper": "选择最能描述您通常饮食习惯的模式。",
+        "description": "富含红肉和高脂乳制品的饮食可能增加风险。植物性饮食可能具有保护作用。"
+      },
+      "ipss": {
+        "title": "IPSS（泌尿系统症状）",
+        "description": "国际前列腺症状评分衡量通常与前列腺增生相关的下尿路症状。"
+      },
+      "shim": {
+        "title": "SHIM（性健康）",
+        "description": "男性性健康量表（SHIM）评估勃起功能障碍，这可能是前列腺健康问题的指标。"
+      },
+      "comorbidities": {
+        "title": "合并症（高血压、高血脂、冠心病、糖尿病）",
+        "description": "高血压（HTN）、高脂血症（HLD）、冠状动脉疾病（CAD）和糖尿病。两个问题：(1) 您有过吗？无/有。(2) 如有：一个或两个以上？"
+      }
+    },
+    "steps": {
+      "aboutYou": {
+        "sectionTitle": "关于您",
+        "shortLabel": "关于您"
+      },
+      "familyGeneticRisk": {
+        "sectionTitle": "家族与遗传风险",
+        "shortLabel": "家族与遗传风险"
+      },
+      "bodyMetrics": {
+        "sectionTitle": "身体指标",
+        "shortLabel": "身体指标"
+      },
+      "lifestyle": {
+        "sectionTitle": "生活方式",
+        "shortLabel": "生活方式"
+      },
+      "additionalInfo": {
+        "sectionTitle": "附加信息",
+        "shortLabel": "附加信息"
+      },
+      "ipss": {
+        "sectionTitle": "泌尿系统症状（IPSS）",
+        "shortLabel": "IPSS"
+      },
+      "shim": {
+        "sectionTitle": "性健康（SHIM）",
+        "shortLabel": "SHIM"
+      }
+    },
+    "race": {
+      "white": "白人/高加索人",
+      "black": "黑人/非裔美国人",
+      "hispanic": "西班牙裔/拉丁裔",
+      "asian": "亚裔/太平洋岛民",
+      "other": "其他/混合"
+    },
+    "errors": {
+      "step0": {
+        "ageInline": "请输入年龄（18-120）",
+        "raceInline": "请选择您的种族/民族"
+      },
+      "stepErrorTitle": "请在继续前完成以下内容：",
+      "selectOption": "请选择一个选项",
+      "validate": {
+        "step0": {
+          "ageInvalid": "请输入有效年龄（18岁以上）",
+          "raceInvalid": "请选择您的种族/民族"
+        },
+        "step1": {
+          "familyHistoryInvalid": "请回答家族史问题",
+          "brcaInvalid": "请回答遗传突变问题"
+        },
+        "step2": {
+          "heightInvalid": "请输入有效身高",
+          "weightInvalid": "请输入有效体重",
+          "bmiInvalid": "无法计算BMI——请检查身高和体重"
+        },
+        "step3": {
+          "exerciseInvalid": "请选择运动水平",
+          "smokingInvalid": "请选择吸烟状况",
+          "chemicalInvalid": "请回答化学物质暴露问题"
+        },
+        "step4": {
+          "dietInvalid": "请选择您的饮食模式",
+          "comorbidityInvalid": "请回答合并症问题"
+        },
+        "step5": {
+          "ipssInvalid": "请回答全部7道IPSS问题"
+        },
+        "step6": {
+          "shimInvalid": "请回答全部5道SHIM问题"
+        }
+      }
+    },
+    "options": {
+      "yes": "是",
+      "no": "否",
+      "unknown": "不知道"
+    },
+    "step1": {
+      "familyHistory": {
+        "title": "前列腺癌家族史"
+      },
+      "inflammationHistory": {
+        "title": "既往炎症史",
+        "prompt": "您是否曾被诊断患有任何炎症性疾病？",
+        "example": "（例如：溃疡性结肠炎、克罗恩病、慢性前列腺炎）"
+      }
+    },
+    "step2": {
+      "heightQuestion": "身高",
+      "weightQuestion": "体重",
+      "heightHelper": "身高与体重一起用于估算BMI，这是此筛查档案中包含的因素之一。",
+      "weightHelper": "体重与身高一起用于自动计算BMI；如果不知道精确体重，估计值即可。",
+      "heightUnit": {
+        "imperial": "英尺/英寸",
+        "metric": "厘米"
+      },
+      "stepNote": {
+        "imperial": "英制",
+        "metric": "公制"
+      },
+      "heightImperialFeetPlaceholder": "英尺（3-8）",
+      "heightImperialInchesPlaceholder": "英寸（0-11）",
+      "heightImperialFeetError": "英尺必须在3到8之间",
+      "heightImperialInchesError": "英寸必须在0到11之间",
+      "heightMetricPlaceholder": "身高（厘米，100-250）",
+      "heightMetricError": "身高必须在100到250厘米之间",
+      "weightUnit": {
+        "lbs": "磅（lbs）",
+        "kg": "千克（kg）"
+      },
+      "weightMetricPlaceholder": "体重（千克，25-250）",
+      "weightImperialPlaceholder": "体重（磅，50-500）",
+      "weightImperialError": "体重必须在50到500磅之间",
+      "weightMetricError": "体重必须在25到250千克之间",
+      "bmiLabel": "BMI（自动计算）"
+    },
+    "step3": {
+      "exercise": {
+        "regular": "定期（每周3天以上）",
+        "some": "有时（每周1-2天）",
+        "none": "无"
+      },
+      "smoking": {
+        "current": "当前吸烟",
+        "former": "曾经吸烟",
+        "never": "从不吸烟"
+      },
+      "chemicalQuestion": "9/11或化学物质暴露（如世贸中心遗址、农药、工业化学品）"
+    },
+    "step4": {
+      "diet": {
+        "western": "西式/标准美式饮食",
+        "mediterranean": "地中海饮食",
+        "indian": "印度饮食",
+        "dash": "DASH饮食",
+        "plantBased": "植物性饮食（素食/纯素）",
+        "pescatarian": "鱼素饮食",
+        "lowCarbKeto": "低碳水化合物/生酮饮食",
+        "other": "其他/不愿说明"
+      },
+      "comorbidities": {
+        "prompt": "您是否被诊断患有以下任何疾病？（高血压、高血脂、冠状动脉疾病、糖尿病）",
+        "askAnyLabel": "您是否患有这些疾病中的任何一种？",
+        "howManyLabel": "您患有这些疾病中的几种？",
+        "one": "一种",
+        "twoOrMore": "两种或以上"
+      }
+    },
+    "form": {
+      "stepChip": "第{{current}}步，共{{total}}步",
+      "flowNote": "仔细完成每个部分，以生成最有用的筛查优先级估计。",
+      "answeredCounter": "已回答{{answeredCount}}/{{totalQuestions}}"
+    },
+    "nav": {
+      "back": "← 返回",
+      "next": "下一步 →",
+      "calculate": "计算我的分数 ✓",
+      "calculateIncomplete": "请完成所有问题（{{answeredCount}}/{{totalQuestions}}）",
+      "calculateTitleDisabled": "请完成所有必填字段",
+      "calculateTitleEnabled": "点击计算您的分数"
+    },
+    "ipss": {
+      "note": "在过去一个月中，您多久出现一次：",
+      "helper": "根据您过去一个月的泌尿系统症状回答。",
+      "answeredCount": "（已回答{{answeredCount}}/{{total}}）",
+      "totalLabel": "IPSS总分",
+      "q1": "排尿不尽——膀胱未完全排空？",
+      "q2": "尿频——2小时内再次排尿？",
+      "q3": "间断性排尿——排尿时停止和开始？",
+      "q4": "尿急——难以推迟排尿？",
+      "q5": "尿流细弱——尿流弱？",
+      "q6": "排尿费力——需要用力或挣扎才能开始排尿？",
+      "q7": "夜尿——夜间起床排尿？",
+      "label0": "完全没有",
+      "label1": "< 5次中1次",
+      "label2": "< 一半时间",
+      "label3": "约一半时间",
+      "label4": "> 一半时间",
+      "label5": "几乎总是"
+    },
+    "shim": {
+      "note": "在过去6个月中：",
+      "helper": "根据您过去6个月的性功能回答。",
+      "answeredCount": "（已回答{{answeredCount}}/{{total}}）",
+      "totalLabel": "SHIM总分",
+      "q1": "您对自己能够获得和维持勃起的信心如何评分？",
+      "q1.opt1": "非常低",
+      "q1.opt2": "低",
+      "q1.opt3": "中等",
+      "q1.opt4": "高",
+      "q1.opt5": "非常高",
+      "q2": "当您在性刺激下勃起时，勃起硬度足以插入的频率有多少？",
+      "q2.opt0": "无性活动",
+      "q2.opt1": "几乎从不",
+      "q2.opt2": "少数几次",
+      "q2.opt3": "有时",
+      "q2.opt4": "大多数时候",
+      "q2.opt5": "几乎总是",
+      "q3": "性交时，您插入后能维持勃起的频率有多少？",
+      "q3.opt0": "未曾尝试",
+      "q3.opt1": "几乎从不",
+      "q3.opt2": "少数几次",
+      "q3.opt3": "有时",
+      "q3.opt4": "大多数时候",
+      "q3.opt5": "几乎总是",
+      "q4": "性交时，维持勃起直到结束有多困难？",
+      "q4.opt0": "未曾尝试",
+      "q4.opt1": "极度困难",
+      "q4.opt2": "非常困难",
+      "q4.opt3": "困难",
+      "q4.opt4": "略有困难",
+      "q4.opt5": "不困难",
+      "q5": "当您尝试性交时，满意的频率有多少？",
+      "q5.opt0": "未曾尝试",
+      "q5.opt1": "几乎从不",
+      "q5.opt2": "少数几次",
+      "q5.opt3": "有时",
+      "q5.opt4": "大多数时候",
+      "q5.opt5": "几乎总是"
+    }
+  },
+  "part2": {
+    "form": {
+      "errorPreResult": "请在进行风险评估前完成第一部分（筛查优先级）。"
+    },
+    "flow": {
+      "stepChip": "第{{current}}步，共2步",
+      "note": "使用您的PSA和MRI信息来优化风险评估结果。"
+    },
+    "steps": {
+      "psa": {
+        "sectionTitle": "PSA水平"
+      },
+      "mri": {
+        "sectionTitle": "MRI结果（可选）"
+      }
+    },
+    "summary": {
+      "label": "第一部分结果：",
+      "scoreLabel": "评分",
+      "riskLabel": "风险"
+    },
+    "nav": {
+      "next": "下一步 →",
+      "calculate": "计算风险评估 ✓"
+    },
+    "psa": {
+      "sectionTitle": "PSA水平",
+      "q1": "您知道您的PSA水平吗？",
+      "q1OptNo": "不，我不知道我的PSA",
+      "q1OptYes": "是，我知道我的PSA水平",
+      "q2": "输入PSA水平（ng/mL）",
+      "psaPlaceholder": "PSA水平（0.1-100）",
+      "psaInvalidValidity": "PSA水平必须在0.1到100 ng/mL之间",
+      "psaInvalid": "PSA水平必须在0.1到100 ng/mL之间",
+      "psaNote": "PSA（前列腺特异性抗原）是一种用于筛查前列腺癌的血液检测。",
+      "q3": "您是否正在服用可能影响PSA的激素药物？",
+      "q3InfoTitle": "非那雄胺（Propecia/Proscar）、度他雄胺（Avodart）或其他5-α还原酶抑制剂等药物可将PSA水平降低约50%。这对于准确的风险评估很重要。",
+      "q3OptNo": "否/不确定",
+      "q3OptYes": "是，我正在接受激素治疗",
+      "q4Label": "哪种药物？（可选）",
+      "q4OptFinasteride": "非那雄胺（Propecia/Proscar）",
+      "q4OptDutasteride": "度他雄胺（Avodart）",
+      "q4OptOther": "其他/不确定",
+      "q4Note": "注意：这些药物可将PSA降低约50%。您的医生可能需要调整PSA值以进行准确解读。"
+    },
+    "mri": {
+      "sectionTitle": "MRI结果（可选）",
+      "q1": "您知道您的MRI PIRADS评分吗？",
+      "q1OptNo": "否",
+      "q1OptYes": "是",
+      "q2": "MRI上的PIRADS评分",
+      "q2Note": "PI-RADS（前列腺影像报告和数据系统）评分范围为1-5分，分数越高表示临床上显著性前列腺癌的可能性越大。"
+    }
+  },
+  "part1Results": {
+    "noResults": "暂无结果。",
+    "sessionKeyLabel": "会话密钥",
+    "savedToCloud": "已保存到云端",
+    "saving": "保存中...",
+    "moveToCloud": "移至云端",
+    "scoreTierLabel": "您的ePSA风险等级",
+    "scoreTierFallback": "ePSA等级",
+    "psaEquivalentLabel": "PSA等效值",
+    "recommendation": {
+      "psaRecommended": "建议PSA检测",
+      "psaNotRecommended": "不建议PSA检测",
+      "unavailable": "建议不可用",
+      "subtitleRecommended": "基于第一部分的阈值建议",
+      "subtitleNotRecommended": "低于第一部分建议阈值",
+      "subtitleFallback": "回退到基于等级的指导"
+    },
+    "riskBadge": {
+      "riskSuffix": "风险"
+    },
+    "explanations": {
+      "riskExplanation": "您的结果是基于您输入信息的教育性估计。它总结了您拥有多少前列腺癌风险标志（年龄、BMI、泌尿系统症状、运动、吸烟、饮食、家族/遗传因素等），但它不能确定您是否患有前列腺癌。将此作为与临床医生对话的起点，他们可以在具体情况下解读您的风险。",
+      "displayRangeExplanation": "显示的范围是您分数周围±5%的区间。这是为了避免过度解读相近分数之间的细微差异。这不是统计置信区间，也不代表测量精度。",
+      "guidelineContext": "对于高风险人群——特别是有黑人血统、种系突变或前列腺癌强阳性家族史的人——应在40-45岁开始筛查。对于平均风险个体，可在45-50岁之间提供基线PSA检测，50-69岁的人每2-4年进行一次定期筛查。临床上使用的基于年龄的PSA阈值大约为：2.5 ng/mL（40-49岁）、3.5（50-59岁）、4.5（60-69岁）和6.5（70-79岁）。",
+      "guidelineDivergence": "目前的指南不将种族、家族史或50岁以下的年龄作为独立触发因素来调整筛查阈值。ePSA工具特意标记这些高风险档案以进行更早的评估，这正是该项目旨在解决的临床差距。"
+    },
+    "tierDescription": {
+      "LOWER": "较低表明相对于模型参考数据中的其他人，估计可能性较低。较低并不意味着没有风险，也不能替代临床指导。",
+      "MODERATE": "中等表明估计可能性处于模型参考数据的中间范围。与临床医生一起审查个人风险因素和既往PSA历史可能会提供重要背景。",
+      "HIGHER": "较高表明相对于模型参考数据中的其他人，估计可能性较高。较高并不意味着癌症已存在。这可能是与临床医生一起审查筛查选项的有用提示。"
+    },
+    "actionText": {
+      "LOWER": "考虑使用此结果来支持与您的医疗提供者的例行对话，特别是如果您对筛查、家族史或症状有疑问的话。",
+      "MODERATE": "考虑与您的医疗提供者讨论此结果。你们可以根据您的年龄、偏好和以前的结果共同决定筛查（如PSA检测）是否有意义。",
+      "HIGHER": "考虑优先与您的医疗提供者进行讨论。他们可以帮助解读此估计，并决定是否需要进一步评估（例如PSA检测或随访）。",
+      "default": "考虑与您的医疗提供者讨论这些结果。"
+    },
+    "disclaimer": "ePSA是一种未经验证的教育风险评估工具。风险等级基于AUA、NCCN和EAU的人群数据和指南阈值。在高风险人口档案中，ePSA可能建议比标准指南阈值更早的评估。本工具不替代医生判断，未经医生审查不适用于临床决策。——Ashutosh K. Tewari医学博士，西奈山伊坎医学院",
+    "riskLevels": {
+      "LOWER": "较少风险标志",
+      "MODERATE": "一些风险标志",
+      "HIGHER": "许多风险标志"
+    },
+    "sectionRiskExplanationTitle": "风险解释",
+    "sectionHowCalculatedTitle": "此分数的计算方式",
+    "explanationHowScoreCalculated": "ePSA分数是您答案的基于积分的摘要。每个风险因素（例如60岁以上、BMI≥30、轻度泌尿系统症状、很少或不运动、当前或曾经吸烟、高红肉饮食、黑人种族、家族史、遗传突变、炎症、9/11或化学物质暴露，或低SHIM评分）会增加积分。总积分然后被归一化到0-100%的刻度，显示±5%的范围而不是单一数字。",
+    "sectionWhatTierMeansTitle": "您的等级意味着什么",
+    "sectionGuidelineContextTitle": "指南背景（AUA/SUO 2026）",
+    "labelRecommendationThreshold": "建议阈值",
+    "labelRiskTier": "风险等级",
+    "notAvailable": "不可用",
+    "labelDisplayedRange": "显示范围",
+    "labelAge": "年龄",
+    "labelBMI": "BMI",
+    "labelIPSS": "IPSS",
+    "labelSHIM": "SHIM",
+    "btnEditAnswers": "编辑答案",
+    "btnStartOver": "重新开始",
+    "btnPrintResults": "打印结果",
+    "btnPrintForm": "打印表格",
+    "exportFailedAlert": "导出失败。请重试。",
+    "btnExportData": "导出数据",
+    "btnExportCsv": "导出CSV"
+  },
+  "part2Results": {
+    "disclaimer": "ePSA是一种未经验证的教育风险评估工具。风险等级基于AUA、NCCN和EAU的人群数据和指南阈值。在高风险人口档案中，ePSA可能建议比标准指南阈值更早的评估。本工具不替代医生判断，未经医生审查不适用于临床决策。——Ashutosh K. Tewari医学博士，西奈山伊坎医学院",
+    "noResults": "暂无结果。",
+    "sessionKeyLabel": "会话密钥",
+    "savedToCloud": "已保存到云端",
+    "saving": "保存中...",
+    "moveToCloud": "移至云端",
+    "scoreTierLabel": "您的教育风险类别",
+    "displayRangeLabel": "显示范围",
+    "lowPsaWarningTitle": "低PSA警告",
+    "discordanceTitle": "检测到风险不一致",
+    "basedOnPart1Label": "基于第一部分评分：",
+    "epsaScoreLabel": "ePSA评分",
+    "riskLevelLabel": "风险水平",
+    "nextStepsTitle": "考虑讨论后续步骤",
+    "defaultNextStep": "与您的医生讨论这些结果，并审查PSA/MRI随访选项。",
+    "watchVideoTitle": "观看视频",
+    "viewMobileUnitTitle": "查看移动单位位置",
+    "sectionRiskExplanationTitle": "风险解释",
+    "sectionHowSummarizedTitle": "风险等级如何汇总",
+    "sectionAboutPiradsTitle": "关于PI-RADS",
+    "sectionKeyInputsTitle": "关键临床输入",
+    "labelPSA": "PSA",
+    "labelPsaTier": "PSA等级",
+    "labelPirads": "PI-RADS",
+    "notAvailable": "不可用",
+    "notProvided": "未提供",
+    "labelPart1Score": "第一部分评分",
+    "labelPart1Risk": "第一部分风险",
+    "btnEditAnswers": "编辑答案",
+    "btnStartOver": "重新开始",
+    "btnPrintResults": "打印结果",
+    "btnPrintForm": "打印表格",
+    "exportFailedAlert": "导出失败。请重试。",
+    "btnExportData": "导出数据",
+    "btnExportCsv": "导出CSV",
+    "explanations": {
+      "part2RiskExplanation": "第二部分将您的ePSA风险档案与您的PSA水平及（如有）MRI PI-RADS评分相结合，提供教育性风险等级。此处输入的PSA水平和PI-RADS评分仅用于教育风险分层。结合共同决策的基于PSA的筛查是推荐标准——本工具旨在补充而非替代与您的临床医生的对话。新升高的PSA通常应在进行任何活检或进一步检查之前通过重复检测确认。",
+      "piradsExplanationProvided": "MRI和PI-RADS评分可在初次活检前用于提高临床显著性前列腺癌（GG2+）的检测率。PI-RADS评分为3或更高表示存在可疑病变，需要进一步评估。本工具不能替代放射科医生对多参数MRI结果的解读。",
+      "piradsExplanationNotProvided": "如果未包含PI-RADS，第二部分类别仅基于基线估计和PSA信息。临床医生可能会根据您的完整临床背景推荐或不推荐MRI。",
+      "pointsExplanation": "您的第二部分风险等级被总结为教育性估计，将您的第一部分风险档案与您的PSA水平及（如有）您的MRI PI-RADS评分相结合。由此产生的类别旨在支持与您的临床医生共同决策——而不是替代临床判断。"
+    }
+  },
+  "printableForm": {
+    "back": "返回",
+    "generatingPdf": "正在生成PDF...",
+    "downloadPdf": "下载PDF",
+    "exportJson": "导出JSON",
+    "howToUseTitle": "如何使用此表格：",
+    "howToUseText": "请与患者一起查看每个部分并填写空白字段。如果已显示某个值，请确认其正确性。使用备注框记录详细信息，如药物、近期实验室历史、症状或随访计划。",
+    "notesLabel": "备注：",
+    "notesPlaceholder": "在此输入备注...",
+    "logoAlt": "ePSA标志",
+    "millionStrongMenTitle": "百万强健男性——ePSA",
+    "questionnaireTitle": "ePSA问卷",
+    "tagline": "前列腺特异性意识 | 一种未经验证的教育风险工具",
+    "phoneLabel": "电话号码：",
+    "phonePlaceholder": "(___)-___-____",
+    "sectionAboutYou": "关于您",
+    "sectionFamilyGeneticRisk": "家族与遗传风险",
+    "sectionBodyMetrics": "身体指标",
+    "sectionLifestyle": "生活方式",
+    "sectionComorbidities": "合并症",
+    "sectionSymptoms": "症状",
+    "sectionIpSs": "13. 泌尿系统症状（IPSS）——评分0-5：",
+    "sectionShim": "14. 性健康（SHIM）：",
+    "sectionPart2": "第二部分：临床数据",
+    "blank2": "__",
+    "blank3": "___",
+    "blank4": "____",
+    "blankCm": "___ 厘米",
+    "ft": "英尺",
+    "in": "英寸",
+    "lbs": "磅",
+    "kg": "千克",
+    "inflammationExamples": "（例如：溃疡性结肠炎、克罗恩病、慢性前列腺炎）",
+    "comorbidityPrompt": "您是否曾患有以下任何疾病？",
+    "ipssScaleReminder": "IPSS量表提示：0=完全没有，1=<5次中1次，2=<一半，3=约一半，4=>一半，5=几乎总是。",
+    "shimScaleReminder": "SHIM量表提示：每项选择一个分数（Q1评分1-5；Q2-Q5评分0-5）。总分越高=勃起功能越好。",
+    "notApplicable": "不适用",
+    "footerDisclaimer": "仅供教育和研究目的。未经医生审查不适用于临床决策。| Ashutosh K. Tewari医学博士——泌尿外科——西奈山医疗系统"
+  },
+  "dataImport": {
+    "back": "返回",
+    "title": "导入评估数据",
+    "subtitle": "上传您之前的ePSA评估数据以从上次停止的地方继续。",
+    "loadFromCloud": "从云端加载",
+    "cloudDescription": "输入您的匿名会话密钥以加载已保存的评估数据",
+    "sessionPlaceholder": "例如 A1B2C3D4",
+    "loading": "加载中...",
+    "load": "加载",
+    "uploadJsonData": "上传JSON数据",
+    "uploadDescription": "上传您导出的评估数据文件（来自\"导出数据\"的JSON）。",
+    "dragDrop": "将JSON文件拖放到此处",
+    "or": "或",
+    "chooseJson": "选择JSON文件",
+    "importing": "正在导入您的数据...",
+    "errorPrefix": "错误",
+    "howToImport": "如何导入",
+    "how": {
+      "uploadJsonLabel": "上传JSON：",
+      "uploadJsonText": "使用来自结果屏幕上\"导出数据\"的JSON文件。",
+      "restoreText": "您的数据将被恢复，您可以完成或编辑任何缺失的字段。",
+      "cloudLocal": "适用于本地和云存储。"
+    },
+    "errors": {
+      "uploadJsonOnly": "请上传JSON文件（来自\"导出数据\"）。",
+      "importFailed": "导入文件失败。请检查文件格式。",
+      "invalidSessionKey": "请输入有效的8字符会话密钥（仅字母和数字）",
+      "loadCloudFailed": "从云端加载失败。请重试。"
+    }
+  },
+  "quickEntry": {
+    "title": "快速录入",
+    "subtitle": "年龄/种族 + SHIM/IPSS总分 -> 即时结果",
+    "exit": "退出",
+    "ageLabel": "年龄（18-120）",
+    "agePlaceholder": "例如 55",
+    "raceLabel": "种族/民族",
+    "selectRace": "选择种族/民族",
+    "race": {
+      "white": "白人/高加索人",
+      "black": "黑人/非裔美国人",
+      "hispanic": "西班牙裔/拉丁裔",
+      "asian": "亚裔/太平洋岛民",
+      "other": "其他/混合"
+    },
+    "bmiLabel": "BMI",
+    "bmiPlaceholder": "例如 25.49",
+    "bmiHint": "模型中的验证范围：BMI 15-60",
+    "familyHistoryLabel": "家族史",
+    "family": {
+      "none": "无",
+      "one": "1位亲属",
+      "twoPlus": "2位以上亲属",
+      "unknown": "不知道"
+    },
+    "ipssLabel": "IPSS总分（0-35）",
+    "ipssPlaceholder": "例如 4",
+    "shimLabel": "SHIM总分（0-25）",
+    "shimPlaceholder": "例如 25",
+    "defaultsTitle": "默认值（可选）",
+    "editDefaults": "编辑默认值",
+    "defaultsHint": "使用：吸烟=从不，饮食=普通（西式），化学物质暴露=否，遗传突变=否，炎症=否，合并症=无，运动=定期。",
+    "exerciseLabel": "运动水平",
+    "exercise": {
+      "regular": "定期（每周3天以上）",
+      "some": "有时（每周1-2天）",
+      "none": "无"
+    },
+    "comorbiditiesLabel": "合并症",
+    "comorbidities": {
+      "one": "是，一种",
+      "twoPlus": "是，两种或以上"
+    },
+    "smokingLabel": "吸烟状况",
+    "smoking": {
+      "never": "从不",
+      "former": "曾经",
+      "current": "当前"
+    },
+    "dietLabel": "饮食模式",
+    "diet": {
+      "western": "西式/普通",
+      "mediterranean": "地中海",
+      "indian": "印度",
+      "dash": "DASH风格",
+      "plantBased": "植物性",
+      "pescatarian": "鱼素",
+      "lowCarbKeto": "低碳水/生酮",
+      "other": "其他/不愿说明"
+    },
+    "brcaLabel": "遗传突变",
+    "inflammationLabel": "炎症史",
+    "chemicalExposureLabel": "化学物质暴露",
+    "defaultsAffectHint": "默认值与SHIM/IPSS一起影响风险评分（和PSA建议）。",
+    "fixToCalculate": "请修正以下内容以计算：",
+    "headsUp": "注意：",
+    "calculate": "计算结果",
+    "errors": {
+      "ipssRange": "IPSS总分必须在0到35之间",
+      "shimRange": "SHIM总分必须在0到25之间",
+      "calculationFailed": "计算失败。请仔细检查您的输入。"
+    }
+  },
+  "phoneAuth": {
+    "subtitle": "输入您的电话号码以开始",
+    "phoneLabel": "电话号码",
+    "phonePlaceholder": "(555) 123-4567",
+    "smsHint": "我们将通过短信向您发送验证码",
+    "sending": "发送中...",
+    "sendCode": "发送验证码",
+    "verificationCodeLabel": "验证码",
+    "codePlaceholder": "123456",
+    "codeSentTo": "输入发送到{{phone}}的6位验证码",
+    "verifying": "验证中...",
+    "verifyCode": "验证码",
+    "changePhoneNumber": "更改电话号码",
+    "errors": {
+      "invalidPhone10Digits": "请输入有效的10位电话号码",
+      "recaptchaExpired": "reCAPTCHA已过期。请重试。",
+      "invalidVerificationCodeGeneric": "无效的验证码。请重试。",
+      "invalidVerificationCode": "无效的验证码。请检查后重试。",
+      "codeExpired": "验证码已过期。请请求新的验证码。"
+    }
+  },
+  "phoneOnlyAuth": {
+    "title": "前列腺特异性意识",
+    "subtitle": "一种未经验证的教育风险工具",
+    "enterPhonePrompt": "输入您的电话号码以开始",
+    "phoneLabel": "电话号码",
+    "phonePlaceholder": "(555) 123-4567",
+    "sending": "发送中...",
+    "sendCode": "发送验证码",
+    "smsHint": "我们将通过短信向您发送验证码",
+    "enterCodePrompt": "输入发送到以下号码的验证码：",
+    "verificationCodeLabel": "验证码",
+    "codePlaceholder": "输入6位验证码",
+    "back": "返回",
+    "verifying": "验证中...",
+    "verifyCode": "验证码",
+    "didNotReceive": "没有收到验证码？请检查您的短信或重试。"
+  },
+  "emailAuth": {
+    "signIn": "登录",
+    "createAccount": "创建账户",
+    "resetPassword": "重置密码",
+    "emailLabel": "电子邮件地址",
+    "emailPlaceholder": "your@email.com",
+    "passwordLabel": "密码",
+    "createPasswordLabel": "创建密码",
+    "passwordPlaceholder": "输入您的密码",
+    "createPasswordPlaceholder": "创建强密码",
+    "pleaseWait": "请稍候...",
+    "sendResetEmail": "发送重置电子邮件",
+    "forgotPassword": "忘记密码？",
+    "needAccount": "需要账户？注册",
+    "subtitle": {
+      "signIn": "访问您的ePSA评估结果",
+      "signUp": "开始您的前列腺健康评估",
+      "forgot": "我们将向您发送密码重置链接"
+    }
+  },
+  "emailLinkAuth": {
+    "checkEmailMessage": "请查看您的电子邮件以获取登录链接！",
+    "signingInTitle": "正在登录...",
+    "verifyingLink": "正在验证您的电子邮件链接",
+    "pleaseWait": "请稍候，我们正在为您登录...",
+    "requestNewLink": "请求新链接",
+    "checkYourEmail": "检查您的电子邮件",
+    "signInWithEmail": "用电子邮件登录",
+    "sentLinkTo": "我们向{{email}}发送了一个登录链接",
+    "enterEmailSecureLink": "输入您的电子邮件以接收安全登录链接",
+    "emailLabel": "电子邮件地址",
+    "emailPlaceholder": "your@email.com",
+    "sending": "发送中...",
+    "sendSignInLink": "发送登录链接",
+    "emailSent": "电子邮件已发送！",
+    "didNotReceive": "没有收到？",
+    "sendNewLink": "发送新链接",
+    "goBack": "返回"
+  },
+  "welcomeGh": {
+    "description": "这个5分钟问卷使用经过验证的临床工具计算您的个性化风险评估。",
+    "demoVersion": "演示版本",
+    "demoStorage": "数据仅本地存储在您的浏览器中",
+    "featureQuestions": "27个问题",
+    "featureTime": "约5分钟",
+    "featureLocalStorage": "本地存储",
+    "availableInDemo": "在此演示中可用：",
+    "notAvailableInDemo": "在演示中不可用：",
+    "startDemo": "开始演示评估",
+    "importJson": "导入JSON文件",
+    "viewOfflineFormTitle": "查看离线表格",
+    "footerDisclaimer": "仅供教育和研究目的。未经医生审查不适用于临床决策。",
+    "availableItems": {
+      "questionnaire": "✅ 完整评估问卷",
+      "results": "✅ 风险计算和结果",
+      "json": "✅ JSON导入/导出",
+      "print": "✅ 打印功能"
+    },
+    "notAvailableItems": {
+      "phoneAuth": "❌ 电话认证",
+      "cloudSync": "❌ 云存储和同步",
+      "pdfImport": "❌ PDF导入"
+    }
+  },
+  "modelDocs": {
+    "title": "模型文档（ePSA筛查优先级）",
+    "closeAriaLabel": "关闭",
+    "closeButton": "关闭文档",
+    "validationStudyButton": "验证研究",
+    "validationStudyTitle": "验证研究（AUC 0.707）",
+    "overview": {
+      "title": "概述",
+      "bodyStart": "第一阶段（筛查优先级）使用简短问卷生成教育性ePSA评分（0-100%）和风险等级。这有助于与临床医生就前列腺癌筛查（如PSA检测）进行对话。它",
+      "notDiagnosisStrong": "不是诊断",
+      "bodyEnd": "，不能替代临床判断。",
+      "warningStrong": "未经验证的教育工具。",
+      "warningBody": "筛查决定应与合格的医疗提供者共同做出。风险等级基于AUA、NCCN和EAU的人群数据和指南阈值，对于高风险人口档案可能建议比当前阈值更早的评估。这种差异是有意为之的，应在共同决策的背景下解读。"
+    },
+    "inputs": {
+      "title": "问卷输入",
+      "intro": "模型使用以下来自问卷的输入：",
+      "demographicsLabel": "人口统计：",
+      "demographics": "年龄、种族/民族",
+      "anthropometricsLabel": "体格测量：",
+      "anthropometrics": "身高、体重、BMI",
+      "familyGeneticsLabel": "家族与遗传：",
+      "familyGenetics": "前列腺癌家族史、BRCA状态",
+      "lifestyleLabel": "生活方式：",
+      "lifestyle": "运动水平、吸烟、饮食模式、9/11或化学物质暴露",
+      "medicalHistoryLabel": "病史：",
+      "medicalHistory": "前列腺炎/炎症、高血压、高血脂、冠状动脉疾病、糖尿病",
+      "validatedLabel": "经验证的工具：",
+      "validated": "IPSS（泌尿系统症状，7个问题，0-35分）和SHIM（勃起功能，5个问题，0-25分）"
+    },
+    "scoring": {
+      "title": "评分计算方式",
+      "body": "ePSA模型使用基于积分（分箱）的方法。您的答案被转换为风险因素（如年龄50-59岁、60-69岁、70岁以上；BMI 25-29.9或≥30；IPSS严重程度；运动；黑人种族；家族史）。这些被组合成单一评分，归一化为0-100%的刻度。显示±5%的范围以避免过度解读细微差异。",
+      "formula": "模型类型：{{modelType}}。风险等级：较低（低于{{lowerPct}}%）、中等（{{lowerPct}}%-{{moderatePct}}%）、较高（高于{{moderatePct}}%）。"
+    },
+    "riskTiers": {
+      "title": "风险等级和PSA建议",
+      "body": "您的结果被置于三个等级之一（较低、中等、较高）。此外，模型可能会根据阈值指示PSA检测是否\"建议\"或\"不建议\"（例如，评分高于约{{recommendPct}}%可能建议考虑与临床医生讨论PSA）。这仅供教育使用，应与您的医生一起审查。"
+    },
+    "limitations": {
+      "title": "局限性",
+      "item1": "非诊断性；不能检测或排除癌症。",
+      "item2": "基于人群级别的关联；个体风险可能有所不同。",
+      "item3": "在临床医生建议时，不能替代DRE、PSA、MRI或活检。"
+    },
+    "references": {
+      "title": "参考资料",
+      "body": "有关风险评估阶段（PSA、PI-RADS、第二阶段）的详细信息，请在完成第一阶段后查看应用程序。如有关于模型的问题，请联系西奈山医疗系统泌尿外科。"
+    },
+    "validationStudyModal": {
+      "heroTitle": "验证（N={{n}}）",
+      "csPcaCount": "csPCa+ n={{positive}}",
+      "heroSubtitle": "贝叶斯重新校准的ePSA与PSA的AUC在此样本中统计上等效（Youden最优截断值）。",
+      "cardAucBayesLabel": "AUC（贝叶斯ePSA）",
+      "cardAucPsaLabel": "AUC（PSA）",
+      "cardAucDiffLabel": "AUC差值（贝叶斯 − PSA）",
+      "aucDiffMeta": "（95% CI {{ciLow}} 至 {{ciHigh}}），p={{p}}",
+      "youdenTitle": "Youden最优性能",
+      "bayesTableTitle": "贝叶斯ePSA（阈值{{thr}}）",
+      "psaTableTitle": "PSA（阈值{{thr}}）",
+      "sensitivityLabel": "敏感性",
+      "specificityLabel": "特异性",
+      "ppvLabel": "PPV",
+      "npvLabel": "NPV",
+      "tpLabel": "TP",
+      "fnLabel": "FN",
+      "fpLabel": "FP",
+      "tnLabel": "TN",
+      "bottomLineTitle": "结论",
+      "bottomLineBodyStart": "在此数据集大小下，贝叶斯ePSA与PSA表现相当。主要实际优势是在Youden最优截断值下的",
+      "higherNpv": "更高NPV",
+      "bottomLineBodyEnd": "。",
+      "interpretationNote": "解释说明：这是对N={{n}}（csPCa+ n={{positive}}）的样本内评估。需要更大的数据集来证明超越统计等效性的分离。"
+    }
+  },
+  "profileManager": {
+    "loading": "加载中...",
+    "sessionKeyLabel": "会话密钥",
+    "deleteSession": "删除会话",
+    "deleteWarning": "这将永久删除会话\"{{sessionId}}\"及所有相关数据。此操作无法撤销。",
+    "warningItem1": "所有评估数据将被删除",
+    "warningItem2": "此会话密钥将不再有效",
+    "warningItem3": "您需要创建新会话才能再次保存到云端",
+    "deleting": "删除中...",
+    "cancel": "取消",
+    "sessionKeyTitle": "会话密钥",
+    "created": "已创建",
+    "notAvailable": "不可用",
+    "successDeleted": "会话已成功删除。",
+    "errorDeleteFailed": "删除会话失败。请重试。"
+  },
+  "riskDocs": {
+    "title": "风险评估文档",
+    "close": "关闭",
+    "closeDocumentation": "关闭文档",
+    "overviewTitle": "概述",
+    "importantLabel": "重要提示：",
+    "nonValidatedStrong": "未经验证的教育风险评估工具",
+    "formulaTitle": "风险计算公式",
+    "variableDefinitionsTitle": "变量定义",
+    "categoriesTitle": "风险类别和后续步骤",
+    "piradsOverrideTitle": "PI-RADS覆盖逻辑",
+    "hormonalTitle": "激素治疗考虑因素",
+    "limitationsTitle": "局限性",
+    "referencesTitle": "参考资料",
+    "low": "低",
+    "moderate": "中等",
+    "high": "高",
+    "followupAction": "考虑与临床医生讨论PSA/MRI随访。",
+    "highAction": "考虑优先与临床医生讨论后续步骤。",
+    "table": {
+      "variable": "变量",
+      "type": "类型",
+      "coefficient": "系数",
+      "description": "描述",
+      "range": "范围",
+      "points": "积分"
+    }
+  }
+}
