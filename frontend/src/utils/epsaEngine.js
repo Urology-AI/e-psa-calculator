@@ -286,6 +286,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // informative Normal priors anchored to AUA/NCCN/EAU literature log-ORs.
   // Scale: 16 pts per log-OR unit (age 70+ anchor). MAX_POINTS = 80.
   // Youden-optimal triage threshold: rawScore >= 18 (J=0.138, sens=91.3%, spec=22.5%)
+  //
+  // Age bins: 40-49 = 0 pts (reference), 50-59 = 6 pts (~1.5× OR, AUA mandatory
+  // screening window), 60-69 = 10 pts, 70+ = 16 pts.
   // ---------------------------------------------------------------------------
   let rawScore = 0;
   const MAX_POINTS = 80;
@@ -297,6 +300,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   if (ageNum >= 70) addImpact('Age', `${ageNum} years`, 16);
   else if (ageNum >= 60) addImpact('Age', `${ageNum} years`, 10);
+  else if (ageNum >= 50) addImpact('Age', `${ageNum} years`, 6);
   else addImpact('Age', `${ageNum} years`, 0);
 
   if (Number.isFinite(bmiNum) && bmiNum >= 30) addImpact('BMI', bmiNum.toFixed(1), 4);
