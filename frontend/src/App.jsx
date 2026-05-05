@@ -8,7 +8,7 @@ import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
@@ -285,6 +285,20 @@ function App() {
                         console.warn('Session has STEP1_COMPLETE but no step1 data');
                         setCurrentStep(1);
                       }
+                    } else if (session.status === 'IN_PROGRESS') {
+                      setStage('pre');
+                      if (session.step1Partial) {
+                        const defaultShape = {
+                          age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+                          familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+                          weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+                          exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+                          comorbidityScore: null, hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+                        };
+                        setPreData(prev => ({ ...defaultShape, ...prev, ...session.step1Partial }));
+                        setPart1Step(session.part1Step || 0);
+                      }
+                      setCurrentStep(1);
                     } else {
                       // Incomplete session - start fresh
                       setStage('pre');
@@ -567,6 +581,42 @@ function App() {
     }, { merge: true });
     setCloudSyncStatus('saved');
     return sessionRef.id;
+  };
+
+  const saveProgressStep = async (partialData, step) => {
+    if (storageMode !== 'cloud' || !user || user.uid === 'local' || !db) return;
+    setCloudSyncStatus('saving');
+    try {
+      if (!sessionId) {
+        const sessionRef = doc(collection(db, 'sessions'));
+        const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+        await setDoc(sessionRef, {
+          userId: user.uid,
+          status: 'IN_PROGRESS',
+          step1Partial: partialData,
+          part1Step: step,
+          expiresAt,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        await setDoc(doc(db, 'users', user.uid), {
+          currentSessionId: sessionRef.id,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+        setSessionId(sessionRef.id);
+        localStorage.setItem(`sessionId_${user.uid}`, sessionRef.id);
+      } else {
+        await updateDoc(doc(db, 'sessions', sessionId), {
+          step1Partial: partialData,
+          part1Step: step,
+          updatedAt: serverTimestamp(),
+        });
+      }
+      setCloudSyncStatus('saved');
+    } catch (err) {
+      console.error('Error saving partial progress:', err);
+      setCloudSyncStatus('error');
+    }
   };
 
   const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score) => {
@@ -1181,6 +1231,8 @@ function App() {
     if (part1Step < 6) {
       setPart1Step(part1Step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Autosave partial progress to cloud at each step
+      saveProgressStep(preData, part1Step + 1).catch(console.error);
     } else if (part1Step === 6) {
       // Calculate Part 1 results using DYNAMIC calculator
       // Pass pathwayMode into formData so the engine can return it
@@ -1210,13 +1262,28 @@ function App() {
       }
       
       // Save Part 1 session to Firestore (cloud mode only)
-      if (storageMode === 'cloud' && user && !sessionId) {
+      if (storageMode === 'cloud' && user && user.uid !== 'local' && db) {
         try {
-          const newSessionId = await saveSession(user.uid, preData);
-          setSessionId(newSessionId);
-          localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
+          if (!sessionId) {
+            // No partial session yet — create a fresh STEP1_COMPLETE session
+            const newSessionId = await saveSession(user.uid, preData);
+            setSessionId(newSessionId);
+            localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
+          } else {
+            // Upgrade the existing IN_PROGRESS partial session to STEP1_COMPLETE
+            setCloudSyncStatus('saving');
+            await updateDoc(doc(db, 'sessions', sessionId), {
+              status: 'STEP1_COMPLETE',
+              step1: preData,
+              step1Partial: deleteField(),
+              part1Step: deleteField(),
+              updatedAt: serverTimestamp(),
+            });
+            setCloudSyncStatus('saved');
+          }
         } catch (error) {
           console.error('Error saving step 1 to Firestore:', error);
+          setCloudSyncStatus('error');
         }
       }
 
@@ -1703,9 +1770,19 @@ function App() {
                         ? 'Part 2 · Overview'
                         : `Part 2 · Step ${currentStep} of 2`}
                 </span>
-                {storageMode === 'cloud' && cloudSyncStatus !== 'idle' && (
-                  <span className={`cloud-sync-badge cloud-sync-badge--${cloudSyncStatus}`} aria-live="polite">
-                    {cloudSyncStatus === 'saving' ? 'Saving…' : cloudSyncStatus === 'saved' ? 'Saved' : 'Sync issue'}
+                {storageMode === 'cloud' && (
+                  <span
+                    className={`cloud-icon-badge cloud-icon-badge--${cloudSyncStatus}`}
+                    aria-live="polite"
+                    title={
+                      cloudSyncStatus === 'saving' ? 'Saving to cloud…'
+                      : cloudSyncStatus === 'saved' ? 'Saved to cloud'
+                      : cloudSyncStatus === 'error' ? 'Cloud sync error'
+                      : 'Cloud storage'
+                    }
+                  >
+                    <CloudIcon size={14} />
+                    {cloudSyncStatus !== 'idle' && <span className="cloud-icon-dot" aria-hidden="true" />}
                   </span>
                 )}
                 {(() => {
