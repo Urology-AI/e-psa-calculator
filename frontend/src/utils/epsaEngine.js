@@ -72,8 +72,18 @@ export const MODEL_ACCURACY = {
     note: 'AUC gain over PSA alone (+0.021) not yet significant at N=94 (p=0.725)'
   },
   model3: {
-    auc: null,
-    note: 'PI-RADS not collected in N=94 dataset. Scoring guideline-based (AUA/NCCN/EAU).'
+    auc: 0.694,
+    auc_ci_lo: 0.593,
+    auc_ci_hi: 0.714,
+    auc_cv: 0.687,
+    auc_cv_sd: 0.109,
+    n: 83,
+    events: 20,
+    outcome: 'GG3+ (high-grade PCa)',
+    note: 'Logistic regression trained on N=83 patients with PI-RADS + biopsy outcome. ' +
+          'GG2+ base rate 85.5% — not discriminable in this selected cohort. ' +
+          'GG3+ AUC 0.694 validated by 5-fold CV. ' +
+          'No prostate volume in dataset; PSAD pending data collection.'
   },
   model4: {
     auc_gg1: 0.624, auc_psa_gg1: 0.513,
@@ -81,6 +91,38 @@ export const MODEL_ACCURACY = {
     note: 'ePSA predicts GG1 AS-eligibility better than PSA alone (AUC 0.624 vs 0.513)'
   }
 };
+
+/**
+ * Calculates predicted probability of GG3+ (high-grade) prostate cancer
+ * from PI-RADS score and PSA using logistic regression trained on N=83 patients.
+ *
+ * Model: logit(GG3+) = -4.7205 + 0.6478*PIRADS + 0.5141*ln(PSA + 0.01)
+ * AUC 0.694 [0.593–0.714], 5-fold CV AUC 0.687
+ *
+ * @param {number} pirads  - PI-RADS score (2, 3, 4, or 5)
+ * @param {number} psa     - PSA in ng/mL (raw, before any 5-ARI correction)
+ * @returns {{ prob: number, percent: number, interpretation: string } | null}
+ *          null if inputs are missing or invalid
+ */
+export function calcHighGradeRisk(pirads, psa) {
+  if (pirads == null || psa == null) return null;
+  const p = Number(pirads);
+  const s = Number(psa);
+  if (!Number.isFinite(p) || !Number.isFinite(s) || s < 0) return null;
+  if (![2, 3, 4, 5].includes(p)) return null;
+
+  const logit = -4.7205 + 0.6478 * p + 0.5141 * Math.log(s + 0.01);
+  const prob = 1 / (1 + Math.exp(-logit));
+  const percent = Math.round(prob * 1000) / 10; // 1 decimal place
+
+  let interpretation;
+  if (prob < 0.10)      interpretation = 'Low GG3+ risk';
+  else if (prob < 0.20) interpretation = 'Intermediate GG3+ risk';
+  else if (prob < 0.35) interpretation = 'Elevated GG3+ risk';
+  else                  interpretation = 'High GG3+ risk';
+
+  return { prob, percent, interpretation };
+}
 
 export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => {
   const errors = [];
@@ -647,6 +689,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     else if (piradsVal === 5) { piradsPoints = 45; piradsOverridden = true; }
   }
 
+  const highGradeRisk = (piradsVal != null && psaAdjusted != null)
+    ? calcHighGradeRisk(piradsVal, psaAdjusted)
+    : null;
+
   const isBlack = !!preResult?.isBlack;
   const fhBinary = preResult?.fhBinary ?? 0;
   const hasFamilyHistory = fhBinary === 1 || preResult?.familyHistory === 1;
@@ -841,6 +887,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     psaAdjusted,
     psaAdjustedFlag,
     isOtherHormonal,
+
+    // High-grade risk (Model 3 logistic regression)
+    highGradeRisk,
 
     // Biopsy (Model 3)
     biopsyRecommended,
