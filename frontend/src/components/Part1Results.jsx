@@ -5,6 +5,7 @@ import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
+import ModelDocumentation from './ModelDocumentation';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
@@ -788,6 +789,10 @@ const Part1Results = ({
             <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening from age 50 for most men, or 45 for high-risk men.</li>
           </ul>
           <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Model Documentation (ePSA Screening Priority)">
+          <ModelDocumentation scope="part1" />
         </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
