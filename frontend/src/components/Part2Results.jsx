@@ -3,6 +3,7 @@ import './Part2Results.css';
 import './epsa-v2-layout.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
+import ModelDocumentation from './ModelDocumentation';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import ModalInfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -935,6 +936,10 @@ const Part2Results = ({
           </p>
         </CollapsibleSection>
         )}
+
+        <CollapsibleSection title="Model Documentation (ePSA Screening Priority)">
+          <ModelDocumentation scope="part2" pathwayMode={pathwayMode} />
+        </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer" defaultOpen>
           <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
