@@ -354,6 +354,45 @@ const ResearchIdCard = ({ sessionId }) => {
   );
 };
 
+/* ─── Guardrail Alert Banner ─── */
+const GUARDRAIL_CFG = {
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+};
+
+const GuardrailBanner = ({ alert }) => {
+  const cfg = GUARDRAIL_CFG[alert.level] || GUARDRAIL_CFG.info;
+  return (
+    <div
+      role="alert"
+      style={{
+        background: cfg.bg,
+        borderLeft: `4px solid ${cfg.border}`,
+        borderRadius: '8px',
+        padding: '14px 16px',
+        margin: '8px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '16px' }}>{cfg.icon}</span>
+        <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
+          {alert.title}
+        </span>
+      </div>
+      <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
+      {alert.guideline && (
+        <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
+          Guideline: {alert.guideline}
+        </p>
+      )}
+    </div>
+  );
+};
+
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -381,6 +420,7 @@ const Part1Results = ({
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
     aboveMaxScreeningAge = false,
+    guardrailAlerts = [],
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -452,6 +492,11 @@ const Part1Results = ({
       {sessionId && sessionId !== 'Local' && (
         <ResearchIdCard sessionId={sessionId} />
       )}
+
+      {/* ── Guardrail Alerts ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
+        <GuardrailBanner key={alert.code} alert={alert} />
+      ))}
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
