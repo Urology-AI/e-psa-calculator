@@ -124,6 +124,92 @@ export function calcHighGradeRisk(pirads, psa) {
   return { prob, percent, interpretation };
 }
 
+// GUARDRAILS — fires when ePSA input exceeds validated model range or
+// clinical guidelines require immediate action rather than a score.
+// Based on: AUA/SUO 2026, NCCN 2024, EAU 2024.
+export function checkGuardrails(formData, pathwayMode) {
+  const alerts = [];
+  const psaNum    = Number(formData?.psa);
+  const piradsNum = Number(formData?.pirads);
+  const psadNum   = (formData?.psad != null && formData.psad !== '')
+    ? Number(formData.psad)
+    : (formData?.psa && formData?.prostateVolume
+        ? Number(formData.psa) / Number(formData.prostateVolume)
+        : null);
+  const ggg = Number(formData?.ggg);
+  const age = Number(formData?.age);
+
+  // 1. PSA > 100: outside model range, refer immediately.
+  // Rationale: PSMA PET staging data show 87.5% probability of any metastatic disease at
+  // PSA > 100 ng/mL (Luining et al. Eur Urol Open Sci. 2023). EAU 2024 and NCCN guidelines
+  // both recommend staging imaging (bone scan or PSMA-PET) for high- and very-high-risk PCa
+  // regardless of PSA level; PSA > 100 virtually always meets that threshold. The ePSA model
+  // was derived on PSA ≤ ~40 ng/mL — extrapolating beyond that range produces unreliable scores.
+  if (Number.isFinite(psaNum) && psaNum > 100) {
+    alerts.push({
+      level: 'critical',
+      code: 'PSA_VERY_HIGH',
+      title: 'PSA > 100 ng/mL — Immediate Urology Referral Required',
+      message:
+        `A PSA of ${psaNum} ng/mL is far outside the validated range of this tool (derived on ` +
+        'PSA ≤ ~40 ng/mL). PSMA PET staging data show an 87.5% probability of any metastatic ' +
+        'disease at PSA > 100 ng/mL. ePSA risk scores are not interpretable at this level. ' +
+        'Staging imaging (bone scan or PSMA-PET) and prompt urology referral are required ' +
+        'before any treatment planning. Do not rely on this tool\'s output at this PSA value.',
+      guideline:
+        'Luining WI et al. Eur Urol Open Sci. 2024;59:1–8. doi:10.1016/j.euros.2023.12.001 ' +
+        '(87.5% any metastatic disease at PSA > 100 ng/mL on PSMA PET, N=2,193); ' +
+        'EAU 2024 Prostate Cancer Guidelines — staging imaging (bone scan or PSMA-PET) ' +
+        'recommended for high- and very-high-risk disease (Cornford P et al. Eur Urol. 2021;79(2):263–282, updated 2024); ' +
+        'NCCN Prostate Cancer v1.2025 — bone scan recommended for high/very-high-risk patients.',
+    });
+  }
+
+  // 2. GG4 or GG5 entered in AS Tool: not eligible for AS per guidelines
+  if (pathwayMode === 'active_surveillance' && (ggg === 4 || ggg === 5)) {
+    alerts.push({
+      level: 'critical',
+      code: 'GG_NOT_AS_ELIGIBLE',
+      title: 'GG4/5 — Not Eligible for Active Surveillance',
+      message:
+        'Grade Group 4 or 5 disease is a contraindication to active surveillance per all major ' +
+        'guidelines. This tool is validated for GG1–3 only. Treatment discussion is recommended.',
+      guideline: 'AUA/SUO 2022 AS Guidelines; EAU 2024 §6.2; NCCN 2024 PROST-2',
+    });
+  }
+
+  // 3. PSAD > 0.5 with PI-RADS 4 or 5: immediate biopsy threshold
+  if (Number.isFinite(psadNum) && psadNum > 0.5 && piradsNum >= 4) {
+    alerts.push({
+      level: 'warning',
+      code: 'PSAD_PIRADS_BIOPSY_THRESHOLD',
+      title: 'PSAD > 0.5 + PI-RADS ≥4 — Biopsy Threshold Exceeded',
+      message:
+        `PSAD of ${psadNum.toFixed(2)} ng/mL/cm³ combined with PI-RADS ${piradsNum} meets ` +
+        'criteria for biopsy recommendation per EAU 2024 and NCCN 2024 guidelines, independent ' +
+        'of ePSA score. ePSA results are provided for context only.',
+      guideline:
+        'EAU 2024 Prostate Cancer §5.1.3; NCCN 2024 PROST-3; Kadeer et al. 2025 PSAD cutoff 0.177',
+    });
+  }
+
+  // 4. Age < 50 with no high-risk features: consider genetics
+  if (Number.isFinite(age) && age < 50 && !formData?.highRiskFeatures) {
+    alerts.push({
+      level: 'info',
+      code: 'YOUNG_PATIENT_CONSIDER_GENETICS',
+      title: 'Age < 50 — Genetic Counseling Recommended',
+      message:
+        'For patients under 50, NCCN and EAU guidelines recommend genetic counseling and ' +
+        'consideration of germline testing (BRCA2, ATM, HOXB13) before initiating active ' +
+        'surveillance. ePSA does not yet incorporate germline risk scores.',
+      guideline: 'NCCN Prostate Cancer v1.2025 PROST-A; EAU 2024 §4.1',
+    });
+  }
+
+  return alerts;
+}
+
 export const validateInputs = (formData, config = DEFAULT_CALCULATOR_CONFIG) => {
   const errors = [];
   const warnings = [];
@@ -556,6 +642,13 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     ? `In our validation study (N=${cal.n}), ${cal.events} in ${cal.n} patients at this risk tier had clinically significant prostate cancer (${Math.round(cal.rate * 100)}%; 95% CI ${Math.round(cal.ci_lo * 100)}%–${Math.round(cal.ci_hi * 100)}%).`
     : null;
 
+  const guardrailAlerts = checkGuardrails({
+    psa: null,
+    pirads: null,
+    age: ageNum,
+    highRiskFeatures: hasHighRiskAnchor,
+  }, formData.pathwayMode || 'pre_psa');
+
   return {
     // Core score
     score: scorePercent,
@@ -609,6 +702,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     // Age eligibility
     belowMinAge: ageNum < 40,
     aboveMaxScreeningAge: ageNum > 75,
+
+    // Guardrails
+    guardrailAlerts,
 
     // Metadata
     epsaGuidelineText: epsaTierDef.guideline,
@@ -854,6 +950,15 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   const pathwayMode = postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa');
 
+  const guardrailAlerts = checkGuardrails({
+    psa: psaAdjusted,
+    pirads: piradsVal,
+    psad: psadValue,
+    ggg: postData?.ggg,
+    age: preResult?.age,
+    highRiskFeatures: hasHighRiskFeature,
+  }, pathwayMode);
+
   return {
     // Core combined score
     riskPct: tierDef.psaEquivalent,
@@ -900,6 +1005,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     piradsConfidenceText,
     empiricalProbabilityText,
     empiricalRate: cal?.rate ?? null,
+
+    // Guardrails
+    guardrailAlerts,
 
     // Metadata
     pathwayMode,
