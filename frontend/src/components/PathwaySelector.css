@@ -222,8 +222,8 @@
 .theme-dark .pathway-card--mri     .pathway-card-icon-wrap { background: rgba(109, 40, 217, 0.22); color: #c4b5fd; }
 .theme-dark .pathway-card--biopsy  .pathway-card-icon-wrap { background: rgba(180, 83, 9, 0.20); color: #fbbf24; }
 
-.theme-dark .pathway-card--pre     .pathway-card-btn { background: #0e7490; }
-.theme-dark .pathway-card--mri     .pathway-card-btn { background: #7c3aed; }
+.theme-dark .pathway-card--pre     .pathway-card-btn { background: var(--teal-700); }
+.theme-dark .pathway-card--mri     .pathway-card-btn { background: #DA1884; }
 .theme-dark .pathway-card--biopsy  .pathway-card-btn { background: #92400e; }
 
 .theme-dark .pathway-continue-banner--teal {
@@ -240,7 +240,7 @@
   color: var(--ink-700);
 }
 
-.theme-dark .pathway-continue-banner--teal .pathway-continue-banner-btn { background: #0e7490; }
+.theme-dark .pathway-continue-banner--teal .pathway-continue-banner-btn { background: var(--teal-700); }
 .theme-dark .pathway-continue-banner--navy .pathway-continue-banner-btn { background: var(--brand-600); }
 
 .theme-dark .pathway-continue-banner--biopsy {

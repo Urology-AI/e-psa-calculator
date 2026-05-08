@@ -457,7 +457,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--brand-600, #1f6ea3);
+  color: var(--brand-600);
   margin: 0 0 0.35rem;
   display: flex;
   align-items: center;
@@ -540,8 +540,8 @@
   color: #fff;
 }
 
-.gl-pill--aua  { background: var(--brand-600, #1f6ea3); }
-.gl-pill--nccn { background: #7c3aed; }
+.gl-pill--aua  { background: var(--brand-600); }
+.gl-pill--nccn { background: #DA1884; }
 
 .gl-section-meta {
   font-size: 0.75rem;
@@ -552,7 +552,7 @@
   margin-left: auto;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--brand-600, #1f6ea3);
+  color: var(--brand-600);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -587,7 +587,7 @@
 }
 
 .gl-age--low  { color: var(--ink-500, #607286); }
-.gl-age--med  { color: var(--brand-600, #1f6ea3); }
+.gl-age--med  { color: var(--brand-600); }
 .gl-age--ok   { color: #16a34a; }
 .gl-age--warn { color: #d97706; }
 .gl-age--stop { color: #dc2626; }
@@ -663,7 +663,7 @@
   flex: 0 1 auto;
   padding: 0.7rem 1.1rem;
   border-radius: 0.625rem;
-  background: var(--brand-700, #134f7a);
+  background: var(--brand-700);
   color: #fff;
   font-weight: 700;
   font-size: 0.9rem;
@@ -674,8 +674,8 @@
 
 .gl-cta:hover { background: var(--brand-800, #0e3a5e); }
 
-.theme-dark .gl-cta { background: var(--brand-600, #1f6ea3); }
-.theme-dark .gl-cta:hover { background: var(--brand-500, #2d8bc7); }
+.theme-dark .gl-cta { background: var(--brand-600); }
+.theme-dark .gl-cta:hover { background: var(--brand-500); }
 
 @media (max-width: 480px) {
   .gl-modal-panel { max-height: 92vh; border-radius: 0.875rem; }
