@@ -73,31 +73,37 @@ const GuardrailBanner = ({ alert }) => {
 };
 
 /* ─── Guideline Deviation Banner ─── */
-const GuidelineDeviationBanner = ({ type, detail }) => {
+const GuidelineDeviationBanner = ({ type }) => {
   const isDiscordance = type === 'discordance';
-  const isLowPsa = type === 'low_psa';
-  const color = isDiscordance ? '#d97706' : '#dc2626';
-  const bg    = isDiscordance ? '#fffbeb' : '#fef2f2';
-  const border = isDiscordance ? '#fbbf24' : '#fca5a5';
+  const colorClass = isDiscordance ? 'guideline-deviation-banner--amber' : 'guideline-deviation-banner--red';
 
   const title = isDiscordance
-    ? 'ePSA tier is higher than PSA alone suggests'
-    : 'Low PSA does not rule out risk';
+    ? 'ePSA tier is higher than PSA alone suggests — goes beyond standard guidelines'
+    : 'Low PSA does not rule out risk — ePSA flags factors outside standard PSA interpretation';
 
-  const body = isDiscordance
-    ? `Your PSA level would place you in a lower tier, but your individual risk profile (race, family history, genetic markers) elevates your ePSA result. Standard PSA-only guidelines may underestimate your risk.`
-    : `Your PSA is below 2.0 ng/mL, which is often reassuring, but your profile has high-risk features not captured by PSA alone. Early urologist evaluation is recommended.`;
+  const guidelineSays = isDiscordance
+    ? 'Standard PSA guidelines assign risk tier based on PSA value alone.'
+    : 'A PSA below 2.0 ng/mL is generally reassuring per AUA/NCCN. Routine guidelines do not mandate further action at this level.';
+
+  const epsaAdds = isDiscordance
+    ? 'ePSA combines PSA with your Part 1 profile — including race, family history, germline mutations, and additional factors like BMI, urinary symptoms, and lifestyle — pushing your combined tier higher than PSA alone suggests.'
+    : 'Your Part 1 profile contains high-risk features (Black ancestry, family history, or germline mutations) that AUA/NCCN identify as warranting earlier screening regardless of PSA level. ePSA surfaces this risk even when PSA appears low.';
 
   return (
-    <div role="alert" style={{ background: bg, border: `1.5px solid ${border}`, borderLeft: `4px solid ${color}`, borderRadius: '8px', padding: '12px 14px', margin: '8px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <AlertTriangleIcon size={15} style={{ color, flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, fontSize: '13px', color }}>{title}</span>
+    <div role="alert" className={`guideline-deviation-banner ${colorClass}`}>
+      <div className="guideline-deviation-banner__header">
+        <AlertTriangleIcon size={15} className="guideline-deviation-banner__icon" />
+        <span className="guideline-deviation-banner__title">{title}</span>
       </div>
-      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{body}</p>
-      <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
-        Note: ePSA deviates from PSA-only guideline — discuss with your physician before drawing conclusions from your PSA result alone.
-      </p>
+      <div className="guideline-deviation-banner__row">
+        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--guideline">Guidelines say</span>
+        <p className="guideline-deviation-banner__text">{guidelineSays}</p>
+      </div>
+      <div className="guideline-deviation-banner__row">
+        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--epsa">ePSA adds</span>
+        <p className="guideline-deviation-banner__text">{epsaAdds}</p>
+      </div>
+      <p className="guideline-deviation-banner__footer">Always discuss with your physician before drawing conclusions from this result alone.</p>
     </div>
   );
 };
@@ -122,6 +128,7 @@ const Part2Results = ({
   postData, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false,
   saveToCloudPending = false, saveToCloudError = null,
+  onShowModelDocs = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
 
@@ -518,9 +525,14 @@ const Part2Results = ({
           </p>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Model Documentation">
-          <ModelDocumentation scope="part2" pathwayMode={pathwayMode} />
-        </CollapsibleSection>
+        {onShowModelDocs && (
+          <div className="model-docs-btn-row">
+            <button type="button" className="btn-results btn-results--outline model-docs-btn" onClick={onShowModelDocs}>
+              <ExternalLinkIcon size={14} />
+              <span>View Model Documentation</span>
+            </button>
+          </div>
+        )}
 
         <CollapsibleSection title="Important Disclaimer">
           <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
