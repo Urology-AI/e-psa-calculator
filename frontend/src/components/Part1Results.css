@@ -1690,3 +1690,67 @@
 .theme-dark .guideline-deviation-banner__factors-label { color: #fbbf24; }
 .theme-dark .guideline-deviation-banner__factors-list  { color: #d1d5db; }
 .theme-dark .guideline-deviation-banner__factors-note  { color: #9ca3af; }
+
+/* ─── Auto-opened screening guidelines section + callout ─── */
+.collapsible-section--highlight {
+  border-color: var(--brand-400, #5aaeda) !important;
+  box-shadow: 0 0 0 0.1875rem rgba(45, 139, 199, 0.12), 0 0.125rem 0.5rem rgba(11, 42, 67, 0.08);
+}
+
+.theme-dark .collapsible-section--highlight {
+  border-color: var(--brand-500, #2d8bc7) !important;
+  box-shadow: 0 0 0 0.1875rem rgba(45, 139, 199, 0.22);
+}
+
+.screening-guideline-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: var(--brand-50, #f0f8ff);
+  border: 0.0625rem solid var(--brand-400, #5aaeda);
+  border-left: 0.1875rem solid var(--brand-600, #1f6ea3);
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.theme-dark .screening-guideline-callout {
+  background: rgba(45, 139, 199, 0.12);
+  border-color: rgba(45, 139, 199, 0.45);
+}
+
+.screening-guideline-callout__icon {
+  color: var(--brand-600, #1f6ea3);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.theme-dark .screening-guideline-callout__icon { color: var(--brand-400, #5aaeda); }
+
+.screening-guideline-callout__body {
+  flex: 1 1 auto;
+  font-size: 0.8125rem;
+  color: var(--ink-800, #1e3347);
+  line-height: 1.55;
+}
+
+.theme-dark .screening-guideline-callout__body { color: var(--ink-800, #cbd5e1); }
+
+.screening-guideline-callout__body strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.8125rem;
+  color: var(--brand-700, #134f7a);
+}
+
+.theme-dark .screening-guideline-callout__body strong { color: var(--brand-400, #5aaeda); }
+
+.screening-guideline-callout__body ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.78125rem;
+  color: var(--ink-700, #34475a);
+  line-height: 1.6;
+}
+
+.theme-dark .screening-guideline-callout__body ul { color: var(--ink-700, #9ca3af); }
