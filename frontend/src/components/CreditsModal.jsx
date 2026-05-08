@@ -51,8 +51,7 @@ const CreditsModal = ({ onClose }) => (
       <div className="model-docs-content">
         <section className="docs-section">
           <p className="credits-intro">
-            ePSA was developed at the Icahn School of Medicine at Mount Sinai under the
-            Million Strong Men initiative.
+            ePSA was developed at the Icahn School of Medicine at Mount Sinai.
           </p>
           <ul className="credits-list">
             {TEAM.map(({ name, role, affiliation }) => (
