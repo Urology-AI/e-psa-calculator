@@ -5,6 +5,7 @@ import './Part2Results.css';
 import './epsa-v2-layout.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import PrintableForm from './PrintableForm';
+import ModelDocumentation from './ModelDocumentation';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import ModalInfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -337,6 +338,45 @@ const MRI_TIER_SCALE = [
   { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Very High — Highly Likely',color: '#dc2626', bg: '#fef2f2' },
 ];
 
+/* ─── Guardrail Alert Banner ─── */
+const GUARDRAIL_CONFIG = {
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+};
+
+const GuardrailBanner = ({ alert }) => {
+  const cfg = GUARDRAIL_CONFIG[alert.level] || GUARDRAIL_CONFIG.info;
+  return (
+    <div
+      role="alert"
+      style={{
+        background: cfg.bg,
+        borderLeft: `4px solid ${cfg.border}`,
+        borderRadius: '8px',
+        padding: '14px 16px',
+        margin: '8px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '16px' }}>{cfg.icon}</span>
+        <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
+          {alert.title}
+        </span>
+      </div>
+      <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
+      {alert.guideline && (
+        <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
+          Guideline: {alert.guideline}
+        </p>
+      )}
+    </div>
+  );
+};
+
 /* ─── Main Component ─── */
 const Part2Results = ({
   result,
@@ -447,6 +487,8 @@ const Part2Results = ({
     empiricalProbabilityText = null,
     piradsConfidenceText = null,
     epsaTierKey = null,
+    highGradeRisk = null,
+    guardrailAlerts = [],
   } = result;
 
   const getRiskColor = (rc) => {
@@ -628,6 +670,11 @@ const Part2Results = ({
         </div>
       )}
 
+      {/* ── Guardrail Alerts ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
+        <GuardrailBanner key={alert.code} alert={alert} />
+      ))}
+
       {/* ── Risk Summary Card ── */}
       <div className={`p2r-risk-card ${riskCardClass}`} role="region" aria-label="Risk assessment result">
         <div className="p2r-risk-label">
@@ -670,6 +717,26 @@ const Part2Results = ({
                 <span className="v2-tier-bar-range">{t.range}</span>
               </div>
             ))}
+          </div>
+        );
+      })()}
+
+      {/* ── High-Grade Cancer Risk (GG3+) — post-MRI pathway only ── */}
+      {pathwayMode === 'post_mri' && highGradeRisk != null && (() => {
+        const pct = Math.round(highGradeRisk.prob * 100);
+        const color = highGradeRisk.prob >= 0.30 ? '#dc2626' : highGradeRisk.prob >= 0.15 ? '#d97706' : '#16a34a';
+        const bg    = highGradeRisk.prob >= 0.30 ? '#fef2f2' : highGradeRisk.prob >= 0.15 ? '#fffbeb' : '#f0fdf4';
+        const border = `1.5px solid ${color}`;
+        return (
+          <div style={{ background: bg, border, borderRadius: '10px', padding: '16px', margin: '10px 0' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+              High-Grade Cancer Risk (GG3+)
+            </div>
+            <div style={{ fontSize: '38px', fontWeight: 700, color, lineHeight: 1, marginBottom: '4px' }}>
+              {pct}%
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '2px' }}>Risk of GG3+ Cancer</div>
+            <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>AUC 0.694 · PI-RADS + PSA model</div>
           </div>
         );
       })()}
@@ -999,6 +1066,10 @@ const Part2Results = ({
           </p>
         </CollapsibleSection>
         )}
+
+        <CollapsibleSection title="Model Documentation (ePSA Screening Priority)">
+          <ModelDocumentation scope="part2" pathwayMode={pathwayMode} />
+        </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer" defaultOpen>
           <p className="p2r-disclaimer-text">{footerDisclaimerText}</p>
