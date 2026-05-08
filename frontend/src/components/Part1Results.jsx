@@ -5,6 +5,7 @@ import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
+import ModelDocumentation from './ModelDocumentation';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -355,6 +356,45 @@ const ResearchIdCard = ({ sessionId }) => {
   );
 };
 
+/* ─── Guardrail Alert Banner ─── */
+const GUARDRAIL_CFG = {
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+};
+
+const GuardrailBanner = ({ alert }) => {
+  const cfg = GUARDRAIL_CFG[alert.level] || GUARDRAIL_CFG.info;
+  return (
+    <div
+      role="alert"
+      style={{
+        background: cfg.bg,
+        borderLeft: `4px solid ${cfg.border}`,
+        borderRadius: '8px',
+        padding: '14px 16px',
+        margin: '8px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '16px' }}>{cfg.icon}</span>
+        <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
+          {alert.title}
+        </span>
+      </div>
+      <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
+      {alert.guideline && (
+        <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
+          Guideline: {alert.guideline}
+        </p>
+      )}
+    </div>
+  );
+};
+
 /* ─── Main Component ─── */
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
@@ -405,6 +445,7 @@ const Part1Results = ({
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
     aboveMaxScreeningAge = false,
+    guardrailAlerts = [],
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -476,6 +517,11 @@ const Part1Results = ({
       {sessionId && sessionId !== 'Local' && (
         <ResearchIdCard sessionId={sessionId} />
       )}
+
+      {/* ── Guardrail Alerts ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
+        <GuardrailBanner key={alert.code} alert={alert} />
+      ))}
 
       {/* ── Research consent / REDCap status ── */}
       {storageMode === 'cloud' && (
@@ -849,6 +895,10 @@ const Part1Results = ({
             <li><strong>ERUS (European Guidelines on Prostate Cancer)</strong> — Screening from age 50 for most men, or 45 for high-risk men.</li>
           </ul>
           <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Model Documentation (ePSA Screening Priority)">
+          <ModelDocumentation scope="part1" />
         </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
