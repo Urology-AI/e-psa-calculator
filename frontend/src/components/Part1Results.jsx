@@ -121,38 +121,64 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
 };
 
 /* ─── Guideline Deviation Banner ─── */
+const NON_GUIDELINE_LABELS = {
+  'BMI': 'Body weight (BMI)',
+  'Exercise': 'Physical activity level',
+  'Smoking': 'Smoking history',
+  'Diet pattern': 'Diet pattern',
+  'Inflammation history': 'Prostate inflammation history',
+  '9/11 / Chemical exposure': 'Chemical / 9-11 exposure',
+  'SHIM total': 'Erectile function (SHIM)',
+  'IPSS total': 'Urinary symptoms (IPSS)',
+  'Comorbidity burden': 'Comorbidity burden',
+};
+
 const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
-  let title, body;
+  let guidelineSays, epsaAdds;
   if (age < 45) {
-    title = 'ePSA recommends PSA — outside AUA/NCCN routine screening age';
-    body = 'AUA/NCCN do not recommend routine screening before age 45. Your ePSA score is elevated based on individual risk factors not captured by age-only guidelines.';
+    guidelineSays = 'AUA/NCCN do not recommend routine PSA screening before age 45 for average-risk men. High-risk individuals (Black ancestry, BRCA1/2, strong family history) may begin discussions at 40–45.';
+    epsaAdds = 'ePSA is recommending a PSA test based on your individual risk score — which is above the model threshold. This goes beyond what AUA/NCCN currently endorse for your age group.';
   } else if (age < 50) {
-    title = 'ePSA recommendation is stronger than AUA/NCCN guideline';
-    body = 'AUA/NCCN offer only a conditional baseline PSA at ages 45–50. Your ePSA score exceeds the threshold, suggesting your individual risk warrants earlier or more urgent evaluation.';
+    guidelineSays = 'AUA/NCCN offer only a conditional baseline PSA at ages 45–50 (Conditional Rec, Grade B) — not a strong recommendation.';
+    epsaAdds = 'ePSA is recommending a PSA test with more urgency than the guideline. Your score exceeds the model threshold, driven partly by factors AUA/NCCN do not use for screening decisions.';
   } else if (age <= 69) {
-    title = 'ePSA adds urgency — your individual risk is above average for this age group';
-    body = 'AUA/NCCN already recommend regular screening at ages 50–69. Your elevated ePSA score suggests more urgent follow-up than the standard 2–4 year interval.';
+    guidelineSays = 'AUA/NCCN already recommend regular PSA screening every 2–4 years at ages 50–69 (Strong Rec, Grade A).';
+    epsaAdds = 'ePSA is adding urgency beyond the routine interval. Your score is elevated by individual risk factors — including some that fall outside AUA/NCCN criteria.';
   } else {
-    title = 'ePSA recommends PSA — AUA/NCCN require Shared Decision Making at this age';
-    body = 'AUA/NCCN guidelines require SDM at age 70+, weighing screening benefit against life expectancy. The ePSA score does not account for competing mortality risks — discuss with your physician.';
+    guidelineSays = 'AUA/NCCN require Shared Decision Making at age 70+, weighing screening benefit against life expectancy and comorbidities (Conditional Rec, Grade B). Routine screening is not automatically recommended.';
+    epsaAdds = 'ePSA is flagging elevated risk based on your score, but at this age the guideline requires a life-expectancy discussion with your physician first.';
   }
 
   return (
-    <div role="alert" style={{ background: '#fffbeb', border: '1.5px solid #fbbf24', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '12px 14px', margin: '8px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <AlertTriangleIcon size={15} style={{ color: '#d97706', flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, fontSize: '13px', color: '#92400e' }}>{title}</span>
+    <div role="alert" className="guideline-deviation-banner guideline-deviation-banner--amber">
+      <div className="guideline-deviation-banner__header">
+        <AlertTriangleIcon size={15} className="guideline-deviation-banner__icon" />
+        <span className="guideline-deviation-banner__title">ePSA recommendation goes beyond AUA/NCCN guidelines</span>
       </div>
-      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{body}</p>
+
+      <div className="guideline-deviation-banner__row">
+        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--guideline">AUA/NCCN says</span>
+        <p className="guideline-deviation-banner__text">{guidelineSays}</p>
+      </div>
+
+      <div className="guideline-deviation-banner__row">
+        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--epsa">ePSA adds</span>
+        <p className="guideline-deviation-banner__text">{epsaAdds}</p>
+      </div>
+
       {nonGuidelineFactors.length > 0 && (
-        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#78350f' }}>
-          <strong>Non-guideline factors driving this score:</strong>{' '}
-          {nonGuidelineFactors.join(', ')} — these are not AUA/NCCN-endorsed screening criteria.
-        </p>
+        <div className="guideline-deviation-banner__factors">
+          <span className="guideline-deviation-banner__factors-label">Factors used that are NOT AUA/NCCN screening criteria:</span>
+          <ul className="guideline-deviation-banner__factors-list">
+            {nonGuidelineFactors.map(f => (
+              <li key={f}>{NON_GUIDELINE_LABELS[f] || f}</li>
+            ))}
+          </ul>
+          <p className="guideline-deviation-banner__factors-note">AUA/NCCN base PSA screening on age, race, family history, and germline mutations only. Diet, exercise, BMI, urinary symptoms, and similar factors are not part of their screening criteria.</p>
+        </div>
       )}
-      <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
-        ePSA deviates from age-based guideline here — always discuss with your physician before acting on this result.
-      </p>
+
+      <p className="guideline-deviation-banner__footer">Always discuss this result with your GP or urologist before acting on it.</p>
     </div>
   );
 };
@@ -436,6 +462,7 @@ const Part1Results = ({
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
+  onShowModelDocs = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const breakdownRef = useRef(null);
@@ -798,9 +825,14 @@ const Part1Results = ({
           <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>Disclaimer: ePSA is built on Mount Sinai's own patient data but its risk thresholds and screening recommendations are aligned with AUA/NCCN guidelines. This tool is for education only and does not replace clinical judgment.</em></p>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Model Documentation (ePSA Screening Priority)">
-          <ModelDocumentation scope="part1" />
-        </CollapsibleSection>
+        {onShowModelDocs && (
+          <div className="model-docs-btn-row">
+            <button type="button" className="btn-results btn-results--outline model-docs-btn" onClick={onShowModelDocs}>
+              <ExternalLinkIcon size={14} />
+              <span>View Model Documentation</span>
+            </button>
+          </div>
+        )}
 
         <CollapsibleSection title="Important Disclaimer">
           <p className="detail-disclaimer">ePSA is an educational tool designed to help you understand your prostate cancer risk. It is not a medical diagnosis. Your risk category is based on population research and the AUA, NCCN, and ERUS guidelines. In some cases — particularly for men with high-risk factors — this tool may suggest earlier screening than the general population guidelines recommend. This is intentional, and a notice appears on screen when this happens. Always discuss your result with a doctor before making any decisions about testing or treatment.</p>

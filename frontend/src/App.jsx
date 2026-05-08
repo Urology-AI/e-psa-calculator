@@ -1623,6 +1623,7 @@ function App() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onContinueToPostBiopsy={handleContinueToPostBiopsy}
+                onShowModelDocs={() => setShowModelDocs(true)}
               />
             ) : (
               <div className="loading-results">
@@ -1695,6 +1696,7 @@ function App() {
                     await handleClearData();
                   }
                 }}
+                onShowModelDocs={() => setShowModelDocs(true)}
               />
             )}
           </div>
