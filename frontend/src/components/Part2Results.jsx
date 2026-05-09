@@ -11,7 +11,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon, ActivityIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon,
+  MapPinIcon, PillIcon, ScanEyeIcon,
 } from 'lucide-react';
 
 /* ─── Collapsible (same style as Part 1) ─── */
@@ -128,7 +128,7 @@ const Part2Results = ({
   postData, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false,
   saveToCloudPending = false, saveToCloudError = null,
-  onShowModelDocs = null,
+  onShowModelDocs = null, onContinueToMRI = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
 
@@ -152,6 +152,7 @@ const Part2Results = ({
     riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
     isOtherHormonal, psaTier, discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadValue, psadFlag, biopsyRecommended, biopsyReason, biopsyMessage,
+    mriRecommended, mriRecommendMessage,
     pathwayMode = 'post_mri', empiricalProbabilityText, piradsConfidenceText,
     epsaTierKey, highGradeRisk, guardrailAlerts = [],
   } = result;
@@ -281,6 +282,38 @@ const Part2Results = ({
       {/* ── Guideline Deviation Notices ── */}
       {discordanceFlag && <GuidelineDeviationBanner type="discordance" />}
       {lowPsaWarning && <GuidelineDeviationBanner type="low_psa" />}
+
+      {/* ── MRI Recommendation (post_psa only) ── */}
+      {pathwayMode === 'post_psa' && (
+        <div className={`v2-psa-hero v2-psa-hero--${mriRecommended ? 'amber' : 'blue'}`}>
+          <div className="v2-psa-hero-top">
+            <div className="v2-psa-hero-icon">
+              <ScanEyeIcon size={20} />
+            </div>
+            <div className="v2-psa-hero-body">
+              <h3 className="v2-psa-hero-title">
+                {mriRecommended ? 'MRI Recommended' : 'MRI Not Currently Required'}
+              </h3>
+              <p className="v2-psa-hero-desc">
+                {mriRecommended
+                  ? mriRecommendMessage
+                  : 'Your combined ePSA + PSA profile does not currently meet the threshold for an mpMRI. Continue with routine follow-up as directed by your physician.'}
+              </p>
+            </div>
+          </div>
+          {onContinueToMRI && (
+            <div className="v2-psa-hero-ctas">
+              <button
+                type="button"
+                className="btn-results btn-results--solid v2-psa-hero-btn-solid"
+                onClick={onContinueToMRI}
+              >
+                Add MRI Results →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Recommendation Hero ── */}
       <div className={`v2-psa-hero v2-psa-hero--${heroVariant}`}>
