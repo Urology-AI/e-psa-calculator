@@ -95,8 +95,8 @@
       "step3Body": "Receive an ePSA risk tier with printable guidance for your clinician discussion."
     },
     "footerInstitution": "Icahn School of Medicine at Mount Sinai · Urology Department",
-    "footerGuidelines": "Based on guidance by: AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "This tool is for education only and is not a diagnosis. It has not been clinically validated for standalone decision-making and should be used alongside guidance from a licensed healthcare professional."
+    "footerGuidelines": "Built on Mount Sinai patient data · Recommendations follow AUA / NCCN guidelines",
+    "footerDisclaimer": "ePSA is built on Mount Sinai's own patient data, but its screening recommendations align with AUA/NCCN guidelines. This tool is for education only and is not a diagnosis. Always consult your GP or urologist before making any health decisions."
   },
   "welcome2": {
     "stage2Title": "Stage 2: Risk Assessment",
