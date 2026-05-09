@@ -11,7 +11,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
-  FlaskConicalIcon, ScanEyeIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
+  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
@@ -348,7 +348,7 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
 };
 
 /* ─── Next Step Cards ─── */
-const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy }) => (
+const NextStepsSection = ({ onContinueToPSA, onContinueToBiopsy }) => (
   <div className="next-steps-section">
     <div className="next-steps-heading">Continue Your Assessment</div>
     <div className="next-steps-cards">
@@ -358,20 +358,8 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
             <FlaskConicalIcon size={18} />
           </div>
           <div className="nsc-body">
-            <div className="nsc-title">PSA Assessment</div>
-            <div className="nsc-desc">Have your PSA result? Add it for a fuller picture.</div>
-          </div>
-          <ArrowRightIcon size={15} className="nsc-arrow" />
-        </button>
-      )}
-      {onContinueToMRI && (
-        <button className="next-step-card next-step-card--mri" onClick={onContinueToMRI}>
-          <div className="nsc-icon-wrap nsc-icon-wrap--mri">
-            <ScanEyeIcon size={18} />
-          </div>
-          <div className="nsc-body">
-            <div className="nsc-title">MRI Results</div>
-            <div className="nsc-desc">Had an MRI? Add your PI-RADS score for a more complete picture.</div>
+            <div className="nsc-title">Enter PSA Result</div>
+            <div className="nsc-desc">Have your PSA result? Add it — the tool will then assess whether an MRI is recommended.</div>
           </div>
           <ArrowRightIcon size={15} className="nsc-arrow" />
         </button>
@@ -794,10 +782,9 @@ const Part1Results = ({
       </div>
 
       {/* ── Next Steps ── */}
-      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
+      {(onContinueToPostPSA || onContinueToPostBiopsy) && (
         <NextStepsSection
           onContinueToPSA={onContinueToPostPSA}
-          onContinueToMRI={onContinueToMRI}
           onContinueToBiopsy={onContinueToPostBiopsy}
         />
       )}

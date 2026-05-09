@@ -1697,6 +1697,15 @@ function App() {
                   }
                 }}
                 onShowModelDocs={() => setShowModelDocs(true)}
+                onContinueToMRI={
+                  (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
+                    ? () => {
+                        setPathwayMode('post_mri');
+                        setCurrentStep(2);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    : null
+                }
               />
             )}
           </div>
