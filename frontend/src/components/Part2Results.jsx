@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Part2Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
+import ResultsLoading from './ResultsLoading';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import ModalInfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -182,6 +183,13 @@ const Part2Results = ({
   onShowModelDocs = null, onContinueToMRI = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!result) return;
+    const t = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(t);
+  }, [result]);
 
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {});
@@ -198,6 +206,15 @@ const Part2Results = ({
   }
 
   if (!result) return <div className="p2r-container"><p className="p2r-empty">No results available.</p></div>;
+  if (isLoading) return (
+    <div className="p2r-container">
+      <ResultsLoading
+        label="ePSA \u00B7 Part 2"
+        message="Reviewing guidelines for your PSA\u2026"
+        detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+      />
+    </div>
+  );
 
   const {
     riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
@@ -281,7 +298,7 @@ const Part2Results = ({
       {/* ── Risk Summary Card ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Risk Assessment · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
+          <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
           <span>Assessed today</span>
         </div>
 
@@ -300,32 +317,28 @@ const Part2Results = ({
           </div>
         </div>
 
-        {/* Input summary pills */}
+        {/* Input summary pills — shows raw inputs only; the combined tier above is the headline */}
         <div className="v2-why">
-          <div className="v2-why-head"><span className="v2-why-head-title">Based on</span></div>
+          <div className="v2-why-head"><span className="v2-why-head-title">Inputs</span></div>
           <div className="v2-why-items">
             <div className="v2-why-item">
               <div className="v2-why-item-label">PSA</div>
               <div className="v2-why-item-val">{postData?.psa != null ? `${postData.psa} ng/mL` : '—'}</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{psaTier || '—'}</div>
             </div>
             <div className="v2-why-item">
               <div className="v2-why-item-label">Part 1</div>
-              <div className="v2-why-item-val">{preResult?.score ?? '—'}%</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{preResult?.epsaTierLabel || preResult?.risk || '—'}</div>
+              <div className="v2-why-item-val">{preResult?.score != null ? `${preResult.score}%` : '—'}</div>
             </div>
             {postData?.knowPirads && postData?.pirads && (
               <div className="v2-why-item">
                 <div className="v2-why-item-label">MRI</div>
                 <div className="v2-why-item-val">PI-RADS {postData.pirads}</div>
-                <div className="v2-why-item-pts" style={{ color: riskColor }}>{Number(postData.pirads) >= 4 ? 'High' : Number(postData.pirads) === 3 ? 'Equivocal' : 'Low'}</div>
               </div>
             )}
             {psadValue != null && (
               <div className="v2-why-item">
                 <div className="v2-why-item-label">PSA Density</div>
-                <div className="v2-why-item-val">{psadValue.toFixed(3)}</div>
-                <div className="v2-why-item-pts" style={{ color: psadFlag ? '#d97706' : riskColor }}>{psadFlag ? 'Elevated' : 'Normal'}</div>
+                <div className="v2-why-item-val">{psadValue.toFixed(3)}{psadFlag ? ' (elevated)' : ''}</div>
               </div>
             )}
           </div>

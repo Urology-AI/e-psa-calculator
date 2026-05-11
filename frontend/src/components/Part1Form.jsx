@@ -89,6 +89,9 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       {i18nKey ? t(i18nKey) : children}
     </div>
   );
+  // Badge components placed inline next to each question's title.
+  // Main's no-prop pattern: GuidelineBadge for the four AUA/NCCN screening factors
+  // (age, race, family history, BRCA); NonGuidelineBadge for ePSA-model-only factors.
   const NonGuidelineBadge = () => (
     <span
       className="non-guideline-badge"
@@ -110,6 +113,37 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       {t('part1.guideline.badge')}
     </span>
   );
+
+  // Small "Prefer not to say" control under skippable question cards.
+  // Uses neutral defaults from SKIP_DEFAULTS so the engine still receives valid values.
+  const SkipLink = ({ field }) => {
+    const skipped = isSkipped(field);
+    return (
+      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem' }}>
+        {skipped ? (
+          <span style={{ color: '#6B7280', fontStyle: 'italic' }}>
+            {t('part1.skip.skippedLabel')}
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => skipField(field)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#6B7280',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              padding: 0,
+              fontSize: '0.8125rem'
+            }}
+          >
+            {t('part1.skip.preferNotToSay')}
+          </button>
+        )}
+      </div>
+    );
+  };
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
@@ -142,6 +176,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     diabetes: formData.diabetes ?? null,
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
+    guidelineRegion: formData.guidelineRegion || 'us',
+    skippedFields: Array.isArray(formData.skippedFields) ? [...formData.skippedFields] : [],
   });
 
   const [stepErrors, setStepErrors] = useState({});
@@ -222,56 +258,64 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     setFormData(localData);
   }, [localData, setFormData]);
 
+  // Neutral defaults used to satisfy the engine when a user explicitly skips
+  // a non-essential question. These are population-typical / lowest-leverage values
+  // that minimize the influence of the skipped factor on the final score.
+  const SKIP_DEFAULTS = {
+    familyHistory: 0,
+    inflammationHistory: 0,
+    brcaStatus: 'unknown',
+    exercise: 1,           // "some"
+    smoking: 0,            // "never"
+    chemicalExposure: 'unknown',
+    dietPattern: 'other',
+    comorbidityScore: 0,
+    ipss: Array(7).fill(0),
+    shim: [4, 4, 4, 4, 4], // total 20 — population-typical for mid-age males (mild range)
+  };
+
+  const skipField = (field) => {
+    setLocalData(prev => {
+      const next = { ...prev };
+      next[field] = SKIP_DEFAULTS[field] !== undefined ? SKIP_DEFAULTS[field] : null;
+      const set = new Set(prev.skippedFields || []);
+      set.add(field);
+      next.skippedFields = Array.from(set);
+      return next;
+    });
+  };
+
+  const isSkipped = (field) => Array.isArray(localData.skippedFields) && localData.skippedFields.includes(field);
+
+  const clearSkip = (prev, field) => {
+    if (!Array.isArray(prev.skippedFields) || !prev.skippedFields.includes(field)) return prev.skippedFields;
+    return prev.skippedFields.filter(f => f !== field);
+  };
+
   const updateField = (field, value) => {
     if (field === 'age') {
       // Always allow typing, only validate on blur or submit
-      setLocalData(prev => ({ ...prev, [field]: value }));
+      setLocalData(prev => ({ ...prev, [field]: value, skippedFields: clearSkip(prev, field) }));
       return;
     }
 
-    if (field === 'heightFt') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'heightIn') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'heightCm') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'weight') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'weightKg') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    setLocalData(prev => ({ ...prev, [field]: value }));
+    setLocalData(prev => ({ ...prev, [field]: value, skippedFields: clearSkip(prev, field) }));
   };
 
   const updateIPSS = (index, value) => {
-    const next = [...localData.ipss];
-    next[index] = parseInt(value, 10);
-    setLocalData(prev => ({ ...prev, ipss: next }));
+    setLocalData(prev => {
+      const next = [...prev.ipss];
+      next[index] = parseInt(value, 10);
+      return { ...prev, ipss: next, skippedFields: clearSkip(prev, 'ipss') };
+    });
   };
 
   const updateSHIM = (index, value) => {
-    const next = [...localData.shim];
-    next[index] = parseInt(value, 10);
-    setLocalData(prev => ({ ...prev, shim: next }));
+    setLocalData(prev => {
+      const next = [...prev.shim];
+      next[index] = parseInt(value, 10);
+      return { ...prev, shim: next, skippedFields: clearSkip(prev, 'shim') };
+    });
   };
 
   const hasValidHeight = () => {
@@ -293,46 +337,69 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     return !isNaN(lbs) && lbs >= 50 && lbs <= 500;
   };
 
+  // Counts a field as "answered" only if it has a real value AND is not in skippedFields.
+  // Skipped fields carry neutral defaults but should not count toward answered totals.
   const countAnswered = () => {
     let count = 0;
+    const skipped = (f) => isSkipped(f);
 
     if (localData.age) count++;
     if (localData.race !== null && localData.race !== undefined && localData.race !== '') count++;
-    if (localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
-    if (localData.inflammationHistory !== null && localData.inflammationHistory !== undefined) count++;
-    if (localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
+    if (!skipped('familyHistory') && localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
+    if (!skipped('inflammationHistory') && localData.inflammationHistory !== null && localData.inflammationHistory !== undefined) count++;
+    if (!skipped('brcaStatus') && localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
     if (hasValidHeight()) count++;
     if (hasValidWeight()) count++;
-    if (localData.exercise !== null && localData.exercise !== undefined) count++;
-    if (localData.smoking !== null && localData.smoking !== undefined) count++;
-    if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
-    if (localData.dietPattern !== '') count++;
-    if (localData.comorbidityScore !== null && localData.comorbidityScore !== undefined) count++;
+    if (!skipped('exercise') && localData.exercise !== null && localData.exercise !== undefined) count++;
+    if (!skipped('smoking') && localData.smoking !== null && localData.smoking !== undefined) count++;
+    if (!skipped('chemicalExposure') && localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
+    if (!skipped('dietPattern') && localData.dietPattern !== '') count++;
+    if (!skipped('comorbidityScore') && localData.comorbidityScore !== null && localData.comorbidityScore !== undefined) count++;
 
-    localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
-    localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
+    if (!skipped('ipss')) {
+      localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
+    }
+    if (!skipped('shim')) {
+      localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
+    }
 
     return count;
   };
 
+  const countSkipped = () => {
+    if (!Array.isArray(localData.skippedFields)) return 0;
+    let n = 0;
+    for (const f of localData.skippedFields) {
+      if (f === 'ipss') n += 7;
+      else if (f === 'shim') n += 5;
+      else n += 1;
+    }
+    return n;
+  };
+
+  // canProceed allows skipped fields (which carry neutral defaults) to satisfy the engine.
+  // Only age + race are strictly required. Height/weight require valid numeric input
+  // (no skip option for BMI — the calculator needs it for adiposity scoring).
   const canProceed = () => {
     const ageNum = parseInt(localData.age, 10);
     const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
     const hasRace = localData.race !== null && localData.race !== undefined && localData.race !== '';
-    const hasFamilyHistory = localData.familyHistory !== null && localData.familyHistory !== undefined;
-    const hasInflammationHistory = localData.inflammationHistory !== null && localData.inflammationHistory !== undefined;
-    const hasBrca = localData.brcaStatus !== null && localData.brcaStatus !== undefined;
     const hasHeight = hasValidHeight();
     const hasWeight = hasValidWeight();
     const hasBMI = localData.bmi > 0;
-    const hasExercise = localData.exercise !== null && localData.exercise !== undefined;
-    const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
-    const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
-    const hasDiet = localData.dietPattern !== '';
-    const hasComorbidityScore = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
 
-    const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
-    const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
+    const hasOrSkipped = (field, hasVal) => isSkipped(field) || hasVal;
+    const hasFamilyHistory = hasOrSkipped('familyHistory', localData.familyHistory !== null && localData.familyHistory !== undefined);
+    const hasInflammationHistory = hasOrSkipped('inflammationHistory', localData.inflammationHistory !== null && localData.inflammationHistory !== undefined);
+    const hasBrca = hasOrSkipped('brcaStatus', localData.brcaStatus !== null && localData.brcaStatus !== undefined);
+    const hasExercise = hasOrSkipped('exercise', localData.exercise !== null && localData.exercise !== undefined);
+    const hasSmoking = hasOrSkipped('smoking', localData.smoking !== null && localData.smoking !== undefined);
+    const hasChem = hasOrSkipped('chemicalExposure', localData.chemicalExposure !== null && localData.chemicalExposure !== undefined);
+    const hasDiet = hasOrSkipped('dietPattern', localData.dietPattern !== '');
+    const hasComorbidityScore = hasOrSkipped('comorbidityScore', localData.comorbidityScore !== null && localData.comorbidityScore !== undefined);
+
+    const ipssComplete = isSkipped('ipss') || (Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined));
+    const shimComplete = isSkipped('shim') || (Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined));
 
     return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
   };
@@ -451,11 +518,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !familyHistoryValid && (
+          {attemptedNext && !familyHistoryValid && !isSkipped('familyHistory') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="familyHistory" />
         </div>
       </div>
 
@@ -488,11 +556,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !inflammationHistoryValid && (
+          {attemptedNext && !inflammationHistoryValid && !isSkipped('inflammationHistory') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="inflammationHistory" />
         </div>
       </div>
 
@@ -520,11 +589,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !brcaValid && (
+          {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="brcaStatus" />
         </div>
       </div>
     </div>
@@ -673,11 +743,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !exerciseValid && (
+          {attemptedNext && !exerciseValid && !isSkipped('exercise') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="exercise" />
         </div>
       </div>
 
@@ -709,11 +780,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !smokingValid && (
+          {attemptedNext && !smokingValid && !isSkipped('smoking') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="smoking" />
         </div>
       </div>
 
@@ -752,11 +824,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !chemicalValid && (
+          {attemptedNext && !chemicalValid && !isSkipped('chemicalExposure') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="chemicalExposure" />
         </div>
       </div>
     </div>
@@ -811,11 +884,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !dietValid && (
+          {attemptedNext && !dietValid && !isSkipped('dietPattern') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="dietPattern" />
         </div>
       </div>
 
@@ -871,11 +945,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </div>
             </div>
           )}
-          {attemptedNext && !comorbiditiesValid && (
+          {attemptedNext && !comorbiditiesValid && !isSkipped('comorbidityScore') && (
             <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.comorbidityQuestions')}
             </div>
           )}
+          <SkipLink field="comorbidityScore" />
         </div>
       </div>
     </div>
@@ -890,7 +965,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       value: v,
       label: t(IPSS_LABEL_KEY_BY_VALUE[v]),
     }));
-    
+
     return (
     <div className="part1-step">
       <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -917,7 +992,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         {t('part1.ipss.note')}
       </div>
 
-      {/* IPSS mode toggle: full 7-question vs short single-severity */}
+      {/* IPSS mode toggle: full 7-question vs short single-severity vs skip-no-symptoms */}
       <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
         <button
           type="button"
@@ -1002,9 +1077,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
-        {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
-      </div>
+      {ipssMode === 'full' && (
+        <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
+          {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+        </div>
+      )}
     </div>
   );
   };
@@ -1016,13 +1093,28 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       q: t(item.qKey),
       opts: item.opts.map(([score, labelKey]) => [score, t(labelKey)]),
     }));
-    
+
+    const region = localData.guidelineRegion === 'eau_uk' ? 'eau_uk' : 'us';
+    const isEau = region === 'eau_uk';
+    const shimTotal = shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : null;
+
+    const SEVERITY_BANDS = [
+      { key: 'severe',       labelKey: 'part1.shim.severitySevere',       range: '1–7',   color: '#dc2626', bg: '#fef2f2', min: 1,  max: 7  },
+      { key: 'moderate',     labelKey: 'part1.shim.severityModerate',     range: '8–11',  color: '#ea580c', bg: '#fff7ed', min: 8,  max: 11 },
+      { key: 'mildModerate', labelKey: 'part1.shim.severityMildModerate', range: '12–16', color: '#d97706', bg: '#fffbeb', min: 12, max: 16 },
+      { key: 'mild',         labelKey: 'part1.shim.severityMild',         range: '17–21', color: '#2563eb', bg: '#eff6ff', min: 17, max: 21 },
+      { key: 'none',         labelKey: 'part1.shim.severityNone',         range: '22–25', color: '#16a34a', bg: '#f0fdf4', min: 22, max: 25 },
+    ];
+    const activeBandKey = shimTotal == null ? null : (SEVERITY_BANDS.find(b => shimTotal >= b.min && shimTotal <= b.max)?.key || null);
+
     return (
     <div className="part1-step">
       <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <span className="v2-section-eyebrow">Section 7 · 5 questions</span>
-          <span className="v2-section-title">{t('part1.steps.shim.sectionTitle')} <NonGuidelineBadge /></span>
+          <span className="v2-section-title">
+            {isEau ? t('part1.steps.shim.sectionTitleIief') : t('part1.steps.shim.sectionTitle')} <NonGuidelineBadge />
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.shim} />
@@ -1034,11 +1126,53 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           )}
         </div>
       </div>
+
+      {/* Guideline region toggle (SHIM ↔ IIEF-5 label switch) */}
+      <div
+        role="radiogroup"
+        aria-label={t('part1.shim.regionLabel')}
+        style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px',
+          margin: '0 0 10px', padding: '8px 10px',
+          background: '#f3f8fc', border: '1px solid #d6e6f1', borderRadius: '8px',
+          fontSize: '0.8125rem',
+        }}
+      >
+        <span style={{ fontWeight: 600, color: '#1a5c86' }}>{t('part1.shim.regionLabel')}:</span>
+        {[
+          { val: 'us',      label: t('part1.shim.regionUs') },
+          { val: 'eau_uk',  label: t('part1.shim.regionEau') },
+        ].map(({ val, label }) => {
+          const active = region === val;
+          return (
+            <button
+              key={val}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setLocalData(prev => ({ ...prev, guidelineRegion: val }))}
+              style={{
+                padding: '4px 10px', borderRadius: '20px',
+                border: `1px solid ${active ? '#1a5c86' : '#cbd9e6'}`,
+                background: active ? '#1a5c86' : '#fff',
+                color: active ? '#fff' : '#3a5a72',
+                fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.8125rem', lineHeight: 1.5, color: '#5a7a92' }}>
+        {isEau ? t('part1.shim.regionNoteEau') : t('part1.shim.regionNoteUs')}
+      </div>
+
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.shim.note')}
       </div>
 
-      {/* SHIM mode toggle: full 5-question vs short single-severity */}
+      {/* SHIM mode toggle: full 5-question vs short single-severity vs skip-no-concerns */}
       <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
         <button
           type="button"
@@ -1120,8 +1254,42 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
-        {t('part1.shim.totalLabel')}: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
+      {shimMode === 'full' && (
+        <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
+          {isEau ? t('part1.shim.totalLabelIief') : t('part1.shim.totalLabel')}: {shimComplete ? shimTotal : '—'} / 25
+        </div>
+      )}
+
+      {/* Severity bands — always visible to clarify mild vs moderate ED */}
+      <div style={{ marginTop: '12px', padding: '12px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#374151', marginBottom: '8px' }}>
+          {t('part1.shim.severityHeading')}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '6px' }}>
+          {SEVERITY_BANDS.map(band => {
+            const isActive = activeBandKey === band.key;
+            return (
+              <div
+                key={band.key}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  background: isActive ? band.bg : '#fff',
+                  border: `1.5px solid ${isActive ? band.color : '#e5e7eb'}`,
+                  display: 'flex', flexDirection: 'column', gap: '2px',
+                }}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: isActive ? band.color : '#374151' }}>
+                  {t(band.labelKey)}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: isActive ? band.color : '#6b7280', fontWeight: 600 }}>
+                  Score {band.range}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -1151,10 +1319,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     }
     
     if (step === 1) {
-      if (localData.familyHistory === null || localData.familyHistory === undefined) {
+      if (!isSkipped('familyHistory') && (localData.familyHistory === null || localData.familyHistory === undefined)) {
         errors.push(t('part1.errors.validate.step1.familyHistoryInvalid'));
       }
-      if (!localData.brcaStatus) {
+      if (!isSkipped('brcaStatus') && !localData.brcaStatus) {
         errors.push(t('part1.errors.validate.step1.brcaInvalid'));
       }
     }
@@ -1172,35 +1340,35 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     }
     
     if (step === 3) {
-      if (localData.exercise === null || localData.exercise === undefined) {
+      if (!isSkipped('exercise') && (localData.exercise === null || localData.exercise === undefined)) {
         errors.push(t('part1.errors.validate.step3.exerciseInvalid'));
       }
-      if (localData.smoking === null || localData.smoking === undefined) {
+      if (!isSkipped('smoking') && (localData.smoking === null || localData.smoking === undefined)) {
         errors.push(t('part1.errors.validate.step3.smokingInvalid'));
       }
-      if (!localData.chemicalExposure) {
+      if (!isSkipped('chemicalExposure') && !localData.chemicalExposure) {
         errors.push(t('part1.errors.validate.step3.chemicalInvalid'));
       }
     }
-    
+
     if (step === 4) {
-      if (!localData.dietPattern) {
+      if (!isSkipped('dietPattern') && !localData.dietPattern) {
         errors.push(t('part1.errors.validate.step4.dietInvalid'));
       }
-      if (localData.comorbidityScore === null || localData.comorbidityScore === undefined) {
+      if (!isSkipped('comorbidityScore') && (localData.comorbidityScore === null || localData.comorbidityScore === undefined)) {
         errors.push(t('part1.errors.validate.step4.comorbidityInvalid'));
       }
     }
-    
+
     if (step === 5) {
-      const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+      const ipssComplete = isSkipped('ipss') || localData.ipss.every(v => v !== null && v !== undefined);
       if (!ipssComplete) {
         errors.push(t('part1.errors.validate.step5.ipssInvalid'));
       }
     }
-    
+
     if (step === 6) {
-      const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+      const shimComplete = isSkipped('shim') || localData.shim.every(v => v !== null && v !== undefined);
       if (!shimComplete) {
         errors.push(t('part1.errors.validate.step6.shimInvalid'));
       }
@@ -1239,6 +1407,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   };
 
   const answeredCount = countAnswered();
+  const skippedCount = countSkipped();
   const canProceedResult = canProceed();
   // Total distinct answerable items: 11 core + 4 comorbidities + 7 IPSS + 5 SHIM = 27
   const totalQuestions = 27;
@@ -1291,6 +1460,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="v2-form-nav-inner">
           <div className="v2-form-nav-status">
             <span><strong>{answeredCount} of {totalQuestions}</strong> answered</span>
+            {skippedCount > 0 && <span>{skippedCount} skipped</span>}
             {remainingOnStep > 0 && <span>{remainingOnStep} remaining on this step</span>}
           </div>
           <div className="v2-form-nav-btns">
