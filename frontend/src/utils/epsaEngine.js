@@ -549,13 +549,13 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     score_threshold:
       'Your ePSA score exceeds the model\'s screening threshold. A PSA test may be warranted. Note: this recommendation is based on the ePSA predictive model — it is not an official AUA/SUO guideline recommendation. Please speak with your physician to discuss whether PSA testing is appropriate for you.',
     baseline_psa_45_50:
-      'AUA/SUO guidelines suggest clinicians may offer a baseline PSA test to people between ages 45 and 50 (Conditional Recommendation; Evidence Level: Grade B). A baseline PSA at this age helps establish a reference value for future comparisons. Discuss with your physician whether baseline testing is appropriate for you.',
+      'AUA/SUO guidelines suggest clinicians may offer a baseline PSA test to people between ages 45 and 50. A baseline PSA at this age helps establish a reference value for future comparisons. Discuss with your physician whether baseline testing is appropriate for you.',
     age_guideline_50_69:
-      'AUA/SUO guidelines recommend regular prostate cancer screening every 2 to 4 years for people aged 50 to 69 (Strong Recommendation; Evidence Level: Grade A). Please speak with your doctor about whether PSA testing is right for you.',
+      'AUA/SUO guidelines recommend regular prostate cancer screening every 2 to 4 years for people aged 50 to 69. Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
-      'Due to your high-risk profile (Black ancestry or a germline mutation such as BRCA1/2, ATM, or Lynch Syndrome), AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.',
+      'Due to your high-risk profile (Black ancestry or a germline mutation such as BRCA1/2, ATM, or Lynch Syndrome), AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45. Please speak with your physician.',
     family_history_override:
-      'Due to your strong family history of prostate cancer, AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.'
+      'Due to your strong family history of prostate cancer, AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45. Please speak with your physician.'
   };
 
   const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
@@ -595,19 +595,19 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ---------------------------------------------------------------------------
   const EPSA_TIER_DEFS = [
     {
-      key: 'low', label: 'Low Risk', scoreRange: 'score 0-10', normalizedRange: '<= 12.5%',
-      guideline: 'Your ePSA score is in the low-risk range. Routine screening timeline applies. Discuss with your physician.',
+      key: 'low', label: 'Low priority for PSA testing', scoreRange: 'score 0-10', normalizedRange: '<= 12.5%',
+      guideline: 'Your ePSA score is in the low-priority range for PSA testing. Routine screening timeline applies. Discuss with your physician.',
       // Empirical: 7% csPCa rate [1%-31%] N=14
       empiricalRate: EPSA_TIER_CALIBRATION.low
     },
     {
-      key: 'intermediate', label: 'Intermediate Risk', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
-      guideline: 'Your ePSA score is in the intermediate range. Based on this model score, a PSA test may be appropriate — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Speak with your physician.',
+      key: 'intermediate', label: 'Intermediate priority for PSA testing', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
+      guideline: 'Your ePSA score is in the intermediate-priority range. Based on this model score, a PSA test may be appropriate — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Speak with your physician.',
       empiricalRate: EPSA_TIER_CALIBRATION.intermediate
     },
     {
-      key: 'elevated', label: 'Elevated Risk', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
-      guideline: 'Your ePSA score is elevated. Based on this model score, a PSA test is strongly suggested — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Please speak with your physician promptly.',
+      key: 'elevated', label: 'High priority for PSA testing', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
+      guideline: 'Your ePSA score is in the high-priority range for PSA testing. Based on this model score, a PSA test is strongly suggested — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Please speak with your physician promptly.',
       empiricalRate: EPSA_TIER_CALIBRATION.elevated
     }
   ];
@@ -674,7 +674,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     // 3-tier classification
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
-    epsaTierLabel: epsaTierDef.label,
+    epsaTierLabel: (epsaTierIndex === 2 && isHighRiskFlagged)
+      ? 'Strong candidate for PSA testing'
+      : epsaTierDef.label,
     epsaTierScoreRange: epsaTierDef.scoreRange,
     epsaTierNormalizedRange: epsaTierDef.normalizedRange,
     epsaTierBoundaries: { lowMax: 10, intermediateMax: 17, maxScore: MAX_POINTS },

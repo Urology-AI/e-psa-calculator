@@ -246,32 +246,28 @@ const Part2Results = ({
           </div>
         </div>
 
-        {/* Input summary pills */}
+        {/* Input summary pills — shows raw inputs only; the combined tier above is the headline */}
         <div className="v2-why">
-          <div className="v2-why-head"><span className="v2-why-head-title">Based on</span></div>
+          <div className="v2-why-head"><span className="v2-why-head-title">Inputs</span></div>
           <div className="v2-why-items">
             <div className="v2-why-item">
               <div className="v2-why-item-label">PSA</div>
               <div className="v2-why-item-val">{postData?.psa != null ? `${postData.psa} ng/mL` : '—'}</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{psaTier || '—'}</div>
             </div>
             <div className="v2-why-item">
               <div className="v2-why-item-label">Part 1</div>
-              <div className="v2-why-item-val">{preResult?.score ?? '—'}%</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{preResult?.epsaTierLabel || preResult?.risk || '—'}</div>
+              <div className="v2-why-item-val">{preResult?.score != null ? `${preResult.score}%` : '—'}</div>
             </div>
             {postData?.knowPirads && postData?.pirads && (
               <div className="v2-why-item">
                 <div className="v2-why-item-label">MRI</div>
                 <div className="v2-why-item-val">PI-RADS {postData.pirads}</div>
-                <div className="v2-why-item-pts" style={{ color: riskColor }}>{Number(postData.pirads) >= 4 ? 'High' : Number(postData.pirads) === 3 ? 'Equivocal' : 'Low'}</div>
               </div>
             )}
             {psadValue != null && (
               <div className="v2-why-item">
                 <div className="v2-why-item-label">PSA Density</div>
-                <div className="v2-why-item-val">{psadValue.toFixed(3)}</div>
-                <div className="v2-why-item-pts" style={{ color: psadFlag ? '#d97706' : riskColor }}>{psadFlag ? 'Elevated' : 'Normal'}</div>
+                <div className="v2-why-item-val">{psadValue.toFixed(3)}{psadFlag ? ' (elevated)' : ''}</div>
               </div>
             )}
           </div>
