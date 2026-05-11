@@ -41,15 +41,15 @@ const RiskGauge = ({ score, epsaTierKey, epsaTierLabel }) => {
         <path d={arcPath(180, 122)} fill="none" stroke={colors.lower} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'low' ? '1' : '0.3'} />
         <path d={arcPath(118, 62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'intermediate' ? '1' : '0.3'} />
         <path d={arcPath(58, 0)} fill="none" stroke={colors.higher} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'elevated' ? '1' : '0.3'} />
-        <line x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
-        <line x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
+        <line className="risk-gauge-needle-shadow" x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
+        <line className="risk-gauge-needle" x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="8" fill="#1e3a5f" />
         <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
       </svg>
       <div className="risk-gauge-labels">
         <span className={`risk-gauge-range-pill ${epsaTierKey === 'low' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.lower }}>Low (0-10)</span>
         <span className={`risk-gauge-range-pill ${epsaTierKey === 'intermediate' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.moderate }}>Intermediate (11-17)</span>
-        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>Elevated (&gt;=18)</span>
+        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>Strong Candidate (&ge;18)</span>
       </div>
       <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>
     </figure>
@@ -295,6 +295,48 @@ const PSA_BANNER_CONFIG = {
   },
 };
 
+const GUIDELINE_LABELS_P1 = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
+const GuidelineSupportBadge = ({ support, count }) => {
+  const [showTip, setShowTip] = useState(false);
+  if (!support) return null;
+  const total = 4;
+  const n = typeof count === 'number'
+    ? count
+    : Object.values(support).filter(Boolean).length;
+  const strong = n >= 3;
+  const partial = n >= 1 && n < 3;
+  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  const bg = strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6';
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${colour}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: colour, letterSpacing: '0.02em', cursor: 'help', alignSelf: 'flex-start' }}
+      onMouseEnter={() => setShowTip(true)}
+      onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="img"
+      aria-label={`Supported by ${n} of ${total} guidelines: ${Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS_P1[k]).join(', ') || 'none'}`}
+    >
+      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      Supported by {n} / {total} guidelines
+      {showTip && (
+        <span
+          role="tooltip"
+          style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}
+        >
+          {Object.entries(GUIDELINE_LABELS_P1).map(([k, label]) => (
+            <span key={k} style={{ display: 'block' }}>
+              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+              {label}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
+  );
+};
+
 const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommendMessage }) => {
   const [showPapers, setShowPapers] = useState(false);
   let configKey = 'not_recommended';
@@ -506,12 +548,16 @@ const Part1Results = ({
   const {
     score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age,
     recommendPSA, psaRecommendReason, psaRecommendMessage,
+    psaGuidelineSupport = null, psaGuidelineSupportCount = null,
     tierRisk, epsaTierKey, epsaTierLabel,
     epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
     aboveMaxScreeningAge = false,
     guardrailAlerts = [],
+    empiricalRate = null,
+    empiricalRateCiLo = null,
+    empiricalRateCiHi = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -541,7 +587,7 @@ const Part1Results = ({
     const k = key || tier;
     if (k === 'low' || k === 'LOWER') return "Low Risk suggests a lower estimated likelihood relative to others in the model's reference data. Lower does not mean no risk, and it does not replace clinician guidance.";
     if (k === 'intermediate' || k === 'MODERATE') return "Intermediate Risk suggests an estimated likelihood in the middle range of the model's reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.";
-    return "Elevated Risk suggests a higher estimated likelihood relative to others in the model's reference data. Elevated does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.";
+    return "This tier suggests an estimated likelihood of an abnormal PSA in the higher range of the model's reference data. It does not mean cancer is present — it is a useful prompt to discuss PSA testing and next steps with a clinician.";
   };
 
   const metrics = [
@@ -651,6 +697,34 @@ const Part1Results = ({
                   Score <strong>{impactTotalDisplay}</strong>
                   {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
                 </div>
+                {Number.isFinite(empiricalRate) && empiricalRate > 0 && (
+                  <div
+                    className="v2-tier-likelihood"
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 10px',
+                      background: 'rgba(255,255,255,0.55)',
+                      border: `1px solid ${tierAccentColor}33`,
+                      borderRadius: '6px',
+                      fontSize: '0.8125rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <div style={{ color: 'var(--ink-600)', fontWeight: 600, marginBottom: '2px' }}>
+                      Estimated likelihood of an abnormal PSA / csPCa:
+                    </div>
+                    <div>
+                      <strong style={{ color: tierAccentColor, fontSize: '1.05rem' }}>
+                        ~{Math.round(empiricalRate * 100)}%
+                      </strong>
+                      {Number.isFinite(empiricalRateCiLo) && Number.isFinite(empiricalRateCiHi) && (
+                        <span style={{ color: 'var(--ink-500)', fontSize: '0.75rem', marginLeft: '6px' }}>
+                          (95% CI {Math.round(empiricalRateCiLo * 100)}–{Math.round(empiricalRateCiHi * 100)}%)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
               </div>
             </div>
@@ -688,12 +762,23 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = belowMinAge || aboveMaxScreeningAge || recommendPSA === false;
+        const isSymptomatic = psaRecommendReason === 'symptomatic_out_of_guideline';
+        const isOlderSharedDecision = psaRecommendReason === 'older_shared_decision';
+        const isLowRiskFollowup = psaRecommendReason === 'low_risk_followup';
+        const isGreen = !isSymptomatic && (belowMinAge || aboveMaxScreeningAge || recommendPSA === false || isLowRiskFollowup);
         const isAgeGuideline = psaRecommendReason === 'age_guideline_50_69';
-        const variant = isRed ? 'red' : (isAmber || isAgeGuideline) ? 'amber' : isGreen ? 'green' : 'blue';
-        const heroIcon = isRed || isAmber || isAgeGuideline ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
+        const variant = isRed ? 'red'
+          : (isAmber || isAgeGuideline) ? 'amber'
+          : isSymptomatic ? 'amber'
+          : isOlderSharedDecision ? 'blue'
+          : isGreen ? 'green'
+          : 'blue';
+        const heroIcon = isRed || isAmber || isAgeGuideline || isSymptomatic ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
           : (isAmber || isAgeGuideline) ? 'PSA Test Recommended'
+          : isSymptomatic ? 'Urological Evaluation Recommended'
+          : isOlderSharedDecision ? 'Shared Decision-Making Recommended'
+          : isLowRiskFollowup ? 'Routine Primary Care — Re-evaluate in 1–2 Years'
           : belowMinAge ? 'PSA Test Not Required'
           : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
           : isGreen ? 'PSA Test Not Currently Indicated'
@@ -710,6 +795,11 @@ const Part1Results = ({
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
                 <p className="v2-psa-hero-desc">{displayMessage}</p>
+                {psaGuidelineSupport && (
+                  <div style={{ marginTop: '8px' }}>
+                    <GuidelineSupportBadge support={psaGuidelineSupport} count={psaGuidelineSupportCount} />
+                  </div>
+                )}
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
@@ -764,7 +854,7 @@ const Part1Results = ({
         <div className="high-risk-notice" role="note">
           <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
           <p>
-            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, hereditary genetic mutation, or multiple comorbidities). Earlier evaluation is recommended.
+            <strong>Guideline-recognised risk factors detected.</strong> Your score is in the higher range and you have at least one guideline-recognised risk factor (age ≥70, Black ancestry, first-degree family history, hereditary genetic mutation, or multiple comorbidities). Earlier evaluation is recommended.
           </p>
         </div>
       )}
