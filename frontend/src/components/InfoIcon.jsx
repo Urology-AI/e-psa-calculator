@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import './InfoIcon.css';
 import { useTranslation } from 'react-i18next';
 
-const InfoIcon = ({ title, description, titleKey, descriptionKey, sources }) => {
+const InfoIcon = ({ title, description, titleKey, descriptionKey, sources, isGuideline }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
 
   const resolvedTitle = titleKey ? t(titleKey) : title;
   const resolvedDescription = descriptionKey ? t(descriptionKey) : description;
+  const hasGuidelineFlag = typeof isGuideline === 'boolean';
 
   return (
     <>
@@ -32,6 +33,32 @@ const InfoIcon = ({ title, description, titleKey, descriptionKey, sources }) => 
               </button>
             </div>
             <div className="info-modal-body">
+              {hasGuidelineFlag && (
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 10px',
+                    borderRadius: '999px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    textTransform: 'uppercase',
+                    marginBottom: '10px',
+                    background: isGuideline ? '#ecfdf5' : '#fff7ed',
+                    border: isGuideline ? '1px solid #10b981' : '1px solid #f59e0b',
+                    color: isGuideline ? '#047857' : '#b45309',
+                  }}
+                >
+                  {isGuideline ? t('info.guidelineBadge') : t('info.modelOnlyBadge')}
+                </div>
+              )}
+              {hasGuidelineFlag && (
+                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: 0, marginBottom: '12px', fontStyle: 'italic' }}>
+                  {isGuideline ? t('info.guidelineNote') : t('info.modelOnlyNote')}
+                </p>
+              )}
               <p className="info-description">{resolvedDescription}</p>
               <div className="info-sources">
                 <strong>{t('info.sources')}</strong>

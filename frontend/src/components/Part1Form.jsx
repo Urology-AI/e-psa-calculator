@@ -90,6 +90,36 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     </div>
   );
 
+  // Compact badge showing whether this Part 1 question is an AUA/NCCN screening
+  // guideline factor or an ePSA-model-only factor. Rendered next to each question's
+  // InfoIcon so users can see at a glance which inputs map to the official guidelines.
+  const GuidelineBadge = ({ field }) => {
+    const ref = fieldReferences[field];
+    if (!ref || typeof ref.isGuideline !== 'boolean') return null;
+    const guideline = ref.isGuideline;
+    return (
+      <span
+        title={guideline ? t('info.guidelineNote') : t('info.modelOnlyNote')}
+        style={{
+          marginLeft: '8px',
+          display: 'inline-block',
+          padding: '2px 8px',
+          borderRadius: '999px',
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '0.02em',
+          textTransform: 'uppercase',
+          background: guideline ? '#ecfdf5' : '#fff7ed',
+          border: guideline ? '1px solid #10b981' : '1px solid #f59e0b',
+          color: guideline ? '#047857' : '#b45309',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {guideline ? t('part1.guidelineBadge.guideline') : t('part1.guidelineBadge.modelOnly')}
+      </span>
+    );
+  };
+
   // Small "Prefer not to say" control under skippable question cards.
   // Uses neutral defaults from SKIP_DEFAULTS so the engine still receives valid values.
   const SkipLink = ({ field }) => {
@@ -369,6 +399,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">1</div>
           <div className="question-text">{t('part1.fields.age.title')}</div>
           <InfoIcon {...fieldReferences.age} />
+          <GuidelineBadge field="age" />
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -396,6 +427,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">2</div>
           <div className="question-text">{t('part1.fields.race.title')}</div>
           <InfoIcon {...fieldReferences.race} />
+          <GuidelineBadge field="race" />
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -445,6 +477,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">3</div>
           <div className="question-text">{t('part1.step1.familyHistory.title')}</div>
           <InfoIcon {...fieldReferences.familyHistory} />
+          <GuidelineBadge field="familyHistory" />
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -479,6 +512,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">4</div>
           <div className="question-text">{t('part1.step1.inflammationHistory.title')}</div>
           <InfoIcon {...fieldReferences.inflammationHistory} />
+          <GuidelineBadge field="inflammationHistory" />
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -517,6 +551,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">5</div>
           <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
           <InfoIcon {...fieldReferences.brcaStatus} />
+          <GuidelineBadge field="brcaStatus" />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -565,6 +600,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">6</div>
           <div className="question-text">{t('part1.step2.heightQuestion')}</div>
           <InfoIcon {...fieldReferences.heightWeight} />
+          <GuidelineBadge field="heightWeight" />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -609,6 +645,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">7</div>
           <div className="question-text">{t('part1.step2.weightQuestion')}</div>
           <InfoIcon {...fieldReferences.heightWeight} />
+          <GuidelineBadge field="heightWeight" />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -665,6 +702,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">8</div>
           <div className="question-text">{t('part1.fields.exercise.title')}</div>
           <InfoIcon {...fieldReferences.exercise} />
+          <GuidelineBadge field="exercise" />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -701,6 +739,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">9</div>
           <div className="question-text">{t('part1.fields.smoking.title')}</div>
           <InfoIcon {...fieldReferences.smoking} />
+          <GuidelineBadge field="smoking" />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -737,6 +776,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">10</div>
           <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
           <InfoIcon {...fieldReferences.chemicalExposure} />
+          <GuidelineBadge field="chemicalExposure" />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -791,6 +831,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">11</div>
           <div className="question-text">{t('part1.fields.diet.title')}</div>
           <InfoIcon {...fieldReferences.diet} />
+          <GuidelineBadge field="diet" />
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
@@ -832,6 +873,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">12</div>
           <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
           <InfoIcon {...fieldReferences.comorbidities} />
+          <GuidelineBadge field="comorbidities" />
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -909,6 +951,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.ipss} />
+          <GuidelineBadge field="ipss" />
           {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!ipssComplete && attemptedNext && (
             <span style={{ color: '#E74C3C', fontSize: '0.75rem' }}>
@@ -1018,6 +1061,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.shim} />
+          <GuidelineBadge field="shim" />
           {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!shimComplete && (
             <span className={!attemptedNext ? 'question-subtext' : undefined} style={{ color: attemptedNext ? '#E74C3C' : undefined, fontSize: '0.75rem' }}>
