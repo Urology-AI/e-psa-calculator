@@ -558,6 +558,23 @@ body {
   font-size: var(--text-lg);
 }
 
+/* Brief Part-1 calculating transition screen */
+.part1-transition-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  min-height: 18rem;
+  animation: fadeIn 0.25s ease;
+}
+.part1-transition-gauge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ─── Stage Actions ─── */
 .stage-actions {
   margin-top: 2rem;

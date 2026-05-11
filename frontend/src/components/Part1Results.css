@@ -1689,4 +1689,36 @@
 
 .theme-dark .guideline-deviation-banner__factors-label { color: #fbbf24; }
 .theme-dark .guideline-deviation-banner__factors-list  { color: #d1d5db; }
+
+/* ─── Slow-revealing risk dial ──────────────────────────────────────
+   Per clinical-team feedback: the dial should not snap to its final
+   value instantly. It animates in slowly so the user has a moment to
+   process the result before seeing the verdict. */
+@keyframes risk-dial-needle-sweep {
+  0%   { transform: rotate(-90deg); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: rotate(0deg);   opacity: 1; }
+}
+@keyframes risk-dial-arc-fade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+.risk-gauge-svg {
+  animation: risk-dial-arc-fade 1.6s ease-out both;
+}
+.risk-gauge-svg .risk-gauge-needle {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: risk-dial-needle-sweep 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.15s;
+}
+.risk-gauge-caption {
+  animation: risk-dial-arc-fade 0.8s ease-out both;
+  animation-delay: 1.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .risk-gauge-svg,
+  .risk-gauge-svg .risk-gauge-needle,
+  .risk-gauge-caption { animation: none !important; }
+}
 .theme-dark .guideline-deviation-banner__factors-note  { color: #9ca3af; }

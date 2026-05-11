@@ -15,10 +15,10 @@ import {
 } from 'lucide-react';
 
 /* ─── Collapsible (same style as Part 1) ─── */
-const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
+const CollapsibleSection = ({ title, children, defaultOpen = false, className = '' }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="collapsible-section">
+    <div className={`collapsible-section${className ? ` ${className}` : ''}`}>
       <button className="collapsible-toggle" onClick={() => setOpen(!open)} aria-expanded={open} type="button">
         <span>{title}</span>
         {open ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
@@ -108,18 +108,69 @@ const GuidelineDeviationBanner = ({ type }) => {
   );
 };
 
+/* ─── Guideline Support Badge ─────────────────────────────────────────────
+ * Renders "Supported by X / 4 guidelines" with a hover tooltip showing which
+ * of the four major guidelines (AUA, NCCN, EAU, ERSPC) back the recommendation.
+ * `support` is { aua, nccn, eau, erspc } booleans from the engine.
+ * ──────────────────────────────────────────────────────────────────────── */
+const GUIDELINE_LABELS = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
+const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
+  const [showTip, setShowTip] = useState(false);
+  if (!support) return null;
+  const total = 4;
+  const n = typeof count === 'number'
+    ? count
+    : Object.values(support).filter(Boolean).length;
+  const strong = n >= 3;
+  const partial = n >= 1 && n < 3;
+  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  const bg = variant === 'dark'
+    ? 'rgba(255,255,255,0.18)'
+    : (strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6');
+  const border = variant === 'dark' ? 'rgba(255,255,255,0.35)' : colour;
+  const text = variant === 'dark' ? '#fff' : colour;
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${border}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: text, letterSpacing: '0.02em', cursor: 'help' }}
+      onMouseEnter={() => setShowTip(true)}
+      onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="img"
+      aria-label={`Supported by ${n} of ${total} guidelines: ${Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS[k]).join(', ') || 'none'}`}
+    >
+      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      Supported by {n} / {total} guidelines
+      {showTip && (
+        <span
+          role="tooltip"
+          style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}
+        >
+          {Object.entries(GUIDELINE_LABELS).map(([k, label]) => (
+            <span key={k} style={{ display: 'block' }}>
+              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+              {label}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
+  );
+};
+
 /* ─── PSA / MRI Tier scales ─── */
 const PSA_TIER_SCALE = [
-  { key: 'low',               label: 'Low',          range: '< 1.0',    color: '#16a34a', bg: '#f0fdf4' },
-  { key: 'intermediate-low',  label: 'Int-Low',      range: '1.0–2.9',  color: '#2563eb', bg: '#eff6ff' },
-  { key: 'intermediate-high', label: 'Int-High',     range: '3.0–9.9',  color: '#d97706', bg: '#fffbeb' },
-  { key: 'high',              label: 'High',         range: '≥ 10.0',   color: '#dc2626', bg: '#fef2f2' },
+  { key: 'low',               label: 'Low',                range: '< 1.0',    color: '#16a34a', bg: '#f0fdf4' },
+  { key: 'intermediate-low',  label: 'Int-Low',            range: '1.0–2.9',  color: '#2563eb', bg: '#eff6ff' },
+  { key: 'intermediate-high', label: 'Int-High',           range: '3.0–9.9',  color: '#d97706', bg: '#fffbeb' },
+  { key: 'high',              label: 'Discuss Biopsy',     range: '≥ 10.0',   color: '#dc2626', bg: '#fef2f2' },
 ];
 const MRI_TIER_SCALE = [
-  { pirads: [1, 2], label: 'PI-RADS 1–2', meaning: 'Very Low / Low',          color: '#16a34a', bg: '#f0fdf4' },
-  { pirads: [3],    label: 'PI-RADS 3',   meaning: 'Intermediate (Equivocal)',color: '#2563eb', bg: '#eff6ff' },
-  { pirads: [4],    label: 'PI-RADS 4',   meaning: 'High — Likely',            color: '#d97706', bg: '#fffbeb' },
-  { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Very High — Highly Likely',color: '#dc2626', bg: '#fef2f2' },
+  { pirads: [1, 2], label: 'PI-RADS 1–2', meaning: 'Low chance of csPCa',                       color: '#16a34a', bg: '#f0fdf4' },
+  { pirads: [3],    label: 'PI-RADS 3',   meaning: 'Equivocal — consider PSAD / repeat',         color: '#2563eb', bg: '#eff6ff' },
+  { pirads: [4],    label: 'PI-RADS 4',   meaning: 'Likely positive biopsy — discuss next step', color: '#d97706', bg: '#fffbeb' },
+  { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Strong candidate for biopsy discussion',     color: '#dc2626', bg: '#fef2f2' },
 ];
 
 /* ─── Main Component ─── */
@@ -152,6 +203,8 @@ const Part2Results = ({
     riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
     isOtherHormonal, psaTier, discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadValue, psadFlag, biopsyRecommended, biopsyReason, biopsyMessage,
+    biopsyGuidelineSupport, biopsyGuidelineSupportCount,
+    tierGuidelineSupport, tierGuidelineSupportCount,
     pathwayMode = 'post_mri', empiricalProbabilityText, piradsConfidenceText,
     epsaTierKey, highGradeRisk, guardrailAlerts = [],
   } = result;
@@ -289,6 +342,15 @@ const Part2Results = ({
           <div className="v2-psa-hero-body">
             <h3 className="v2-psa-hero-title">{heroTitle}</h3>
             <p className="v2-psa-hero-desc">{heroMessage}</p>
+            {(biopsyRecommended && biopsyGuidelineSupport) ? (
+              <div style={{ marginTop: '8px' }}>
+                <GuidelineSupportBadge support={biopsyGuidelineSupport} count={biopsyGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
+              </div>
+            ) : (tierGuidelineSupport ? (
+              <div style={{ marginTop: '8px' }}>
+                <GuidelineSupportBadge support={tierGuidelineSupport} count={tierGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
+              </div>
+            ) : null)}
           </div>
         </div>
         <div className="v2-psa-hero-ctas">
@@ -512,7 +574,7 @@ const Part2Results = ({
           </CollapsibleSection>
         )}
 
-        <CollapsibleSection title="Shared Decision-Making">
+        <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen>
           <p>Choosing the next step is a joint decision between you and your doctor. Key questions to raise:</p>
           <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
             <li><strong>How serious is this tier?</strong> — what does it mean for follow-up timing?</li>
