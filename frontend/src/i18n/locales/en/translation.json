@@ -258,7 +258,11 @@
   },
   "info": {
     "learnMore": "Learn more about {{title}}",
-    "sources": "Sources:"
+    "sources": "Sources:",
+    "guidelineBadge": "AUA/NCCN guideline factor",
+    "modelOnlyBadge": "ePSA model only — not in AUA/NCCN",
+    "guidelineNote": "AUA and NCCN use this factor in their official PSA screening criteria. Their guidelines are listed first in the sources below.",
+    "modelOnlyNote": "This factor is used by the ePSA model but is not part of official AUA/NCCN PSA screening criteria. It's based on research evidence only."
   },
   "part1": {
     "fields": {
@@ -414,6 +418,10 @@
       "sectionSkippedNote": "This section is skipped. A neutral default will be used in the estimate.",
       "skipSection": "Skip this section",
       "answerInstead": "Answer instead"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "ePSA only"
     },
     "step1": {
       "familyHistory": {
