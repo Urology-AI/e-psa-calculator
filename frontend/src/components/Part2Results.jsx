@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Part2Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
+import ResultsLoading from './ResultsLoading';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import ModalInfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -182,6 +183,13 @@ const Part2Results = ({
   onShowModelDocs = null, onContinueToMRI = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!result) return;
+    const t = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(t);
+  }, [result]);
 
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {});
@@ -198,6 +206,15 @@ const Part2Results = ({
   }
 
   if (!result) return <div className="p2r-container"><p className="p2r-empty">No results available.</p></div>;
+  if (isLoading) return (
+    <div className="p2r-container">
+      <ResultsLoading
+        label="ePSA \u00B7 Part 2"
+        message="Reviewing guidelines for your PSA\u2026"
+        detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+      />
+    </div>
+  );
 
   const {
     riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
@@ -281,7 +298,7 @@ const Part2Results = ({
       {/* ── Risk Summary Card ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Risk Assessment · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
+          <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
           <span>Assessed today</span>
         </div>
 

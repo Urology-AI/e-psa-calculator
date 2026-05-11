@@ -8,6 +8,7 @@ import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
+import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
@@ -54,7 +55,7 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
@@ -711,23 +712,23 @@ function App() {
     if (user) {
       try {
         await upsertConsent(consent);
-        setAuthStep('app');
+        setAuthStep('psa_overview');
       } catch (error) {
         console.error('Error saving consent:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        
+
         // Check if it's a permission error
         if (error.code === 'permission-denied' || error.message.includes('permission')) {
           console.warn('Permission denied - Firestore rules may not be deployed.');
           setCloudSyncStatus('error');
         }
-        
+
         // Still proceed to app even if Firestore fails
-        setAuthStep('app');
+        setAuthStep('psa_overview');
       }
     } else {
-      setAuthStep('app');
+      setAuthStep('psa_overview');
     }
   };
 
@@ -1429,6 +1430,9 @@ function App() {
         case 'consent':
           setAuthStep('welcome');
           break;
+        case 'psa_overview':
+          setAuthStep('consent');
+          break;
         case 'welcome':
         default:
           // Can't go back from welcome
@@ -1442,6 +1446,7 @@ function App() {
   const shouldShowBackButton = () => {
     if (authStep === 'welcome') return false;
     if (authStep === 'import') return false;
+    if (authStep === 'psa_overview') return false; // overview provides its own back/skip controls
 
     // When the current screen already provides its own back button,
     // hide the global one to avoid duplicated controls.
@@ -1551,6 +1556,13 @@ function App() {
             phone={null}
             email={null}
             onConsentComplete={handleConsentComplete}
+          />
+        );
+      case 'psa_overview':
+        return (
+          <PSAOverviewScreen
+            onContinue={() => setAuthStep('app')}
+            onBack={() => setAuthStep('consent')}
           />
         );
       default:
