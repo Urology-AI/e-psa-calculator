@@ -393,3 +393,294 @@
 .theme-dark .ws-footer-disclaimer {
   color: var(--ink-400);
 }
+
+/* ─── Screening Guidelines Modal ─── */
+.gl-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.gl-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 19, 33, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: gl-fade 180ms ease-out;
+}
+
+@keyframes gl-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes gl-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gl-modal-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--surface, #fff);
+  color: var(--ink-800, #1e3347);
+  border-radius: 1rem;
+  border: 0.0625rem solid var(--line-200, #d9e3ec);
+  box-shadow: var(--shadow-lg, 0 1.25rem 3rem rgba(11, 42, 67, 0.18));
+  width: 100%;
+  max-width: 36rem;
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: gl-rise 220ms ease-out;
+}
+
+.gl-modal-header {
+  position: relative;
+  padding: 1.4rem 1.5rem 1rem;
+  background: linear-gradient(135deg, var(--brand-50, #f0f8ff) 0%, var(--surface, #fff) 70%);
+  border-bottom: 0.0625rem solid var(--line-100, #e8eef4);
+}
+
+.theme-dark .gl-modal-header {
+  background: linear-gradient(135deg, var(--surface-subtle, #0f1930) 0%, var(--surface, #0b1220) 70%);
+}
+
+.gl-modal-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-600);
+  margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.gl-modal-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink-900, #142434);
+}
+
+.theme-dark .gl-modal-title {
+  color: var(--ink-800, #cbd5e1);
+}
+
+.gl-modal-sub {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-500, #607286);
+  line-height: 1.55;
+}
+
+.gl-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--surface-subtle, #f8fbff);
+  border: 0.0625rem solid var(--line-200, #d9e3ec);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-500, #607286);
+  transition: background 120ms, color 120ms, transform 120ms;
+}
+
+.gl-modal-close:hover {
+  background: var(--line-100, #e8eef4);
+  color: var(--ink-800, #1e3347);
+  transform: scale(1.05);
+}
+
+.theme-dark .gl-modal-close {
+  background: var(--surface-subtle, #0f1930);
+  border-color: var(--line-200, #213043);
+  color: var(--ink-500, #94a3b8);
+}
+
+.gl-modal-body {
+  padding: 1.1rem 1.5rem 1.25rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.gl-section {
+  margin-bottom: 1.15rem;
+}
+
+.gl-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.gl-pill {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.gl-pill--aua  { background: var(--brand-600); }
+.gl-pill--nccn { background: #DA1884; }
+
+.gl-section-meta {
+  font-size: 0.75rem;
+  color: var(--ink-500, #607286);
+}
+
+.gl-section-link {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--brand-600);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.gl-section-link:hover { text-decoration: underline; }
+
+.gl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.gl-table tr { border-bottom: 0.0625rem solid var(--line-100, #e8eef4); }
+.gl-table tr:last-child { border-bottom: none; }
+
+.gl-table td {
+  padding: 0.45rem 0;
+  vertical-align: top;
+  line-height: 1.55;
+  color: var(--ink-700, #34475a);
+}
+
+.theme-dark .gl-table td { color: var(--ink-700, #9ca3af); }
+
+.gl-table td.gl-age {
+  font-weight: 700;
+  white-space: nowrap;
+  width: 5rem;
+  padding-right: 0.625rem;
+}
+
+.gl-age--low  { color: var(--ink-500, #607286); }
+.gl-age--med  { color: var(--brand-600); }
+.gl-age--ok   { color: #16a34a; }
+.gl-age--warn { color: #d97706; }
+.gl-age--stop { color: #dc2626; }
+
+.gl-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.8125rem;
+  color: var(--ink-700, #34475a);
+  line-height: 1.75;
+}
+
+.theme-dark .gl-list { color: var(--ink-700, #9ca3af); }
+
+.gl-callout {
+  background: var(--error-50, #fef2f2);
+  border: 0.0625rem solid #fca5a5;
+  border-radius: 0.625rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.theme-dark .gl-callout {
+  background: rgba(220, 38, 38, 0.10);
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.gl-callout-title {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #991b1b;
+  margin-bottom: 0.4rem;
+}
+
+.theme-dark .gl-callout-title { color: #fca5a5; }
+
+.gl-callout .gl-list { color: var(--ink-700, #34475a); }
+.theme-dark .gl-callout .gl-list { color: var(--ink-800, #cbd5e1); }
+
+.gl-disclaimer {
+  margin: 0 0 1.1rem;
+  font-size: 0.75rem;
+  color: var(--ink-500, #607286);
+  line-height: 1.65;
+  font-style: italic;
+}
+
+.gl-modal-footer {
+  padding: 0.85rem 1.5rem 1.25rem;
+  border-top: 0.0625rem solid var(--line-100, #e8eef4);
+  background: var(--surface-subtle, #f8fbff);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.theme-dark .gl-modal-footer {
+  background: var(--surface-subtle, #0f1930);
+  border-top-color: var(--line-200, #213043);
+}
+
+.gl-reviewed {
+  font-size: 0.6875rem;
+  color: var(--ink-500, #607286);
+}
+
+.gl-cta {
+  flex: 0 1 auto;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.625rem;
+  background: var(--brand-700);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.gl-cta:hover { background: var(--brand-800, #0e3a5e); }
+
+.theme-dark .gl-cta { background: var(--brand-600); }
+.theme-dark .gl-cta:hover { background: var(--brand-500); }
+
+@media (max-width: 480px) {
+  .gl-modal-panel { max-height: 92vh; border-radius: 0.875rem; }
+  .gl-modal-header { padding: 1.1rem 1.1rem 0.85rem; }
+  .gl-modal-body { padding: 0.95rem 1.1rem 1.1rem; }
+  .gl-modal-footer { padding: 0.85rem 1.1rem 1rem; }
+  .gl-modal-title { font-size: 1.05rem; }
+}

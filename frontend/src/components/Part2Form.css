@@ -34,7 +34,7 @@
   align-self: flex-start;
   padding: 0.3125rem 0.6875rem;
   border-radius: 999px;
-  background: #ddeeff;
+  background: var(--brand-100);
   color: #1453a0;
   font-size: 0.65625rem;
   font-weight: 800;
@@ -173,7 +173,7 @@
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 999px;
-  background: #ddeeff;
+  background: var(--brand-100);
   color: #1453a0;
   font-size: 0.75rem;
   font-weight: 800;
@@ -254,7 +254,7 @@
 }
 
 .input-field:focus {
-  border-color: #1f6ea3;
+  border-color: var(--brand-600);
   box-shadow: 0 0 0 0.1875rem rgba(31, 110, 163, 0.15);
 }
 

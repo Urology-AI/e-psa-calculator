@@ -1071,6 +1071,35 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   const pathwayMode = postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa');
 
+  // ---------------------------------------------------------------------------
+  // MRI recommendation — for post_psa pathway (no MRI data entered yet)
+  // AUA/NCCN/EAU 2026: mpMRI before biopsy is recommended when PSA or combined
+  // risk warrants further evaluation.
+  // ---------------------------------------------------------------------------
+  let mriRecommended = false;
+  let mriRecommendReason = null;
+  let mriRecommendMessage = null;
+
+  if (!knowPirads) {
+    if (psaVal >= 4.0) {
+      mriRecommended = true;
+      mriRecommendReason = 'psa_elevated';
+      mriRecommendMessage = 'Your PSA (≥ 4.0 ng/mL) warrants further evaluation. AUA/NCCN/EAU guidelines recommend an mpMRI before biopsy to characterize any suspicious lesion and reduce unnecessary biopsies.';
+    } else if (tierIndex >= 2) {
+      mriRecommended = true;
+      mriRecommendReason = 'combined_risk_elevated';
+      mriRecommendMessage = 'Your combined ePSA + PSA profile places you in an elevated risk tier. An mpMRI is recommended to better characterize risk before any biopsy decision, per AUA/NCCN/EAU guidelines.';
+    } else if (hasHighRiskFeature && psaVal >= 2.5) {
+      mriRecommended = true;
+      mriRecommendReason = 'high_risk_profile';
+      mriRecommendMessage = 'Given your high-risk profile (Black ancestry, family history, or genetic mutation), an mpMRI is recommended even at this PSA level per AUA/NCCN guidelines.';
+    } else if (discordanceFlag && discordanceFlag.severity === 'orange') {
+      mriRecommended = true;
+      mriRecommendReason = 'discordance';
+      mriRecommendMessage = 'Your ePSA profile is significantly higher than your PSA alone suggests. An mpMRI can help characterize your risk and is recommended per AUA/NCCN guidelines before biopsy.';
+    }
+  }
+
   const guardrailAlerts = checkGuardrails({
     psa: psaAdjusted,
     pirads: piradsVal,
@@ -1116,6 +1145,11 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
     // High-grade risk (Model 3 logistic regression)
     highGradeRisk,
+
+    // MRI recommendation (post_psa pathway)
+    mriRecommended,
+    mriRecommendReason,
+    mriRecommendMessage,
 
     // Biopsy (Model 3)
     biopsyRecommended,

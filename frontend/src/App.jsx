@@ -1735,6 +1735,15 @@ function App() {
                   }
                 }}
                 onShowModelDocs={() => setShowModelDocs(true)}
+                onContinueToMRI={
+                  (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
+                    ? () => {
+                        setPathwayMode('post_mri');
+                        setCurrentStep(2);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    : null
+                }
               />
             )}
           </div>
@@ -1751,21 +1760,17 @@ function App() {
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
-            <img 
-              src="/logo.png"
-              alt="ePSA Logo" 
-              className="logo"
-              onError={(e) => {
-                console.error('Logo.png failed to load:', e.target.src);
-                // Fallback: try logo.jpg if logo.png doesn't exist
-                const currentSrc = e.target.src;
-                if (currentSrc.includes('logo.png')) {
-                  e.target.src = '/logo.jpg';
-                } else {
-                  console.warn('Both logo files failed to load');
-                  e.target.style.display = 'none';
-                }
-              }} 
+            <img
+              src="/sinai_light.png"
+              alt="Mount Sinai Logo"
+              className="logo logo--light"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <img
+              src="/sinai_dark.png"
+              alt="Mount Sinai Logo"
+              className="logo logo--dark"
+              onError={(e) => { e.target.style.display = 'none'; }}
             />
           </div>
           <div className="header-text">
