@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -6,6 +6,8 @@ import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
+import RiskGauge from './RiskGauge';
+import ResultsLoading from './ResultsLoading';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
@@ -13,48 +15,6 @@ import {
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
 } from 'lucide-react';
-
-/* ─── SVG Risk Gauge ─── */
-const RiskGauge = ({ score, epsaTierKey, epsaTierLabel }) => {
-  const cx = 140, cy = 130, r = 100, strokeW = 22;
-  const toRad = (deg) => (deg * Math.PI) / 180;
-  const arcPath = (startDeg, endDeg) => {
-    const x1 = cx + r * Math.cos(toRad(startDeg));
-    const y1 = cy - r * Math.sin(toRad(startDeg));
-    const x2 = cx + r * Math.cos(toRad(endDeg));
-    const y2 = cy - r * Math.sin(toRad(endDeg));
-    const large = Math.abs(startDeg - endDeg) > 180 ? 1 : 0;
-    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
-  };
-  const clampedScore = Math.min(100, Math.max(0, score || 0));
-  const needleAngle = 180 - (clampedScore / 100) * 180;
-  const needleLen = r - strokeW - 2;
-  const needleTipX = cx + needleLen * Math.cos(toRad(needleAngle));
-  const needleTipY = cy - needleLen * Math.sin(toRad(needleAngle));
-  const colors = { lower: '#16a34a', moderate: '#2563eb', higher: '#d97706', track: '#e2eaf2' };
-  const activeColor = epsaTierKey === 'low' ? colors.lower : epsaTierKey === 'elevated' ? colors.higher : colors.moderate;
-  const caption = epsaTierLabel || 'Risk';
-  return (
-    <figure className="risk-gauge-figure" aria-label={`Risk gauge: ${caption}, score ${clampedScore}%`}>
-      <svg viewBox="0 0 280 145" xmlns="http://www.w3.org/2000/svg" className="risk-gauge-svg" aria-hidden="true">
-        <path d={arcPath(182, -2)} fill="none" stroke={colors.track} strokeWidth={strokeW + 6} strokeLinecap="butt" />
-        <path d={arcPath(180, 122)} fill="none" stroke={colors.lower} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'low' ? '1' : '0.3'} />
-        <path d={arcPath(118, 62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'intermediate' ? '1' : '0.3'} />
-        <path d={arcPath(58, 0)} fill="none" stroke={colors.higher} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'elevated' ? '1' : '0.3'} />
-        <line className="risk-gauge-needle-shadow" x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
-        <line className="risk-gauge-needle" x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="8" fill="#1e3a5f" />
-        <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
-      </svg>
-      <div className="risk-gauge-labels">
-        <span className={`risk-gauge-range-pill ${epsaTierKey === 'low' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.lower }}>Low (0-10)</span>
-        <span className={`risk-gauge-range-pill ${epsaTierKey === 'intermediate' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.moderate }}>Intermediate (11-17)</span>
-        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>Strong Candidate (&ge;18)</span>
-      </div>
-      <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>
-    </figure>
-  );
-};
 
 /* ─── Guideline classification for impact table rows ───
  * AUA/NCCN/ERUS base PSA screening on age, race, family history, and
@@ -536,7 +496,14 @@ const Part1Results = ({
   onShowModelDocs = null,
 }) => {
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const breakdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!result) return;
+    const t = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(t);
+  }, [result]);
 
   const handleExportCsv = () => {
     const rows = buildPart1CsvRows(formData, result, {});
@@ -546,6 +513,15 @@ const Part1Results = ({
 
   if (showPrintableForm) return <PrintableForm formData={formData} onBack={() => setShowPrintableForm(false)} />;
   if (!result) return <div className="results-container"><p className="results-empty">No results available.</p></div>;
+  if (isLoading) return (
+    <div className="results-container">
+      <ResultsLoading
+        label="ePSA \u00B7 Part 1"
+        message="Should you discuss PSA testing\u003F"
+        detail="Running the ePSA risk model and checking AUA/NCCN screening criteria for your profile."
+      />
+    </div>
+  );
 
   const {
     score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age,
@@ -660,9 +636,9 @@ const Part1Results = ({
       ))}
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
-      <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
+      <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="PSA testing recommendation">
         <div className="v2-res-eyebrow">
-          <span>ePSA Risk Assessment · Part 1 Baseline</span>
+          <span>ePSA Screening Recommendation · Part 1 Baseline</span>
           <span>Assessed today</span>
         </div>
 
@@ -691,9 +667,9 @@ const Part1Results = ({
         ) : (
           <>
             <div className="v2-gauge-layout">
-              <RiskGauge score={gaugeScore} epsaTierKey={epsaTierKey} epsaTierLabel={epsaTierLabel} />
+              <RiskGauge score={gaugeScore} tierKey={epsaTierKey} tierLabel={epsaTierLabel} />
               <div className="v2-tier-info">
-                <div className="v2-tier-label">Your Risk Tier</div>
+                <div className="v2-tier-label">PSA Testing Priority</div>
                 <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
                 <div className="v2-tier-score">
                   Score <strong>{impactTotalDisplay}</strong>
@@ -968,7 +944,7 @@ const Part1Results = ({
 
           return (
           <div ref={breakdownRef}>
-            <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
+            <CollapsibleSection title="What Drove Your Recommendation" defaultOpen={true}>
               <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
                 Each row is tagged <FactorSourceBadge itemName="Age" /> if it is a recognised AUA/NCCN/ERUS screening criterion, or <FactorSourceBadge itemName="BMI" /> if it is used by the ePSA model but is not part of any official screening criterion.
