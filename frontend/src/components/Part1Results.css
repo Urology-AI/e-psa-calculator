@@ -916,7 +916,7 @@
 
 .next-step-card--psa:hover    { border-color: #2563eb; background: #eff6ff; }
 .next-step-card--mri:hover    { border-color: #16a34a; background: #f0fdf4; }
-.next-step-card--biopsy:hover { border-color: #7c3aed; background: #faf5ff; }
+.next-step-card--biopsy:hover { border-color: #DA1884; background: var(--magenta-50); }
 
 /* Icon badge */
 .nsc-icon-wrap {
@@ -931,7 +931,7 @@
 
 .nsc-icon-wrap--psa    { background: #eff6ff; color: #2563eb; }
 .nsc-icon-wrap--mri    { background: #f0fdf4; color: #16a34a; }
-.nsc-icon-wrap--biopsy { background: #faf5ff; color: #7c3aed; }
+.nsc-icon-wrap--biopsy { background: var(--magenta-50); color: #DA1884; }
 
 .nsc-body {
   display: flex;
@@ -968,7 +968,7 @@
 
 .next-step-card--psa:hover    .nsc-arrow { color: #2563eb; }
 .next-step-card--mri:hover    .nsc-arrow { color: #16a34a; }
-.next-step-card--biopsy:hover .nsc-arrow { color: #7c3aed; }
+.next-step-card--biopsy:hover .nsc-arrow { color: #DA1884; }
 
 /* ─── Action Buttons ─── */
 .results-actions {
@@ -1213,7 +1213,7 @@
 
 .theme-dark .next-step-card--psa:hover    { background: rgba(37, 99, 235, 0.08); border-color: #2563eb; }
 .theme-dark .next-step-card--mri:hover    { background: rgba(22, 163, 74, 0.08); border-color: #16a34a; }
-.theme-dark .next-step-card--biopsy:hover { background: rgba(124, 58, 237, 0.08); border-color: #7c3aed; }
+.theme-dark .next-step-card--biopsy:hover { background: rgba(218, 24, 132, 0.08); border-color: #DA1884; }
 
 .theme-dark .nsc-title { color: var(--ink-200); }
 .theme-dark .nsc-desc  { color: var(--ink-400); }
@@ -1722,3 +1722,67 @@
   .risk-gauge-caption { animation: none !important; }
 }
 .theme-dark .guideline-deviation-banner__factors-note  { color: #9ca3af; }
+
+/* ─── Auto-opened screening guidelines section + callout ─── */
+.collapsible-section--highlight {
+  border-color: var(--brand-400) !important;
+  box-shadow: 0 0 0 0.1875rem rgba(45, 139, 199, 0.12), 0 0.125rem 0.5rem rgba(11, 42, 67, 0.08);
+}
+
+.theme-dark .collapsible-section--highlight {
+  border-color: var(--brand-500) !important;
+  box-shadow: 0 0 0 0.1875rem rgba(45, 139, 199, 0.22);
+}
+
+.screening-guideline-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: var(--brand-50, #f0f8ff);
+  border: 0.0625rem solid var(--brand-400);
+  border-left: 0.1875rem solid var(--brand-600);
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.theme-dark .screening-guideline-callout {
+  background: rgba(45, 139, 199, 0.12);
+  border-color: rgba(45, 139, 199, 0.45);
+}
+
+.screening-guideline-callout__icon {
+  color: var(--brand-600);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.theme-dark .screening-guideline-callout__icon { color: var(--brand-400); }
+
+.screening-guideline-callout__body {
+  flex: 1 1 auto;
+  font-size: 0.8125rem;
+  color: var(--ink-800, #1e3347);
+  line-height: 1.55;
+}
+
+.theme-dark .screening-guideline-callout__body { color: var(--ink-800, #cbd5e1); }
+
+.screening-guideline-callout__body strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.8125rem;
+  color: var(--brand-700);
+}
+
+.theme-dark .screening-guideline-callout__body strong { color: var(--brand-400); }
+
+.screening-guideline-callout__body ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.78125rem;
+  color: var(--ink-700, #34475a);
+  line-height: 1.6;
+}
+
+.theme-dark .screening-guideline-callout__body ul { color: var(--ink-700, #9ca3af); }
