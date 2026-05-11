@@ -139,13 +139,13 @@ const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
     guidelineSays = 'AUA/NCCN do not recommend routine PSA screening before age 45 for average-risk men. High-risk individuals (Black ancestry, BRCA1/2, strong family history) may begin discussions at 40–45.';
     epsaAdds = 'ePSA is recommending a PSA test based on your individual risk score — which is above the model threshold. This goes beyond what AUA/NCCN currently endorse for your age group.';
   } else if (age < 50) {
-    guidelineSays = 'AUA/NCCN offer only a conditional baseline PSA at ages 45–50 (Conditional Rec, Grade B) — not a strong recommendation.';
+    guidelineSays = 'AUA/NCCN offer only an optional baseline PSA at ages 45–50 — not a strong recommendation.';
     epsaAdds = 'ePSA is recommending a PSA test with more urgency than the guideline. Your score exceeds the model threshold, driven partly by factors AUA/NCCN do not use for screening decisions.';
   } else if (age <= 69) {
-    guidelineSays = 'AUA/NCCN already recommend regular PSA screening every 2–4 years at ages 50–69 (Strong Rec, Grade A).';
+    guidelineSays = 'AUA/NCCN already recommend regular PSA screening every 2–4 years at ages 50–69.';
     epsaAdds = 'ePSA is adding urgency beyond the routine interval. Your score is elevated by individual risk factors — including some that fall outside AUA/NCCN criteria.';
   } else {
-    guidelineSays = 'AUA/NCCN require Shared Decision Making at age 70+, weighing screening benefit against life expectancy and comorbidities (Conditional Rec, Grade B). Routine screening is not automatically recommended.';
+    guidelineSays = 'AUA/NCCN require Shared Decision Making at age 70+, weighing screening benefit against life expectancy and comorbidities. Routine screening is not automatically recommended.';
     epsaAdds = 'ePSA is flagging elevated risk based on your score, but at this age the guideline requires a life-expectancy discussion with your physician first.';
   }
 
@@ -178,7 +178,9 @@ const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
         </div>
       )}
 
-      <p className="guideline-deviation-banner__footer">Always discuss this result with your GP or urologist before acting on it.</p>
+      <p className="guideline-deviation-banner__footer">
+        <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/NCCN guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
+      </p>
     </div>
   );
 };
@@ -240,13 +242,13 @@ const PSA_BANNER_CONFIG = {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
     label: 'PSA SCREENING RECOMMENDED', labelColor: '#1e40af',
     Icon: InfoIcon,
-    source: 'AUA/SUO guideline Statement 6 (Strong Recommendation, Grade A) — regular PSA screening every 2–4 years for people aged 50–69.',
+    source: 'AUA/SUO guideline Statement 6 — regular PSA screening every 2–4 years for people aged 50–69.',
   },
   baseline_psa_45_50: {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
     label: 'BASELINE PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
     Icon: InfoIcon,
-    source: 'AUA/SUO guideline Statement 4 (Conditional Recommendation, Grade B) — a baseline PSA test may be offered to people aged 45–50.',
+    source: 'AUA/SUO guideline Statement 4 — a baseline PSA test may be offered to people aged 45–50.',
   },
   not_recommended: {
     bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
@@ -512,9 +514,9 @@ const Part1Results = ({
 
   const getTierDescription = (key, tier) => {
     const k = key || tier;
-    if (k === 'low' || k === 'LOWER') return "Low Risk suggests a lower estimated likelihood relative to others in the model's reference data. Lower does not mean no risk, and it does not replace clinician guidance.";
-    if (k === 'intermediate' || k === 'MODERATE') return "Intermediate Risk suggests an estimated likelihood in the middle range of the model's reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.";
-    return "Elevated Risk suggests a higher estimated likelihood relative to others in the model's reference data. Elevated does not mean cancer is present — it may be a useful prompt to review screening options with a clinician.";
+    if (k === 'low' || k === 'LOWER') return "Low priority for PSA testing means your estimated likelihood is in the lower range relative to the model's reference data. Low does not mean no risk, and it does not replace clinician guidance.";
+    if (k === 'intermediate' || k === 'MODERATE') return "Intermediate priority for PSA testing means your estimated likelihood is in the middle range of the model's reference data. Reviewing personal risk factors and prior PSA history with a clinician may add important context.";
+    return "High priority for PSA testing means your estimated likelihood is in the higher range relative to the model's reference data. High priority does not mean cancer is present — it is a prompt to review screening options with a clinician.";
   };
 
   const metrics = [
@@ -603,6 +605,27 @@ const Part1Results = ({
                   {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
                 </div>
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
+                {(() => {
+                  // Show "Based on X of 27 inputs you answered" so users see the prediction
+                  // confidence and which inputs they skipped. Total = 27 distinct items
+                  // (matches Part1Form's totalQuestions).
+                  const skippedFields = Array.isArray(formData?.skippedFields) ? formData.skippedFields : [];
+                  if (!skippedFields.length) return null;
+                  const total = 27;
+                  let skipped = 0;
+                  for (const f of skippedFields) {
+                    if (f === 'ipss') skipped += 7;
+                    else if (f === 'shim') skipped += 5;
+                    else skipped += 1;
+                  }
+                  const answered = Math.max(0, total - skipped);
+                  const pct = Math.round((answered / total) * 100);
+                  return (
+                    <div style={{ marginTop: '8px', padding: '6px 10px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.8125rem', color: '#374151' }}>
+                      <strong>Based on {answered} of {total} inputs ({pct}%)</strong> you answered. {skipped} skipped — confidence may be lower for skipped factors.
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -764,14 +787,14 @@ const Part1Results = ({
             <>
               {topFactors.length > 0 ? (
                 <p>
-                  Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.
+                  Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.
                   {' '}The factors that contributed most to your score were:{' '}
                   {topFactors.map((f, i) => (
                     <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
                   ))}
                 </p>
               ) : (
-                <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> tier.</p>
+                <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.</p>
               )}
               <p>{getTierDescription(epsaTierKey, activeTier)}</p>
               {empiricalProbabilityText && (
@@ -782,26 +805,58 @@ const Part1Results = ({
           )}
         </CollapsibleSection>
 
-        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (
+        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (() => {
+          // Map score-breakdown item names back to Part1Form skippedFields keys so we
+          // can flag rows the user explicitly skipped. The engine uses neutral defaults
+          // for skipped fields, so without this annotation a skipped factor looks
+          // identical to a "No / Never / 0" answer.
+          const SKIP_ITEM_MAP = {
+            'IPSS total': 'ipss',
+            'Exercise': 'exercise',
+            'Smoking': 'smoking',
+            'Diet pattern': 'dietPattern',
+            'Family history': 'familyHistory',
+            'Genetic mutation': 'brcaStatus',
+            'Inflammation history': 'inflammationHistory',
+            '9/11 / Chemical exposure': 'chemicalExposure',
+            'SHIM total': 'shim',
+            'Comorbidity burden': 'comorbidityScore',
+          };
+          const skippedSet = new Set(Array.isArray(formData?.skippedFields) ? formData.skippedFields : []);
+          const isImpactSkipped = (itemName) => {
+            const key = SKIP_ITEM_MAP[itemName];
+            return key ? skippedSet.has(key) : false;
+          };
+
+          return (
           <div ref={breakdownRef}>
             <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
-              <p>Each risk factor below contributed points toward your score. The total determines your risk tier.</p>
+              <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
               <div className="impact-table-wrap">
                 <table className="impact-table" aria-label="Item impact breakdown table">
                   <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
                   <tbody>
-                    {itemImpacts.map((impact) => (
-                      <tr key={impact.item}>
-                        <td>{impact.item}<SourcesPopover itemName={impact.item} /></td>
-                        <td>{impact.value}</td>
-                        <td>
-                          <div className="impact-bar-track" aria-hidden="true">
-                            <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                          </div>
-                        </td>
-                        <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
-                      </tr>
-                    ))}
+                    {itemImpacts.map((impact) => {
+                      const skipped = isImpactSkipped(impact.item);
+                      return (
+                        <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
+                          <td>{impact.item}<SourcesPopover itemName={impact.item} /></td>
+                          <td>
+                            {skipped ? (
+                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
+                                Skipped — neutral default used
+                              </span>
+                            ) : impact.value}
+                          </td>
+                          <td>
+                            <div className="impact-bar-track" aria-hidden="true">
+                              <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
+                            </div>
+                          </td>
+                          <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr>
@@ -813,16 +868,86 @@ const Part1Results = ({
               </div>
             </CollapsibleSection>
           </div>
-        )}
+          );
+        })()}
 
-        <CollapsibleSection title="Screening Guidelines (AUA / NCCN)">
-          <p>ePSA is built on Mount Sinai patient data and its recommendations follow AUA/NCCN guidelines. When should men consider discussing a PSA test with their doctor?</p>
-          <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
-            <li><strong>AUA/SUO (2023, amended 2026)</strong> — Baseline PSA may be offered at ages 45–50 (Conditional Rec, Grade B). Regular screening every 2–4 years for ages 50–69 (Strong Rec, Grade A). High-risk individuals (Black ancestry, germline mutations, strong family history) should begin discussions at age 40–45 (Strong Rec, Grade B). Above age 75, individualize via Shared Decision Making based on health and life expectancy.</li>
-            <li><strong>NCCN (National Comprehensive Cancer Network) 2024</strong> — First PSA at age 45 for most men, or age 40 for higher-risk men. Testing every 1–2 years between ages 45 and 75.</li>
-          </ul>
-          <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>Disclaimer: ePSA is built on Mount Sinai's own patient data but its risk thresholds and screening recommendations are aligned with AUA/NCCN guidelines. This tool is for education only and does not replace clinical judgment.</em></p>
+        <CollapsibleSection title="Screening Guidelines (AUA / NCCN) — for your age">
+          {(() => {
+            const ageNum = Number(age);
+            const ageBullets = [];
+
+            // Determine if user has high-risk anchors per AUA/NCCN: Black ancestry, family history, germline mutation
+            const isBlack = formData?.race === 'black';
+            const hasFamilyHistory = Number(formData?.familyHistory) > 0;
+            const hasBrca = formData?.brcaStatus === 'yes';
+            const isHighRisk = isBlack || hasFamilyHistory || hasBrca;
+
+            // Build the high-risk anchor list for display when relevant
+            const riskAnchors = [];
+            if (isBlack) riskAnchors.push('Black ancestry');
+            if (hasFamilyHistory) riskAnchors.push('family history');
+            if (hasBrca) riskAnchors.push('germline mutation (BRCA1/2 / ATM / Lynch)');
+            const riskAnchorText = riskAnchors.join(' + ');
+
+            if (Number.isFinite(ageNum) && ageNum < 40) {
+              if (isHighRisk) {
+                ageBullets.push(
+                  <li key="hr-u40"><strong>High-risk exception applies to you</strong> — Because you have {riskAnchorText}, AUA and NCCN allow screening discussions to begin at age 40–45.</li>
+                );
+              } else {
+                ageBullets.push(
+                  <li key="aua-u40"><strong>AUA/SUO</strong> — Routine PSA screening is <em>not</em> recommended before age 40 for average-risk men.</li>,
+                  <li key="nccn-u40"><strong>NCCN</strong> — Does not recommend routine PSA before age 40 for average-risk men.</li>
+                );
+              }
+            } else if (Number.isFinite(ageNum) && ageNum < 45) {
+              if (isHighRisk) {
+                ageBullets.push(
+                  <li key="aua-40-45"><strong>AUA/SUO</strong> — Because you have {riskAnchorText}, screening discussions may start at 40–45.</li>,
+                  <li key="nccn-40-45"><strong>NCCN</strong> — First PSA at age 40 is recommended for higher-risk men like you.</li>
+                );
+              } else {
+                ageBullets.push(
+                  <li key="avg-40-45"><strong>AUA/SUO &amp; NCCN</strong> — For average-risk men, routine PSA screening is not recommended before age 45. A baseline PSA may be offered starting at 45.</li>
+                );
+              }
+            } else if (Number.isFinite(ageNum) && ageNum < 50) {
+              ageBullets.push(
+                <li key="aua-45-50"><strong>AUA/SUO</strong> — A baseline PSA may be offered at ages 45–50.</li>,
+                <li key="nccn-45-50"><strong>NCCN</strong> — First PSA at age 45{isHighRisk ? '' : ' for average-risk men'}, every 1–2 years thereafter.</li>
+              );
+            } else if (Number.isFinite(ageNum) && ageNum <= 69) {
+              ageBullets.push(
+                <li key="aua-50-69"><strong>AUA/SUO</strong> — Regular PSA screening every 2–4 years for ages 50–69.</li>,
+                <li key="nccn-50-69"><strong>NCCN</strong> — Testing every 1–2 years between ages 45 and 75.</li>
+              );
+            } else if (Number.isFinite(ageNum) && ageNum <= 75) {
+              ageBullets.push(
+                <li key="aua-70-75"><strong>AUA/SUO</strong> — Continue screening via Shared Decision Making based on overall health and life expectancy.</li>,
+                <li key="nccn-70-75"><strong>NCCN</strong> — Testing through age 75 via Shared Decision Making.</li>
+              );
+            } else if (Number.isFinite(ageNum)) {
+              ageBullets.push(
+                <li key="aua-75+"><strong>AUA/SUO</strong> — Above age 75, individualize or discontinue screening via Shared Decision Making. Unlikely to benefit those with &lt;10-year life expectancy.</li>,
+                <li key="nccn-75+"><strong>NCCN</strong> — Shared Decision Making above age 75.</li>
+              );
+            }
+
+            return (
+              <>
+                <p>Below are the AUA/NCCN guidelines that <strong>apply to your age and risk profile</strong>. ePSA aligns with these — and when ePSA disagrees with the guideline, the guideline wins.</p>
+                {ageBullets.length > 0 ? (
+                  <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+                    {ageBullets}
+                  </ul>
+                ) : (
+                  <p style={{ fontSize: '13px', color: '#6b7280' }}>Age unavailable — please refer to the full AUA/NCCN guidance below.</p>
+                )}
+                <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>Disclaimer: ePSA was built using Mount Sinai's own patient data, and its risk levels and screening advice line up with AUA/NCCN guidelines. It's for learning only — not a replacement for a doctor.</em></p>
+              </>
+            );
+          })()}
         </CollapsibleSection>
 
         {onShowModelDocs && (

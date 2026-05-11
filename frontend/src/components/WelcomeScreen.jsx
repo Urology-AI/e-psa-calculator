@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon } from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, AlertCircleIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ShareQrCode from './ShareQrCode';
 import './ShareQrCode.css';
@@ -58,9 +58,9 @@ const GuidelinesModal = ({ onClose }) => (
           <tbody>
             {[
               { age: 'Under 40',  rec: 'No routine screening. High-risk individuals (Black ancestry, BRCA1/2, strong family history) may begin discussions at 40–45.',  color: '#6b7280' },
-              { age: '40 – 45',   rec: 'Screening discussions for high-risk individuals only (Black ancestry, germline mutations, strong family history). Strong Rec, Grade B.',  color: '#2563eb' },
-              { age: '45 – 50',   rec: 'Baseline PSA may be offered to all men. Conditional Rec, Grade B.',  color: '#2563eb' },
-              { age: '50 – 69',   rec: 'Regular PSA screening every 2–4 years. Strong Rec, Grade A.',  color: '#16a34a' },
+              { age: '40 – 45',   rec: 'Screening discussions for high-risk individuals only (Black ancestry, germline mutations, strong family history).',  color: '#2563eb' },
+              { age: '45 – 50',   rec: 'Baseline PSA may be offered to all men.',  color: '#2563eb' },
+              { age: '50 – 69',   rec: 'Regular PSA screening every 2–4 years.',  color: '#16a34a' },
               { age: '70 – 75',   rec: 'Continue screening via Shared Decision Making (SDM) based on health and life expectancy.',  color: '#d97706' },
               { age: 'Over 75',   rec: 'Individualise or discontinue screening via SDM. Screening unlikely to benefit patients with <10-year life expectancy.',  color: '#dc2626' },
             ].map(({ age, rec, color }) => (
@@ -189,6 +189,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── What is PSA? (education block) ── */}
+      <section className="ws-psa-intro" aria-labelledby="ws-psa-intro-title">
+        <div className="ws-psa-intro-kicker">
+          <InfoIcon size={13} aria-hidden="true" />
+          <span>{t('welcome.psaIntro.kicker')}</span>
+        </div>
+        <h2 id="ws-psa-intro-title" className="ws-psa-intro-title">
+          {t('welcome.psaIntro.heading')}
+        </h2>
+        <p className="ws-psa-intro-body">
+          {t('welcome.psaIntro.body')}
+        </p>
+        <div className="ws-psa-intro-nudge" role="note">
+          <AlertCircleIcon size={14} aria-hidden="true" />
+          <span>{t('welcome.psaIntro.seeDoctorNudge')}</span>
         </div>
       </section>
 

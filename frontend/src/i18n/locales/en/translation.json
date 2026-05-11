@@ -68,8 +68,14 @@
   },
   "welcome": {
     "heroBadge": "Educational Clinical Support Tool",
-    "heroTitle": "Know your baseline risk before your next urology visit",
-    "heroDescription": "Complete a brief evidence-informed questionnaire to generate a personalized ePSA estimate for discussion with your clinician.",
+    "heroTitle": "Know your baseline PSA risk before your next urology visit",
+    "heroDescription": "Get a personalized picture of your prostate cancer risk so you can have a more informed PSA conversation with your clinician — not a verdict, a starting point.",
+    "psaIntro": {
+      "kicker": "Before you start",
+      "heading": "What is PSA, and why does this matter?",
+      "body": "Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.",
+      "seeDoctorNudge": "If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don't wait on this tool."
+    },
     "featureGuidedQuestions": "27 guided questions",
     "featureTime": "~5 minutes",
     "featurePrivate": "Private by design",
@@ -275,16 +281,16 @@
       },
       "inflammationHistory": {
         "title": "Inflammation History",
-        "description": "Chronic inflammatory conditions like prostatitis, ulcerative colitis, and Crohn's disease may increase prostate cancer risk through chronic inflammation mechanisms."
+        "description": "Long-lasting inflammation in the body — such as prostate inflammation (prostatitis) or inflammatory bowel disease (ulcerative colitis, Crohn's) — may raise prostate cancer risk over time."
       },
       "brcaStatus": {
         "title": "Known Genetic Mutation",
-        "helper": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13.",
-        "description": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13. BRCA2 mutations are associated with increased prostate cancer risk and can be linked to more aggressive disease. HOXB13, especially the G84E variant in some families, is a hereditary prostate cancer susceptibility gene."
+        "helper": "Select Yes if a doctor or genetic test has told you that you carry a prostate-cancer-related gene change, such as BRCA2 or HOXB13.",
+        "description": "Some inherited gene changes raise prostate cancer risk. BRCA2 is linked to higher risk and more aggressive disease. HOXB13 (especially the G84E version) runs in some families and also raises risk. Pick Yes only if a doctor or genetic test has confirmed you carry one of these."
       },
       "heightWeight": {
         "title": "Height & Weight (BMI)",
-        "description": "Obesity is associated with increased risk of aggressive prostate cancer. Taller height may be a slight risk factor."
+        "description": "Carrying extra weight is linked to a higher chance of aggressive prostate cancer. Being very tall may also slightly increase risk."
       },
       "exercise": {
         "title": "Exercise Level",
@@ -294,29 +300,29 @@
       "smoking": {
         "title": "Smoking Status",
         "helper": "Include cigarettes or other regular tobacco use when choosing your current or past smoking status.",
-        "description": "Smoking is linked to increased risk of aggressive prostate cancer and higher mortality rates."
+        "description": "Smoking is linked to a higher chance of aggressive prostate cancer and worse outcomes."
       },
       "chemicalExposure": {
         "title": "9/11 or Chemical Exposure",
-        "helper": "Answer Yes if you were present at the World Trade Center site after 9/11, or have had meaningful occupational, military, or environmental chemical exposure (e.g., pesticides, industrial chemicals). Answer Unknown if you are unsure.",
-        "description": "9/11 first responders and survivors have elevated rates of several cancers. Exposure to pesticides and certain industrial chemicals may also increase prostate cancer risk. Note: this factor is not part of AUA/SUO screening guidelines — it is an ePSA model variable."
+        "helper": "Pick Yes if you were at the World Trade Center site after 9/11, or if your job, military service, or environment exposed you to chemicals like pesticides or industrial chemicals. Pick Unknown if you're not sure.",
+        "description": "People who were at the 9/11 site, and people exposed to pesticides or industrial chemicals at work, have higher rates of several cancers. Note: this is part of ePSA's model — it is not used by official AUA/SUO screening guidelines."
       },
       "diet": {
         "title": "Diet Pattern",
         "helper": "Pick the pattern that most closely describes your usual eating habits.",
-        "description": "Diets high in red meat and high-fat dairy may increase risk. Plant-based diets may be protective."
+        "description": "Eating a lot of red meat and high-fat dairy may raise risk. Eating mostly plants may help lower it."
       },
       "ipss": {
-        "title": "IPSS (Urinary Symptoms)",
-        "description": "International Prostate Symptom Score measures lower urinary tract symptoms often associated with prostate enlargement."
+        "title": "Urinary Symptoms (IPSS)",
+        "description": "These questions measure urinary problems like weak stream, needing to go often, or waking up at night. Strong symptoms are common when the prostate is enlarged."
       },
       "shim": {
-        "title": "SHIM (Sexual Health)",
-        "description": "Sexual Health Inventory for Men (SHIM) assesses erectile dysfunction, which can be an indicator of prostate health issues."
+        "title": "Sexual Health (SHIM)",
+        "description": "These questions check for erection problems. Erection problems can sometimes be an early sign of other prostate or vascular health issues."
       },
       "comorbidities": {
-        "title": "Comorbidities (HTN, HLD, CAD, Diabetes)",
-        "description": "Hypertension (HTN), Hyperlipidemia (HLD), Coronary Artery Disease (CAD), and Diabetes. Two questions: (1) Have you had any? No / Yes. (2) If yes: One or Two or more?"
+        "title": "Other Health Conditions (heart, blood pressure, cholesterol, diabetes)",
+        "description": "Have you been diagnosed with high blood pressure, high cholesterol, heart disease, or diabetes? We'll ask if you have any — and if yes, whether it's one of these or two or more."
       }
     },
     "steps": {
@@ -346,6 +352,7 @@
       },
       "shim": {
         "sectionTitle": "Sexual Health (SHIM)",
+        "sectionTitleIief": "Sexual Health (IIEF-5)",
         "shortLabel": "SHIM"
       }
     },
@@ -399,6 +406,14 @@
       "yes": "Yes",
       "no": "No",
       "unknown": "Unknown"
+    },
+    "skip": {
+      "preferNotToSay": "Prefer not to say / Skip",
+      "skippedLabel": "Skipped — a neutral default will be used in the estimate.",
+      "sectionPrompt": "Don't want to answer these now? You can skip this section.",
+      "sectionSkippedNote": "This section is skipped. A neutral default will be used in the estimate.",
+      "skipSection": "Skip this section",
+      "answerInstead": "Answer instead"
     },
     "step1": {
       "familyHistory": {
@@ -508,6 +523,18 @@
       "helper": "Answer based on your sexual function over the past 6 months.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "SHIM Total",
+      "totalLabelIief": "IIEF-5 Total",
+      "regionLabel": "Guideline region",
+      "regionUs": "US (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / UK (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, the 5-item form used by AUA / NCCN.",
+      "regionNoteEau": "IIEF-5 is the abbreviated International Index of Erectile Function used in EAU / UK practice. (SHIM and IIEF-5 are the same 5 questions and the same 0–25 score — your clinician may also use the full IIEF-15.)",
+      "severityHeading": "What does this total mean?",
+      "severitySevere": "Severe ED",
+      "severityModerate": "Moderate ED",
+      "severityMildModerate": "Mild to moderate ED",
+      "severityMild": "Mild ED",
+      "severityNone": "No ED",
       "q1": "How do you rate your confidence that you could get and keep an erection?",
       "q1.opt1": "Very low",
       "q1.opt2": "Low",
@@ -631,12 +658,12 @@
       "HIGHER": "HIGHER suggests a higher estimated likelihood relative to others in the model's reference data. Higher does not mean cancer is present. It may be a useful prompt to review screening options with a clinician."
     },
     "actionText": {
-      "LOWER": "Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.",
-      "MODERATE": "Consider discussing this result with your healthcare provider. Together you can decide whether screening (such as PSA testing) makes sense based on your age, preferences, and prior results.",
-      "HIGHER": "Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation (for example, PSA testing or follow-up) is appropriate for you.",
-      "default": "Consider discussing these results with your healthcare provider."
+      "LOWER": "Bring this result to your next routine visit. It's a good starting point if you have questions about screening, family history, or symptoms.",
+      "MODERATE": "Talk this over with your doctor. Together you can decide whether a PSA test makes sense based on your age, what matters to you, and any past results.",
+      "HIGHER": "Make a point of discussing this with your doctor soon. They can help explain the result and decide whether a PSA test or other follow-up makes sense for you.",
+      "default": "Talk this over with your doctor."
     },
-    "disclaimer": "ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "disclaimer": "ePSA is an educational tool — not a medical test or diagnosis. It estimates your risk using your answers, population research, and screening guidelines from AUA, NCCN, and EAU. For men with strong risk factors, ePSA may suggest having a screening conversation earlier than general guidelines do. Always discuss the result with a doctor before deciding about testing or treatment. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "riskLevels": {
       "LOWER": "Fewer risk flags",
       "MODERATE": "Some risk flags",
@@ -644,7 +671,7 @@
     },
     "sectionRiskExplanationTitle": "Risk explanation",
     "sectionHowCalculatedTitle": "How this score is calculated",
-    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, 9/11 or chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
+    "explanationHowScoreCalculated": "Your ePSA score adds up points based on your answers. Each risk factor — like being 60+, having a BMI of 30 or higher, urinary symptoms, little or no exercise, smoking, a red-meat-heavy diet, Black ancestry, family history, a genetic mutation, inflammation, 9/11 or chemical exposure, or erection issues — adds a few points. The total is converted to a 0–100% scale, and we show a small ±5% range to reflect normal uncertainty.",
     "sectionWhatTierMeansTitle": "What your tier means",
     "sectionGuidelineContextTitle": "Guideline context (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Recommendation Threshold",
@@ -665,7 +692,7 @@
   }
   ,
   "part2Results": {
-    "disclaimer": "ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "disclaimer": "ePSA is an educational tool — not a medical test or diagnosis. It estimates your risk using your answers, population research, and screening guidelines from AUA, NCCN, and EAU. For men with strong risk factors, ePSA may suggest having a screening conversation earlier than general guidelines do. Always discuss the result with a doctor before deciding about testing or treatment. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "noResults": "No results available.",
     "sessionKeyLabel": "Session key",
     "savedToCloud": "Saved to cloud",
@@ -805,6 +832,18 @@
     "ipssPlaceholder": "e.g., 4",
     "shimLabel": "SHIM total (0-25)",
     "shimPlaceholder": "e.g., 25",
+    "ipssQolLabel": "Don't know your IPSS? Pick how you'd feel if your urinary symptoms stayed the same (IPSS-QoL)",
+    "ipssQolPlaceholder": "Skip — I'll use the IPSS total above",
+    "ipssQolHint": "Only used if you leave the IPSS total above blank. A rough proxy for urinary bother.",
+    "ipssQol": {
+      "delighted": "Delighted",
+      "pleased": "Pleased",
+      "mostlySatisfied": "Mostly satisfied",
+      "mixed": "Mixed (about equally satisfied & dissatisfied)",
+      "mostlyDissatisfied": "Mostly dissatisfied",
+      "unhappy": "Unhappy",
+      "terrible": "Terrible"
+    },
     "defaultsTitle": "Defaults (optional)",
     "editDefaults": "Edit defaults",
     "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, Genetic mutation = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
