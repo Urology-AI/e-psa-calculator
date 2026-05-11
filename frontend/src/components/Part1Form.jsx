@@ -89,36 +89,30 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       {i18nKey ? t(i18nKey) : children}
     </div>
   );
-
-  // Compact badge showing whether this Part 1 question is an AUA/NCCN screening
-  // guideline factor or an ePSA-model-only factor. Rendered next to each question's
-  // InfoIcon so users can see at a glance which inputs map to the official guidelines.
-  const GuidelineBadge = ({ field }) => {
-    const ref = fieldReferences[field];
-    if (!ref || typeof ref.isGuideline !== 'boolean') return null;
-    const guideline = ref.isGuideline;
-    return (
-      <span
-        title={guideline ? t('info.guidelineNote') : t('info.modelOnlyNote')}
-        style={{
-          marginLeft: '8px',
-          display: 'inline-block',
-          padding: '2px 8px',
-          borderRadius: '999px',
-          fontSize: '10px',
-          fontWeight: 700,
-          letterSpacing: '0.02em',
-          textTransform: 'uppercase',
-          background: guideline ? '#ecfdf5' : '#fff7ed',
-          border: guideline ? '1px solid #10b981' : '1px solid #f59e0b',
-          color: guideline ? '#047857' : '#b45309',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {guideline ? t('part1.guidelineBadge.guideline') : t('part1.guidelineBadge.modelOnly')}
-      </span>
-    );
-  };
+  // Badge components placed inline next to each question's title.
+  // Main's no-prop pattern: GuidelineBadge for the four AUA/NCCN screening factors
+  // (age, race, family history, BRCA); NonGuidelineBadge for ePSA-model-only factors.
+  const NonGuidelineBadge = () => (
+    <span
+      className="non-guideline-badge"
+      title={t('part1.nonGuideline.badgeTooltip')}
+      aria-label={t('part1.nonGuideline.badgeTooltip')}
+    >
+      {t('part1.nonGuideline.badge')}
+    </span>
+  );
+  const NonGuidelineNote = () => (
+    <div className="non-guideline-note">{t('part1.nonGuideline.note')}</div>
+  );
+  const GuidelineBadge = () => (
+    <span
+      className="guideline-badge"
+      title={t('part1.guideline.badgeTooltip')}
+      aria-label={t('part1.guideline.badgeTooltip')}
+    >
+      {t('part1.guideline.badge')}
+    </span>
+  );
 
   // Small "Prefer not to say" control under skippable question cards.
   // Uses neutral defaults from SKIP_DEFAULTS so the engine still receives valid values.
@@ -188,6 +182,34 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
 
   const [stepErrors, setStepErrors] = useState({});
   const [attemptedNext, setAttemptedNext] = useState(false);
+  // IPSS short-version mode: 'full' (7 questions) or 'short' (single severity picker).
+  // Short mode fills the 7-question array with a uniform per-question value so the engine sees a valid total.
+  const [ipssMode, setIpssMode] = useState('full');
+  const [ipssShortChoice, setIpssShortChoice] = useState(null); // 'none' | 'mild' | 'moderate' | 'severe'
+  const applyIpssShort = (choice) => {
+    setIpssShortChoice(choice);
+    const perQ = choice === 'none' ? 0 : choice === 'mild' ? 1 : choice === 'moderate' ? 3 : choice === 'severe' ? 5 : null;
+    if (perQ != null) {
+      setLocalData(prev => ({ ...prev, ipss: Array(7).fill(perQ) }));
+    }
+  };
+  // SHIM short-version mode: 'full' (5 questions) or 'short' (single severity picker).
+  // SHIM is reverse-scaled (higher = better function). Per-question fills map to standard
+  // SHIM severity tiers: No ED 22–25, Mild 17–21, Mild-Mod 12–16, Moderate 8–11, Severe ≤7.
+  const [shimMode, setShimMode] = useState('full');
+  const [shimShortChoice, setShimShortChoice] = useState(null); // 'none' | 'mild' | 'mildModerate' | 'moderate' | 'severe'
+  const applyShimShort = (choice) => {
+    setShimShortChoice(choice);
+    const perQ = choice === 'none' ? 5
+      : choice === 'mild' ? 4
+      : choice === 'mildModerate' ? 3
+      : choice === 'moderate' ? 2
+      : choice === 'severe' ? 1
+      : null;
+    if (perQ != null) {
+      setLocalData(prev => ({ ...prev, shim: Array(5).fill(perQ) }));
+    }
+  };
 
   useEffect(() => {
     const toInches = () => {
@@ -397,9 +419,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">1</div>
-          <div className="question-text">{t('part1.fields.age.title')}</div>
+          <div className="question-text">{t('part1.fields.age.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.age} />
-          <GuidelineBadge field="age" />
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -425,9 +446,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: raceValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">2</div>
-          <div className="question-text">{t('part1.fields.race.title')}</div>
+          <div className="question-text">{t('part1.fields.race.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.race} />
-          <GuidelineBadge field="race" />
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -438,6 +458,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               { value: 'black', label: t('part1.race.black') },
               { value: 'hispanic', label: t('part1.race.hispanic') },
               { value: 'asian', label: t('part1.race.asian') },
+              { value: 'mixed', label: t('part1.race.mixed') },
               { value: 'other', label: t('part1.race.other') },
             ].map(opt => (
               <button
@@ -475,9 +496,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">{t('part1.step1.familyHistory.title')}</div>
+          <div className="question-text">{t('part1.step1.familyHistory.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.familyHistory} />
-          <GuidelineBadge field="familyHistory" />
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -512,7 +532,6 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <div className="question-number">4</div>
           <div className="question-text">{t('part1.step1.inflammationHistory.title')}</div>
           <InfoIcon {...fieldReferences.inflammationHistory} />
-          <GuidelineBadge field="inflammationHistory" />
           {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -549,18 +568,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">5</div>
-          <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
+          <div className="question-text">{t('part1.fields.brcaStatus.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.brcaStatus} />
-          <GuidelineBadge field="brcaStatus" />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
           <div className="option-grid c3">
             {[
-              { value: 'yes', label: t('part1.options.yes') },
-              { value: 'no', label: t('part1.options.no') },
-              { value: 'unknown', label: t('part1.options.unknown') },
+              { value: 'yes', label: 'Yes — confirmed mutation' },
+              { value: 'no', label: 'Tested — no mutation' },
+              { value: 'unknown', label: 'Never tested / unsure' },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -599,8 +617,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">6</div>
           <div className="question-text">{t('part1.step2.heightQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
-          <GuidelineBadge field="heightWeight" />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -644,8 +662,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">7</div>
           <div className="question-text">{t('part1.step2.weightQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
-          <GuidelineBadge field="heightWeight" />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -701,8 +719,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">8</div>
           <div className="question-text">{t('part1.fields.exercise.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.exercise} />
-          <GuidelineBadge field="exercise" />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -738,8 +756,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">9</div>
           <div className="question-text">{t('part1.fields.smoking.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.smoking} />
-          <GuidelineBadge field="smoking" />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -775,17 +793,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">10</div>
           <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.chemicalExposure} />
-          <GuidelineBadge field="chemicalExposure" />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
-          <div className="option-grid c3">
+          <div className="option-grid c2">
             {[
-              { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
-              { value: 'no', label: t('part1.options.no'), Icon: CheckCircle2 },
-              { value: 'unknown', label: t('part1.options.unknown'), Icon: HelpCircle },
+              { value: 'agent_orange', label: t('part1.chemicalExposureOptions.agentOrange'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'nine_eleven', label: t('part1.chemicalExposureOptions.nineEleven'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'other_chemical', label: t('part1.chemicalExposureOptions.otherChemical'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceUnspecified') },
+              { value: 'none', label: t('part1.chemicalExposureOptions.none'), Icon: CheckCircle2 },
+              { value: 'unknown', label: t('part1.chemicalExposureOptions.unknown'), Icon: HelpCircle },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -794,7 +814,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               >
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <opt.Icon size={18} />
-                  {opt.label}
+                  <span>{opt.label}</span>
+                  {opt.evidence && (
+                    <span style={{ fontSize: '0.65rem', opacity: 0.75, fontWeight: 400 }}>
+                      {opt.evidence}
+                    </span>
+                  )}
                 </span>
               </button>
             ))}
@@ -830,8 +855,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">11</div>
           <div className="question-text">{t('part1.fields.diet.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.diet} />
-          <GuidelineBadge field="diet" />
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
         <div className="question-body">
@@ -872,8 +897,8 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">12</div>
           <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.comorbidities} />
-          <GuidelineBadge field="comorbidities" />
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
@@ -933,8 +958,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   };
 
   const renderStep5 = () => {
-    const ipssSkipped = isSkipped('ipss');
-    const ipssComplete = ipssSkipped || localData.ipss.every(v => v !== null && v !== undefined);
+    const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
     const answeredCount = localData.ipss.filter(v => v !== null && v !== undefined).length;
     const ipssQuestions = IPSS_QUESTION_KEYS.map((k) => t(k));
     const ipssLabels = [0, 1, 2, 3, 4, 5].map((v) => ({
@@ -947,11 +971,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <span className="v2-section-eyebrow">Section 6 · 7 questions</span>
-          <span className="v2-section-title">{t('part1.steps.ipss.sectionTitle')}</span>
+          <span className="v2-section-title">{t('part1.steps.ipss.sectionTitle')} <NonGuidelineBadge /></span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.ipss} />
-          <GuidelineBadge field="ipss" />
           {ipssComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!ipssComplete && attemptedNext && (
             <span style={{ color: '#E74C3C', fontSize: '0.75rem' }}>
@@ -969,34 +992,69 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         {t('part1.ipss.note')}
       </div>
 
-      {/* Skip whole IPSS section */}
-      <div style={{ marginBottom: '16px', padding: '10px 12px', border: '1px solid #E8ECF0', borderRadius: '8px', background: '#FAFBFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ fontSize: '0.8125rem', color: '#4B5563' }}>
-          {ipssSkipped ? t('part1.skip.sectionSkippedNote') : t('part1.skip.sectionPrompt')}
-        </div>
-        {ipssSkipped ? (
-          <button
-            type="button"
-            onClick={() => setLocalData(prev => ({ ...prev, skippedFields: clearSkip(prev, 'ipss'), ipss: Array(7).fill(null) }))}
-            style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#374151', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8125rem' }}
-          >
-            {t('part1.skip.answerInstead')}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => skipField('ipss')}
-            style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#374151', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8125rem' }}
-          >
-            {t('part1.skip.skipSection')}
-          </button>
-        )}
+      {/* IPSS mode toggle: full 7-question vs short single-severity vs skip-no-symptoms */}
+      <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <button
+          type="button"
+          className={`option-btn ${ipssMode === 'full' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setIpssMode('full'); setIpssShortChoice(null); }}
+        >
+          {t('part1.ipssShort.toggleFull')}
+        </button>
+        <button
+          type="button"
+          className={`option-btn ${ipssMode === 'short' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => setIpssMode('short')}
+        >
+          {t('part1.ipssShort.toggleShort')}
+        </button>
+        <button
+          type="button"
+          className="option-btn"
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setIpssMode('short'); applyIpssShort('none'); }}
+        >
+          {t('part1.ipssShort.skip')}
+        </button>
       </div>
 
-      {!ipssSkipped && ipssQuestions.map((q, index) => (
-        <div key={index} className="question-card" style={{ 
-          borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
-          borderWidth: '2px' 
+      {ipssMode === 'short' && (
+        <div className="question-card" style={{
+          borderColor: ipssShortChoice ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
+        }}>
+          <div className="question-header">
+            <div className="question-text">{t('part1.ipssShort.singleQuestionLabel')}</div>
+            {ipssShortChoice && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c2">
+              {[
+                { value: 'none',     label: t('part1.ipssShort.options.none') },
+                { value: 'mild',     label: t('part1.ipssShort.options.mild') },
+                { value: 'moderate', label: t('part1.ipssShort.options.moderate') },
+                { value: 'severe',   label: t('part1.ipssShort.options.severe') },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`option-btn ${ipssShortChoice === opt.value ? 'selected' : ''}`}
+                  onClick={() => applyIpssShort(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ipssMode === 'full' && ipssQuestions.map((q, index) => (
+        <div key={index} className="question-card" style={{
+          borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
         }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
@@ -1019,7 +1077,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      {!ipssSkipped && (
+      {ipssMode === 'full' && (
         <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
           {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
         </div>
@@ -1029,8 +1087,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   };
 
   const renderStep6 = () => {
-    const shimSkipped = isSkipped('shim');
-    const shimComplete = shimSkipped || localData.shim.every(v => v !== null && v !== undefined);
+    const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
     const answeredCount = localData.shim.filter(v => v !== null && v !== undefined).length;
     const shimQuestions = SHIM_QUESTION_KEYS.map((item) => ({
       q: t(item.qKey),
@@ -1056,12 +1113,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div>
           <span className="v2-section-eyebrow">Section 7 · 5 questions</span>
           <span className="v2-section-title">
-            {isEau ? t('part1.steps.shim.sectionTitleIief') : t('part1.steps.shim.sectionTitle')}
+            {isEau ? t('part1.steps.shim.sectionTitleIief') : t('part1.steps.shim.sectionTitle')} <NonGuidelineBadge />
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.shim} />
-          <GuidelineBadge field="shim" />
           {shimComplete && <CheckIcon size={16} style={{ color: '#27AE60' }} />}
           {!shimComplete && (
             <span className={!attemptedNext ? 'question-subtext' : undefined} style={{ color: attemptedNext ? '#E74C3C' : undefined, fontSize: '0.75rem' }}>
@@ -1116,31 +1172,67 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         {t('part1.shim.note')}
       </div>
 
-      {/* Skip whole SHIM section */}
-      <div style={{ marginBottom: '16px', padding: '10px 12px', border: '1px solid #E8ECF0', borderRadius: '8px', background: '#FAFBFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ fontSize: '0.8125rem', color: '#4B5563' }}>
-          {shimSkipped ? t('part1.skip.sectionSkippedNote') : t('part1.skip.sectionPrompt')}
-        </div>
-        {shimSkipped ? (
-          <button
-            type="button"
-            onClick={() => setLocalData(prev => ({ ...prev, skippedFields: clearSkip(prev, 'shim'), shim: Array(5).fill(null) }))}
-            style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#374151', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8125rem' }}
-          >
-            {t('part1.skip.answerInstead')}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => skipField('shim')}
-            style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#374151', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8125rem' }}
-          >
-            {t('part1.skip.skipSection')}
-          </button>
-        )}
+      {/* SHIM mode toggle: full 5-question vs short single-severity vs skip-no-concerns */}
+      <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <button
+          type="button"
+          className={`option-btn ${shimMode === 'full' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setShimMode('full'); setShimShortChoice(null); }}
+        >
+          {t('part1.shimShort.toggleFull')}
+        </button>
+        <button
+          type="button"
+          className={`option-btn ${shimMode === 'short' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => setShimMode('short')}
+        >
+          {t('part1.shimShort.toggleShort')}
+        </button>
+        <button
+          type="button"
+          className="option-btn"
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setShimMode('short'); applyShimShort('none'); }}
+        >
+          {t('part1.shimShort.skip')}
+        </button>
       </div>
 
-      {!shimSkipped && shimQuestions.map((item, index) => (
+      {shimMode === 'short' && (
+        <div className="question-card" style={{
+          borderColor: shimShortChoice ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
+        }}>
+          <div className="question-header">
+            <div className="question-text">{t('part1.shimShort.singleQuestionLabel')}</div>
+            {shimShortChoice && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c2">
+              {[
+                { value: 'none',         label: t('part1.shimShort.options.none') },
+                { value: 'mild',         label: t('part1.shimShort.options.mild') },
+                { value: 'mildModerate', label: t('part1.shimShort.options.mildModerate') },
+                { value: 'moderate',     label: t('part1.shimShort.options.moderate') },
+                { value: 'severe',       label: t('part1.shimShort.options.severe') },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`option-btn ${shimShortChoice === opt.value ? 'selected' : ''}`}
+                  onClick={() => applyShimShort(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {shimMode === 'full' && shimQuestions.map((item, index) => (
         <div key={index} className="question-card" style={{
           borderColor: localData.shim[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
           borderWidth: '2px'
@@ -1162,7 +1254,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      {!shimSkipped && (
+      {shimMode === 'full' && (
         <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
           {isEau ? t('part1.shim.totalLabelIief') : t('part1.shim.totalLabel')}: {shimComplete ? shimTotal : '—'} / 25
         </div>

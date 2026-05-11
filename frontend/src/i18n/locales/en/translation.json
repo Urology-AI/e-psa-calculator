@@ -288,9 +288,9 @@
         "description": "Long-lasting inflammation in the body — such as prostate inflammation (prostatitis) or inflammatory bowel disease (ulcerative colitis, Crohn's) — may raise prostate cancer risk over time."
       },
       "brcaStatus": {
-        "title": "Known Genetic Mutation",
-        "helper": "Select Yes if a doctor or genetic test has told you that you carry a prostate-cancer-related gene change, such as BRCA2 or HOXB13.",
-        "description": "Some inherited gene changes raise prostate cancer risk. BRCA2 is linked to higher risk and more aggressive disease. HOXB13 (especially the G84E version) runs in some families and also raises risk. Pick Yes only if a doctor or genetic test has confirmed you carry one of these."
+        "title": "Hereditary Cancer Gene Testing",
+        "helper": "Have you had a genetic test for hereditary prostate cancer gene changes (like BRCA1/2, HOXB13, ATM, or Lynch syndrome)? Pick Yes only if a test confirmed you carry one. Pick No if you were tested and nothing was found. Pick Unknown if you've never been tested.",
+        "description": "Some inherited gene changes raise prostate cancer risk. BRCA2 is linked to higher risk and more aggressive disease. HOXB13 (especially the G84E version) runs in some families and also raises risk. ATM and Lynch-syndrome genes also raise risk. AUA, NCCN, and EAU guidelines recommend earlier and more frequent PSA screening if a test has confirmed you carry one."
       },
       "heightWeight": {
         "title": "Height & Weight (BMI)",
@@ -365,8 +365,54 @@
       "black": "Black / African American",
       "hispanic": "Hispanic / Latino",
       "asian": "Asian / Pacific Islander",
-      "other": "Other / Mixed"
+      "mixed": "Mixed / Multi-racial",
+      "other": "Other"
     },
+    "nonGuideline": {
+      "badge": "NON-GUIDELINE",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC do not use this factor for the PSA screening decision. It is used by the ePSA risk model only.",
+      "note": "Not part of AUA/NCCN/EAU/ERSPC screening criteria; used by the ePSA model only."
+    },
+    "guideline": {
+      "badge": "GUIDELINE-BASED",
+      "badgeTooltip": "This factor is directly cited by AUA, NCCN, and EAU prostate cancer screening guidelines."
+    },
+    "chemicalExposureOptions": {
+      "question": "Have you had any of the following exposures? (Select all that apply)",
+      "agentOrange": "Agent Orange (military / Vietnam-era)",
+      "nineEleven": "World Trade Center / 9-11 site",
+      "otherChemical": "Other occupational or environmental chemicals (e.g., pesticides, solvents)",
+      "none": "None of the above",
+      "unknown": "Unknown / unsure",
+      "evidenceProven": "Strong epidemiologic evidence",
+      "evidenceUnspecified": "Possible association; less established"
+    },
+    "ipssShort": {
+      "toggleShort": "Use short version (single severity question)",
+      "toggleFull": "Use full IPSS (7 questions)",
+      "skip": "Skip — I don't have urinary symptoms",
+      "singleQuestionLabel": "Overall, how bothersome are your urinary symptoms?",
+      "options": {
+        "none": "None",
+        "mild": "Mild",
+        "moderate": "Moderate",
+        "severe": "Severe"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Use short version (single severity question)",
+      "toggleFull": "Use full SHIM (5 questions)",
+      "skip": "Skip — no erectile concerns",
+      "singleQuestionLabel": "Overall, how would you describe your erectile function over the past 6 months?",
+      "options": {
+        "none": "No erectile dysfunction",
+        "mild": "Mild ED",
+        "mildModerate": "Mild–Moderate ED",
+        "moderate": "Moderate ED",
+        "severe": "Severe ED"
+      }
+    },
+    "abnormalPsaLikelihood": "Estimated likelihood of an abnormal PSA / csPCa:",
     "errors": {
       "step0": {
         "ageInline": "Please enter age (18-120)",
@@ -824,7 +870,8 @@
       "black": "Black / African American",
       "hispanic": "Hispanic / Latino",
       "asian": "Asian / Pacific Islander",
-      "other": "Other / Mixed"
+      "mixed": "Mixed / Multi-racial",
+      "other": "Other"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "e.g., 25.49",

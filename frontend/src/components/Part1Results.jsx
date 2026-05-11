@@ -11,7 +11,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
-  FlaskConicalIcon, ScanEyeIcon, MicroscopeIcon, ArrowRightIcon,
+  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
 } from 'lucide-react';
 
 /* ─── SVG Risk Gauge ─── */
@@ -41,18 +41,54 @@ const RiskGauge = ({ score, epsaTierKey, epsaTierLabel }) => {
         <path d={arcPath(180, 122)} fill="none" stroke={colors.lower} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'low' ? '1' : '0.3'} />
         <path d={arcPath(118, 62)} fill="none" stroke={colors.moderate} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'intermediate' ? '1' : '0.3'} />
         <path d={arcPath(58, 0)} fill="none" stroke={colors.higher} strokeWidth={strokeW} strokeLinecap="butt" opacity={epsaTierKey === 'elevated' ? '1' : '0.3'} />
-        <line x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
-        <line x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
+        <line className="risk-gauge-needle-shadow" x1={cx} y1={cy + 2} x2={needleTipX} y2={needleTipY + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
+        <line className="risk-gauge-needle" x1={cx} y1={cy} x2={needleTipX} y2={needleTipY} stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="8" fill="#1e3a5f" />
         <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
       </svg>
       <div className="risk-gauge-labels">
         <span className={`risk-gauge-range-pill ${epsaTierKey === 'low' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.lower }}>Low (0-10)</span>
         <span className={`risk-gauge-range-pill ${epsaTierKey === 'intermediate' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.moderate }}>Intermediate (11-17)</span>
-        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>Elevated (&gt;=18)</span>
+        <span className={`risk-gauge-range-pill ${epsaTierKey === 'elevated' ? 'risk-gauge-range-pill--active' : ''}`} style={{ color: colors.higher }}>Strong Candidate (&ge;18)</span>
       </div>
       <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>
     </figure>
+  );
+};
+
+/* ─── Guideline classification for impact table rows ───
+ * AUA/NCCN/ERUS base PSA screening on age, race, family history, and
+ * germline mutations only. Everything else is model-only (not part of
+ * any official screening criterion).
+ */
+const GUIDELINE_FACTORS = new Set(['Age', 'Black ancestry', 'Family history', 'Genetic mutation']);
+
+const FactorSourceBadge = ({ itemName }) => {
+  const isGuideline = GUIDELINE_FACTORS.has(itemName);
+  const label = isGuideline ? 'AUA/NCCN' : 'Model-only';
+  const title = isGuideline
+    ? 'Recognised AUA/NCCN/ERUS screening criterion'
+    : 'Used by ePSA model only — not part of AUA/NCCN/ERUS screening criteria';
+  return (
+    <span
+      title={title}
+      style={{
+        display: 'inline-block',
+        marginLeft: '6px',
+        padding: '1px 6px',
+        fontSize: '10px',
+        fontWeight: 700,
+        letterSpacing: '0.03em',
+        borderRadius: '10px',
+        verticalAlign: 'middle',
+        whiteSpace: 'nowrap',
+        background: isGuideline ? '#dbeafe' : '#fef3c7',
+        color: isGuideline ? '#1e40af' : '#92400e',
+        border: `1px solid ${isGuideline ? '#93c5fd' : '#fcd34d'}`,
+      }}
+    >
+      {label}
+    </span>
   );
 };
 
@@ -107,10 +143,13 @@ const SourcesPopover = ({ itemName }) => {
 };
 
 /* ─── Collapsible Section ─── */
-const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
+const CollapsibleSection = ({ title, children, defaultOpen = false, id, highlight = false }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="collapsible-section">
+    <div
+      id={id}
+      className={`collapsible-section${highlight ? ' collapsible-section--highlight' : ''}`}
+    >
       <button className="collapsible-toggle" onClick={() => setOpen(!open)} aria-expanded={open} type="button">
         <span>{title}</span>
         {open ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
@@ -236,7 +275,7 @@ const PSA_BANNER_CONFIG = {
     bg: '#fffbeb', border: '#d97706', iconColor: '#d97706',
     label: 'PSA SCREENING RECOMMENDED', labelColor: '#92400e',
     Icon: AlertTriangleIcon,
-    source: 'Your ePSA score is above the screening threshold. Based on AUA, NCCN, and ERUS guidelines.',
+    source: 'Model-based recommendation — ePSA score exceeds the model threshold. This goes beyond AUA/NCCN/ERUS average-risk screening criteria, which use only age, race, family history, and germline mutations.',
   },
   age_guideline_50_69: {
     bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
@@ -256,6 +295,48 @@ const PSA_BANNER_CONFIG = {
     Icon: CheckCircle2Icon,
     source: 'Your score is below the screening threshold. Follow standard age-based guidance from AUA, NCCN, and ERUS.',
   },
+};
+
+const GUIDELINE_LABELS_P1 = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
+const GuidelineSupportBadge = ({ support, count }) => {
+  const [showTip, setShowTip] = useState(false);
+  if (!support) return null;
+  const total = 4;
+  const n = typeof count === 'number'
+    ? count
+    : Object.values(support).filter(Boolean).length;
+  const strong = n >= 3;
+  const partial = n >= 1 && n < 3;
+  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  const bg = strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6';
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${colour}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: colour, letterSpacing: '0.02em', cursor: 'help', alignSelf: 'flex-start' }}
+      onMouseEnter={() => setShowTip(true)}
+      onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="img"
+      aria-label={`Supported by ${n} of ${total} guidelines: ${Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS_P1[k]).join(', ') || 'none'}`}
+    >
+      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      Supported by {n} / {total} guidelines
+      {showTip && (
+        <span
+          role="tooltip"
+          style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}
+        >
+          {Object.entries(GUIDELINE_LABELS_P1).map(([k, label]) => (
+            <span key={k} style={{ display: 'block' }}>
+              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+              {label}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
+  );
 };
 
 const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommendMessage }) => {
@@ -311,7 +392,7 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
 };
 
 /* ─── Next Step Cards ─── */
-const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy }) => (
+const NextStepsSection = ({ onContinueToPSA, onContinueToBiopsy }) => (
   <div className="next-steps-section">
     <div className="next-steps-heading">Continue Your Assessment</div>
     <div className="next-steps-cards">
@@ -321,20 +402,8 @@ const NextStepsSection = ({ onContinueToPSA, onContinueToMRI, onContinueToBiopsy
             <FlaskConicalIcon size={18} />
           </div>
           <div className="nsc-body">
-            <div className="nsc-title">PSA Assessment</div>
-            <div className="nsc-desc">Have your PSA result? Add it for a fuller picture.</div>
-          </div>
-          <ArrowRightIcon size={15} className="nsc-arrow" />
-        </button>
-      )}
-      {onContinueToMRI && (
-        <button className="next-step-card next-step-card--mri" onClick={onContinueToMRI}>
-          <div className="nsc-icon-wrap nsc-icon-wrap--mri">
-            <ScanEyeIcon size={18} />
-          </div>
-          <div className="nsc-body">
-            <div className="nsc-title">MRI Results</div>
-            <div className="nsc-desc">Had an MRI? Add your PI-RADS score for a more complete picture.</div>
+            <div className="nsc-title">Enter PSA Result</div>
+            <div className="nsc-desc">Have your PSA result? Add it — the tool will then assess whether an MRI is recommended.</div>
           </div>
           <ArrowRightIcon size={15} className="nsc-arrow" />
         </button>
@@ -481,12 +550,16 @@ const Part1Results = ({
   const {
     score, scoreRange, risk, color, action, ipssTotal, shimTotal, bmi, age,
     recommendPSA, psaRecommendReason, psaRecommendMessage,
+    psaGuidelineSupport = null, psaGuidelineSupportCount = null,
     tierRisk, epsaTierKey, epsaTierLabel,
     epsaGuidelineText, itemImpacts = [], isHighRiskFlagged = false,
     pathwayMode = 'pre_psa', empiricalProbabilityText = null,
     belowMinAge = false,
     aboveMaxScreeningAge = false,
     guardrailAlerts = [],
+    empiricalRate = null,
+    empiricalRateCiLo = null,
+    empiricalRateCiHi = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -530,6 +603,28 @@ const Part1Results = ({
     .filter((i) => Number(i.points) > 0)
     .sort((a, b) => Number(b.points) - Number(a.points))
     .slice(0, 4);
+
+  // ── Contextual triggers: when ePSA's output diverges from guideline,
+  // auto-open the AUA/NCCN reference section so the user can compare.
+  const hasCriticalGuardrail = (guardrailAlerts || []).some(a => a.level === 'critical');
+  const guidelineTriggers = [];
+  if (belowMinAge) guidelineTriggers.push({
+    code: 'below_min_age',
+    text: 'You are under 40 — AUA/NCCN do not recommend routine PSA screening at this age. The guideline summary is shown below.',
+  });
+  if (aboveMaxScreeningAge) guidelineTriggers.push({
+    code: 'above_max_age',
+    text: 'You are over 75 — AUA/NCCN require Shared Decision Making weighing benefit against life expectancy. The guideline summary is shown below.',
+  });
+  if (psaRecommendReason === 'score_threshold') guidelineTriggers.push({
+    code: 'score_threshold',
+    text: 'ePSA is recommending a PSA test based on its model score, which goes beyond AUA/NCCN average-risk criteria. Compare against the guideline below.',
+  });
+  if (hasCriticalGuardrail) guidelineTriggers.push({
+    code: 'critical_guardrail',
+    text: 'A critical clinical alert was triggered — review the AUA/NCCN/EAU guideline below alongside the alert.',
+  });
+  const screeningGuidelineAutoOpen = guidelineTriggers.length > 0;
 
   return (
     <div className="results-container" role="main">
@@ -604,6 +699,34 @@ const Part1Results = ({
                   Score <strong>{impactTotalDisplay}</strong>
                   {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
                 </div>
+                {Number.isFinite(empiricalRate) && empiricalRate > 0 && (
+                  <div
+                    className="v2-tier-likelihood"
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 10px',
+                      background: 'rgba(255,255,255,0.55)',
+                      border: `1px solid ${tierAccentColor}33`,
+                      borderRadius: '6px',
+                      fontSize: '0.8125rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <div style={{ color: 'var(--ink-600)', fontWeight: 600, marginBottom: '2px' }}>
+                      Estimated likelihood of an abnormal PSA / csPCa:
+                    </div>
+                    <div>
+                      <strong style={{ color: tierAccentColor, fontSize: '1.05rem' }}>
+                        ~{Math.round(empiricalRate * 100)}%
+                      </strong>
+                      {Number.isFinite(empiricalRateCiLo) && Number.isFinite(empiricalRateCiHi) && (
+                        <span style={{ color: 'var(--ink-500)', fontSize: '0.75rem', marginLeft: '6px' }}>
+                          (95% CI {Math.round(empiricalRateCiLo * 100)}–{Math.round(empiricalRateCiHi * 100)}%)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
                 {(() => {
                   // Show "Based on X of 27 inputs you answered" so users see the prediction
@@ -662,12 +785,23 @@ const Part1Results = ({
       {(() => {
         const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
         const isAmber = psaRecommendReason === 'score_threshold';
-        const isGreen = belowMinAge || aboveMaxScreeningAge || recommendPSA === false;
+        const isSymptomatic = psaRecommendReason === 'symptomatic_out_of_guideline';
+        const isOlderSharedDecision = psaRecommendReason === 'older_shared_decision';
+        const isLowRiskFollowup = psaRecommendReason === 'low_risk_followup';
+        const isGreen = !isSymptomatic && (belowMinAge || aboveMaxScreeningAge || recommendPSA === false || isLowRiskFollowup);
         const isAgeGuideline = psaRecommendReason === 'age_guideline_50_69';
-        const variant = isRed ? 'red' : (isAmber || isAgeGuideline) ? 'amber' : isGreen ? 'green' : 'blue';
-        const heroIcon = isRed || isAmber || isAgeGuideline ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
+        const variant = isRed ? 'red'
+          : (isAmber || isAgeGuideline) ? 'amber'
+          : isSymptomatic ? 'amber'
+          : isOlderSharedDecision ? 'blue'
+          : isGreen ? 'green'
+          : 'blue';
+        const heroIcon = isRed || isAmber || isAgeGuideline || isSymptomatic ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
         const heroTitle = isRed ? 'PSA Test Strongly Recommended'
           : (isAmber || isAgeGuideline) ? 'PSA Test Recommended'
+          : isSymptomatic ? 'Urological Evaluation Recommended'
+          : isOlderSharedDecision ? 'Shared Decision-Making Recommended'
+          : isLowRiskFollowup ? 'Routine Primary Care — Re-evaluate in 1–2 Years'
           : belowMinAge ? 'PSA Test Not Required'
           : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
           : isGreen ? 'PSA Test Not Currently Indicated'
@@ -684,6 +818,11 @@ const Part1Results = ({
               <div className="v2-psa-hero-body">
                 <h3 className="v2-psa-hero-title">{heroTitle}</h3>
                 <p className="v2-psa-hero-desc">{displayMessage}</p>
+                {psaGuidelineSupport && (
+                  <div style={{ marginTop: '8px' }}>
+                    <GuidelineSupportBadge support={psaGuidelineSupport} count={psaGuidelineSupportCount} />
+                  </div>
+                )}
               </div>
             </div>
             <div className="v2-psa-hero-ctas">
@@ -738,7 +877,7 @@ const Part1Results = ({
         <div className="high-risk-notice" role="note">
           <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
           <p>
-            <strong>High-risk factors detected.</strong> Your score is elevated and you have at least one guideline-recognised high-risk factor (age ≥70, Black ancestry, first-degree family history, hereditary genetic mutation, or multiple comorbidities). Earlier evaluation is recommended.
+            <strong>Guideline-recognised risk factors detected.</strong> Your score is in the higher range and you have at least one guideline-recognised risk factor (age ≥70, Black ancestry, first-degree family history, hereditary genetic mutation, or multiple comorbidities). Earlier evaluation is recommended.
           </p>
         </div>
       )}
@@ -756,10 +895,9 @@ const Part1Results = ({
       </div>
 
       {/* ── Next Steps ── */}
-      {(onContinueToPostPSA || onContinueToMRI || onContinueToPostBiopsy) && (
+      {(onContinueToPostPSA || onContinueToPostBiopsy) && (
         <NextStepsSection
           onContinueToPSA={onContinueToPostPSA}
-          onContinueToMRI={onContinueToMRI}
           onContinueToBiopsy={onContinueToPostBiopsy}
         />
       )}
@@ -832,6 +970,9 @@ const Part1Results = ({
           <div ref={breakdownRef}>
             <CollapsibleSection title="Risk Factor Breakdown" defaultOpen={true}>
               <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
+              <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
+                Each row is tagged <FactorSourceBadge itemName="Age" /> if it is a recognised AUA/NCCN/ERUS screening criterion, or <FactorSourceBadge itemName="BMI" /> if it is used by the ePSA model but is not part of any official screening criterion.
+              </p>
               <div className="impact-table-wrap">
                 <table className="impact-table" aria-label="Item impact breakdown table">
                   <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
@@ -840,7 +981,7 @@ const Part1Results = ({
                       const skipped = isImpactSkipped(impact.item);
                       return (
                         <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
-                          <td>{impact.item}<SourcesPopover itemName={impact.item} /></td>
+                          <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
                           <td>
                             {skipped ? (
                               <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
@@ -871,7 +1012,24 @@ const Part1Results = ({
           );
         })()}
 
-        <CollapsibleSection title="Screening Guidelines (AUA / NCCN) — for your age">
+        {screeningGuidelineAutoOpen && (
+          <div role="note" className="screening-guideline-callout">
+            <BookOpenIcon size={14} className="screening-guideline-callout__icon" />
+            <div className="screening-guideline-callout__body">
+              <strong>Why are the AUA/NCCN guidelines highlighted below?</strong>
+              <ul>
+                {guidelineTriggers.map(t => <li key={t.code}>{t.text}</li>)}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        <CollapsibleSection
+          id="screening-guidelines"
+          title="Screening Guidelines (AUA / NCCN) — for your age"
+          defaultOpen={screeningGuidelineAutoOpen}
+          highlight={screeningGuidelineAutoOpen}
+        >
           {(() => {
             const ageNum = Number(age);
             const ageBullets = [];
@@ -896,15 +1054,15 @@ const Part1Results = ({
                 );
               } else {
                 ageBullets.push(
-                  <li key="aua-u40"><strong>AUA/SUO</strong> — Routine PSA screening is <em>not</em> recommended before age 40 for average-risk men.</li>,
-                  <li key="nccn-u40"><strong>NCCN</strong> — Does not recommend routine PSA before age 40 for average-risk men.</li>
+                  <li key="aua-u40"><strong>AUA/SUO (2023, amended 2026)</strong> — Routine PSA screening is <em>not</em> recommended before age 40 for average-risk men.</li>,
+                  <li key="nccn-u40"><strong>NCCN 2024</strong> — Does not recommend routine PSA before age 40 for average-risk men.</li>
                 );
               }
             } else if (Number.isFinite(ageNum) && ageNum < 45) {
               if (isHighRisk) {
                 ageBullets.push(
-                  <li key="aua-40-45"><strong>AUA/SUO</strong> — Because you have {riskAnchorText}, screening discussions may start at 40–45.</li>,
-                  <li key="nccn-40-45"><strong>NCCN</strong> — First PSA at age 40 is recommended for higher-risk men like you.</li>
+                  <li key="aua-40-45"><strong>AUA/SUO (2023, amended 2026)</strong> — Because you have {riskAnchorText}, screening discussions may start at 40–45 (Strong Rec, Grade B).</li>,
+                  <li key="nccn-40-45"><strong>NCCN 2024</strong> — First PSA at age 40 is recommended for higher-risk men like you.</li>
                 );
               } else {
                 ageBullets.push(
@@ -913,23 +1071,23 @@ const Part1Results = ({
               }
             } else if (Number.isFinite(ageNum) && ageNum < 50) {
               ageBullets.push(
-                <li key="aua-45-50"><strong>AUA/SUO</strong> — A baseline PSA may be offered at ages 45–50.</li>,
-                <li key="nccn-45-50"><strong>NCCN</strong> — First PSA at age 45{isHighRisk ? '' : ' for average-risk men'}, every 1–2 years thereafter.</li>
+                <li key="aua-45-50"><strong>AUA/SUO (2023, amended 2026)</strong> — A baseline PSA may be offered at ages 45–50 (Conditional Rec, Grade B).</li>,
+                <li key="nccn-45-50"><strong>NCCN 2024</strong> — First PSA at age 45{isHighRisk ? '' : ' for average-risk men'}, every 1–2 years thereafter.</li>
               );
             } else if (Number.isFinite(ageNum) && ageNum <= 69) {
               ageBullets.push(
-                <li key="aua-50-69"><strong>AUA/SUO</strong> — Regular PSA screening every 2–4 years for ages 50–69.</li>,
-                <li key="nccn-50-69"><strong>NCCN</strong> — Testing every 1–2 years between ages 45 and 75.</li>
+                <li key="aua-50-69"><strong>AUA/SUO (2023, amended 2026)</strong> — Regular PSA screening every 2–4 years for ages 50–69 (Strong Rec, Grade A).</li>,
+                <li key="nccn-50-69"><strong>NCCN 2024</strong> — Testing every 1–2 years between ages 45 and 75.</li>
               );
             } else if (Number.isFinite(ageNum) && ageNum <= 75) {
               ageBullets.push(
-                <li key="aua-70-75"><strong>AUA/SUO</strong> — Continue screening via Shared Decision Making based on overall health and life expectancy.</li>,
-                <li key="nccn-70-75"><strong>NCCN</strong> — Testing through age 75 via Shared Decision Making.</li>
+                <li key="aua-70-75"><strong>AUA/SUO (2023, amended 2026)</strong> — Continue screening via Shared Decision Making based on overall health and life expectancy.</li>,
+                <li key="nccn-70-75"><strong>NCCN 2024</strong> — Testing through age 75 via Shared Decision Making.</li>
               );
             } else if (Number.isFinite(ageNum)) {
               ageBullets.push(
-                <li key="aua-75+"><strong>AUA/SUO</strong> — Above age 75, individualize or discontinue screening via Shared Decision Making. Unlikely to benefit those with &lt;10-year life expectancy.</li>,
-                <li key="nccn-75+"><strong>NCCN</strong> — Shared Decision Making above age 75.</li>
+                <li key="aua-75+"><strong>AUA/SUO (2023, amended 2026)</strong> — Above age 75, individualize or discontinue screening via Shared Decision Making. Unlikely to benefit those with &lt;10-year life expectancy.</li>,
+                <li key="nccn-75+"><strong>NCCN 2024</strong> — Shared Decision Making above age 75.</li>
               );
             }
 
@@ -944,6 +1102,14 @@ const Part1Results = ({
                   <p style={{ fontSize: '13px', color: '#6b7280' }}>Age unavailable — please refer to the full AUA/NCCN guidance below.</p>
                 )}
                 <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
+                <p style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', marginTop: '10px' }}>
+                  <a href="https://www.auanet.org/guidelines-and-quality/guidelines/early-detection-of-prostate-cancer-guidelines" target="_blank" rel="noopener noreferrer" style={{ color: '#1f6ea3', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <ExternalLinkIcon size={11} aria-hidden="true" /> AUA / SUO source
+                  </a>
+                  <a href="https://www.nccn.org/guidelines/category_2" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <ExternalLinkIcon size={11} aria-hidden="true" /> NCCN source
+                  </a>
+                </p>
                 <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>Disclaimer: ePSA was built using Mount Sinai's own patient data, and its risk levels and screening advice line up with AUA/NCCN guidelines. It's for learning only — not a replacement for a doctor.</em></p>
               </>
             );
