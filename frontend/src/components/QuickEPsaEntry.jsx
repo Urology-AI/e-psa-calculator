@@ -41,6 +41,10 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const [bmi, setBmi] = useState('25.49');
   const [ipssTotal, setIpssTotal] = useState('4');
   const [shimTotal, setShimTotal] = useState('25');
+  // Optional IPSS-QoL single question (Delighted=0 ... Terrible=6).
+  // Used as a short-form proxy: if ipssTotal is blank and a QoL is given,
+  // we synthesize an IPSS total by scaling QoL (0-6) up to the 0-35 range.
+  const [ipssQol, setIpssQol] = useState('');
 
   // Map your "father and grandfather" to "2+ relatives".
   const [familyHistory, setFamilyHistory] = useState(2); // engine uses >0 -> 1
@@ -60,8 +64,19 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const formData = useMemo(() => {
     const ageNum = age === '' ? '' : Number(age);
     const bmiNum = bmi === '' ? '' : Number(bmi);
-    const ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
+    let ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
     const shimTotalNum = shimTotal === '' ? '' : Number(shimTotal);
+
+    // Short-form QoL proxy: if user only filled QoL (0-6) and left IPSS total blank,
+    // approximate an IPSS total by scaling QoL into the 0-35 IPSS range.
+    // 0 Delighted -> 0; 6 Terrible -> ~30 (severe symptoms). Not a clinical equivalence —
+    // a transparent stand-in so the engine has something to score when only QoL was asked.
+    if ((ipssTotalNum === '' || !Number.isFinite(ipssTotalNum)) && ipssQol !== '') {
+      const qol = Number(ipssQol);
+      if (Number.isFinite(qol) && qol >= 0 && qol <= 6) {
+        ipssTotalNum = Math.round((qol / 6) * 30);
+      }
+    }
 
     // If totals are blank/invalid, distributeTotalToArray will produce nulls; validateInputs will catch it.
     const ipss = distributeTotalToArray(ipssTotalNum, 7, 5);
@@ -91,7 +106,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       coronaryArteryDisease: null,
       diabetes: null
     };
-  }, [age, bmi, ipssTotal, shimTotal, race, familyHistory, exercise, comorbidityScore]);
+  }, [age, bmi, ipssTotal, ipssQol, shimTotal, race, familyHistory, exercise, comorbidityScore]);
 
   const handlePrefillFromJsonFile = async (file) => {
     setUploading(true);
@@ -285,6 +300,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
     setRace('');
     setBmi('25.49');
     setIpssTotal('4');
+    setIpssQol('');
     setShimTotal('25');
     setFamilyHistory(2);
     setExercise(0);
@@ -439,6 +455,29 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                     value={shimTotal}
                     onChange={(e) => setShimTotal(e.target.value)}
                   />
+                </label>
+              </div>
+
+              {/* IPSS-QoL short-form proxy: a single bothering-symptoms question.
+                  Used when the user doesn't have an IPSS total handy. */}
+              <div className="quick-row">
+                <label className="quick-label" style={{ gridColumn: '1 / -1' }}>
+                  {t('quickEntry.ipssQolLabel')}
+                  <select
+                    className="quick-select"
+                    value={ipssQol}
+                    onChange={(e) => setIpssQol(e.target.value)}
+                  >
+                    <option value="">{t('quickEntry.ipssQolPlaceholder')}</option>
+                    <option value="0">0 — {t('quickEntry.ipssQol.delighted')}</option>
+                    <option value="1">1 — {t('quickEntry.ipssQol.pleased')}</option>
+                    <option value="2">2 — {t('quickEntry.ipssQol.mostlySatisfied')}</option>
+                    <option value="3">3 — {t('quickEntry.ipssQol.mixed')}</option>
+                    <option value="4">4 — {t('quickEntry.ipssQol.mostlyDissatisfied')}</option>
+                    <option value="5">5 — {t('quickEntry.ipssQol.unhappy')}</option>
+                    <option value="6">6 — {t('quickEntry.ipssQol.terrible')}</option>
+                  </select>
+                  <div className="quick-hint">{t('quickEntry.ipssQolHint')}</div>
                 </label>
               </div>
 

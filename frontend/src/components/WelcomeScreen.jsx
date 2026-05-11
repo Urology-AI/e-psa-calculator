@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, ExternalLinkIcon } from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, AlertCircleIcon, ExternalLinkIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ShareQrCode from './ShareQrCode';
 import './ShareQrCode.css';
@@ -217,6 +217,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── What is PSA? (education block) ── */}
+      <section className="ws-psa-intro" aria-labelledby="ws-psa-intro-title">
+        <div className="ws-psa-intro-kicker">
+          <InfoIcon size={13} aria-hidden="true" />
+          <span>{t('welcome.psaIntro.kicker')}</span>
+        </div>
+        <h2 id="ws-psa-intro-title" className="ws-psa-intro-title">
+          {t('welcome.psaIntro.heading')}
+        </h2>
+        <p className="ws-psa-intro-body">
+          {t('welcome.psaIntro.body')}
+        </p>
+        <div className="ws-psa-intro-nudge" role="note">
+          <AlertCircleIcon size={14} aria-hidden="true" />
+          <span>{t('welcome.psaIntro.seeDoctorNudge')}</span>
         </div>
       </section>
 

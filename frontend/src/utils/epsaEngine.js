@@ -193,20 +193,6 @@ export function checkGuardrails(formData, pathwayMode) {
     });
   }
 
-  // 4. Age < 50 with no high-risk features: consider genetics
-  if (Number.isFinite(age) && age < 50 && !formData?.highRiskFeatures) {
-    alerts.push({
-      level: 'info',
-      code: 'YOUNG_PATIENT_CONSIDER_GENETICS',
-      title: 'Age < 50 — Genetic Counseling Recommended',
-      message:
-        'For patients under 50, NCCN and EAU guidelines recommend genetic counseling and ' +
-        'consideration of germline testing (BRCA2, ATM, HOXB13) before initiating active ' +
-        'surveillance. ePSA does not yet incorporate germline risk scores.',
-      guideline: 'NCCN Prostate Cancer v1.2025 PROST-A; EAU 2024 §4.1',
-    });
-  }
-
   return alerts;
 }
 
@@ -757,7 +743,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     // 3-tier classification
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
-    epsaTierLabel: epsaTierDef.label,
+    epsaTierLabel: (epsaTierIndex === 2 && isHighRiskFlagged)
+      ? 'Strong candidate for PSA testing'
+      : epsaTierDef.label,
     epsaTierScoreRange: epsaTierDef.scoreRange,
     epsaTierNormalizedRange: epsaTierDef.normalizedRange,
     epsaTierBoundaries: { lowMax: 10, intermediateMax: 17, maxScore: MAX_POINTS },
