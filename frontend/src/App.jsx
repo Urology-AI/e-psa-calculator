@@ -157,6 +157,9 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+  // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
+  // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
+  const [isCalculatingPart1, setIsCalculatingPart1] = useState(false);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -1242,8 +1245,14 @@ function App() {
         return;
       }
 
-      setPreResult(result);
-      
+      // Show the transition overlay first, then reveal the result after a brief delay.
+      // The delay lets the user "land" on the result screen with the gauge animation.
+      setIsCalculatingPart1(true);
+      setTimeout(() => {
+        setPreResult(result);
+        setIsCalculatingPart1(false);
+      }, 1400);
+
       // Track only in cloud mode
       if (shouldTrackAnalytics) {
         trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART1_COMPLETED, {
@@ -1588,7 +1597,36 @@ function App() {
       case 3:
         return (
           <div className="pre-results-step">
-            {preResult ? (
+            {isCalculatingPart1 ? (
+              <div className="part1-transition-screen">
+                <div className="part1-transition-gauge" aria-hidden="true">
+                  <svg viewBox="0 0 80 80" width="80" height="80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="#e2eaf2" strokeWidth="6" />
+                    <circle
+                      cx="40" cy="40" r="32" fill="none"
+                      stroke="#2563eb" strokeWidth="6" strokeLinecap="round"
+                      strokeDasharray="50 200"
+                      transform="rotate(-90 40 40)"
+                    >
+                      <animateTransform
+                        attributeName="transform"
+                        type="rotate"
+                        from="-90 40 40"
+                        to="270 40 40"
+                        dur="1.1s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  </svg>
+                </div>
+                <p style={{ marginTop: '20px', fontSize: '1rem', fontWeight: 600, color: '#1e3a5f' }}>
+                  Calculating your risk profile…
+                </p>
+                <p style={{ marginTop: '6px', fontSize: '0.8125rem', color: '#607286' }}>
+                  Combining your answers with AUA/NCCN/EAU/ERSPC guideline criteria.
+                </p>
+              </div>
+            ) : preResult ? (
               <Part1Results
                 result={preResult}
                 formData={{ ...preData, pathwayMode: pathwayMode || preResult?.pathwayMode || 'pre_psa' }}
