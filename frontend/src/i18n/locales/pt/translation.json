@@ -96,7 +96,13 @@
     },
     "footerInstitution": "Escola de Medicina Icahn no Monte Sinai · Departamento de Urologia",
     "footerGuidelines": "Baseado em diretrizes de: AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "Esta ferramenta é apenas para fins educacionais e não é um diagnóstico. Não foi validada clinicamente para tomada de decisão independente e deve ser usada junto com a orientação de um profissional de saúde licenciado."
+    "footerDisclaimer": "Esta ferramenta é apenas para fins educacionais e não é um diagnóstico. Não foi validada clinicamente para tomada de decisão independente e deve ser usada junto com a orientação de um profissional de saúde licenciado.",
+    "psaIntro": {
+      "kicker": "Antes de começar",
+      "heading": "O que é o PSA, e por que isso importa?",
+      "body": "O antígeno prostático específico (PSA) é uma proteína produzida pela próstata que aparece em um simples exame de sangue. Níveis mais altos podem ser uma pista — embora não uma prova — de câncer de próstata ou outras condições prostáticas. O ePSA analisa sua idade, histórico familiar, ascendência e sintomas para estimar o quão relevante é o exame de PSA para você neste momento, para que a conversa com o seu médico comece com contexto.",
+      "seeDoctorNudge": "Se você já tem sintomas urinários ou histórico familiar conhecido de câncer de próstata, por favor converse com o seu médico — não espere por esta ferramenta."
+    }
   },
   "welcome2": {
     "stage2Title": "Etapa 2: Avaliação de Risco",
@@ -252,7 +258,11 @@
   },
   "info": {
     "learnMore": "Saiba mais sobre {{title}}",
-    "sources": "Fontes:"
+    "sources": "Fontes:",
+    "guidelineBadge": "Fator das diretrizes AUA/NCCN",
+    "modelOnlyBadge": "Somente modelo ePSA — não está nas AUA/NCCN",
+    "guidelineNote": "AUA e NCCN usam este fator em seus critérios oficiais de rastreamento do PSA. Suas diretrizes estão listadas primeiro nas fontes abaixo.",
+    "modelOnlyNote": "Este fator é usado pelo modelo ePSA, mas não faz parte dos critérios oficiais de rastreamento do PSA da AUA/NCCN. Baseia-se apenas em evidências de pesquisa."
   },
   "part1": {
     "fields": {
@@ -346,7 +356,8 @@
       },
       "shim": {
         "sectionTitle": "Saúde Sexual (SHIM)",
-        "shortLabel": "SHIM"
+        "shortLabel": "SHIM",
+        "sectionTitleIief": "Saúde Sexual (IIEF-5)"
       }
     },
     "race": {
@@ -354,7 +365,8 @@
       "black": "Negro / Afro-americano",
       "hispanic": "Hispânico / Latino",
       "asian": "Asiático / Ilhéu do Pacífico",
-      "other": "Outro / Misto"
+      "other": "Outro / Misto",
+      "mixed": "Mista / Multirracial"
     },
     "errors": {
       "step0": {
@@ -540,7 +552,76 @@
       "q5.opt2": "Algumas vezes",
       "q5.opt3": "Às vezes",
       "q5.opt4": "Na maioria das vezes",
-      "q5.opt5": "Quase sempre"
+      "q5.opt5": "Quase sempre",
+      "totalLabelIief": "Total IIEF-5",
+      "regionLabel": "Região da diretriz",
+      "regionUs": "EUA (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / Reino Unido (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men (Inventário de Saúde Sexual para Homens), o formulário de 5 itens usado pela AUA / NCCN.",
+      "regionNoteEau": "O IIEF-5 é a versão abreviada do International Index of Erectile Function, usado na prática da EAU / Reino Unido. (SHIM e IIEF-5 têm as mesmas 5 perguntas e a mesma pontuação de 0–25 — seu médico também pode usar o IIEF-15 completo.)",
+      "severityHeading": "O que esse total significa?",
+      "severitySevere": "ED grave",
+      "severityModerate": "ED moderada",
+      "severityMildModerate": "ED leve a moderada",
+      "severityMild": "ED leve",
+      "severityNone": "Sem ED"
+    },
+    "nonGuideline": {
+      "badge": "FORA DAS DIRETRIZES",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC não usam este fator para a decisão de rastreamento do PSA. É utilizado apenas pelo modelo de risco ePSA.",
+      "note": "Não faz parte dos critérios de rastreamento AUA/NCCN/EAU/ERSPC; usado apenas pelo modelo ePSA."
+    },
+    "guideline": {
+      "badge": "BASEADO EM DIRETRIZES",
+      "badgeTooltip": "Este fator é diretamente citado pelas diretrizes de rastreamento do câncer de próstata da AUA, NCCN e EAU."
+    },
+    "chemicalExposureOptions": {
+      "question": "Você teve alguma das seguintes exposições? (Marque todas as que se aplicam)",
+      "agentOrange": "Agente Laranja (militar / era do Vietnã)",
+      "nineEleven": "World Trade Center / local do 11 de setembro",
+      "otherChemical": "Outros produtos químicos ocupacionais ou ambientais (ex.: pesticidas, solventes)",
+      "none": "Nenhuma das anteriores",
+      "unknown": "Desconhecido / não tenho certeza",
+      "evidenceProven": "Forte evidência epidemiológica",
+      "evidenceUnspecified": "Associação possível; menos estabelecida"
+    },
+    "ipssShort": {
+      "toggleShort": "Usar versão curta (uma única pergunta de gravidade)",
+      "toggleFull": "Usar IPSS completo (7 perguntas)",
+      "skip": "Pular — não tenho sintomas urinários",
+      "singleQuestionLabel": "No geral, o quanto seus sintomas urinários o incomodam?",
+      "options": {
+        "none": "Nenhum",
+        "mild": "Leve",
+        "moderate": "Moderado",
+        "severe": "Grave"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Usar versão curta (uma única pergunta de gravidade)",
+      "toggleFull": "Usar SHIM completo (5 perguntas)",
+      "skip": "Pular — sem queixas eréteis",
+      "singleQuestionLabel": "No geral, como você descreveria sua função erétil nos últimos 6 meses?",
+      "options": {
+        "none": "Sem disfunção erétil",
+        "mild": "ED leve",
+        "mildModerate": "ED leve–moderada",
+        "moderate": "ED moderada",
+        "severe": "ED grave"
+      }
+    },
+    "abnormalPsaLikelihood": "Probabilidade estimada de PSA alterado / csPCa:",
+    "skip": {
+      "preferNotToSay": "Prefiro não dizer / Pular",
+      "skippedLabel": "Pulado — um valor padrão neutro será usado na estimativa.",
+      "sectionPrompt": "Não quer responder isso agora? Você pode pular esta seção.",
+      "sectionSkippedNote": "Esta seção foi pulada. Um valor padrão neutro será usado na estimativa.",
+      "skipSection": "Pular esta seção",
+      "answerInstead": "Responder mesmo assim"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "Somente ePSA"
     }
   },
   "part2": {
@@ -595,6 +676,10 @@
       "q1OptYes": "Sim",
       "q2": "Pontuação PIRADS na IRM",
       "q2Note": "As pontuações PI-RADS (Sistema de Relatório e Dados de Imagem da Próstata) variam de 1 a 5, com pontuações mais altas indicando maior suspeita de câncer de próstata clinicamente significativo."
+    },
+    "piradsInfo": {
+      "title": "Sobre o PI-RADS e a estimativa de risco do ePSA",
+      "description": "PI-RADS é uma escala de 1 a 5 que radiologistas usam para classificar lesões na ressonância magnética da próstata. PI-RADS 4 significa que a RM sugere que provavelmente há uma lesão clinicamente significativa; PI-RADS 5 significa altamente suspeita.\n\nImportante — o que significa a porcentagem do ePSA: quando o ePSA estima uma probabilidade a partir do PI-RADS e do PSA, ele prevê csPCa GG3+ — câncer de próstata clinicamente significativo com Gleason ≥3, a doença de maior risco — e não «qualquer câncer de próstata». Por se tratar de um desfecho mais estrito, o número pode parecer mais baixo do que o valor popular «PI-RADS 4 ≈ 60 % de câncer» que você possa ter visto em outro lugar. Ambos os números podem ser verdadeiros ao mesmo tempo — descrevem coisas diferentes.\n\nSempre converse sobre o significado do seu escore PI-RADS com seu urologista."
     }
   },
   "part1Results": {
@@ -659,7 +744,9 @@
     "btnPrintForm": "Imprimir Formulário",
     "exportFailedAlert": "Exportação falhou. Por favor, tente novamente.",
     "btnExportData": "Exportar Dados",
-    "btnExportCsv": "Exportar CSV"
+    "btnExportCsv": "Exportar CSV",
+    "empiricalProbabilityText": "Em nosso estudo de validação (N={{n}}), {{events}} em {{n}} pacientes nesta faixa de risco tinham câncer de próstata clinicamente significativo ({{rate}}%; IC 95% {{ciLo}}%–{{ciHi}}%).",
+    "educationalEstimateNote": "Esta é uma estimativa educativa — não diagnostica câncer. Use-a como ponto de partida para uma conversa com o seu médico."
   },
   "part2Results": {
     "disclaimer": "ePSA é uma ferramenta educacional de avaliação de risco não validada. Os níveis de risco são baseados em dados populacionais e limiares de diretrizes da AUA, NCCN e EAU. Em perfis demográficos de alto risco, o ePSA pode sugerir avaliação mais precoce do que os limiares padrão das diretrizes recomendam. Esta ferramenta não substitui o julgamento médico e não se destina à tomada de decisão clínica sem revisão médica. — Ashutosh K. Tewari, MD, Escola de Medicina Icahn do Monte Sinai",
@@ -786,7 +873,8 @@
       "black": "Negro / Afro-americano",
       "hispanic": "Hispânico / Latino",
       "asian": "Asiático / Ilhéu do Pacífico",
-      "other": "Outro / Misto"
+      "other": "Outro / Misto",
+      "mixed": "Mista / Multirracial"
     },
     "bmiLabel": "IMC",
     "bmiPlaceholder": "ex. 25.49",
@@ -844,6 +932,18 @@
       "ipssRange": "O total IPSS deve ser entre 0 e 35",
       "shimRange": "O total SHIM deve ser entre 0 e 25",
       "calculationFailed": "Cálculo falhou. Por favor, verifique seus dados de entrada."
+    },
+    "ipssQolLabel": "Não sabe o seu IPSS? Escolha como você se sentiria se seus sintomas urinários permanecessem iguais (IPSS-QoL)",
+    "ipssQolPlaceholder": "Pular — usarei o total de IPSS acima",
+    "ipssQolHint": "Usado somente se você deixar o total de IPSS acima em branco. Uma aproximação para o incômodo urinário.",
+    "ipssQol": {
+      "delighted": "Encantado",
+      "pleased": "Satisfeito",
+      "mostlySatisfied": "Majoritariamente satisfeito",
+      "mixed": "Misto (igualmente satisfeito e insatisfeito)",
+      "mostlyDissatisfied": "Majoritariamente insatisfeito",
+      "unhappy": "Infeliz",
+      "terrible": "Péssimo"
     }
   },
   "phoneAuth": {

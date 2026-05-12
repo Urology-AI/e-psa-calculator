@@ -5,6 +5,9 @@ import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
 import ResultsLoading from './ResultsLoading';
+import InfoIcon from './InfoIcon';
+import ResultsMetaBar from './ResultsMetaBar';
+import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
@@ -146,8 +149,8 @@ const Part2Results = ({
 
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(t);
+    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(loadingTimer);
   }, [result]);
 
   const handleExportCsv = () => {
@@ -263,13 +266,33 @@ const Part2Results = ({
   return (
     <div className="p2r-container" role="main">
 
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 2 · ePSA Combined Risk" />
+
       {/* ── Cloud row ── */}
       {(storageMode === 'local' && cloudAvailable && onSaveToCloud) && (
         <div className="p2r-cloud-row">
           <button type="button" className="p2r-btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
             <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
           </button>
-          {saveToCloudError && <span className="p2r-cloud-err">{saveToCloudError}</span>}
+          {saveToCloudError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.625rem 0.875rem',
+                background: 'rgba(217, 119, 6, 0.08)',
+                border: '1px solid rgba(217, 119, 6, 0.35)',
+                borderLeft: '4px solid #d97706',
+                borderRadius: '6px',
+                color: '#78350f',
+                fontSize: '0.8125rem',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Cloud save unavailable.</strong> {saveToCloudError}
+            </div>
+          )}
         </div>
       )}
 
@@ -336,7 +359,10 @@ const Part2Results = ({
 
           {postData?.knowPirads && piradsVal != null && piradsCtx && (
             <div className="p2r-key-input">
-              <div className="p2r-key-input-label">MRI PI-RADS</div>
+              <div className="p2r-key-input-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                MRI PI-RADS
+                <InfoIcon {...fieldReferences.part2.pirads} />
+              </div>
               <div className="p2r-key-input-value" style={{ color: piradsCtx.color }}>
                 {piradsVal === 0 ? '—' : piradsVal}
                 {piradsVal !== 0 && <span className="p2r-key-input-unit"> / 5</span>}
@@ -493,6 +519,19 @@ const Part2Results = ({
         )}
 
         <CollapsibleSection title="Important Disclaimer">
+          <p
+            className="detail-disclaimer"
+            style={{
+              padding: '0.75rem 1rem',
+              marginBottom: '0.75rem',
+              background: 'rgba(217, 119, 6, 0.08)',
+              borderLeft: '4px solid #d97706',
+              borderRadius: '6px',
+              color: '#78350f',
+            }}
+          >
+            <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
+          </p>
           <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>

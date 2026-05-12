@@ -11,6 +11,7 @@ import it from './locales/it/translation.json';
 import fr from './locales/fr/translation.json';
 import pt from './locales/pt/translation.json';
 import ar from './locales/ar/translation.json';
+import tr from './locales/tr/translation.json';
 
 const resources = {
   en: { translation: en },
@@ -21,6 +22,7 @@ const resources = {
   fr: { translation: fr },
   pt: { translation: pt },
   ar: { translation: ar },
+  tr: { translation: tr },
 };
 
 const normalizeLocale = (lng) => String(lng || '').trim();
@@ -39,6 +41,7 @@ const pickSupportedLanguage = (candidate) => {
   if (lower.startsWith('fr')) return 'fr';
   if (lower.startsWith('pt')) return 'pt';
   if (lower.startsWith('ar')) return 'ar';
+  if (lower.startsWith('tr')) return 'tr';
 
   return 'en';
 };

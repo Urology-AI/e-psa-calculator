@@ -1,0 +1,69 @@
+/* Persistent build/guideline strip. Anchored at viewport bottom so
+   it never gets pushed off-screen by tall content, but it doesn't
+   interfere with sticky CTAs (low z-index). */
+.version-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface-subtle, #f8fafc);
+  border-top: 1px solid var(--line-100, #e5e7eb);
+  color: var(--ink-500, #6b7280);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.version-footer__brand {
+  font-weight: 700;
+  color: var(--ink-700, #374151);
+  font-feature-settings: 'tnum' 1;
+}
+
+.version-footer__sep {
+  color: var(--ink-300, #d1d5db);
+  font-weight: 400;
+  user-select: none;
+}
+
+.version-footer__guidelines {
+  color: var(--ink-600, #4b5563);
+}
+
+.version-footer__note {
+  color: var(--ink-500, #6b7280);
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  .version-footer {
+    background: rgba(255, 255, 255, 0.03);
+    border-top-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .version-footer__brand { color: rgba(255, 255, 255, 0.85); }
+  .version-footer__guidelines { color: rgba(255, 255, 255, 0.72); }
+  .version-footer__sep { color: rgba(255, 255, 255, 0.2); }
+}
+
+.theme-dark .version-footer {
+  background: rgba(255, 255, 255, 0.03);
+  border-top-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+.theme-dark .version-footer__brand { color: rgba(255, 255, 255, 0.85); }
+.theme-dark .version-footer__guidelines { color: rgba(255, 255, 255, 0.72); }
+.theme-dark .version-footer__sep { color: rgba(255, 255, 255, 0.2); }
+
+@media print {
+  .version-footer {
+    border-top: 1px solid #999;
+    background: transparent;
+    color: #444;
+    page-break-inside: avoid;
+  }
+}
