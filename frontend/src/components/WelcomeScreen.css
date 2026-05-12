@@ -768,3 +768,39 @@
   .gl-modal-footer { padding: 0.85rem 1.1rem 1rem; }
   .gl-modal-title { font-size: 1.05rem; }
 }
+
+/* ── PSA Overview Modal (from "What is ePSA?" link) ── */
+.ws-overview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  animation: ws-modal-in 0.2s ease both;
+}
+
+@keyframes ws-modal-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ws-overview-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 15, 30, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.ws-overview-modal-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  animation: ws-modal-slide-in 0.25s cubic-bezier(.25,.46,.45,.94) both;
+}
+
+@keyframes ws-modal-slide-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
