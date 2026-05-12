@@ -41,6 +41,8 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
         {' '}
         This result is a screening-conversation aid based on AUA/SUO 2026, NCCN 2024, and EAU 2024 guidance.
         Discuss every result with a clinician before any health decision.
+        {' '}
+        <em>Models are internally validated on the Mount Sinai ePSA cohort only — no external cohort has been used yet.</em>
       </p>
     </div>
   );

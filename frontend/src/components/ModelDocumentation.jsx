@@ -224,7 +224,7 @@ const ModelDocumentation = ({ scope = 'part1', pathwayMode = null }) => {
           title="Combined PSA + ePSA Score"
           badge={isPsaPathway ? 'ACTIVE — PSA pathway' : 'NOT USED — MRI pathway ran instead'}
           badgeColor={isPsaPathway ? '#d97706' : '#9ca3af'}
-          inputs="Part 1 raw score + PSA level (5-ARI ×2 correction for finasteride/dutasteride) + PSA density if prostate volume provided (Youden cutoff 0.177 ng/mL/mL)"
+          inputs="Part 1 raw score + PSA level (5-ARI ×2 correction for finasteride/dutasteride) + PSA density if prostate volume provided (cohort-optimal Youden cutoff 0.177 ng/mL/mL; AUA-canonical clinical threshold is 0.15 ng/mL/mL)"
           outcome="csPCa (GG2+) combined risk tier — Low / Int-Low / Int-High / High"
           stats={[
             { label: 'AUC', value: m2.auc.toFixed(3), note: `[${m2.auc_ci_lo}–${m2.auc_ci_hi}]` },
