@@ -216,20 +216,6 @@
   margin: 0;
 }
 
-.printable-attribution {
-  font-size: 0.5625rem;
-  color: #1C2833;
-  font-weight: 700;
-  margin: 0.1875rem 0 0;
-}
-
-.printable-header-disclaimer {
-  font-size: 0.5rem;
-  color: #6b7280;
-  margin: 0.0625rem 0 0;
-  line-height: 1.35;
-}
-
 .phone-box {
   flex: 0 0 9.375rem;
   border: 0.0625rem solid #1C2833;

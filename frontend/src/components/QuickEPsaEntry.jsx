@@ -4,22 +4,9 @@ import './QuickEPsaEntry.css';
 import { calculateDynamicEPsa, validateInputs } from '../utils/dynamicCalculator';
 import { useTranslation } from 'react-i18next';
 
-const DEFAULTS = {
-  bmi: '26',
-  ipssTotal: '4',
-  shimTotal: '22',
-  familyHistory: 0,
-  exercise: 0,
-  comorbidityScore: 0,
-  smoking: 0,
-  dietPattern: 'western',
-  brcaStatus: 'no',
-  inflammationHistory: 0,
-  chemicalExposure: 'no',
-};
-
-// Distribute a total into `length` integer items (0..maxPerItem each).
-// The engine scores from totals, so per-item allocation is not clinically meaningful here.
+// Distribute a total (0..length*maxPerItem) into `length` integer items (0..maxPerItem each).
+// The engine uses totals for scoring, so exact per-item allocation is not clinically meaningful here;
+// this just satisfies the model's required SHIM/IPSS array inputs.
 const distributeTotalToArray = (total, length, maxPerItem) => {
   if (total === '' || total === null || total === undefined) return Array(length).fill(null);
   const parsed = Number(total);
@@ -28,37 +15,16 @@ const distributeTotalToArray = (total, length, maxPerItem) => {
   const safeTotal = Math.max(0, parsed);
   const arr = Array(length).fill(0);
   let remaining = safeTotal;
+
   for (let i = 0; i < length; i += 1) {
     const v = Math.min(maxPerItem, remaining);
     arr[i] = v;
     remaining -= v;
     if (remaining <= 0) break;
   }
+
   return arr;
 };
-
-const Chips = ({ value, options, onChange, ariaLabel }) => (
-  <div className="qe-chips" role="radiogroup" aria-label={ariaLabel}>
-    {options.map((opt) => {
-      const selected = String(value) === String(opt.value);
-      return (
-        <button
-          key={String(opt.value)}
-          type="button"
-          role="radio"
-          aria-checked={selected}
-          className={`qe-chip${selected ? ' qe-chip--selected' : ''}`}
-          onClick={() => onChange(opt.value)}
-        >
-          {opt.label}
-        </button>
-      );
-    })}
-  </div>
-);
-
-const DefaultBadge = ({ show, label }) =>
-  show ? <span className="qe-default-badge" aria-label={label}>{label}</span> : null;
 
 const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const { t } = useTranslation();
@@ -66,28 +32,34 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const [preResult, setPreResult] = useState(null);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
+  const [editDefaults, setEditDefaults] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [useQolFallback, setUseQolFallback] = useState(false);
 
-  // Required (no defaults)
+  // Pre-fill with the user's example values for speed.
   const [age, setAge] = useState('');
-  const [race, setRace] = useState('');
-
-  // Defaulted score modifiers
-  const [bmi, setBmi] = useState(DEFAULTS.bmi);
-  const [ipssTotal, setIpssTotal] = useState(DEFAULTS.ipssTotal);
-  const [shimTotal, setShimTotal] = useState(DEFAULTS.shimTotal);
+  const [race, setRace] = useState(''); // must be one of the UI options (engine normalizes)
+  const [bmi, setBmi] = useState('25.49');
+  const [ipssTotal, setIpssTotal] = useState('4');
+  const [shimTotal, setShimTotal] = useState('25');
+  // Optional IPSS-QoL single question (Delighted=0 ... Terrible=6).
+  // Used as a short-form proxy: if ipssTotal is blank and a QoL is given,
+  // we synthesize an IPSS total by scaling QoL (0-6) up to the 0-35 range.
   const [ipssQol, setIpssQol] = useState('');
-  const [familyHistory, setFamilyHistory] = useState(DEFAULTS.familyHistory);
 
-  // Defaulted lifestyle (collapsed)
-  const [exercise, setExercise] = useState(DEFAULTS.exercise);
-  const [comorbidityScore, setComorbidityScore] = useState(DEFAULTS.comorbidityScore);
-  const [smoking, setSmoking] = useState(DEFAULTS.smoking);
-  const [dietPattern, setDietPattern] = useState(DEFAULTS.dietPattern);
-  const [brcaStatus, setBrcaStatus] = useState(DEFAULTS.brcaStatus);
-  const [inflammationHistory, setInflammationHistory] = useState(DEFAULTS.inflammationHistory);
-  const [chemicalExposure, setChemicalExposure] = useState(DEFAULTS.chemicalExposure);
+  // Map your "father and grandfather" to "2+ relatives".
+  const [familyHistory, setFamilyHistory] = useState(2); // engine uses >0 -> 1
+
+  // Defaults (only editable if editDefaults is enabled)
+  // Required by validateInputs:
+  const [exercise, setExercise] = useState(0); // 0 regular, 1 some, 2 none
+  const [comorbidityScore, setComorbidityScore] = useState(0); // 0, 1, 2
+
+  // Model factors (not required by validateInputs but used in scoring)
+  const [smoking, setSmoking] = useState(0); // 0 never, 1 former, 2 current
+  const [dietPattern, setDietPattern] = useState('western'); // 'western' adds points; others are less/none
+  const [brcaStatus, setBrcaStatus] = useState('no'); // 'yes' adds points
+  const [inflammationHistory, setInflammationHistory] = useState(0); // 1 or 'yes' adds points
+  const [chemicalExposure, setChemicalExposure] = useState('no'); // 'yes' adds points
 
   const formData = useMemo(() => {
     const ageNum = age === '' ? '' : Number(age);
@@ -95,7 +67,10 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
     let ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
     const shimTotalNum = shimTotal === '' ? '' : Number(shimTotal);
 
-    // QoL proxy: scale 0–6 QoL into IPSS 0–30 if user left IPSS blank.
+    // Short-form QoL proxy: if user only filled QoL (0-6) and left IPSS total blank,
+    // approximate an IPSS total by scaling QoL into the 0-35 IPSS range.
+    // 0 Delighted -> 0; 6 Terrible -> ~30 (severe symptoms). Not a clinical equivalence —
+    // a transparent stand-in so the engine has something to score when only QoL was asked.
     if ((ipssTotalNum === '' || !Number.isFinite(ipssTotalNum)) && ipssQol !== '') {
       const qol = Number(ipssQol);
       if (Number.isFinite(qol) && qol >= 0 && qol <= 6) {
@@ -103,6 +78,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       }
     }
 
+    // If totals are blank/invalid, distributeTotalToArray will produce nulls; validateInputs will catch it.
     const ipss = distributeTotalToArray(ipssTotalNum, 7, 5);
     const shim = distributeTotalToArray(shimTotalNum, 5, 5);
 
@@ -114,38 +90,23 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       shim,
       exercise,
       familyHistory,
+
+      // Not required by validateInputs, but used in scoring.
       smoking,
       chemicalExposure,
+      // Treat "regular diet" as Western / standard American
       dietPattern,
       brcaStatus,
       inflammationHistory,
+
       comorbidityScore,
+      // kept for backward compatibility/printing; not required when comorbidityScore is provided
       hypertension: null,
       hyperlipidemia: null,
       coronaryArteryDisease: null,
-      diabetes: null,
+      diabetes: null
     };
-  }, [
-    age, bmi, ipssTotal, ipssQol, shimTotal, race, familyHistory,
-    exercise, comorbidityScore, smoking, dietPattern, brcaStatus,
-    inflammationHistory, chemicalExposure,
-  ]);
-
-  const resetDefaults = () => {
-    setBmi(DEFAULTS.bmi);
-    setIpssTotal(DEFAULTS.ipssTotal);
-    setShimTotal(DEFAULTS.shimTotal);
-    setIpssQol('');
-    setFamilyHistory(DEFAULTS.familyHistory);
-    setExercise(DEFAULTS.exercise);
-    setComorbidityScore(DEFAULTS.comorbidityScore);
-    setSmoking(DEFAULTS.smoking);
-    setDietPattern(DEFAULTS.dietPattern);
-    setBrcaStatus(DEFAULTS.brcaStatus);
-    setInflammationHistory(DEFAULTS.inflammationHistory);
-    setChemicalExposure(DEFAULTS.chemicalExposure);
-    setUseQolFallback(false);
-  };
+  }, [age, bmi, ipssTotal, ipssQol, shimTotal, race, familyHistory, exercise, comorbidityScore]);
 
   const handlePrefillFromJsonFile = async (file) => {
     setUploading(true);
@@ -165,102 +126,98 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       const text = await file.text();
       const parsed = JSON.parse(text);
       const imported = parsed?.formData ?? parsed?.part1Data ?? parsed?.data ?? parsed;
+
       if (!imported || typeof imported !== 'object') {
         setErrors([t('dataImport.errors.importFailed')]);
         return;
       }
 
-      const num = (v, fallback = '') =>
-        v === '' || v === null || v === undefined ? fallback : Number(v);
-      const yes = (v) => v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1';
+      const ageNum = imported.age === '' || imported.age === null || imported.age === undefined ? '' : Number(imported.age);
+      const bmiNum = imported.bmi === '' || imported.bmi === null || imported.bmi === undefined ? '' : Number(imported.bmi);
 
-      const ageNum = num(imported.age);
-      const bmiNum = num(imported.bmi);
       const ipssArray = Array.isArray(imported.ipss) ? imported.ipss : null;
       const shimArray = Array.isArray(imported.shim) ? imported.shim : null;
-      const ipssTotalNum = ipssArray
-        ? ipssArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0)
-        : Number(imported.ipssTotal);
-      const shimTotalNum = shimArray
-        ? shimArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0)
-        : Number(imported.shimTotal);
-      const safeIpss = Number.isFinite(ipssTotalNum) ? ipssTotalNum : '';
-      const safeShim = Number.isFinite(shimTotalNum) ? shimTotalNum : '';
-      const fhRaw = imported.familyHistory;
-      const familyHistoryNum =
-        fhRaw === 'unknown' ? 'unknown'
-          : fhRaw === null || fhRaw === undefined ? DEFAULTS.familyHistory
-          : Number(fhRaw);
-      const exerciseNum = num(imported.exercise, DEFAULTS.exercise);
+      const ipssTotalNum = ipssArray ? ipssArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0) : Number(imported.ipssTotal);
+      const shimTotalNum = shimArray ? shimArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0) : Number(imported.shimTotal);
+
+      const safeIpSsTotal = Number.isFinite(ipssTotalNum) ? ipssTotalNum : '';
+      const safeShimTotal = Number.isFinite(shimTotalNum) ? shimTotalNum : '';
+
+      const familyHistoryNum = imported.familyHistory === 'unknown' ? 'unknown' : imported.familyHistory === null || imported.familyHistory === undefined ? 2 : Number(imported.familyHistory);
+      const exerciseNum = imported.exercise === null || imported.exercise === undefined ? 0 : Number(imported.exercise);
+
+      const isYes = (v) => v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1';
 
       let comorbidity = imported.comorbidityScore;
       if (comorbidity === null || comorbidity === undefined) {
-        const flags = [imported.hypertension, imported.hyperlipidemia, imported.coronaryArteryDisease, imported.diabetes];
-        const n = flags.filter(yes).length;
+        const h = imported.hypertension;
+        const hld = imported.hyperlipidemia;
+        const cad = imported.coronaryArteryDisease;
+        const d = imported.diabetes;
+        const n = [h, hld, cad, d].filter((v) => isYes(v)).length;
         comorbidity = n >= 2 ? 2 : n;
       }
-      const comorbidityNum = comorbidity === '' || comorbidity === null || comorbidity === undefined
-        ? DEFAULTS.comorbidityScore
-        : Math.min(2, Math.max(0, Number(comorbidity)));
+      const comorbidityNum = comorbidity === '' || comorbidity === null || comorbidity === undefined ? 0 : Math.min(2, Math.max(0, Number(comorbidity)));
 
-      const smokingNum = num(imported.smoking, DEFAULTS.smoking);
-      const diet = typeof imported.dietPattern === 'string' && imported.dietPattern !== ''
-        ? imported.dietPattern
-        : DEFAULTS.dietPattern;
+      const smokingNum = imported.smoking === null || imported.smoking === undefined ? 0 : Number(imported.smoking);
+      const diet = typeof imported.dietPattern === 'string' && imported.dietPattern !== '' ? imported.dietPattern : 'western';
 
       const mapBrca = (v) => {
-        if (yes(v)) return 'yes';
+        if (v === true || v === 'yes' || v === 'Yes' || v === 1 || v === '1') return 'yes';
         if (v === false || v === 'no' || v === 'No' || v === 0 || v === '0') return 'no';
         if (v === 'unknown' || v === 'Unknown') return 'unknown';
-        return v === null || v === undefined || v === '' ? DEFAULTS.brcaStatus : String(v);
+        return v === null || v === undefined || v === '' ? 'no' : String(v);
       };
-      const mappedBrca = mapBrca(imported.brcaStatus);
-      const mappedInflammation = imported.inflammationHistory === null || imported.inflammationHistory === undefined
-        ? DEFAULTS.inflammationHistory
-        : (Number(imported.inflammationHistory) ? 1 : 0);
+
       const chem = imported.chemicalExposure;
-      const mappedChem = yes(chem)
-        ? 'yes'
-        : (chem === 'unknown' || chem === 'Unknown') ? 'unknown' : DEFAULTS.chemicalExposure;
+      const mappedChemicalExposure = (chem === true || chem === 'yes' || chem === 'Yes' || chem === 1 || chem === '1') ? 'yes' : (chem === 'unknown' || chem === 'Unknown') ? 'unknown' : 'no';
+
+      const mappedBrca = mapBrca(imported.brcaStatus);
+      const mappedInflammation = imported.inflammationHistory === null || imported.inflammationHistory === undefined ? 0 : (Number(imported.inflammationHistory) ? 1 : 0);
 
       const raceStr = typeof imported.race === 'string' ? imported.race : '';
 
+      // Prefill state (form fields should match what we used for calculation).
       setAge(ageNum === '' ? '' : String(ageNum));
       setRace(raceStr);
       setBmi(bmiNum === '' ? '' : String(bmiNum));
-      setIpssTotal(safeIpss === '' ? '' : String(safeIpss));
-      setShimTotal(safeShim === '' ? '' : String(safeShim));
-      setFamilyHistory(familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : DEFAULTS.familyHistory);
-      setExercise(Number.isFinite(exerciseNum) ? exerciseNum : DEFAULTS.exercise);
+      setIpssTotal(safeIpSsTotal === '' ? '' : String(safeIpSsTotal));
+      setShimTotal(safeShimTotal === '' ? '' : String(safeShimTotal));
+      setFamilyHistory(familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2);
+      setExercise(Number.isFinite(exerciseNum) ? exerciseNum : 0);
       setComorbidityScore(comorbidityNum);
-      setSmoking(Number.isFinite(smokingNum) ? smokingNum : DEFAULTS.smoking);
+      setSmoking(Number.isFinite(smokingNum) ? smokingNum : 0);
       setDietPattern(diet);
-      setBrcaStatus(['yes', 'no', 'unknown'].includes(mappedBrca) ? mappedBrca : DEFAULTS.brcaStatus);
+      setBrcaStatus(mappedBrca === 'yes' || mappedBrca === 'no' || mappedBrca === 'unknown' ? mappedBrca : 'no');
       setInflammationHistory(mappedInflammation);
-      setChemicalExposure(mappedChem);
+      setChemicalExposure(mappedChemicalExposure);
 
+      // Build a local formData object for validation + calculation (avoid stale state timing).
       const localFormData = {
         age: ageNum === '' ? '' : ageNum,
-        race: raceStr || null,
+        race: raceStr ? raceStr : null,
         bmi: bmiNum === '' ? '' : bmiNum,
-        ipss: distributeTotalToArray(safeIpss, 7, 5),
-        shim: distributeTotalToArray(safeShim, 5, 5),
-        exercise: Number.isFinite(exerciseNum) ? exerciseNum : DEFAULTS.exercise,
-        familyHistory: familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : DEFAULTS.familyHistory,
-        smoking: Number.isFinite(smokingNum) ? smokingNum : DEFAULTS.smoking,
-        chemicalExposure: mappedChem,
+        ipss: distributeTotalToArray(safeIpSsTotal, 7, 5),
+        shim: distributeTotalToArray(safeShimTotal, 5, 5),
+        exercise: Number.isFinite(exerciseNum) ? exerciseNum : 0,
+        familyHistory: familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : 2,
+        smoking: Number.isFinite(smokingNum) ? smokingNum : 0,
+        chemicalExposure: mappedChemicalExposure,
         dietPattern: diet,
         brcaStatus: mappedBrca,
         inflammationHistory: mappedInflammation,
         comorbidityScore: comorbidityNum,
-        hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
+        hypertension: null,
+        hyperlipidemia: null,
+        coronaryArteryDisease: null,
+        diabetes: null
       };
 
       const extraErrors = [];
-      if (safeIpss !== '' && (!Number.isFinite(safeIpss) || safeIpss < 0 || safeIpss > 35)) {
+      if (safeIpSsTotal !== '' && (!Number.isFinite(safeIpSsTotal) || safeIpSsTotal < 0 || safeIpSsTotal > 35)) {
         extraErrors.push(t('quickEntry.errors.ipssRange'));
       }
-      if (safeShim !== '' && (!Number.isFinite(safeShim) || safeShim < 0 || safeShim > 25)) {
+      if (safeShimTotal !== '' && (!Number.isFinite(safeShimTotal) || safeShimTotal < 0 || safeShimTotal > 25)) {
         extraErrors.push(t('quickEntry.errors.shimRange'));
       }
 
@@ -268,11 +225,13 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       const mergedErrors = [...(validation.errors || []), ...extraErrors];
       setWarnings(validation.warnings || []);
       setErrors(mergedErrors);
+
       if (mergedErrors.length > 0) {
         setPreResult(null);
         setShowResults(false);
         return;
       }
+
       const result = calculateDynamicEPsa(localFormData, calculatorConfig);
       if (!result) {
         setPreResult(null);
@@ -281,6 +240,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
         setWarnings([]);
         return;
       }
+
       setPreResult(result);
       setShowResults(true);
     } catch (err) {
@@ -297,21 +257,25 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
     const ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
     const shimTotalNum = shimTotal === '' ? '' : Number(shimTotal);
     const extraErrors = [];
+
     if (ipssTotalNum !== '' && (!Number.isFinite(ipssTotalNum) || ipssTotalNum < 0 || ipssTotalNum > 35)) {
       extraErrors.push(t('quickEntry.errors.ipssRange'));
     }
     if (shimTotalNum !== '' && (!Number.isFinite(shimTotalNum) || shimTotalNum < 0 || shimTotalNum > 25)) {
       extraErrors.push(t('quickEntry.errors.shimRange'));
     }
+
     const validation = validateInputs(formData, calculatorConfig);
     const mergedErrors = [...(validation.errors || []), ...extraErrors];
     setErrors(mergedErrors);
     setWarnings(validation.warnings || []);
+
     if (mergedErrors.length > 0) {
       setPreResult(null);
       setShowResults(false);
       return;
     }
+
     const result = calculateDynamicEPsa(formData, calculatorConfig);
     if (!result) {
       setPreResult(null);
@@ -320,44 +284,41 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       setWarnings([]);
       return;
     }
+
     setPreResult(result);
     setShowResults(true);
   };
 
-  const handleResetAll = () => {
+  const handleReset = () => {
     setShowResults(false);
     setPreResult(null);
     setErrors([]);
     setWarnings([]);
+    setEditDefaults(false);
+
     setAge('');
     setRace('');
-    resetDefaults();
+    setBmi('25.49');
+    setIpssTotal('4');
+    setIpssQol('');
+    setShimTotal('25');
+    setFamilyHistory(2);
+    setExercise(0);
+    setComorbidityScore(0);
+    setSmoking(0);
+    setDietPattern('western');
+    setBrcaStatus('no');
+    setInflammationHistory(0);
+    setChemicalExposure('no');
   };
-
-  // Default-tracking helpers (one place so layout stays clean)
-  const isDefault = {
-    bmi: String(bmi) === String(DEFAULTS.bmi),
-    ipss: String(ipssTotal) === String(DEFAULTS.ipssTotal),
-    shim: String(shimTotal) === String(DEFAULTS.shimTotal),
-    family: String(familyHistory) === String(DEFAULTS.familyHistory),
-    exercise: String(exercise) === String(DEFAULTS.exercise),
-    comorbid: String(comorbidityScore) === String(DEFAULTS.comorbidityScore),
-    smoking: String(smoking) === String(DEFAULTS.smoking),
-    diet: dietPattern === DEFAULTS.dietPattern,
-    brca: brcaStatus === DEFAULTS.brcaStatus,
-    inflam: String(inflammationHistory) === String(DEFAULTS.inflammationHistory),
-    chem: chemicalExposure === DEFAULTS.chemicalExposure,
-  };
-  const defaultLabel = t('quickEntry.usingDefault');
 
   return (
     <div className="quick-epsa">
       <div className="quick-epsa-card">
         <div className="quick-epsa-header">
-          <div>
-            <div className="quick-epsa-title">{t('quickEntry.title')}</div>
-            <div className="quick-epsa-subtitle">{t('quickEntry.subtitle')}</div>
-          </div>
+          <div className="quick-epsa-title">{t('quickEntry.title')}</div>
+          <div className="quick-epsa-subtitle">{t('quickEntry.subtitle')}</div>
+
           <div className="quick-epsa-actions">
             {onClose && (
               <button type="button" className="quick-epsa-close" onClick={onClose}>
@@ -377,43 +338,42 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
             userEmail={null}
             userPhone={null}
             onSaveToCloud={undefined}
-            onEditAnswers={handleResetAll}
-            onStartOver={handleResetAll}
+            onEditAnswers={handleReset}
+            onStartOver={handleReset}
           />
         ) : (
-          <form
-            className="quick-epsa-form"
-            onSubmit={(e) => { e.preventDefault(); handleCalculate(); }}
-          >
-            <div className="quick-upload">
-              <div className="quick-upload-title">{t('dataImport.uploadJsonData')}</div>
-              <div className="quick-upload-desc">{t('dataImport.uploadDescription')}</div>
-              <input
-                type="file"
-                id="quick-prefill-json"
-                accept=".json,application/json"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handlePrefillFromJsonFile(file);
-                  e.target.value = '';
-                }}
-              />
-              <label htmlFor="quick-prefill-json" className="quick-upload-btn" role="button" tabIndex={0}>
-                {uploading ? t('dataImport.importing') : t('dataImport.chooseJson')}
-              </label>
-            </div>
+          <>
+            <form
+              className="quick-epsa-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCalculate();
+              }}
+            >
+              <div className="quick-upload">
+                <div className="quick-upload-title">{t('dataImport.uploadJsonData')}</div>
+                <div className="quick-upload-desc">{t('dataImport.uploadDescription')}</div>
 
-            {/* ── Section 1: Required ── */}
-            <fieldset className="qe-section qe-section--required">
-              <legend className="qe-section-legend">
-                {t('quickEntry.requiredLegend')} <span className="qe-required-mark" aria-hidden="true">*</span>
-              </legend>
+                <input
+                  type="file"
+                  id="quick-prefill-json"
+                  accept=".json,application/json"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handlePrefillFromJsonFile(file);
+                    e.target.value = '';
+                  }}
+                />
+
+                <label htmlFor="quick-prefill-json" className="quick-upload-btn" role="button" tabIndex={0}>
+                  {uploading ? t('dataImport.importing') : t('dataImport.chooseJson')}
+                </label>
+              </div>
+
               <div className="quick-row">
                 <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.ageLabel')} <span className="qe-required-mark" aria-hidden="true">*</span>
-                  </span>
+                  {t('quickEntry.ageLabel')}
                   <input
                     className="quick-input"
                     type="number"
@@ -422,14 +382,12 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                     max="120"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    required
                   />
                 </label>
+
                 <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.raceLabel')} <span className="qe-required-mark" aria-hidden="true">*</span>
-                  </span>
-                  <select className="quick-select" value={race} onChange={(e) => setRace(e.target.value)} required>
+                  {t('quickEntry.raceLabel')}
+                  <select className="quick-select" value={race} onChange={(e) => setRace(e.target.value)}>
                     <option value="">{t('quickEntry.selectRace')}</option>
                     <option value="white">{t('quickEntry.race.white')}</option>
                     <option value="black">{t('quickEntry.race.black')}</option>
@@ -439,23 +397,10 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                   </select>
                 </label>
               </div>
-            </fieldset>
-
-            {/* ── Section 2: Score modifiers (defaulted, visible) ── */}
-            <fieldset className="qe-section">
-              <legend className="qe-section-legend">
-                {t('quickEntry.scoreModifiers')}
-                <button type="button" className="qe-reset-link" onClick={resetDefaults}>
-                  {t('quickEntry.resetDefaults')}
-                </button>
-              </legend>
 
               <div className="quick-row">
                 <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.bmiLabel')}
-                    <DefaultBadge show={isDefault.bmi} label={defaultLabel} />
-                  </span>
+                  {t('quickEntry.bmiLabel')}
                   <input
                     className="quick-input"
                     type="number"
@@ -469,81 +414,37 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                 </label>
 
                 <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.familyHistoryLabel')}
-                    <DefaultBadge show={isDefault.family} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.familyHistoryLabel')}
+                  {t('quickEntry.familyHistoryLabel')}
+                  <select
+                    className="quick-select"
                     value={familyHistory}
-                    onChange={(v) => setFamilyHistory(v === 'unknown' ? 'unknown' : Number(v))}
-                    options={[
-                      { value: 0, label: t('quickEntry.family.none') },
-                      { value: 1, label: t('quickEntry.family.one') },
-                      { value: 2, label: t('quickEntry.family.twoPlus') },
-                      { value: 'unknown', label: t('quickEntry.family.unknown') },
-                    ]}
-                  />
+                    onChange={(e) => { const v = e.target.value; setFamilyHistory(v === 'unknown' ? 'unknown' : Number(v)); }}
+                  >
+                    <option value={0}>{t('quickEntry.family.none')}</option>
+                    <option value={1}>{t('quickEntry.family.one')}</option>
+                    <option value={2}>{t('quickEntry.family.twoPlus')}</option>
+                    <option value="unknown">{t('quickEntry.family.unknown')}</option>
+                  </select>
                 </label>
               </div>
 
               <div className="quick-row">
-                {!useQolFallback ? (
-                  <label className="quick-label">
-                    <span className="qe-label-row">
-                      {t('quickEntry.ipssLabel')}
-                      <DefaultBadge show={isDefault.ipss} label={defaultLabel} />
-                    </span>
-                    <input
-                      className="quick-input"
-                      type="number"
-                      placeholder={t('quickEntry.ipssPlaceholder')}
-                      min="0"
-                      max="35"
-                      step="1"
-                      value={ipssTotal}
-                      onChange={(e) => setIpssTotal(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="qe-link"
-                      onClick={() => { setIpssTotal(''); setUseQolFallback(true); }}
-                    >
-                      {t('quickEntry.iDontKnow')}
-                    </button>
-                  </label>
-                ) : (
-                  <label className="quick-label">
-                    <span className="qe-label-row">{t('quickEntry.ipssQolLabel')}</span>
-                    <select
-                      className="quick-select"
-                      value={ipssQol}
-                      onChange={(e) => setIpssQol(e.target.value)}
-                    >
-                      <option value="">{t('quickEntry.ipssQolPlaceholder')}</option>
-                      <option value="0">0 — {t('quickEntry.ipssQol.delighted')}</option>
-                      <option value="1">1 — {t('quickEntry.ipssQol.pleased')}</option>
-                      <option value="2">2 — {t('quickEntry.ipssQol.mostlySatisfied')}</option>
-                      <option value="3">3 — {t('quickEntry.ipssQol.mixed')}</option>
-                      <option value="4">4 — {t('quickEntry.ipssQol.mostlyDissatisfied')}</option>
-                      <option value="5">5 — {t('quickEntry.ipssQol.unhappy')}</option>
-                      <option value="6">6 — {t('quickEntry.ipssQol.terrible')}</option>
-                    </select>
-                    <button
-                      type="button"
-                      className="qe-link"
-                      onClick={() => { setIpssQol(''); setUseQolFallback(false); setIpssTotal(DEFAULTS.ipssTotal); }}
-                    >
-                      {t('quickEntry.iDontKnowHide')}
-                    </button>
-                  </label>
-                )}
+                <label className="quick-label">
+                  {t('quickEntry.ipssLabel')}
+                  <input
+                    className="quick-input"
+                    type="number"
+                    placeholder={t('quickEntry.ipssPlaceholder')}
+                    min="0"
+                    max="35"
+                    step="1"
+                    value={ipssTotal}
+                    onChange={(e) => setIpssTotal(e.target.value)}
+                  />
+                </label>
 
                 <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.shimLabel')}
-                    <DefaultBadge show={isDefault.shim} label={defaultLabel} />
-                  </span>
+                  {t('quickEntry.shimLabel')}
                   <input
                     className="quick-input"
                     type="number"
@@ -556,170 +457,187 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                   />
                 </label>
               </div>
-            </fieldset>
 
-            {/* ── Section 3: Lifestyle & history (collapsed by default) ── */}
-            <details className="qe-section qe-details">
-              <summary className="qe-section-legend qe-details-summary">
-                {t('quickEntry.advanced')}
-                <span className="qe-details-hint">{t('quickEntry.advancedHint')}</span>
-              </summary>
-
+              {/* IPSS-QoL short-form proxy: a single bothering-symptoms question.
+                  Used when the user doesn't have an IPSS total handy. */}
               <div className="quick-row">
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.exerciseLabel')}
-                    <DefaultBadge show={isDefault.exercise} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.exerciseLabel')}
-                    value={exercise}
-                    onChange={(v) => setExercise(Number(v))}
-                    options={[
-                      { value: 0, label: t('quickEntry.exercise.regular') },
-                      { value: 1, label: t('quickEntry.exercise.some') },
-                      { value: 2, label: t('quickEntry.exercise.none') },
-                    ]}
-                  />
-                </label>
-
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.comorbiditiesLabel')}
-                    <DefaultBadge show={isDefault.comorbid} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.comorbiditiesLabel')}
-                    value={comorbidityScore}
-                    onChange={(v) => setComorbidityScore(Number(v))}
-                    options={[
-                      { value: 0, label: t('quickEntry.family.none') },
-                      { value: 1, label: t('quickEntry.comorbidities.one') },
-                      { value: 2, label: t('quickEntry.comorbidities.twoPlus') },
-                    ]}
-                  />
-                </label>
-              </div>
-
-              <div className="quick-row">
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.smokingLabel')}
-                    <DefaultBadge show={isDefault.smoking} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.smokingLabel')}
-                    value={smoking}
-                    onChange={(v) => setSmoking(Number(v))}
-                    options={[
-                      { value: 0, label: t('quickEntry.smoking.never') },
-                      { value: 1, label: t('quickEntry.smoking.former') },
-                      { value: 2, label: t('quickEntry.smoking.current') },
-                    ]}
-                  />
-                </label>
-
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.dietLabel')}
-                    <DefaultBadge show={isDefault.diet} label={defaultLabel} />
-                  </span>
+                <label className="quick-label" style={{ gridColumn: '1 / -1' }}>
+                  {t('quickEntry.ipssQolLabel')}
                   <select
                     className="quick-select"
-                    value={dietPattern}
-                    onChange={(e) => setDietPattern(e.target.value)}
+                    value={ipssQol}
+                    onChange={(e) => setIpssQol(e.target.value)}
                   >
-                    <option value="western">{t('quickEntry.diet.western')}</option>
-                    <option value="mediterranean">{t('quickEntry.diet.mediterranean')}</option>
-                    <option value="indian">{t('quickEntry.diet.indian')}</option>
-                    <option value="dash">{t('quickEntry.diet.dash')}</option>
-                    <option value="plant-based">{t('quickEntry.diet.plantBased')}</option>
-                    <option value="pescatarian">{t('quickEntry.diet.pescatarian')}</option>
-                    <option value="low-carb-keto">{t('quickEntry.diet.lowCarbKeto')}</option>
-                    <option value="other">{t('quickEntry.diet.other')}</option>
+                    <option value="">{t('quickEntry.ipssQolPlaceholder')}</option>
+                    <option value="0">0 — {t('quickEntry.ipssQol.delighted')}</option>
+                    <option value="1">1 — {t('quickEntry.ipssQol.pleased')}</option>
+                    <option value="2">2 — {t('quickEntry.ipssQol.mostlySatisfied')}</option>
+                    <option value="3">3 — {t('quickEntry.ipssQol.mixed')}</option>
+                    <option value="4">4 — {t('quickEntry.ipssQol.mostlyDissatisfied')}</option>
+                    <option value="5">5 — {t('quickEntry.ipssQol.unhappy')}</option>
+                    <option value="6">6 — {t('quickEntry.ipssQol.terrible')}</option>
                   </select>
+                  <div className="quick-hint">{t('quickEntry.ipssQolHint')}</div>
                 </label>
               </div>
 
-              <div className="quick-row">
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.brcaLabel')}
-                    <DefaultBadge show={isDefault.brca} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.brcaLabel')}
-                    value={brcaStatus}
-                    onChange={(v) => setBrcaStatus(v)}
-                    options={[
-                      { value: 'no', label: t('part1.options.no') },
-                      { value: 'yes', label: t('part1.options.yes') },
-                      { value: 'unknown', label: t('part1.options.unknown') },
-                    ]}
-                  />
-                </label>
-
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.inflammationLabel')}
-                    <DefaultBadge show={isDefault.inflam} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.inflammationLabel')}
-                    value={inflammationHistory}
-                    onChange={(v) => setInflammationHistory(Number(v))}
-                    options={[
-                      { value: 0, label: t('part1.options.no') },
-                      { value: 1, label: t('part1.options.yes') },
-                    ]}
-                  />
-                </label>
-              </div>
-
-              <div className="quick-row">
-                <label className="quick-label">
-                  <span className="qe-label-row">
-                    {t('quickEntry.chemicalExposureLabel')}
-                    <DefaultBadge show={isDefault.chem} label={defaultLabel} />
-                  </span>
-                  <Chips
-                    ariaLabel={t('quickEntry.chemicalExposureLabel')}
-                    value={chemicalExposure}
-                    onChange={(v) => setChemicalExposure(v)}
-                    options={[
-                      { value: 'no', label: t('part1.options.no') },
-                      { value: 'yes', label: t('part1.options.yes') },
-                    ]}
-                  />
-                </label>
-                <div className="quick-hint" style={{ alignSelf: 'end' }}>
-                  {t('quickEntry.defaultsAffectHint')}
+              <div className="quick-advanced">
+                <div className="quick-advanced-title">{t('quickEntry.defaultsTitle')}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={editDefaults}
+                      onChange={(e) => setEditDefaults(e.target.checked)}
+                    />
+                    <span>{t('quickEntry.editDefaults')}</span>
+                  </label>
                 </div>
-              </div>
-            </details>
 
-            {errors.length > 0 && (
-              <div className="quick-messages quick-errors" role="alert">
-                <div className="quick-messages-title">{t('quickEntry.fixToCalculate')}</div>
-                <ul className="quick-list">
-                  {errors.map((err, idx) => <li key={`${err}-${idx}`}>{err}</li>)}
-                </ul>
-              </div>
-            )}
+                {!editDefaults ? (
+                  <div className="quick-hint">
+                    {t('quickEntry.defaultsHint')}
+                  </div>
+                ) : (
+                  <>
+                    <div className="quick-row">
+                      <label className="quick-label">
+                        {t('quickEntry.exerciseLabel')}
+                        <select
+                          className="quick-select"
+                          value={exercise}
+                          onChange={(e) => setExercise(Number(e.target.value))}
+                        >
+                          <option value={0}>{t('quickEntry.exercise.regular')}</option>
+                          <option value={1}>{t('quickEntry.exercise.some')}</option>
+                          <option value={2}>{t('quickEntry.exercise.none')}</option>
+                        </select>
+                      </label>
 
-            {warnings.length > 0 && (
-              <div className="quick-messages quick-warnings">
-                <div className="quick-messages-title">{t('quickEntry.headsUp')}</div>
-                <ul className="quick-list">
-                  {warnings.map((w, idx) => <li key={`${w}-${idx}`}>{w}</li>)}
-                </ul>
-              </div>
-            )}
+                      <label className="quick-label">
+                        {t('quickEntry.comorbiditiesLabel')}
+                        <select
+                          className="quick-select"
+                          value={comorbidityScore}
+                          onChange={(e) => setComorbidityScore(Number(e.target.value))}
+                        >
+                          <option value={0}>{t('quickEntry.family.none')}</option>
+                          <option value={1}>{t('quickEntry.comorbidities.one')}</option>
+                          <option value={2}>{t('quickEntry.comorbidities.twoPlus')}</option>
+                        </select>
+                      </label>
+                    </div>
 
-            <div className="quick-submit-row">
-              <button className="quick-calc" type="submit">{t('quickEntry.calculate')}</button>
-            </div>
-          </form>
+                    <div className="quick-row">
+                      <label className="quick-label">
+                        {t('quickEntry.smokingLabel')}
+                        <select
+                          className="quick-select"
+                          value={smoking}
+                          onChange={(e) => setSmoking(Number(e.target.value))}
+                        >
+                          <option value={0}>{t('quickEntry.smoking.never')}</option>
+                          <option value={1}>{t('quickEntry.smoking.former')}</option>
+                          <option value={2}>{t('quickEntry.smoking.current')}</option>
+                        </select>
+                      </label>
+
+                      <label className="quick-label">
+                        {t('quickEntry.dietLabel')}
+                        <select
+                          className="quick-select"
+                          value={dietPattern}
+                          onChange={(e) => setDietPattern(e.target.value)}
+                        >
+                          <option value="western">{t('quickEntry.diet.western')}</option>
+                          <option value="mediterranean">{t('quickEntry.diet.mediterranean')}</option>
+                          <option value="indian">{t('quickEntry.diet.indian')}</option>
+                          <option value="dash">{t('quickEntry.diet.dash')}</option>
+                          <option value="plant-based">{t('quickEntry.diet.plantBased')}</option>
+                          <option value="pescatarian">{t('quickEntry.diet.pescatarian')}</option>
+                          <option value="low-carb-keto">{t('quickEntry.diet.lowCarbKeto')}</option>
+                          <option value="other">{t('quickEntry.diet.other')}</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="quick-row">
+                      <label className="quick-label">
+                        {t('quickEntry.brcaLabel')}
+                        <select
+                          className="quick-select"
+                          value={brcaStatus}
+                          onChange={(e) => setBrcaStatus(e.target.value)}
+                        >
+                          <option value="no">{t('part1.options.no')}</option>
+                          <option value="yes">{t('part1.options.yes')}</option>
+                          <option value="unknown">{t('part1.options.unknown')}</option>
+                        </select>
+                      </label>
+
+                      <label className="quick-label">
+                        {t('quickEntry.inflammationLabel')}
+                        <select
+                          className="quick-select"
+                          value={inflammationHistory}
+                          onChange={(e) => setInflammationHistory(Number(e.target.value))}
+                        >
+                          <option value={0}>{t('part1.options.no')}</option>
+                          <option value={1}>{t('part1.options.yes')}</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="quick-row">
+                      <label className="quick-label">
+                        {t('quickEntry.chemicalExposureLabel')}
+                        <select
+                          className="quick-select"
+                          value={chemicalExposure}
+                          onChange={(e) => setChemicalExposure(e.target.value)}
+                        >
+                          <option value="no">{t('part1.options.no')}</option>
+                          <option value="yes">{t('part1.options.yes')}</option>
+                        </select>
+                      </label>
+
+                      <div className="quick-hint" style={{ alignSelf: 'end' }}>
+                        {t('quickEntry.defaultsAffectHint')}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {errors.length > 0 && (
+                <div className="quick-messages quick-errors" role="alert">
+                  <div className="quick-messages-title">{t('quickEntry.fixToCalculate')}</div>
+                  <ul className="quick-list">
+                    {errors.map((err, idx) => (
+                      <li key={`${err}-${idx}`}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="quick-messages quick-warnings">
+                  <div className="quick-messages-title">{t('quickEntry.headsUp')}</div>
+                  <ul className="quick-list">
+                    {warnings.map((w, idx) => (
+                      <li key={`${w}-${idx}`}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="quick-submit-row">
+                <button className="quick-calc" type="submit">
+                  {t('quickEntry.calculate')}
+                </button>
+              </div>
+            </form>
+          </>
         )}
       </div>
     </div>
@@ -727,3 +645,4 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
 };
 
 export default QuickEPsaEntry;
+

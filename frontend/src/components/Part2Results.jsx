@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import './Part2Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -33,12 +32,11 @@ const CollapsibleSection = ({ title, children, defaultOpen = false, className = 
 
 /* ─── Risk Level Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
-  const { t } = useTranslation();
   const levels = [
-    { id: 'low',               label: t('part2Results.tiers.riskBar.low'),              color: '#16a34a' },
-    { id: 'intermediate-low',  label: t('part2Results.tiers.riskBar.intermediateLow'),  color: '#2563eb' },
-    { id: 'intermediate-high', label: t('part2Results.tiers.riskBar.intermediateHigh'), color: '#d97706' },
-    { id: 'high',              label: t('part2Results.tiers.riskBar.high'),             color: '#dc2626' },
+    { id: 'low',               label: 'Low',      color: '#16a34a' },
+    { id: 'intermediate-low',  label: 'Int-Low',  color: '#2563eb' },
+    { id: 'intermediate-high', label: 'Int-High', color: '#d97706' },
+    { id: 'high',              label: 'High',     color: '#dc2626' },
   ];
   const cls = String(riskClass || '').toLowerCase();
   const activeIdx = cls === 'very-high-risk' ? 3 : cls === 'high-risk' ? 2 : cls === 'moderate-risk' ? 1 : 0;
@@ -113,25 +111,30 @@ const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
   );
 };
 
-/* ─── PSA context colors (labels resolved via i18n inside component) ─── */
-const PSA_TIER_COLORS = {
-  'low':               '#16a34a',
-  'intermediate-low':  '#2563eb',
-  'intermediate-high': '#d97706',
-  'high':              '#dc2626',
-};
-const PSA_TIER_I18N_KEY = {
-  'low':               'low',
-  'intermediate-low':  'intermediateLow',
-  'intermediate-high': 'intermediateHigh',
-  'high':              'high',
+/* ─── PSA context labels for patients ─── */
+const PSA_TIER_CONTEXT = {
+  'low':               { label: 'Low range',              detail: 'Reassuring. Continue routine screening.',             color: '#16a34a' },
+  'intermediate-low':  { label: 'Low–intermediate range', detail: 'Warrants monitoring. Ask your doctor about interval.', color: '#2563eb' },
+  'intermediate-high': { label: 'Elevated',               detail: 'Warrants evaluation by a urologist.',                 color: '#d97706' },
+  'high':              { label: 'Significantly elevated',  detail: 'Prompt urology referral recommended.',               color: '#dc2626' },
 };
 
-/* ─── PI-RADS context colors (labels resolved via i18n inside component) ─── */
-const PIRADS_COLORS = ['#16a34a', '#16a34a', '#16a34a', '#2563eb', '#d97706', '#dc2626'];
+/* ─── PI-RADS context labels for patients ─── */
+const PIRADS_CONTEXT = [
+  { label: 'No reportable lesion', color: '#16a34a', detail: 'MRI found no significant lesion.' },
+  { label: 'Very unlikely', color: '#16a34a' },
+  { label: 'Unlikely',      color: '#16a34a' },
+  { label: 'Uncertain',     color: '#2563eb' },
+  { label: 'Likely suspicious', color: '#d97706' },
+  { label: 'Highly suspicious', color: '#dc2626' },
+];
 
-/* ─── Gauge tier colors for Part 2 ─── */
-const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' };
+/* ─── Gauge tiers for Part 2 ─── */
+const P2_GAUGE_TIERS = [
+  { key: 'low',      label: 'Low',          color: '#16a34a' },
+  { key: 'moderate', label: 'Intermediate', color: '#d97706' },
+  { key: 'high',     label: 'High',         color: '#dc2626' },
+];
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -141,7 +144,6 @@ const Part2Results = ({
   saveToCloudPending = false, saveToCloudError = null,
   onShowModelDocs = null, onContinueToMRI = null,
 }) => {
-  const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -217,54 +219,28 @@ const Part2Results = ({
     return 17;
   })();
 
-  const psaTierLower = psaTier?.toLowerCase();
-  const psaTierKey = PSA_TIER_I18N_KEY[psaTierLower] || PSA_TIER_I18N_KEY['intermediate-high'];
-  const psaTierCtx = {
-    label: t(`part2Results.tiers.psaContext.${psaTierKey}.label`),
-    detail: t(`part2Results.tiers.psaContext.${psaTierKey}.detail`),
-    color: PSA_TIER_COLORS[psaTierLower] || PSA_TIER_COLORS['intermediate-high'],
-  };
-
+  const psaTierCtx = PSA_TIER_CONTEXT[psaTier?.toLowerCase()] || PSA_TIER_CONTEXT['intermediate-high'];
   const _piradsRaw = postData?.pirads;
   const piradsVal = (_piradsRaw !== null && _piradsRaw !== undefined && _piradsRaw !== '')
     ? Number(_piradsRaw)
     : null;
   const piradsCtx = (piradsVal != null && !isNaN(piradsVal))
-    ? (() => {
-        const idx = Math.min(5, Math.max(0, piradsVal));
-        const detailKey = `part2Results.tiers.pirads.${idx}.detail`;
-        const detail = t(detailKey);
-        return {
-          label: t(`part2Results.tiers.pirads.${idx}.label`),
-          color: PIRADS_COLORS[idx],
-          detail: detail === detailKey ? undefined : detail,
-        };
-      })()
+    ? PIRADS_CONTEXT[Math.min(5, Math.max(0, piradsVal))]
     : null;
-
-  const p2GaugeTiers = [
-    { key: 'low',      label: t('part2Results.tiers.gauge.low'),      color: P2_GAUGE_COLORS.low },
-    { key: 'moderate', label: t('part2Results.tiers.gauge.moderate'), color: P2_GAUGE_COLORS.moderate },
-    { key: 'high',     label: t('part2Results.tiers.gauge.high'),     color: P2_GAUGE_COLORS.high },
-  ];
 
   const heroVariant = biopsyRecommended
     ? (biopsyReason === 'high_risk_discordance' ? 'amber' : 'red')
     : 'blue';
   const heroIcon = heroVariant === 'red' ? <AlertCircleIcon size={20} /> : heroVariant === 'amber' ? <AlertTriangleIcon size={20} /> : <FlaskConicalIcon size={20} />;
-  const heroTitle = heroVariant === 'red'
-    ? t('part2Results.tiers.hero.biopsy')
-    : heroVariant === 'amber'
-    ? t('part2Results.tiers.hero.urologistReview')
-    : t('part2Results.tiers.hero.nextSteps');
+  const heroTitle = heroVariant === 'red' ? 'Biopsy Discussion Recommended' : heroVariant === 'amber' ? 'Urologist Review Recommended' : 'Next Steps';
 
   /* Plain-language recommendation based on tier — aligns with AUA/NCCN */
   const tierRecommendation = (() => {
-    if (epsaTierKey === 'high' && isVeryHighRisk) return t('part2Results.tiers.recommendation.veryHigh');
-    if (epsaTierKey === 'high') return t('part2Results.tiers.recommendation.high');
-    if (epsaTierKey === 'intermediate-high') return t('part2Results.tiers.recommendation.intermediateHigh');
-    if (epsaTierKey === 'intermediate-low') return t('part2Results.tiers.recommendation.intermediateLow');
-    return t('part2Results.tiers.recommendation.low');
+    if (epsaTierKey === 'high' && isVeryHighRisk) return 'Your combined risk is very high. AUA and NCCN guidelines recommend prompt urologist referral and strong consideration of biopsy. Additional staging imaging may also be discussed. This is an urgent conversation to have with your physician.';
+    if (epsaTierKey === 'high') return 'Your combined risk is high. AUA and NCCN guidelines recommend prompt referral to a urologist. A urologist will discuss whether a biopsy is appropriate — this is a conversation, not an automatic decision.';
+    if (epsaTierKey === 'intermediate-high') return 'Your combined risk warrants further evaluation. AUA and NCCN guidelines recommend speaking with a urologist. An MRI before biopsy is often the recommended next step to get more information.';
+    if (epsaTierKey === 'intermediate-low') return 'Your combined risk is low-intermediate. AUA and NCCN guidelines recommend continued monitoring. Talk with your doctor about how often to repeat your PSA — typically every 1–2 years.';
+    return 'Your combined risk is low. AUA and NCCN guidelines are reassuring at this level. Continue routine PSA screening — a repeat test in 2–4 years is typically appropriate.';
   })();
 
   const heroMessage = biopsyRecommended && biopsyMessage ? biopsyMessage : tierRecommendation;
@@ -272,19 +248,19 @@ const Part2Results = ({
   /* Surface discordance or low-PSA context as a single calm footnote in the hero */
   const hasContextNote = discordanceFlag || lowPsaWarning;
   const contextNote = lowPsaWarning
-    ? t('part2Results.tiers.contextNote.lowPsa')
+    ? 'Note: Even with a low PSA, your background risk factors (race, family history, or genetic mutation) mean closer monitoring is warranted per AUA/NCCN guidelines.'
     : discordanceFlag?.direction === 'psa_higher'
-    ? t('part2Results.tiers.contextNote.discordancePsaHigher')
+    ? `Note: Your PSA level is in a higher range than your combined tier alone suggests. Your PSA result is an independent signal — discuss it with your physician regardless of your overall profile.`
     : discordanceFlag
-    ? t('part2Results.tiers.contextNote.discordanceProfile')
+    ? 'Note: Your Part 1 risk profile raises your combined tier above what PSA alone would suggest. Both factors matter for your overall risk.'
     : null;
 
   /* Plain-language tier description for "Understanding Your Result" */
   const tierExplanation = (() => {
-    if (epsaTierKey === 'high') return t('part2Results.tiers.explanation.high');
-    if (epsaTierKey === 'intermediate-high') return t('part2Results.tiers.explanation.intermediateHigh');
-    if (epsaTierKey === 'intermediate-low') return t('part2Results.tiers.explanation.intermediateLow');
-    return t('part2Results.tiers.explanation.low');
+    if (epsaTierKey === 'high') return 'A high combined risk tier means your PSA level — together with your Part 1 risk profile — falls in the range where urologists typically discuss biopsy. This does not mean you have cancer; it means more investigation is warranted.';
+    if (epsaTierKey === 'intermediate-high') return 'An intermediate-high combined risk tier means your PSA level and risk profile suggest a urology consultation is appropriate. An MRI is often recommended before any biopsy decision to get a clearer picture.';
+    if (epsaTierKey === 'intermediate-low') return 'An intermediate-low combined risk tier means your PSA is mildly elevated or your background risk factors are present, but there is no immediate cause for concern. Continued monitoring with your doctor is the right approach.';
+    return 'A low combined risk tier means your PSA level and risk profile are reassuring. No additional testing is needed right now — continue with routine screening as recommended by your doctor.';
   })();
 
   return (
@@ -361,7 +337,7 @@ const Part2Results = ({
         </div>
 
         <div className="v2-gauge-layout">
-          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
+          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={P2_GAUGE_TIERS} />
           <div className="v2-tier-info">
             <div className="v2-tier-label">Combined Risk Tier</div>
             <h2 className="v2-tier-title" style={{ color: riskColor }}>{cleanRiskCat}</h2>
@@ -515,9 +491,6 @@ const Part2Results = ({
               ))}
             </ul>
           )}
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
-            {t('part2Results.tiers.endpointNote')}
-          </p>
           <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
             This result combines your PSA value with your Part 1 risk profile. It is an educational estimate — not a diagnosis. Always confirm any elevated PSA with a repeat test before considering a biopsy, and make decisions with your doctor.
           </p>
