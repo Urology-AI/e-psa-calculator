@@ -419,8 +419,7 @@
         "raceInline": "Lütfen ırk/etnik kökeninizi seçin"
       },
       "stepErrorTitle": "Devam etmeden önce lütfen aşağıdakileri tamamlayın:",
-      "selectOption": "Lütfen bir seçenek seçin"
-      ,
+      "selectOption": "Lütfen bir seçenek seçin",
       "validate": {
         "step0": {
           "ageInvalid": "Lütfen geçerli bir yaş girin (18+)",
@@ -677,9 +676,12 @@
       "q1OptYes": "Evet",
       "q2": "MRI'da PIRADS Skoru",
       "q2Note": "PI-RADS (Prostat Görüntüleme Raporlama ve Veri Sistemi) skorları 1-5 arasında değişir; daha yüksek skorlar klinik olarak anlamlı prostat kanserine yönelik daha yüksek şüpheyi gösterir."
+    },
+    "piradsInfo": {
+      "title": "PI-RADS ve ePSA risk tahmini hakkında",
+      "description": "PI-RADS, radyologların prostat MR'daki lezyonları derecelendirmek için kullandığı 1–5 ölçeğidir. PI-RADS 4, MR'ın klinik olarak anlamlı bir lezyonun muhtemel olduğunu önerdiği anlamına gelir; PI-RADS 5, lezyonun oldukça şüpheli olduğu anlamına gelir.\n\nÖnemli — ePSA yüzdesinin anlamı: ePSA, PI-RADS ve PSA'dan bir olasılık tahmin ettiğinde GG3+ csPCa'yı öngörür — Gleason ≥3 düzeyinde klinik olarak anlamlı prostat kanseri, yani daha yüksek riskli hastalık — herhangi bir prostat kanseri değil. Bu daha katı bir uç nokta olduğu için sayı, başka bir yerde görmüş olabileceğiniz popüler \"PI-RADS 4 ≈ %60 kanser\" rakamından daha düşük görünebilir. Her iki sayı da aynı anda doğru olabilir — farklı şeyleri tanımlarlar.\n\nPI-RADS puanınızın anlamını her zaman ürologunuzla görüşün."
     }
-  }
-  ,
+  },
   "part1Results": {
     "noResults": "Sonuç mevcut değil.",
     "empiricalProbabilityText": "Doğrulama çalışmamızda (N={{n}}), bu risk düzeyindeki {{n}} hastanın {{events}} tanesinde klinik olarak anlamlı prostat kanseri saptandı (%{{rate}}; %95 GA %{{ciLo}}–%{{ciHi}}).",
@@ -745,8 +747,7 @@
     "exportFailedAlert": "Dışa aktarma başarısız oldu. Lütfen tekrar deneyin.",
     "btnExportData": "Veriyi Dışa Aktar",
     "btnExportCsv": "CSV Olarak Dışa Aktar"
-  }
-  ,
+  },
   "part2Results": {
     "disclaimer": "ePSA eğitsel bir araçtır — tıbbi bir test veya tanı değildir. Riskinizi cevaplarınız, popülasyon araştırmaları ve AUA, NCCN ve EAU tarama kılavuzlarını kullanarak tahmin eder. Güçlü risk faktörleri olan erkekler için ePSA, genel kılavuzlardan daha erken bir tarama görüşmesi yapmayı önerebilir. Test veya tedaviye karar vermeden önce sonucu her zaman bir doktorla görüşün. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "noResults": "Sonuç mevcut değil.",

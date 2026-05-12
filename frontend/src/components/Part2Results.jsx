@@ -5,6 +5,8 @@ import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
 import ResultsLoading from './ResultsLoading';
+import InfoIcon from './InfoIcon';
+import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
@@ -336,7 +338,10 @@ const Part2Results = ({
 
           {postData?.knowPirads && piradsVal != null && piradsCtx && (
             <div className="p2r-key-input">
-              <div className="p2r-key-input-label">MRI PI-RADS</div>
+              <div className="p2r-key-input-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                MRI PI-RADS
+                <InfoIcon {...fieldReferences.part2.pirads} />
+              </div>
               <div className="p2r-key-input-value" style={{ color: piradsCtx.color }}>
                 {piradsVal === 0 ? '—' : piradsVal}
                 {piradsVal !== 0 && <span className="p2r-key-input-unit"> / 5</span>}

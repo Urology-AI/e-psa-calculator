@@ -676,6 +676,10 @@
       "q1OptYes": "Sim",
       "q2": "Pontuação PIRADS na IRM",
       "q2Note": "As pontuações PI-RADS (Sistema de Relatório e Dados de Imagem da Próstata) variam de 1 a 5, com pontuações mais altas indicando maior suspeita de câncer de próstata clinicamente significativo."
+    },
+    "piradsInfo": {
+      "title": "Sobre o PI-RADS e a estimativa de risco do ePSA",
+      "description": "PI-RADS é uma escala de 1 a 5 que radiologistas usam para classificar lesões na ressonância magnética da próstata. PI-RADS 4 significa que a RM sugere que provavelmente há uma lesão clinicamente significativa; PI-RADS 5 significa altamente suspeita.\n\nImportante — o que significa a porcentagem do ePSA: quando o ePSA estima uma probabilidade a partir do PI-RADS e do PSA, ele prevê csPCa GG3+ — câncer de próstata clinicamente significativo com Gleason ≥3, a doença de maior risco — e não «qualquer câncer de próstata». Por se tratar de um desfecho mais estrito, o número pode parecer mais baixo do que o valor popular «PI-RADS 4 ≈ 60 % de câncer» que você possa ter visto em outro lugar. Ambos os números podem ser verdadeiros ao mesmo tempo — descrevem coisas diferentes.\n\nSempre converse sobre o significado do seu escore PI-RADS com seu urologista."
     }
   },
   "part1Results": {

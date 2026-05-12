@@ -629,6 +629,10 @@
     "form": {
       "errorPreResult": "Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment."
     },
+    "piradsInfo": {
+      "title": "About PI-RADS and the ePSA risk estimate",
+      "description": "PI-RADS is a 1–5 scale that radiologists use to grade prostate MRI lesions. PI-RADS 4 means the MRI suggests a clinically significant lesion is likely; PI-RADS 5 means it is highly suspicious.\n\nImportant — what the ePSA percentage means: when ePSA estimates a probability from PI-RADS and PSA, it predicts GG3+ csPCa — clinically significant prostate cancer at Gleason Grade ≥3, the higher-risk disease — not any prostate cancer. Because this is a stricter endpoint, the number may look lower than the popular \"PI-RADS 4 ≈ 60% cancer\" figure you may have seen elsewhere. Both numbers can be true at the same time — they describe different things.\n\nAlways discuss the meaning of your PI-RADS score with your urologist."
+    },
     "flow": {
       "stepChip": "Step {{current}} of 2",
       "note": "Use your PSA and MRI information to refine your risk assessment results."
