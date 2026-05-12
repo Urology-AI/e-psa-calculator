@@ -56,6 +56,7 @@ function App() {
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
+  const [psaOverviewFrom, setPsaOverviewFrom] = useState('consent'); // tracks where overview was opened from
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
@@ -712,6 +713,7 @@ function App() {
     if (user) {
       try {
         await upsertConsent(consent);
+        setPsaOverviewFrom('consent');
         setAuthStep('psa_overview');
       } catch (error) {
         console.error('Error saving consent:', error);
@@ -725,9 +727,11 @@ function App() {
         }
 
         // Still proceed to app even if Firestore fails
+        setPsaOverviewFrom('consent');
         setAuthStep('psa_overview');
       }
     } else {
+      setPsaOverviewFrom('consent');
       setAuthStep('psa_overview');
     }
   };
@@ -1509,7 +1513,8 @@ function App() {
                 setStorageMode('cloud');
                 setAuthStep('login');
               }}
-              onImport={() => setAuthStep('import')} 
+              onImport={() => setAuthStep('import')}
+              onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
               formData={{}}
               urlEmail={urlEmail}
             />
@@ -1561,8 +1566,9 @@ function App() {
       case 'psa_overview':
         return (
           <PSAOverviewScreen
-            onContinue={() => setAuthStep('app')}
-            onBack={() => setAuthStep('consent')}
+            onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
+            onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
+            continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
           />
         );
       default:

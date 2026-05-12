@@ -127,7 +127,7 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
   const { t, i18n } = useTranslation();
@@ -201,6 +201,17 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
                 {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
               </p>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
+                {onViewOverview && (
+                  <button
+                    type="button"
+                    className="ws-demo-link"
+                    onClick={onViewOverview}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    <InfoIcon size={13} />
+                    <span>What is ePSA?</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="ws-demo-link"
