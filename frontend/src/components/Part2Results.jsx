@@ -516,6 +516,9 @@ const Part2Results = ({
             </ul>
           )}
           <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
+            {t('part2Results.tiers.endpointNote')}
+          </p>
+          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
             This result combines your PSA value with your Part 1 risk profile. It is an educational estimate — not a diagnosis. Always confirm any elevated PSA with a repeat test before considering a biopsy, and make decisions with your doctor.
           </p>
         </CollapsibleSection>

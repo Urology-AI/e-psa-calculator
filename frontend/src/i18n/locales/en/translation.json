@@ -184,7 +184,12 @@
     "dataUseTitle": "Data use notice:",
     "dataUseBody": "Cloud session data is stored for up to 30 days and de-identified data may be used anonymously to improve and validate future versions of the model. Local mode stays on your device and remains under your control; if data is moved off your device or collected through a third-party device, it may be shared. Please confirm with the data collector, as we are not responsible for data moved from your device or other third-party devices. For cloud sessions, we use secure transfer and compliance-oriented safeguards.",
     "continueButton": "Continue",
-    "errorNoSelection": "Please select an option to continue"
+    "errorNoSelection": "Please select an option to continue",
+    "rightToWithdrawTitle": "Your rights",
+    "rightToWithdrawBody": "Participation is voluntary. You can stop using the tool at any time. If you used cloud storage, you can delete your saved session from the results screen — this is irreversible.",
+    "notMedicalDevice": "ePSA is not an FDA-cleared medical device and is not a substitute for evaluation by a clinician.",
+    "researcherContactTitle": "Questions or to withdraw your data",
+    "researcherContactBody": "Contact the study team: Aditya Dixit · aditya.dixit@mssm.edu · Department of Urology, Icahn School of Medicine at Mount Sinai."
   },
   "auth": {
     "createSessionHeading": "Create an anonymous session to save to cloud",
@@ -832,10 +837,11 @@
         "high": "High"
       },
       "hero": {
-        "biopsy": "Biopsy Discussion Recommended",
-        "urologistReview": "Urologist Review Recommended",
-        "nextSteps": "Next Steps"
+        "biopsy": "Consider discussing biopsy with your urologist",
+        "urologistReview": "Consider a urology review",
+        "nextSteps": "Suggested next steps"
       },
+      "endpointNote": "How risk is defined: Models 1–2 estimate the chance of any high-grade prostate cancer (GG2+). Model 3 (MRI pathway) estimates the chance of higher-grade cancer (GG3+). These thresholds matter — discuss with your urologist which best fits your situation.",
       "recommendation": {
         "veryHigh": "Your combined risk is very high. AUA and NCCN guidelines recommend prompt urologist referral and strong consideration of biopsy. Additional staging imaging may also be discussed. This is an urgent conversation to have with your physician.",
         "high": "Your combined risk is high. AUA and NCCN guidelines recommend prompt referral to a urologist. A urologist will discuss whether a biopsy is appropriate — this is a conversation, not an automatic decision.",
@@ -869,6 +875,8 @@
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "ePSA Questionnaire",
     "tagline": "Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+    "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Department of Urology",
+    "headerDisclaimer": "Educational use only — not an FDA-cleared medical device. Internally validated on the Mount Sinai ePSA cohort; no external validation yet.",
     "phoneLabel": "Phone Number:",
     "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "About You",

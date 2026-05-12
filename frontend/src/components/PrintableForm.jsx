@@ -265,6 +265,8 @@ const PrintableForm = ({ onBack, formData }) => {
               <div className="printable-title">{t('printableForm.millionStrongMenTitle')}</div>
               <h1 className="printable-heading">{t('printableForm.questionnaireTitle')}</h1>
               <p className="printable-tagline">{t('printableForm.tagline')}</p>
+              <p className="printable-attribution">{t('printableForm.headerAttribution')}</p>
+              <p className="printable-header-disclaimer">{t('printableForm.headerDisclaimer')}</p>
             </div>
           </div>
           <div className="phone-box">
