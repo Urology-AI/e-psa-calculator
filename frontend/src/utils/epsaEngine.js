@@ -348,6 +348,31 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : normalizeRaceValue(race) === 'black';
 
   const ageNum = parseInt(age, 10);
+
+  // Age-range guard: model coefficients were derived on ages 40–75.
+  // Return a minimal shell so the display layer shows the correct
+  // age-out messaging without producing a meaningless score.
+  if (ageNum < 40 || ageNum > 75) {
+    return {
+      score: 0,
+      age: ageNum,
+      bmi: Number(bmi).toFixed(1),
+      ipssTotal,
+      shimTotal,
+      itemImpacts: [],
+      guardrailAlerts: [],
+      belowMinAge: ageNum < 40,
+      aboveMaxScreeningAge: ageNum > 75,
+      // Age < 40: no PSA recommended per AUA/NCCN. Age > 75: requires SDM, not automatic.
+      recommendPSA: ageNum < 40 ? false : null,
+      epsaTierKey: 'low',
+      pathwayMode: formData.pathwayMode || 'pre_psa',
+      calculationDetails: { rawScore: 0, maxScore: 80 },
+      modelVersion: config.version,
+      skippedFields: Array.from(new Set(Array.isArray(formData.skippedFields) ? formData.skippedFields : [])),
+    };
+  }
+
   const bmiNum = parseFloat(bmi);
   const exerciseCode = Number(exercise);
   const fhBinary = familyHistory === 'unknown' ? 0 : familyHistory > 0 ? 1 : 0;
@@ -406,9 +431,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ---------------------------------------------------------------------------
   let rawScore = 0;
   const MAX_POINTS = 80;
+  const _skippedFields = new Set(Array.isArray(formData.skippedFields) ? formData.skippedFields : []);
   const itemImpacts = [];
-  const addImpact = (item, value, points) => {
-    itemImpacts.push({ item, value, points });
+  const addImpact = (item, value, points, fieldKey = null) => {
+    itemImpacts.push({ item, value, points, wasSkipped: fieldKey ? _skippedFields.has(fieldKey) : false });
     rawScore += points;
   };
 
@@ -421,31 +447,32 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   else addImpact('BMI', Number.isFinite(bmiNum) ? bmiNum.toFixed(1) : 'N/A', 0);
 
   // Only IPSS moderate (8-19) and severe (20-35) score points. Mild (0-7) scores 0.
-  if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8);
-  else addImpact('IPSS total', `${ipssTotal}/35`, 0);
+  if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8, 'ipss');
+  else addImpact('IPSS total', `${ipssTotal}/35`, 0, 'ipss');
 
-  if (exerciseCode === 1) addImpact('Exercise', 'Some', 2);
-  else if (exerciseCode === 2) addImpact('Exercise', 'None', 4);
-  else addImpact('Exercise', 'Regular', 0);
+  if (exerciseCode === 1) addImpact('Exercise', 'Some', 2, 'exercise');
+  else if (exerciseCode === 2) addImpact('Exercise', 'None', 4, 'exercise');
+  else addImpact('Exercise', 'Regular', 0, 'exercise');
 
-  if (smokingCode === 1) addImpact('Smoking', 'Former', 2);
-  else if (smokingCode === 2) addImpact('Smoking', 'Current', 6);
-  else addImpact('Smoking', 'Never', 0);
+  if (smokingCode === 1) addImpact('Smoking', 'Former', 2, 'smoking');
+  else if (smokingCode === 2) addImpact('Smoking', 'Current', 6, 'smoking');
+  else addImpact('Smoking', 'Never', 0, 'smoking');
 
   // Only 'western' and 'red_meat' score — 'mixed' scores 0
-  if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4);
-  else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0);
+  if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4, 'dietPattern');
+  else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0, 'dietPattern');
 
   addImpact('Black ancestry', isBlack ? 'Yes' : 'No', (isBlack && ageNum >= 40) ? 8 : 0);
-  addImpact('Family history', familyHistory === 'unknown' ? 'Unknown' : fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
+  addImpact('Family history', familyHistory === 'unknown' ? 'Unknown' : fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0, 'familyHistory');
 
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
   const brcaLabel = brcaPositive ? 'Reported' : brcaStatus === 'no' ? 'None reported' : 'Not tested / Unknown';
-  addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0);
+  addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0, 'brcaStatus');
   addImpact(
     'Inflammation history',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
-    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0
+    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0,
+    'inflammationHistory'
   );
   // Chemical exposure: support legacy ('yes'/'no'/'unknown') and expanded values
   //   - agent_orange / nine_eleven      -> strong epidemiologic evidence (4 pts)
@@ -462,8 +489,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : _ce === 'yes' ? 'Yes'
     : _ce === 'unknown' ? 'Unknown'
     : 'No';
-  addImpact('9/11 / Chemical exposure', _ceLabel, _ceStrong ? 4 : _ceWeak ? 2 : 0);
-  addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0);
+  addImpact('9/11 / Chemical exposure', _ceLabel, _ceStrong ? 4 : _ceWeak ? 2 : 0, 'chemicalExposure');
+  addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0, 'shim');
 
   const isYes = (v) => v === 'yes' || v === true || v === 1;
   let comorbidityPoints = 0;
@@ -511,16 +538,20 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
   // (Statement 4, Conditional Recommendation, Evidence Level: Grade B)
-  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason === null) {
+  // This always overrides 'score_threshold' at this age because the guideline
+  // recommendation already supports PSA — the model is NOT deviating from AUA/NCCN.
+  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason !== 'high_risk_early_screening') {
     recommendPSA = true;
     psaRecommendReason = 'baseline_psa_45_50';
   }
 
   // Step 2 — AUA regular screening window: ages 50–69 every 2–4 years
   // (Statement 6, Strong Recommendation, Evidence Level: Grade A)
+  // Also overrides 'score_threshold' so the deviation banner does not fire when
+  // guidelines already support PSA at this age.
   if (ageNum >= 50 && ageNum <= 69) {
     recommendPSA = true;
-    if (psaRecommendReason === null || psaRecommendReason === 'baseline_psa_45_50') {
+    if (psaRecommendReason === null || psaRecommendReason === 'baseline_psa_45_50' || psaRecommendReason === 'score_threshold') {
       psaRecommendReason = 'age_guideline_50_69';
     }
   }
@@ -755,6 +786,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     empiricalRate: cal?.rate ?? null,
     empiricalRateCiLo: cal?.ci_lo ?? null,
     empiricalRateCiHi: cal?.ci_hi ?? null,
+    empiricalRateN: cal?.n ?? null,
 
     // Risk factors
     isHighRiskFlagged,
@@ -782,7 +814,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     modelVersion: config.version,
     displayRange: `${rangeLow}%-${rangeHigh}%`,
     pathwayMode: formData.pathwayMode || 'pre_psa',
-    calculationDetails: { probability, rawScore, maxScore: MAX_POINTS }
+    calculationDetails: { probability, rawScore, maxScore: MAX_POINTS },
+    skippedFields: Array.from(_skippedFields),
   };
 };
 
@@ -967,8 +1000,16 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     if (diff > 0) {
       const severity = diff === 1 ? 'yellow' : 'orange';
       discordanceFlag = {
+        direction: 'epsa_higher',
         severity,
-        text: `Risk Discordance Detected. Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`
+        text: `Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. Your individual risk factors — such as race, family history, or genetic markers — may place you at elevated risk that PSA alone underestimates. Discuss this with your physician before concluding your PSA result is reassuring.`
+      };
+    } else if (diff < 0) {
+      // PSA is higher than ePSA combined tier — patient should not be falsely reassured
+      discordanceFlag = {
+        direction: 'psa_higher',
+        severity: 'yellow',
+        text: `Your PSA level (${psaVal} ng/mL, ${psaTierLabel}) is in a higher range than your combined ePSA tier (${tierDef.label}) alone suggests. A PSA in this range warrants follow-up with your physician regardless of your overall ePSA profile. Do not rely on the combined tier alone — your PSA result is an independent signal that should be discussed with your doctor.`
       };
     }
   }
