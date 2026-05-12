@@ -440,6 +440,21 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               {t('part1.errors.step0.ageInline')}
             </div>
           )}
+          {(() => {
+            const ageNum = parseInt(localData.age, 10);
+            if (!Number.isFinite(ageNum)) return null;
+            if (ageNum < 40) return (
+              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+                <strong>Age under 40:</strong> PSA screening is not routinely recommended per AUA/NCCN guidelines. You can still complete the questionnaire — your clinician can review the results.
+              </div>
+            );
+            if (ageNum > 75) return (
+              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+                <strong>Age over 75:</strong> Continued PSA screening requires individualized assessment based on health and life expectancy (AUA/NCCN). Discuss with your physician.
+              </div>
+            );
+            return null;
+          })()}
         </div>
       </div>
 
@@ -1168,8 +1183,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         {isEau ? t('part1.shim.regionNoteEau') : t('part1.shim.regionNoteUs')}
       </div>
 
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
+      <div className="question-note" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>
         {t('part1.shim.note')}
+      </div>
+      <div style={{ marginBottom: '16px', padding: '6px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px', fontSize: '0.78rem', color: '#075985' }}>
+        <strong>Scale direction:</strong> Higher SHIM/IIEF-5 score = better sexual function (opposite of IPSS, where lower = better urinary function).
       </div>
 
       {/* SHIM mode toggle: full 5-question vs short single-severity vs skip-no-concerns */}
