@@ -732,13 +732,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const isHighRiskFlagged = rawScore >= 18 && hasHighRiskAnchor;
 
   // ---------------------------------------------------------------------------
-  // Empirical probability display text
-  // "In our study, X in Y patients with your risk level had significant cancer"
+  // Empirical probability display — return data fields only.
+  // UI renders the sentence via i18n (`part1Results.empiricalProbabilityText`)
+  // so it translates correctly across locales.
   // ---------------------------------------------------------------------------
   const cal = epsaTierDef.empiricalRate;
-  const empiricalProbabilityText = cal
-    ? `In our validation study (N=${cal.n}), ${cal.events} in ${cal.n} patients at this risk tier had clinically significant prostate cancer (${Math.round(cal.rate * 100)}%; 95% CI ${Math.round(cal.ci_lo * 100)}%–${Math.round(cal.ci_hi * 100)}%).`
-    : null;
+  const empiricalProbabilityText = null; // deprecated — kept for callers that null-check; UI builds string via i18n
 
   const guardrailAlerts = checkGuardrails({
     psa: null,
@@ -787,6 +786,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     empiricalRateCiLo: cal?.ci_lo ?? null,
     empiricalRateCiHi: cal?.ci_hi ?? null,
     empiricalRateN: cal?.n ?? null,
+    empiricalRateEvents: cal?.events ?? null,
 
     // Risk factors
     isHighRiskFlagged,
@@ -1031,12 +1031,14 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   // ---------------------------------------------------------------------------
   // Empirical probability display (Models 2 & 3)
+  // Return data only — UI renders via i18n
+  // (`part2Results.empiricalProbabilityText`). For the `low` combined tier,
+  // rate is null (no cases in the biopsied referral cohort) and the UI hides
+  // the line entirely — this is correct behavior, not a tier mismatch.
   // ---------------------------------------------------------------------------
   const cal = tierDef.empiricalRate;
-  let empiricalProbabilityText = null;
-  if (cal && cal.rate !== null) {
-    empiricalProbabilityText = `In our validation study, approximately ${Math.round(cal.rate * 100)}% of patients at this combined risk tier had clinically significant prostate cancer (N=${cal.n}). ${cal.note}.`;
-  }
+  const empiricalProbabilityText = null; // deprecated — UI builds via i18n
+  const empiricalNote = cal?.note ?? null;
 
   // ---------------------------------------------------------------------------
   // Biopsy / urology referral recommendation
@@ -1193,6 +1195,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     piradsConfidenceText,
     empiricalProbabilityText,
     empiricalRate: cal?.rate ?? null,
+    empiricalRateN: cal?.n ?? null,
+    empiricalRateEvents: cal?.events ?? null,
+    empiricalNote,
 
     // Guardrails
     guardrailAlerts,

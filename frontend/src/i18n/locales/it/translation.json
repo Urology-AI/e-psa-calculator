@@ -96,7 +96,13 @@
     },
     "footerInstitution": "Icahn School of Medicine al Mount Sinai · Dipartimento di Urologia",
     "footerGuidelines": "Basato sulle linee guida di: AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "Questo strumento è solo a scopo educativo e non costituisce una diagnosi. Non è stato clinicamente validato per la presa di decisioni autonoma e deve essere utilizzato insieme alla guida di un professionista sanitario autorizzato."
+    "footerDisclaimer": "Questo strumento è solo a scopo educativo e non costituisce una diagnosi. Non è stato clinicamente validato per la presa di decisioni autonoma e deve essere utilizzato insieme alla guida di un professionista sanitario autorizzato.",
+    "psaIntro": {
+      "kicker": "Prima di iniziare",
+      "heading": "Che cos'è il PSA e perché è importante?",
+      "body": "L'antigene prostatico specifico (PSA) è una proteina prodotta dalla prostata che si rileva con un semplice esame del sangue. Livelli più alti possono essere un indizio — anche se non una prova — di cancro alla prostata o di altre patologie prostatiche. ePSA considera la tua età, la storia familiare, le origini e i sintomi per stimare quanto sia rilevante per te in questo momento un test del PSA, così la conversazione con il tuo medico inizia con un contesto chiaro.",
+      "seeDoctorNudge": "Se hai già sintomi urinari o una storia familiare nota di cancro alla prostata, parla con il tuo medico — non aspettare di usare questo strumento."
+    }
   },
   "welcome2": {
     "stage2Title": "Fase 2: Valutazione del Rischio",
@@ -252,7 +258,11 @@
   },
   "info": {
     "learnMore": "Scopri di più su {{title}}",
-    "sources": "Fonti:"
+    "sources": "Fonti:",
+    "guidelineBadge": "Fattore delle linee guida AUA/NCCN",
+    "modelOnlyBadge": "Solo modello ePSA — non incluso in AUA/NCCN",
+    "guidelineNote": "AUA e NCCN utilizzano questo fattore nei loro criteri ufficiali di screening del PSA. Le loro linee guida sono elencate per prime nelle fonti qui sotto.",
+    "modelOnlyNote": "Questo fattore è utilizzato dal modello ePSA ma non fa parte dei criteri ufficiali di screening del PSA di AUA/NCCN. Si basa unicamente su evidenze di ricerca."
   },
   "part1": {
     "fields": {
@@ -346,7 +356,8 @@
       },
       "shim": {
         "sectionTitle": "Salute Sessuale (SHIM)",
-        "shortLabel": "SHIM"
+        "shortLabel": "SHIM",
+        "sectionTitleIief": "Salute sessuale (IIEF-5)"
       }
     },
     "race": {
@@ -354,7 +365,8 @@
       "black": "Nero / Afroamericano",
       "hispanic": "Ispanico / Latino",
       "asian": "Asiatico / Isolano del Pacifico",
-      "other": "Altro / Misto"
+      "other": "Altro / Misto",
+      "mixed": "Mista / Multietnica"
     },
     "errors": {
       "step0": {
@@ -540,7 +552,76 @@
       "q5.opt2": "Alcune volte",
       "q5.opt3": "A volte",
       "q5.opt4": "La maggior parte delle volte",
-      "q5.opt5": "Quasi sempre"
+      "q5.opt5": "Quasi sempre",
+      "totalLabelIief": "Totale IIEF-5",
+      "regionLabel": "Regione delle linee guida",
+      "regionUs": "USA (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / UK (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, il modulo a 5 voci usato da AUA / NCCN.",
+      "regionNoteEau": "IIEF-5 è la versione abbreviata dell'International Index of Erectile Function usata nella pratica EAU / UK. (SHIM e IIEF-5 sono le stesse 5 domande con lo stesso punteggio 0–25 — il tuo medico potrebbe anche usare l'IIEF-15 completo.)",
+      "severityHeading": "Cosa significa questo totale?",
+      "severitySevere": "ED grave",
+      "severityModerate": "ED moderata",
+      "severityMildModerate": "ED da lieve a moderata",
+      "severityMild": "ED lieve",
+      "severityNone": "Nessuna ED"
+    },
+    "nonGuideline": {
+      "badge": "NON DA LINEE GUIDA",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC non utilizzano questo fattore per la decisione di screening del PSA. È usato solo dal modello di rischio ePSA.",
+      "note": "Non fa parte dei criteri di screening AUA/NCCN/EAU/ERSPC; usato solo dal modello ePSA."
+    },
+    "guideline": {
+      "badge": "BASATO SU LINEE GUIDA",
+      "badgeTooltip": "Questo fattore è citato direttamente dalle linee guida di screening del cancro alla prostata di AUA, NCCN ed EAU."
+    },
+    "chemicalExposureOptions": {
+      "question": "Hai avuto una delle seguenti esposizioni? (Seleziona tutte quelle applicabili)",
+      "agentOrange": "Agente Arancio (militare / era del Vietnam)",
+      "nineEleven": "World Trade Center / sito dell'11 settembre",
+      "otherChemical": "Altre sostanze chimiche professionali o ambientali (es. pesticidi, solventi)",
+      "none": "Nessuna delle precedenti",
+      "unknown": "Non lo so / non sono sicuro",
+      "evidenceProven": "Forti evidenze epidemiologiche",
+      "evidenceUnspecified": "Possibile associazione; meno consolidata"
+    },
+    "ipssShort": {
+      "toggleShort": "Usa versione breve (una sola domanda sulla gravità)",
+      "toggleFull": "Usa IPSS completo (7 domande)",
+      "skip": "Salta — non ho sintomi urinari",
+      "singleQuestionLabel": "In generale, quanto ti disturbano i tuoi sintomi urinari?",
+      "options": {
+        "none": "Nessuno",
+        "mild": "Lievi",
+        "moderate": "Moderati",
+        "severe": "Gravi"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Usa versione breve (una sola domanda sulla gravità)",
+      "toggleFull": "Usa SHIM completo (5 domande)",
+      "skip": "Salta — nessun problema di erezione",
+      "singleQuestionLabel": "In generale, come descriveresti la tua funzione erettile negli ultimi 6 mesi?",
+      "options": {
+        "none": "Nessuna disfunzione erettile",
+        "mild": "ED lieve",
+        "mildModerate": "ED lieve–moderata",
+        "moderate": "ED moderata",
+        "severe": "ED grave"
+      }
+    },
+    "abnormalPsaLikelihood": "Probabilità stimata di un PSA anomalo / csPCa:",
+    "skip": {
+      "preferNotToSay": "Preferisco non rispondere / Salta",
+      "skippedLabel": "Saltato — verrà usato un valore neutro predefinito nella stima.",
+      "sectionPrompt": "Non vuoi rispondere a queste domande ora? Puoi saltare questa sezione.",
+      "sectionSkippedNote": "Questa sezione è stata saltata. Verrà usato un valore neutro predefinito nella stima.",
+      "skipSection": "Salta questa sezione",
+      "answerInstead": "Rispondi invece"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "Solo ePSA"
     }
   },
   "part2": {
@@ -659,7 +740,9 @@
     "btnPrintForm": "Stampa modulo",
     "exportFailedAlert": "Esportazione fallita. Riprova.",
     "btnExportData": "Esporta dati",
-    "btnExportCsv": "Esporta CSV"
+    "btnExportCsv": "Esporta CSV",
+    "empiricalProbabilityText": "Nel nostro studio di validazione (N={{n}}), {{events}} su {{n}} pazienti in questa fascia di rischio avevano un cancro alla prostata clinicamente significativo ({{rate}}%; IC 95% {{ciLo}}%–{{ciHi}}%).",
+    "educationalEstimateNote": "Questa è una stima educativa — non diagnostica il cancro. Usala come punto di partenza per una conversazione con il tuo medico."
   },
   "part2Results": {
     "disclaimer": "ePSA è uno strumento educativo di valutazione del rischio non validato. I livelli di rischio si basano su dati a livello di popolazione e soglie di linee guida di AUA, NCCN e EAU. Questo strumento non sostituisce il giudizio del medico. — Ashutosh K. Tewari, MD, Icahn School of Medicine al Mount Sinai",
@@ -786,7 +869,8 @@
       "black": "Nero / Afroamericano",
       "hispanic": "Ispanico / Latino",
       "asian": "Asiatico / Isolano del Pacifico",
-      "other": "Altro / Misto"
+      "other": "Altro / Misto",
+      "mixed": "Mista / Multietnica"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "es. 25,49",
@@ -844,6 +928,18 @@
       "ipssRange": "Il totale IPSS deve essere compreso tra 0 e 35",
       "shimRange": "Il totale SHIM deve essere compreso tra 0 e 25",
       "calculationFailed": "Calcolo fallito. Controlla i tuoi input."
+    },
+    "ipssQolLabel": "Non conosci il tuo IPSS? Scegli come ti sentiresti se i tuoi sintomi urinari rimanessero invariati (IPSS-QoL)",
+    "ipssQolPlaceholder": "Salta — userò il totale IPSS qui sopra",
+    "ipssQolHint": "Utilizzato solo se lasci vuoto il totale IPSS qui sopra. Una stima approssimativa del fastidio urinario.",
+    "ipssQol": {
+      "delighted": "Felicissimo",
+      "pleased": "Soddisfatto",
+      "mostlySatisfied": "Per lo più soddisfatto",
+      "mixed": "Misto (circa ugualmente soddisfatto e insoddisfatto)",
+      "mostlyDissatisfied": "Per lo più insoddisfatto",
+      "unhappy": "Infelice",
+      "terrible": "Terribile"
     }
   },
   "phoneAuth": {

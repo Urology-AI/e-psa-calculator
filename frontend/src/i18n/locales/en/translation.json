@@ -682,6 +682,8 @@
   ,
   "part1Results": {
     "noResults": "No results available.",
+    "empiricalProbabilityText": "In our validation study (N={{n}}), {{events}} in {{n}} patients at this risk tier had clinically significant prostate cancer ({{rate}}%; 95% CI {{ciLo}}%–{{ciHi}}%).",
+    "educationalEstimateNote": "This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.",
     "sessionKeyLabel": "Session key",
     "savedToCloud": "Saved to cloud",
     "saving": "Saving...",
