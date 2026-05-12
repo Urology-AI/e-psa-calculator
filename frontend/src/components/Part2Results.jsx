@@ -148,8 +148,8 @@ const Part2Results = ({
 
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(t);
+    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(loadingTimer);
   }, [result]);
 
   const handleExportCsv = () => {
@@ -498,6 +498,19 @@ const Part2Results = ({
         )}
 
         <CollapsibleSection title="Important Disclaimer">
+          <p
+            className="detail-disclaimer"
+            style={{
+              padding: '0.75rem 1rem',
+              marginBottom: '0.75rem',
+              background: 'rgba(217, 119, 6, 0.08)',
+              borderLeft: '4px solid #d97706',
+              borderRadius: '6px',
+              color: '#78350f',
+            }}
+          >
+            <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
+          </p>
           <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>

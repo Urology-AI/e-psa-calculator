@@ -436,7 +436,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             onChange={(e) => updateField('age', e.target.value)}
           />
           {attemptedNext && !ageValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.ageInline')}
             </div>
           )}
@@ -486,7 +486,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !raceValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.raceInline')}
             </div>
           )}
@@ -534,7 +534,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !familyHistoryValid && !isSkipped('familyHistory') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -572,7 +572,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !inflammationHistoryValid && !isSkipped('inflammationHistory') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -605,7 +605,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -656,17 +656,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
           )}
           {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialFeetError')}
             </div>
           )}
           {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialInchesError')}
             </div>
           )}
           {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightMetricError')}
             </div>
           )}
@@ -698,12 +698,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
           )}
           {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightImperialError')}
             </div>
           )}
           {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightMetricError')}
             </div>
           )}
@@ -759,7 +759,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !exerciseValid && !isSkipped('exercise') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -796,7 +796,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !smokingValid && !isSkipped('smoking') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -840,7 +840,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !chemicalValid && !isSkipped('chemicalExposure') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -900,7 +900,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !dietValid && !isSkipped('dietPattern') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
@@ -961,7 +961,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             </div>
           )}
           {attemptedNext && !comorbiditiesValid && !isSkipped('comorbidityScore') && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.comorbidityQuestions')}
             </div>
           )}

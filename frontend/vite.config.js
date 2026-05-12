@@ -14,6 +14,9 @@ export default defineConfig({
     outDir: 'build',
     sourcemap: true,
   },
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.js', 'src/**/*.test.jsx'],

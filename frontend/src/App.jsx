@@ -32,6 +32,19 @@ import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
 
+// Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
+const safeLS = {
+  get(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* ignore */ }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  },
+};
+
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
   if (!show) return null;
@@ -219,7 +232,7 @@ function App() {
               if (userData && userData.currentSessionId) {
                 const sessionId = userData.currentSessionId;
                 setSessionId(sessionId);
-                localStorage.setItem(`sessionId_${currentUser.uid}`, sessionId);
+                safeLS.set(`sessionId_${currentUser.uid}`, sessionId);
                 
                 // Load session data and restore stage/form state
                 try {
@@ -318,7 +331,7 @@ function App() {
                 }
               } else {
                 // No session found - try localStorage as fallback
-                const storedSessionId = localStorage.getItem(`sessionId_${currentUser.uid}`);
+                const storedSessionId = safeLS.get(`sessionId_${currentUser.uid}`);
                 if (storedSessionId) {
                   setSessionId(storedSessionId);
                   // Try to load session data
@@ -395,7 +408,7 @@ function App() {
               if (userData && userData.currentSessionId) {
                 const restoredSessionId = userData.currentSessionId;
                 setSessionId(restoredSessionId);
-                localStorage.setItem(`sessionId_${currentUser.uid}`, restoredSessionId);
+                safeLS.set(`sessionId_${currentUser.uid}`, restoredSessionId);
                 try {
                   const session = await getSession(restoredSessionId);
                   if (session) {
@@ -437,7 +450,7 @@ function App() {
                 }
               } else {
                 // Try localStorage as fallback
-                const storedSessionId = localStorage.getItem(`sessionId_${currentUser.uid}`);
+                const storedSessionId = safeLS.get(`sessionId_${currentUser.uid}`);
                 if (storedSessionId) {
                   setSessionId(storedSessionId);
                   try {
@@ -606,7 +619,7 @@ function App() {
           updatedAt: serverTimestamp(),
         }, { merge: true });
         setSessionId(sessionRef.id);
-        localStorage.setItem(`sessionId_${user.uid}`, sessionRef.id);
+        safeLS.set(`sessionId_${user.uid}`, sessionRef.id);
       } else {
         await updateDoc(doc(db, 'sessions', sessionId), {
           step1Partial: partialData,
@@ -863,7 +876,7 @@ function App() {
       const newSessionId = await saveSession(firebaseUser.uid, preData);
       if (newSessionId) {
         setSessionId(newSessionId);
-        localStorage.setItem(`sessionId_${firebaseUser.uid}`, newSessionId);
+        safeLS.set(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
       if (postData && postResult && newSessionId) {
         await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0);
@@ -915,7 +928,7 @@ function App() {
 
         if (restored.currentSessionId) {
           setSessionId(restored.currentSessionId);
-          localStorage.setItem(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
+          safeLS.set(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
 
           // Load session JSON from Firebase so user continues where they left off
           try {
@@ -1156,7 +1169,7 @@ function App() {
     
     // Clear session ID from localStorage
     if (user) {
-      localStorage.removeItem(`sessionId_${user.uid}`);
+      safeLS.remove(`sessionId_${user.uid}`);
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1220,7 +1233,7 @@ function App() {
       setPart1Step(0);
       // Clear user-specific localStorage but keep general settings
       if (storageMode === 'cloud' && user) {
-        localStorage.removeItem(`sessionId_${user.uid}`);
+        safeLS.remove(`sessionId_${user.uid}`);
       }
   };
 
@@ -1279,7 +1292,7 @@ function App() {
             // No partial session yet — create a fresh STEP1_COMPLETE session
             const newSessionId = await saveSession(user.uid, preData);
             setSessionId(newSessionId);
-            localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
+            safeLS.set(`sessionId_${user.uid}`, newSessionId);
           } else {
             // Upgrade the existing IN_PROGRESS partial session to STEP1_COMPLETE
             setCloudSyncStatus('saving');
