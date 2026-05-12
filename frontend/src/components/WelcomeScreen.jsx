@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import PSAOverviewScreen from './PSAOverviewScreen.jsx';
 import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, AlertCircleIcon, ExternalLinkIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ShareQrCode from './ShareQrCode';
@@ -128,10 +127,9 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
-  const [showOverview, setShowOverview] = useState(false);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
 
@@ -152,15 +150,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
     try { window.localStorage.setItem(GUIDELINES_SEEN_KEY, '1'); } catch { /* noop */ }
   };
 
-  useEffect(() => {
-    if (!showOverview) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e) => { if (e.key === 'Escape') setShowOverview(false); };
-    window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
-  }, [showOverview]);
-
   const handleBegin = () => {
     if (onBegin) return onBegin();
     if (cloudAvailable && onBeginCloud) return onBeginCloud();
@@ -176,18 +165,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
   return (
     <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
       {showGuidelines && <GuidelinesModal onClose={handleCloseGuidelines} />}
-
-      {showOverview && (
-        <div className="ws-overview-modal" role="dialog" aria-modal="true" aria-label="What is ePSA?">
-          <div className="ws-overview-modal-backdrop" onClick={() => setShowOverview(false)} />
-          <div className="ws-overview-modal-content">
-            <PSAOverviewScreen
-              onContinue={() => setShowOverview(false)}
-              onBack={() => setShowOverview(false)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── Hero ── */}
       <section className="ws-hero">
@@ -224,15 +201,17 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
                 {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
               </p>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
-                <button
-                  type="button"
-                  className="ws-demo-link"
-                  onClick={() => setShowOverview(true)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                >
-                  <InfoIcon size={13} />
-                  <span>What is ePSA?</span>
-                </button>
+                {onViewOverview && (
+                  <button
+                    type="button"
+                    className="ws-demo-link"
+                    onClick={onViewOverview}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    <InfoIcon size={13} />
+                    <span>What is ePSA?</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="ws-demo-link"

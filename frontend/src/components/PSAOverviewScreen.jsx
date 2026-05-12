@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
  * Educational only — content sourced from AUA/SUO, NCCN, EAU guidelines
  * and the American Cancer Society. Not medical advice.
  */
-const PSAOverviewScreen = ({ onContinue, onBack }) => {
+const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState('next');
@@ -265,7 +265,7 @@ const PSAOverviewScreen = ({ onContinue, onBack }) => {
             onClick={next}
             autoFocus
           >
-            <span>{isLast ? t('psaOverview.begin', 'Begin') : t('psaOverview.next', 'Next')}</span>
+            <span>{isLast ? (continueLabel ?? t('psaOverview.begin', 'Begin')) : t('psaOverview.next', 'Next')}</span>
             <ArrowRightIcon size={16} aria-hidden="true" />
           </button>
         </div>
