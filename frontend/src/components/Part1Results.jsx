@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -497,14 +498,15 @@ const Part1Results = ({
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
   onShowModelDocs = null,
 }) => {
+  const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const breakdownRef = useRef(null);
 
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(t);
+    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(loadingTimer);
   }, [result]);
 
   const handleExportCsv = () => {
