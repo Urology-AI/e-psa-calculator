@@ -256,6 +256,31 @@ body {
   font-style: italic;
 }
 
+.header-authorship {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-600, #4b5563);
+  letter-spacing: 0.01em;
+}
+.header-authorship strong {
+  color: var(--ink-800, #1f2937);
+  font-weight: 600;
+}
+.header-authorship em {
+  color: var(--ink-500, #6b7280);
+  font-style: italic;
+}
+.theme-dark .header-authorship {
+  color: rgba(255, 255, 255, 0.7);
+}
+.theme-dark .header-authorship strong {
+  color: rgba(255, 255, 255, 0.92);
+}
+.theme-dark .header-authorship em {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .header-actions {
   margin-top: 1rem;
   display: flex;

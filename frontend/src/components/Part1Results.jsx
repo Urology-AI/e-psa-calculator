@@ -9,6 +9,7 @@ import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
 import ResultsLoading from './ResultsLoading';
+import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
@@ -611,6 +612,8 @@ const Part1Results = ({
   return (
     <div className="results-container" role="main">
 
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 1 · ePSA Baseline" />
+
       {/* ── Top bar ── */}
       <div className="results-top-links-row">
         <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find a screening event near you">
@@ -626,8 +629,26 @@ const Part1Results = ({
             <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
               <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
             </button>
-            {saveToCloudError && <span className="cloud-error-msg">{saveToCloudError}</span>}
           </div>
+          {saveToCloudError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.625rem 0.875rem',
+                background: 'rgba(217, 119, 6, 0.08)',
+                border: '1px solid rgba(217, 119, 6, 0.35)',
+                borderLeft: '4px solid #d97706',
+                borderRadius: '6px',
+                color: '#78350f',
+                fontSize: '0.8125rem',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Cloud save unavailable.</strong> {saveToCloudError}
+            </div>
+          )}
         </div>
       )}
 
