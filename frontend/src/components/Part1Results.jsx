@@ -539,6 +539,7 @@ const Part1Results = ({
     empiricalRateCiLo = null,
     empiricalRateCiHi = null,
     empiricalRateN = null,
+    empiricalRateEvents = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -652,7 +653,7 @@ const Part1Results = ({
             <div className="under-age-notice-body">
               <strong>Age under 40 — PSA screening is not routinely recommended per AUA/NCCN guidelines.</strong>
               <p style={{ marginTop: '6px' }}>
-                <strong>Shared Decision Making (SDM) is recommended</strong> — consult with your GP or urologist, particularly if you have high-risk factors such as Black ancestry, a family history of prostate cancer, or known genetic mutations. See <em>Screening Guidelines</em> below for full guidance.
+                <span className="sdm-highlight">Shared Decision Making (SDM) is recommended</span> — consult with your GP or urologist, particularly if you have high-risk factors such as Black ancestry, a family history of prostate cancer, or known genetic mutations. See <em>Screening Guidelines</em> below for full guidance.
               </p>
             </div>
           </div>
@@ -663,7 +664,7 @@ const Part1Results = ({
             <div className="under-age-notice-body">
               <strong>Age over 75 — screening decisions require individualized assessment per AUA/NCCN guidelines.</strong>
               <p style={{ marginTop: '6px' }}>
-                <strong>Shared Decision Making (SDM) is recommended</strong> — consult with your GP or urologist to determine whether continued screening is appropriate based on your health and life expectancy. See <em>Screening Guidelines</em> below for full guidance.
+                <span className="sdm-highlight">Shared Decision Making (SDM) is recommended</span> — consult with your GP or urologist to determine whether continued screening is appropriate based on your health and life expectancy. See <em>Screening Guidelines</em> below for full guidance.
               </p>
             </div>
           </div>
@@ -692,7 +693,7 @@ const Part1Results = ({
                     }}
                   >
                     <div style={{ color: 'var(--ink-600)', fontWeight: 600, marginBottom: '2px' }}>
-                      Estimated likelihood of an abnormal PSA / csPCa:
+                      {t('part1.abnormalPsaLikelihood')}
                     </div>
                     <div>
                       <strong style={{ color: tierAccentColor, fontSize: '1.05rem' }}>
@@ -893,12 +894,12 @@ const Part1Results = ({
           {belowMinAge ? (
             <>
               <p>ePSA is not validated below age 40. No score or risk tier has been calculated.</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, routine PSA screening is not indicated before age 40. <strong>Shared Decision Making is recommended</strong> — consult your GP or urologist. See <em>Screening Guidelines</em> below for full guidance.</p>
+              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, routine PSA screening is not indicated before age 40. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist. See <em>Screening Guidelines</em> below for full guidance.</p>
             </>
           ) : aboveMaxScreeningAge ? (
             <>
               <p>ePSA is not validated above age 75. No score or risk tier has been calculated.</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, screening above age 75 should be individualized. <strong>Shared Decision Making is recommended</strong> — consult your GP or urologist to determine whether continued screening is appropriate. See <em>Screening Guidelines</em> below for full guidance.</p>
+              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, screening above age 75 should be individualized. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist to determine whether continued screening is appropriate. See <em>Screening Guidelines</em> below for full guidance.</p>
             </>
           ) : (
             <>
@@ -914,10 +915,18 @@ const Part1Results = ({
                 <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.</p>
               )}
               <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-              {empiricalProbabilityText && (
-                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>{empiricalProbabilityText}</p>
+              {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
+                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>
+                  {t('part1Results.empiricalProbabilityText', {
+                    n: empiricalRateN,
+                    events: empiricalRateEvents ?? '—',
+                    rate: Math.round(empiricalRate * 100),
+                    ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
+                    ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
+                  })}
+                </p>
               )}
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>{t('part1Results.educationalEstimateNote')}</p>
             </>
           )}
         </CollapsibleSection>
