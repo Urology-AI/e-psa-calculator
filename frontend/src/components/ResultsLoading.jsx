@@ -19,14 +19,12 @@ const ResultsLoading = ({
     <div className="results-loading" role="status" aria-live="polite">
       <div className="results-loading-card">
         <div className="results-loading-eyebrow">{label}</div>
-        <div className="results-loading-gauge" aria-hidden="true">
-          <svg viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg" className="results-loading-gauge-svg">
-            <path d="M 14 60 A 46 46 0 0 1 106 60" fill="none" stroke="#e2eaf2" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 14 60 A 46 46 0 0 1 106 60" fill="none" stroke="#1e3a5f" strokeWidth="10" strokeLinecap="round"
-              strokeDasharray="145" strokeDashoffset="145" className="results-loading-gauge-fill" />
-            <line x1="60" y1="60" x2="60" y2="20" stroke="#1e3a5f" strokeWidth="3" strokeLinecap="round"
-              className="results-loading-gauge-needle" />
-            <circle cx="60" cy="60" r="5" fill="#1e3a5f" />
+        <div className="results-loading-spinner" aria-hidden="true">
+          <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" className="results-loading-spinner-svg">
+            <circle cx="28" cy="28" r="22" fill="none" stroke="#e2eaf2" strokeWidth="5" />
+            <circle cx="28" cy="28" r="22" fill="none" stroke="#1e3a5f" strokeWidth="5"
+              strokeLinecap="round" strokeDasharray="138" strokeDashoffset="100"
+              className="results-loading-spinner-arc" />
           </svg>
         </div>
         <div className="results-loading-message">{message}</div>
