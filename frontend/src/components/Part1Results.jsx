@@ -32,6 +32,8 @@ const FactorSourceBadge = ({ itemName }) => {
   return (
     <span
       title={title}
+      aria-label={title}
+      role="img"
       style={{
         display: 'inline-block',
         marginLeft: '6px',
@@ -536,6 +538,7 @@ const Part1Results = ({
     empiricalRate = null,
     empiricalRateCiLo = null,
     empiricalRateCiHi = null,
+    empiricalRateN = null,
   } = result;
 
   const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
@@ -572,7 +575,7 @@ const Part1Results = ({
     { label: 'Age', value: age, unit: 'yrs' },
     { label: 'BMI', value: bmi, unit: '' },
     { label: 'IPSS Score', value: `${ipssTotal}/35`, unit: '', note: Number(ipssTotal) >= 20 ? 'Severe range in v2 contributes 0 points' : null },
-    { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '' },
+    { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '', note: 'Higher = better function (opposite of IPSS)' },
   ];
 
   const topFactors = [...itemImpacts]
@@ -697,7 +700,7 @@ const Part1Results = ({
                       </strong>
                       {Number.isFinite(empiricalRateCiLo) && Number.isFinite(empiricalRateCiHi) && (
                         <span style={{ color: 'var(--ink-500)', fontSize: '0.75rem', marginLeft: '6px' }}>
-                          (95% CI {Math.round(empiricalRateCiLo * 100)}–{Math.round(empiricalRateCiHi * 100)}%)
+                          (95% CI {Math.round(empiricalRateCiLo * 100)}–{Math.round(empiricalRateCiHi * 100)}%{empiricalRateN != null ? `; n=${empiricalRateN}` : ''})
                         </span>
                       )}
                     </div>

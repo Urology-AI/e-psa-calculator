@@ -32,38 +32,24 @@
   margin-bottom: 0.875rem;
 }
 
-.results-loading-gauge {
+.results-loading-spinner {
   display: flex;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.25rem;
 }
 
-.results-loading-gauge-svg {
-  width: 100%;
-  max-width: 11rem;
-  height: auto;
-  overflow: visible;
+.results-loading-spinner-svg {
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
-.results-loading-gauge-fill {
-  animation: results-loading-arc-fill 1.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+.results-loading-spinner-arc {
+  transform-origin: 28px 28px;
+  animation: results-loading-spin 1s linear infinite;
 }
 
-@keyframes results-loading-arc-fill {
-  0%   { stroke-dashoffset: 145; }
-  60%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 145; }
-}
-
-.results-loading-gauge-needle {
-  transform-origin: 60px 60px;
-  animation: results-loading-needle-sweep 1.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
-}
-
-@keyframes results-loading-needle-sweep {
-  0%   { transform: rotate(-90deg); }
-  60%  { transform: rotate(90deg); }
-  100% { transform: rotate(-90deg); }
+@keyframes results-loading-spin {
+  to { transform: rotate(360deg); }
 }
 
 .results-loading-message {
@@ -114,26 +100,15 @@
 .theme-dark .results-loading-message { color: #e6edf5; }
 .theme-dark .results-loading-detail  { color: #8aa0b8; }
 
-.theme-dark .results-loading-gauge-svg path[stroke="#e2eaf2"] { stroke: #2a3a4d; }
-.theme-dark .results-loading-gauge-svg path[stroke="#1e3a5f"],
-.theme-dark .results-loading-gauge-svg line[stroke="#1e3a5f"],
-.theme-dark .results-loading-gauge-svg circle[fill="#1e3a5f"] {
-  stroke: #6ea8ff;
-}
-
-.theme-dark .results-loading-gauge-svg circle[fill="#1e3a5f"] {
-  fill: #6ea8ff;
-  stroke: none;
-}
+.theme-dark .results-loading-spinner-svg circle:first-child { stroke: #2a3a4d; }
+.theme-dark .results-loading-spinner-arc { stroke: #6ea8ff; }
 
 .theme-dark .results-loading-dots span { background: #6ea8ff; }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .results-loading-gauge-fill,
-  .results-loading-gauge-needle,
+  .results-loading-spinner-arc,
   .results-loading-dots span {
     animation: none !important;
   }
-  .results-loading-gauge-fill { stroke-dashoffset: 40; }
 }
