@@ -200,6 +200,8 @@ export const fieldReferences = {
       ],
     },
     pirads: {
+      titleKey: 'part2.piradsInfo.title',
+      descriptionKey: 'part2.piradsInfo.description',
       sources: [
         {
           name: 'Park KJ., et al., J Urol. 2020',

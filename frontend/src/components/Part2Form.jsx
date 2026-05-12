@@ -144,7 +144,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 }}
               />
               {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
-                <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+                <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
                   {t('part2.psa.psaInvalid')}
                 </div>
               )}
