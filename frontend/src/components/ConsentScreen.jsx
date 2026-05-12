@@ -76,8 +76,19 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             </p>
           </div>
 
-          <button 
-            type="submit" 
+          <div className="consent-data-use">
+            <p>
+              <strong>{t('consent.rightToWithdrawTitle')}:</strong> {t('consent.rightToWithdrawBody')}
+            </p>
+            <p>{t('consent.notMedicalDevice')}</p>
+            <p>
+              <strong>{t('consent.researcherContactTitle')}:</strong>{' '}
+              {t('consent.researcherContactBody')}
+            </p>
+          </div>
+
+          <button
+            type="submit"
             className="btn btn-primary btn-block"
           >
             {t('consent.continueButton')}
