@@ -17,7 +17,7 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <div className="language-switcher" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
       <label style={{ fontSize: '0.75rem', color: 'var(--ink-500)' }}>{t('common.language')}</label>
       <select
         value={resolvedLang}
