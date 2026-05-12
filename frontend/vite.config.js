@@ -13,19 +13,6 @@ export default defineConfig({
   build: {
     outDir: 'build',
     sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          firebase: [
-            'firebase/app',
-            'firebase/auth',
-            'firebase/firestore',
-            'firebase/functions',
-            'firebase/analytics',
-          ],
-        },
-      },
-    },
   },
   esbuild: {
     drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
