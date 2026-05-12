@@ -184,7 +184,12 @@
     "dataUseTitle": "Data use notice:",
     "dataUseBody": "Cloud session data is stored for up to 30 days and de-identified data may be used anonymously to improve and validate future versions of the model. Local mode stays on your device and remains under your control; if data is moved off your device or collected through a third-party device, it may be shared. Please confirm with the data collector, as we are not responsible for data moved from your device or other third-party devices. For cloud sessions, we use secure transfer and compliance-oriented safeguards.",
     "continueButton": "Continue",
-    "errorNoSelection": "Please select an option to continue"
+    "errorNoSelection": "Please select an option to continue",
+    "rightToWithdrawTitle": "Your rights",
+    "rightToWithdrawBody": "Participation is voluntary. You can stop using the tool at any time. If you used cloud storage, you can delete your saved session from the results screen — this is irreversible.",
+    "notMedicalDevice": "ePSA is not an FDA-cleared medical device and is not a substitute for evaluation by a clinician.",
+    "researcherContactTitle": "Questions or to withdraw your data",
+    "researcherContactBody": "Contact the study team: Aditya Dixit · aditya.dixit@mssm.edu · Department of Urology, Icahn School of Medicine at Mount Sinai."
   },
   "auth": {
     "createSessionHeading": "Create an anonymous session to save to cloud",
@@ -792,6 +797,69 @@
       "piradsExplanationProvided": "MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist's interpretation of multiparametric MRI findings.",
       "piradsExplanationNotProvided": "If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.",
       "pointsExplanation": "Your Part 2 risk tier is summarized as an educational estimate that combines your Part 1 risk profile with your PSA level and, when available, your MRI PI-RADS score. The resulting category is meant to support shared decision-making with your clinician—not to replace clinical judgment."
+    },
+    "tiers": {
+      "riskBar": {
+        "low": "Low",
+        "intermediateLow": "Int-Low",
+        "intermediateHigh": "Int-High",
+        "high": "High"
+      },
+      "psaContext": {
+        "low": {
+          "label": "Low range",
+          "detail": "Reassuring. Continue routine screening."
+        },
+        "intermediateLow": {
+          "label": "Low–intermediate range",
+          "detail": "Warrants monitoring. Ask your doctor about interval."
+        },
+        "intermediateHigh": {
+          "label": "Elevated",
+          "detail": "Warrants evaluation by a urologist."
+        },
+        "high": {
+          "label": "Significantly elevated",
+          "detail": "Prompt urology referral recommended."
+        }
+      },
+      "pirads": {
+        "0": { "label": "No reportable lesion", "detail": "MRI found no significant lesion." },
+        "1": { "label": "Very unlikely" },
+        "2": { "label": "Unlikely" },
+        "3": { "label": "Uncertain" },
+        "4": { "label": "Likely suspicious" },
+        "5": { "label": "Highly suspicious" }
+      },
+      "gauge": {
+        "low": "Low",
+        "moderate": "Intermediate",
+        "high": "High"
+      },
+      "hero": {
+        "biopsy": "Consider discussing biopsy with your urologist",
+        "urologistReview": "Consider a urology review",
+        "nextSteps": "Suggested next steps"
+      },
+      "endpointNote": "How risk is defined: Models 1–2 estimate the chance of any high-grade prostate cancer (GG2+). Model 3 (MRI pathway) estimates the chance of higher-grade cancer (GG3+). These thresholds matter — discuss with your urologist which best fits your situation.",
+      "recommendation": {
+        "veryHigh": "Your combined risk is very high. AUA and NCCN guidelines recommend prompt urologist referral and strong consideration of biopsy. Additional staging imaging may also be discussed. This is an urgent conversation to have with your physician.",
+        "high": "Your combined risk is high. AUA and NCCN guidelines recommend prompt referral to a urologist. A urologist will discuss whether a biopsy is appropriate — this is a conversation, not an automatic decision.",
+        "intermediateHigh": "Your combined risk warrants further evaluation. AUA and NCCN guidelines recommend speaking with a urologist. An MRI before biopsy is often the recommended next step to get more information.",
+        "intermediateLow": "Your combined risk is low-intermediate. AUA and NCCN guidelines recommend continued monitoring. Talk with your doctor about how often to repeat your PSA — typically every 1–2 years.",
+        "low": "Your combined risk is low. AUA and NCCN guidelines are reassuring at this level. Continue routine PSA screening — a repeat test in 2–4 years is typically appropriate."
+      },
+      "contextNote": {
+        "lowPsa": "Note: Even with a low PSA, your background risk factors (race, family history, or genetic mutation) mean closer monitoring is warranted per AUA/NCCN guidelines.",
+        "discordancePsaHigher": "Note: Your PSA level is in a higher range than your combined tier alone suggests. Your PSA result is an independent signal — discuss it with your physician regardless of your overall profile.",
+        "discordanceProfile": "Note: Your Part 1 risk profile raises your combined tier above what PSA alone would suggest. Both factors matter for your overall risk."
+      },
+      "explanation": {
+        "high": "A high combined risk tier means your PSA level — together with your Part 1 risk profile — falls in the range where urologists typically discuss biopsy. This does not mean you have cancer; it means more investigation is warranted.",
+        "intermediateHigh": "An intermediate-high combined risk tier means your PSA level and risk profile suggest a urology consultation is appropriate. An MRI is often recommended before any biopsy decision to get a clearer picture.",
+        "intermediateLow": "An intermediate-low combined risk tier means your PSA is mildly elevated or your background risk factors are present, but there is no immediate cause for concern. Continued monitoring with your doctor is the right approach.",
+        "low": "A low combined risk tier means your PSA level and risk profile are reassuring. No additional testing is needed right now — continue with routine screening as recommended by your doctor."
+      }
     }
   },
   "printableForm": {
@@ -807,6 +875,8 @@
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "ePSA Questionnaire",
     "tagline": "Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+    "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Department of Urology",
+    "headerDisclaimer": "Educational use only — not an FDA-cleared medical device. Internally validated on the Mount Sinai ePSA cohort; no external validation yet.",
     "phoneLabel": "Phone Number:",
     "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "About You",
@@ -865,8 +935,17 @@
   },
   "quickEntry": {
     "title": "Quick Entry",
-    "subtitle": "Age/Race + SHIM/IPSS totals -> instant result",
+    "subtitle": "Only Age and Race are required — everything else has a sensible default you can adjust.",
     "exit": "Exit",
+    "requiredLegend": "Required",
+    "scoreModifiers": "Score modifiers",
+    "advanced": "Lifestyle & history",
+    "advancedHint": "Open to fine-tune — defaults shown apply if you don't change them.",
+    "usingDefault": "Default",
+    "resetDefaults": "Reset to defaults",
+    "requiredMark": "*",
+    "iDontKnow": "I don't know my IPSS",
+    "iDontKnowHide": "Use IPSS number instead",
     "ageLabel": "Age (18-120)",
     "agePlaceholder": "e.g., 55",
     "raceLabel": "Race / Ethnicity",
