@@ -1161,6 +1161,10 @@
       "q1OptYes": "Sí",
       "q2": "Puntuación PIRADS en resonancia magnética",
       "q2Note": "Las puntuaciones de PI-RADS (Sistema de datos e informes de imágenes de próstata) varían de 1 a 5, y las puntuaciones más altas indican una mayor sospecha de cáncer de próstata clínicamente significativo."
+    },
+    "piradsInfo": {
+      "title": "Acerca de PI-RADS y la estimación de riesgo de ePSA",
+      "description": "PI-RADS es una escala del 1 al 5 que los radiólogos usan para clasificar lesiones de próstata en la resonancia magnética. PI-RADS 4 indica que la RM sugiere que probablemente exista una lesión clínicamente significativa; PI-RADS 5 indica que es altamente sospechosa.\n\nImportante — qué significa el porcentaje de ePSA: cuando ePSA estima una probabilidad a partir del PI-RADS y el PSA, predice csPCa GG3+ — cáncer de próstata clínicamente significativo con Gleason ≥3, la enfermedad de mayor riesgo — no «cualquier cáncer de próstata». Como es un criterio más estricto, el número puede parecer más bajo que la cifra popular «PI-RADS 4 ≈ 60 % de cáncer» que pueda haber visto en otros sitios. Ambos números pueden ser ciertos a la vez — describen cosas distintas.\n\nComente siempre el significado de su puntuación PI-RADS con su urólogo."
     }
   }
 }
