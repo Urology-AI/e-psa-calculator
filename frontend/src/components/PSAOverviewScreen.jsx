@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 const PSAOverviewScreen = ({ onContinue, onBack }) => {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
+  const [direction, setDirection] = useState('next');
 
   const steps = [
     {
@@ -138,11 +139,15 @@ const PSAOverviewScreen = ({ onContinue, onBack }) => {
 
   const next = () => {
     if (isLast) onContinue?.();
-    else setStepIndex((i) => i + 1);
+    else { setDirection('next'); setStepIndex((i) => i + 1); }
   };
   const prev = () => {
     if (isFirst) onBack?.();
-    else setStepIndex((i) => i - 1);
+    else { setDirection('prev'); setStepIndex((i) => i - 1); }
+  };
+  const jumpTo = (i) => {
+    setDirection(i > stepIndex ? 'next' : 'prev');
+    setStepIndex(i);
   };
 
   return (
@@ -154,14 +159,14 @@ const PSAOverviewScreen = ({ onContinue, onBack }) => {
               key={s.key}
               type="button"
               className={`psa-overview-progress-dot ${i === stepIndex ? 'psa-overview-progress-dot--active' : ''} ${i < stepIndex ? 'psa-overview-progress-dot--done' : ''}`}
-              onClick={() => setStepIndex(i)}
+              onClick={() => jumpTo(i)}
               aria-label={`Go to step ${i + 1}: ${s.title}`}
               aria-current={i === stepIndex ? 'step' : undefined}
             />
           ))}
         </div>
 
-        <div className="psa-overview-step" key={step.key}>
+        <div className={`psa-overview-step psa-overview-step--${direction}`} key={step.key}>
           <div className="psa-overview-step-head">
             <div className="psa-overview-step-icon" style={{ color: '#1e3a5f' }} aria-hidden="true">
               {step.icon}

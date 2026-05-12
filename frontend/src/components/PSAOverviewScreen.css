@@ -47,13 +47,34 @@
 .psa-overview-progress-dot--active { background: #1e3a5f; width: 2.75rem; }
 
 /* Step head */
-.psa-overview-step {
-  animation: psa-overview-step-in 0.3s ease both;
+.psa-overview-step { /* direction applied via --next / --prev */ }
+
+@keyframes psa-slide-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes psa-overview-step-in {
-  from { opacity: 0; transform: translateY(4px); }
+@keyframes psa-slide-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.psa-overview-step--next { animation: psa-slide-from-right 0.3s cubic-bezier(.25,.46,.45,.94) both; }
+.psa-overview-step--prev { animation: psa-slide-from-left  0.3s cubic-bezier(.25,.46,.45,.94) both; }
+
+@keyframes psa-item-in {
+  from { opacity: 0; transform: translateY(7px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes psa-icon-bounce {
+  0%   { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+  65%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.psa-overview-step-icon svg {
+  animation: psa-icon-bounce 0.5s cubic-bezier(.34,1.56,.64,1) both 0.05s;
 }
 
 .psa-overview-step-head {
@@ -116,7 +137,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  animation: psa-item-in 0.28s ease both;
 }
+
+.psa-overview-facts li:nth-child(1) { animation-delay: 0.12s; }
+.psa-overview-facts li:nth-child(2) { animation-delay: 0.2s; }
+.psa-overview-facts li:nth-child(3) { animation-delay: 0.28s; }
 
 .psa-overview-fact-label {
   font-size: 0.72rem;
@@ -146,7 +172,12 @@
   border-radius: 0.75rem;
   padding: 0.875rem 0.75rem;
   text-align: center;
+  animation: psa-item-in 0.3s ease both;
 }
+
+.psa-overview-stat:nth-child(1) { animation-delay: 0.12s; }
+.psa-overview-stat:nth-child(2) { animation-delay: 0.22s; }
+.psa-overview-stat:nth-child(3) { animation-delay: 0.32s; }
 
 .psa-overview-stat-value {
   font-size: 1.5rem;
@@ -180,7 +211,12 @@
   border-left: 0.1875rem solid #1e3a5f;
   border-radius: 0.625rem;
   padding: 0.75rem 0.875rem;
+  animation: psa-item-in 0.28s ease both;
 }
+
+.psa-overview-guideline-card:nth-child(1) { animation-delay: 0.1s; }
+.psa-overview-guideline-card:nth-child(2) { animation-delay: 0.2s; }
+.psa-overview-guideline-card:nth-child(3) { animation-delay: 0.3s; }
 
 .psa-overview-guideline-name {
   font-size: 0.8125rem;
@@ -224,7 +260,12 @@
   border: 1px solid #c7e8d2;
   border-radius: 0.625rem;
   padding: 0.625rem 0.875rem;
+  animation: psa-item-in 0.28s ease both;
 }
+
+.psa-overview-benefit:nth-child(1) { animation-delay: 0.12s; }
+.psa-overview-benefit:nth-child(2) { animation-delay: 0.22s; }
+.psa-overview-benefit:nth-child(3) { animation-delay: 0.32s; }
 
 .psa-overview-benefit-icon {
   flex-shrink: 0;
