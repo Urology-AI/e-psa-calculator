@@ -747,6 +747,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   }, formData.pathwayMode || 'pre_psa');
 
   return {
+    // Provenance — used by the results meta-bar for audit/citation
+    computedAt: new Date().toISOString(),
+    engineVersion: '1.0.0',
     // Core score
     score: scorePercent,
     scoreRange,
@@ -822,13 +825,28 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 // =============================================================================
 // MODELS 2 & 3 — post_psa / post_mri
 // =============================================================================
+// Defense-in-depth: clamp/reject pathological numeric inputs reaching the
+// engine from cloud-restore, JSON import, or upstream UI bugs. Form-level
+// validation handles the typical-typo case; this catches the rest so the
+// engine never produces a wild output from a wild input.
+const sanitizePostInput = (value, { min, max, allowNull = true } = {}) => {
+  if (value === '' || value === null || value === undefined) return allowNull ? null : NaN;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return NaN;
+  if (min != null && n < min) return NaN;
+  if (max != null && n > max) return NaN;
+  return n;
+};
+
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
-  const { psa, pirads, piradsLesions, knowPirads } = postData || {};
-  const prostateVolumeValRaw =
-    postData?.prostateVolume !== '' && postData?.prostateVolume != null
-      ? Number(postData.prostateVolume)
-      : null;
+  const { piradsLesions, knowPirads } = postData || {};
+  // Range-clamp numeric inputs. PSA = 0–1000 ng/mL (anything >1000 is a typo
+  // or unit-mistake; engine separately fires PSA>100 guardrail). PI-RADS is
+  // strictly 1–5. Prostate volume 5–500 mL (validated range for PSAD).
+  const psa = sanitizePostInput(postData?.psa, { min: 0, max: 1000 });
+  const pirads = sanitizePostInput(postData?.pirads, { min: 1, max: 5 });
+  const prostateVolumeValRaw = sanitizePostInput(postData?.prostateVolume, { min: 5, max: 500 });
 
   const preScorePct = Number(preResult?.score) || 0;
   let baseRawScore = preResult?.calculationDetails?.rawScore;
@@ -1141,6 +1159,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }, pathwayMode);
 
   return {
+    // Provenance — used by the results meta-bar for audit/citation
+    computedAt: new Date().toISOString(),
+    engineVersion: '1.0.0',
     // Core combined score
     riskPct: tierDef.psaEquivalent,
     riskPctRange: null,

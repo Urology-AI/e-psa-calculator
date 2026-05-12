@@ -11,6 +11,7 @@ import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
+import VersionFooter from './components/VersionFooter.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 import { useTranslation } from 'react-i18next';
@@ -859,7 +860,7 @@ function App() {
 
   const handleSaveLocalToCloud = async () => {
     if (!isFirebaseConfigured() || !auth || !functions || !preData || !preResult) {
-      setSaveToCloudError('Cloud save is not available or no data to save.');
+      setSaveToCloudError("Cloud save is not available right now. Your results are still saved on this device — you can keep working and try again later.");
       return;
     }
     setSaveToCloudPending(true);
@@ -884,7 +885,13 @@ function App() {
       setStorageMode('cloud');
     } catch (err) {
       console.error('Save to cloud error:', err);
-      setSaveToCloudError(err?.message || 'Failed to save to cloud.');
+      // Translate Firebase errors into a calm, user-friendly message.
+      // The internal err.message is kept in the console for debugging.
+      const networkLike = /network|offline|unavailable|timeout|fetch/i.test(err?.message || '');
+      const friendly = networkLike
+        ? "We couldn't reach the cloud — looks like a network issue. Your results are still saved on this device. Try again in a moment."
+        : "We couldn't save to the cloud. Your results are still saved on this device — you can keep working and try again later.";
+      setSaveToCloudError(friendly);
     } finally {
       setSaveToCloudPending(false);
     }
@@ -1808,6 +1815,9 @@ function App() {
             <h1>ePSA</h1>
             <h2>{t('app.header.title')}</h2>
             <p className="subtitle">{t('app.header.subtitle')}</p>
+            <p className="header-authorship" aria-label="Authorship and institutional affiliation">
+              Developed by <strong>Ashutosh K. Tewari, MD</strong> · Icahn School of Medicine at Mount Sinai · <em>Educational use only</em>
+            </p>
           </div>
           <div className="header-actions">
             <TextScaleControl />
@@ -1929,6 +1939,7 @@ function App() {
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
+      <VersionFooter />
     </div>
   );
 }
