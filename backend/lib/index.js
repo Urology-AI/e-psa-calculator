@@ -36,11 +36,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = void 0;
+exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.submitToRedcap = exports.syncToRedcap = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
 const zod_1 = require("zod");
 const crypto_js_1 = __importDefault(require("crypto-js"));
+// REDCap sync trigger (Firestore onWrite → REDCap API)
+// submitToRedcap: callable function for local-storage users to push directly
+var redcapSync_1 = require("./redcapSync");
+Object.defineProperty(exports, "syncToRedcap", { enumerable: true, get: function () { return redcapSync_1.syncToRedcap; } });
+Object.defineProperty(exports, "submitToRedcap", { enumerable: true, get: function () { return redcapSync_1.submitToRedcap; } });
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -206,6 +211,7 @@ exports.createSession = functions.https.onCall(async (data, context) => {
     const sessionData = {
         userId,
         status: 'STEP1_COMPLETE',
+        pathwayMode: data.pathwayMode || null,
         step1: stripUndefined(step1Data),
         result: data.result || null,
         expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
@@ -282,6 +288,9 @@ exports.updateSession = functions.https.onCall(async (data, context) => {
     if (result) {
         updateData.finalCategory = result.riskCat;
         updateData.finalScore = result.score;
+    }
+    if (data.pathwayMode) {
+        updateData.pathwayMode = data.pathwayMode;
     }
     try {
         await sessionRef.update(updateData);
