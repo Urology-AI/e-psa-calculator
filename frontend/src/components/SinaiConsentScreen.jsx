@@ -93,29 +93,26 @@ const SinaiConsentScreen = ({ clinicCode, redcapEnabled, onConsent, onBack }) =>
             <LockIcon size={16} />
             <h3>How your data is handled</h3>
           </header>
-          {redcapEnabled ? (
-            <p>
-              Your responses will be submitted directly to Mount Sinai&apos;s
-              secure REDCap research database. No clinical content is stored on
-              this app&apos;s servers — only an audit record showing that your
-              clinic code was used.
-            </p>
-          ) : (
-            <>
-              <div className="sinai-consent-callout">
-                <AlertTriangleIcon size={16} className="sinai-consent-callout-icon" />
-                <div>
-                  <strong>Offline mode</strong>
-                  <p>
-                    The live REDCap connection is not yet active. After you
-                    complete the form, your responses will be downloaded to
-                    this device as a CSV file. A member of the study team will
-                    manually upload the file to REDCap. No clinical content
-                    leaves this device through our servers.
-                  </p>
-                </div>
+          <p>
+            Your responses are stored in the ePSA research database, identified
+            only by your clinic code (no name, MRN, or other personal identifiers).
+            The temporary processing copy is automatically deleted after{' '}
+            <strong>30 days</strong>, or sooner once it has been recorded in
+            Mount Sinai&apos;s REDCap research database.
+          </p>
+          {!redcapEnabled && (
+            <div className="sinai-consent-callout" style={{ marginTop: 12 }}>
+              <AlertTriangleIcon size={16} className="sinai-consent-callout-icon" />
+              <div>
+                <strong>REDCap upload pending</strong>
+                <p>
+                  The live REDCap connection is not active right now, so the
+                  study team will manually transfer your responses to REDCap
+                  shortly. You may also receive a copy as a downloaded CSV file
+                  for the clinician.
+                </p>
               </div>
-            </>
+            </div>
           )}
         </section>
 

@@ -1883,7 +1883,6 @@ function App() {
             pathwayMode:
               pathwayMode || postResult?.pathwayMode || preResult?.pathwayMode || 'post_psa',
           }}
-          redcapEnabled={sinaiRedcapEnabled}
           onStartOver={() => {
             setSinaiSubmissionActive(false);
           }}
