@@ -7,20 +7,27 @@ import CryptoJS from 'crypto-js';
 // submitToRedcap: callable function for local-storage users to push directly
 export { syncToRedcap, submitToRedcap } from './redcapSync';
 
-// Sinai clinic cohort — stateless REDCap submission path (IRB STUDY-14-00050).
-// No clinical data is persisted in Firestore on this path; only the
-// clinicCodes/{code} audit row is updated.
-//   - validateClinicCode: pre-form code check
-//   - submitSinaiCohort: live REDCap submission via API
-//   - claimCodeOffline: interim path while live REDCap is not yet enabled
-//                       (browser builds CSV, function only consumes the code)
-//   - markCodeImported: admin closes the loop after manual REDCap import
+// Sinai clinic cohort — IRB STUDY-14-00050.
+// Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
+// after 30 days via Firestore TTL) and optionally pushed to Sinai REDCap.
+// All Sinai data is keyed only by clinic code — never tied to PII.
 export {
   validateClinicCode,
-  submitSinaiCohort,
-  claimCodeOffline,
+  submitSinaiSession,
   markCodeImported,
 } from './sinaiCohort';
+
+// Admin-only callables for the dashboard (codes, sessions, flag, audit).
+export {
+  adminListSinaiSessions,
+  adminGetSinaiSession,
+  adminSubmitSinaiSession,
+  adminDeleteSinaiSession,
+  adminToggleSinaiRedcapEnabled,
+  adminGenerateClinicCodes,
+  adminRevokeClinicCode,
+  adminListClinicCodeAuditLog,
+} from './sinaiAdmin';
 
 // Type definitions for better type safety
 interface AdminLoginData {
