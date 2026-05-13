@@ -369,27 +369,6 @@
       "text": "For questions about these Terms or about the ePSA tool, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai)."
     }
   },
-  "storage": {
-    "cloudTitle": "Cloud Storage",
-    "cloudDescription": "Store your data securely under an anonymous session key. Access from any device using the key — no email or phone number required.",
-    "cloudFeatureSecure": "Secure cloud storage",
-    "cloudFeatureAnyDevice": "Access from any device with your session key",
-    "cloudFeatureCollaboration": "Provider collaboration",
-    "cloudFeatureBackups": "Automatic backups",
-    "cloudFeatureAuth": "Anonymous session-key authentication",
-    "cloudContinue": "Continue with Cloud Storage",
-    "localTitle": "Local Storage",
-    "localDescription": "Store your data only on this device. No account or phone number required. Use import/export to save or move your data.",
-    "localFeatureNoSignIn": "No sign-in required",
-    "localFeatureSame": "Same questionnaire & results",
-    "localFeatureExport": "Export to JSON or print",
-    "localFeaturePrivacy": "Privacy on this device",
-    "localContinue": "Continue with Local Storage",
-    "importPrompt": "Already have an assessment?",
-    "importButton": "Import Previous Data",
-    "footerText": "Your health data is stored securely and privately. We never share or sell your information.",
-    "privacyNote": "HIPAA-compliant secure storage"
-  },
   "info": {
     "learnMore": "Learn more about {{title}}",
     "sources": "Sources:",
