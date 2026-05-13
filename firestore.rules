@@ -152,6 +152,21 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // App-level feature flags. Currently used for:
+    //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
+    // The frontend reads this to choose between the live REDCap submit
+    // path (PR #1) and the offline-CSV fallback (active when redcapEnabled
+    // is false or the doc is missing).
+    //
+    // Public read so unauthenticated patients can determine which flow to
+    // present. Super-admin write only. The doc must not contain secrets —
+    // it carries flags, not tokens.
+    match /appConfig/{docId} {
+      allow get: if docId == 'sinai';
+      allow list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
+    }
+
     // ============================================
     // DEFAULT: DENY ALL
     // ============================================
