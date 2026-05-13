@@ -484,6 +484,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                       { value: 'unknown', label: t('quickEntry.family.unknown') },
                     ]}
                   />
+                  <div className="quick-hint">{t('quickEntry.familyHistoryHint')}</div>
                 </label>
               </div>
 
