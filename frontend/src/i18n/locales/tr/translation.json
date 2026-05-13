@@ -235,27 +235,6 @@
       "text": "Bu özet, ePSA uygulamasının gizlilik amacıyla verileri nasıl işlediğini açıklar. Hukuki tavsiye değildir. HIPAA veya sağlık bilgilerinizle ilgili sorular için sağlık uzmanınıza veya hukuk müşavirinize danışın."
     }
   },
-  "storage": {
-    "cloudTitle": "Bulut Depolama",
-    "cloudDescription": "Verilerinizi e-posta veya telefon numarasıyla güvenli bir şekilde saklayın. Herhangi bir cihazdan erişin ve sağlık çalışanlarıyla paylaşın.",
-    "cloudFeatureSecure": "Güvenli bulut depolama",
-    "cloudFeatureAnyDevice": "Herhangi bir cihazdan erişim",
-    "cloudFeatureCollaboration": "Sağlık çalışanı iş birliği",
-    "cloudFeatureBackups": "Otomatik yedeklemeler",
-    "cloudFeatureAuth": "E-posta veya telefon kimlik doğrulaması",
-    "cloudContinue": "Bulut Depolama ile Devam Et",
-    "localTitle": "Yerel Depolama",
-    "localDescription": "Verilerinizi yalnızca bu cihazda saklayın. Hesap veya telefon numarası gerekmez. Verilerinizi kaydetmek veya taşımak için içe/dışa aktarmayı kullanın.",
-    "localFeatureNoSignIn": "Giriş gerekmez",
-    "localFeatureSame": "Aynı anket ve sonuçlar",
-    "localFeatureExport": "JSON'a aktar veya yazdır",
-    "localFeaturePrivacy": "Bu cihazda gizlilik",
-    "localContinue": "Yerel Depolama ile Devam Et",
-    "importPrompt": "Mevcut bir değerlendirmeniz var mı?",
-    "importButton": "Önceki Verileri İçe Aktar",
-    "footerText": "Sağlık verileriniz güvenli ve gizli bir şekilde saklanır. Bilgilerinizi asla paylaşmaz veya satmayız.",
-    "privacyNote": "HIPAA uyumlu güvenli depolama"
-  },
   "info": {
     "learnMore": "{{title}} hakkında daha fazla bilgi edinin",
     "sources": "Kaynaklar:",
@@ -945,83 +924,6 @@
       "shimRange": "SHIM toplamı 0 ile 25 arasında olmalıdır",
       "calculationFailed": "Hesaplama başarısız oldu. Lütfen girdilerinizi tekrar kontrol edin."
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Başlamak için telefon numaranızı girin",
-    "phoneLabel": "Telefon Numarası",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "Size SMS ile bir doğrulama kodu göndereceğiz",
-    "sending": "Gönderiliyor...",
-    "sendCode": "Doğrulama Kodu Gönder",
-    "verificationCodeLabel": "Doğrulama Kodu",
-    "codePlaceholder": "123456",
-    "codeSentTo": "{{phone}} numarasına gönderilen 6 haneli kodu girin",
-    "verifying": "Doğrulanıyor...",
-    "verifyCode": "Kodu Doğrula",
-    "changePhoneNumber": "Telefon Numarasını Değiştir",
-    "errors": {
-      "invalidPhone10Digits": "Lütfen geçerli bir 10 haneli telefon numarası girin",
-      "recaptchaExpired": "reCAPTCHA'nın süresi doldu. Lütfen tekrar deneyin.",
-      "invalidVerificationCodeGeneric": "Geçersiz doğrulama kodu. Lütfen tekrar deneyin.",
-      "invalidVerificationCode": "Geçersiz doğrulama kodu. Lütfen kontrol edip tekrar deneyin.",
-      "codeExpired": "Doğrulama kodunun süresi doldu. Lütfen yeni bir kod isteyin."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Prostata Özgü Farkındalık",
-    "subtitle": "Doğrulanmamış Eğitsel Bir Risk Aracı",
-    "enterPhonePrompt": "Başlamak için telefon numaranızı girin",
-    "phoneLabel": "Telefon Numarası",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Gönderiliyor...",
-    "sendCode": "Doğrulama Kodu Gönder",
-    "smsHint": "Size SMS ile bir doğrulama kodu göndereceğiz",
-    "enterCodePrompt": "Şu numaraya gönderilen doğrulama kodunu girin:",
-    "verificationCodeLabel": "Doğrulama Kodu",
-    "codePlaceholder": "6 haneli kodu girin",
-    "back": "Geri",
-    "verifying": "Doğrulanıyor...",
-    "verifyCode": "Kodu Doğrula",
-    "didNotReceive": "Kodu almadınız mı? Mesajlarınızı kontrol edin veya tekrar deneyin."
-  },
-  "emailAuth": {
-    "signIn": "Giriş Yap",
-    "createAccount": "Hesap Oluştur",
-    "resetPassword": "Şifreyi Sıfırla",
-    "emailLabel": "E-posta Adresi",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "Şifre",
-    "createPasswordLabel": "Şifre Oluştur",
-    "passwordPlaceholder": "Şifrenizi girin",
-    "createPasswordPlaceholder": "Güçlü bir şifre oluşturun",
-    "pleaseWait": "Lütfen bekleyin...",
-    "sendResetEmail": "Sıfırlama E-postası Gönder",
-    "forgotPassword": "Şifrenizi mi unuttunuz?",
-    "needAccount": "Hesap mı lazım? Kaydolun",
-    "subtitle": {
-      "signIn": "ePSA değerlendirme sonuçlarınıza erişin",
-      "signUp": "Prostat sağlığı değerlendirmenize başlayın",
-      "forgot": "Size bir şifre sıfırlama bağlantısı göndereceğiz"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Giriş bağlantısı için e-postanızı kontrol edin!",
-    "signingInTitle": "Giriş Yapılıyor...",
-    "verifyingLink": "E-posta bağlantınız doğrulanıyor",
-    "pleaseWait": "Sizi sisteme alıyoruz, lütfen bekleyin...",
-    "requestNewLink": "Yeni Bağlantı İste",
-    "checkYourEmail": "E-postanızı Kontrol Edin",
-    "signInWithEmail": "E-posta ile Giriş Yap",
-    "sentLinkTo": "{{email}} adresine bir giriş bağlantısı gönderdik",
-    "enterEmailSecureLink": "Güvenli bir giriş bağlantısı almak için e-postanızı girin",
-    "emailLabel": "E-posta Adresi",
-    "emailPlaceholder": "your@email.com",
-    "sending": "Gönderiliyor...",
-    "sendSignInLink": "Giriş Bağlantısı Gönder",
-    "emailSent": "E-posta Gönderildi!",
-    "didNotReceive": "Almadınız mı?",
-    "sendNewLink": "Yeni Bağlantı Gönder",
-    "goBack": "Geri Dön"
   },
   "welcomeGh": {
     "description": "Bu 5 dakikalık anket, doğrulanmış klinik araçları kullanarak kişiselleştirilmiş risk değerlendirmenizi hesaplar.",
