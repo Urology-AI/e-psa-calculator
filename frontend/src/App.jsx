@@ -14,6 +14,8 @@ import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
+import PrivacyPolicyPopup from './components/PrivacyPolicyPopup.jsx';
+import TermsOfServicePopup from './components/TermsOfServicePopup.jsx';
 import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
@@ -75,6 +77,8 @@ function App() {
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [showHipaaPopup, setShowHipaaPopup] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
@@ -1557,6 +1561,20 @@ function App() {
                 </button>
                 <button
                   className="btn-model-docs"
+                  onClick={() => setShowPrivacyPolicy(true)}
+                >
+                  <ShieldCheckIcon size={16} />
+                  <span>{t('app.footer.privacyPolicy')}</span>
+                </button>
+                <button
+                  className="btn-model-docs"
+                  onClick={() => setShowTermsOfService(true)}
+                >
+                  <BookIcon size={16} />
+                  <span>{t('app.footer.termsOfService')}</span>
+                </button>
+                <button
+                  className="btn-model-docs"
                   onClick={() => setShowCredits(true)}
                 >
                   <UsersIcon size={16} />
@@ -1935,6 +1953,12 @@ function App() {
       )}
       {showHipaaPopup && (
         <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />
+      )}
+      {showPrivacyPolicy && (
+        <PrivacyPolicyPopup onClose={() => setShowPrivacyPolicy(false)} />
+      )}
+      {showTermsOfService && (
+        <TermsOfServicePopup onClose={() => setShowTermsOfService(false)} />
       )}
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />

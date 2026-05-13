@@ -325,7 +325,8 @@ const ModelDocumentation = ({ scope = 'part1', pathwayMode = null }) => {
         only — no external cohort has been used.</strong> AUCs are bootstrap 95% CIs unless noted.
         Model 4 is a separate logistic regression validated in the same cohort for post-biopsy
         decisions. Principal Investigator: Ashutosh K. Tewari, MD, Icahn School of Medicine at
-        Mount Sinai.
+        Mount Sinai. Cohort data collected under Mount Sinai GU Clinical IRB protocol
+        STUDY-14-00050.
       </div>
     </div>
   );
