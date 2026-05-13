@@ -54,18 +54,18 @@ export async function validateCode(code) {
   return res.data; // { valid: boolean, reason?: string }
 }
 
-export async function submitLive(payload) {
+/**
+ * Unified submit entry point. The backend decides (based on
+ * appConfig/sinai.redcapEnabled) whether to attempt a live REDCap POST or
+ * leave the session in `pending` status for an admin to handle later.
+ *
+ * Returns: { ok, sessionId, redcapSubmitted, redcapRecordId?, ttlDays }
+ */
+export async function submitSession(payload) {
   requireFunctions();
-  const fn = httpsCallable(functions, 'submitSinaiCohort');
+  const fn = httpsCallable(functions, 'submitSinaiSession');
   const res = await fn(payload);
-  return res.data; // { success: true, redcapRecordId: string }
-}
-
-export async function claimOffline(code, sessionId) {
-  requireFunctions();
-  const fn = httpsCallable(functions, 'claimCodeOffline');
-  const res = await fn({ code, sessionId });
-  return res.data; // { ok: true, sessionId: string }
+  return res.data;
 }
 
 // ─── Submission payload builder ────────────────────────────────────────────
