@@ -25,6 +25,7 @@ import {
   listSinaiSessions, getSinaiSession, submitSessionToRedcap,
   deleteSinaiSession, markCodeImported,
   listPublicConsentedSessions, getPublicSession, resyncPublicSession,
+  linkPublicSessionToSinai,
   generateClinicCodes, revokeClinicCode,
   listClinicCodeAuditLog, toggleSinaiRedcapEnabled, readSinaiConfig,
   formatCode, buildCsvFromRecord, downloadFile,
@@ -721,6 +722,7 @@ const PublicSessionModal = ({ summary, onClose, onAction }) => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
+  const [showLinkForm, setShowLinkForm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -744,6 +746,23 @@ const PublicSessionModal = ({ summary, onClose, onAction }) => {
       onAction({ kind: 'success', text: 'Resync requested — the syncToRedcap trigger will re-run shortly.' });
     } catch (err) {
       setError(err?.message || 'Failed to request resync.');
+      setBusy(null);
+    }
+  };
+
+  const handleLinkSubmit = async (payload) => {
+    setBusy('link'); setError(null);
+    try {
+      const res = await linkPublicSessionToSinai({
+        sessionId: summary.sessionId,
+        ...payload,
+      });
+      onAction({
+        kind: 'success',
+        text: `Linked to clinic code ${formatCode(res.clinicCode)}. New Sinai session ${res.sinaiSessionId} created.`,
+      });
+    } catch (err) {
+      setError(err?.message || 'Failed to link session.');
       setBusy(null);
     }
   };
@@ -861,6 +880,15 @@ const PublicSessionModal = ({ summary, onClose, onAction }) => {
               )}
             </div>
 
+            {showLinkForm && !summary.linkedToSinai && (
+              <LinkToSinaiForm
+                adminEmailDefault={doc?.consentBasis === 'sinai_irb_study_14_00050' ? '' : ''}
+                onCancel={() => setShowLinkForm(false)}
+                onSubmit={handleLinkSubmit}
+                busy={busy === 'link'}
+              />
+            )}
+
             <footer className="sr-modal-footer">
               <div className="sr-modal-footer-left">
                 <button className="sr-btn-ghost" onClick={handleDownloadJson}>
@@ -871,6 +899,16 @@ const PublicSessionModal = ({ summary, onClose, onAction }) => {
                 </button>
               </div>
               <div className="sr-modal-footer-right">
+                {!summary.linkedToSinai && (
+                  <button
+                    className="sr-btn-ghost"
+                    onClick={() => setShowLinkForm((s) => !s)}
+                    disabled={busy != null}
+                    title="Document patient consent and link this session to a Mount Sinai clinic code"
+                  >
+                    <Link2 size={14} /> {showLinkForm ? 'Hide link form' : 'Link to Mount Sinai patient'}
+                  </button>
+                )}
                 {canResync && (
                   <button className="sr-btn-primary" onClick={handleResync} disabled={busy != null}>
                     {busy === 'resync' ? <Loader2 size={14} className="sr-spin" /> : <RotateCw size={14} />}
@@ -881,6 +919,208 @@ const PublicSessionModal = ({ summary, onClose, onAction }) => {
             </footer>
           </>
         )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// LinkToSinaiForm — admin attests to obtaining IRB consent before linking
+//
+// Lives inline inside PublicSessionModal so the entire link workflow stays
+// inside the admin dashboard. Backend gates: clinic code valid+unused,
+// consent method documented, notes ≥10 chars, attestation checkbox checked.
+// ─────────────────────────────────────────────────────────────────────────
+
+const CONSENT_METHODS = [
+  { id: 'verbal',     label: 'Verbal (clinician witnessed)' },
+  { id: 'written',    label: 'Written (electronic signature)' },
+  { id: 'paper',      label: 'Paper consent form (on file)' },
+  { id: 'electronic', label: 'Electronic (e.g. patient portal)' },
+];
+
+const toDatetimeLocalValue = (millis) => {
+  const d = new Date(millis);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const LinkToSinaiForm = ({ onCancel, onSubmit, busy }) => {
+  const [code, setCode] = useState('');
+  const [consentMethod, setConsentMethod] = useState('verbal');
+  const [consentTimestampStr, setConsentTimestampStr] = useState(toDatetimeLocalValue(Date.now()));
+  const [consentAttestor, setConsentAttestor] = useState('');
+  const [consentNotes, setConsentNotes] = useState('');
+  const [attachmentRef, setAttachmentRef] = useState('');
+  const [attestationChecked, setAttestationChecked] = useState(false);
+  const [localError, setLocalError] = useState(null);
+
+  const codeNormalized = (code || '').replace(/[\s\-_]/g, '').toUpperCase();
+  const codeLooksValid = codeNormalized.length === 12 && /^[A-Z0-9]+$/.test(codeNormalized);
+  const notesValid = consentNotes.trim().length >= 10;
+  const timestampMillis = consentTimestampStr ? new Date(consentTimestampStr).getTime() : NaN;
+  const timestampValid = Number.isFinite(timestampMillis) && timestampMillis <= Date.now() + 60 * 1000;
+  const canSubmit =
+    codeLooksValid && notesValid && timestampValid && attestationChecked && !busy;
+
+  const handleSubmit = () => {
+    setLocalError(null);
+    if (!codeLooksValid) { setLocalError('Clinic code must be 12 characters (letters/digits).'); return; }
+    if (!timestampValid) { setLocalError('Consent timestamp must be a valid date/time, not in the future.'); return; }
+    if (!notesValid)     { setLocalError('Consent notes must be at least 10 characters.'); return; }
+    if (!attestationChecked) { setLocalError('Admin attestation checkbox is required.'); return; }
+
+    onSubmit({
+      clinicCode: codeNormalized,
+      consentMethod,
+      consentTimestampMillis: timestampMillis,
+      consentAttestor: consentAttestor.trim() || undefined,
+      consentNotes: consentNotes.trim(),
+      consentAttachmentRef: attachmentRef.trim() || undefined,
+      adminAttestation: true,
+    });
+  };
+
+  return (
+    <div className="sr-action-panel sr-action-panel--link">
+      <header>
+        <span>
+          <Link2 size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+          Link to Mount Sinai patient (IRB STUDY-14-00050)
+        </span>
+      </header>
+      <p className="sr-action-help">
+        Document the patient&apos;s consent before linking. Both gates must hold —
+        a valid clinic code <strong>and</strong> documented IRB consent.
+      </p>
+
+      {localError && (
+        <div className="sr-banner sr-banner--error" style={{ marginBottom: 10 }}>
+          <AlertCircle size={16} /><span>{localError}</span>
+        </div>
+      )}
+
+      <div className="sr-form-row">
+        <label>Clinic code</label>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="XXXX-XXXX-XXXX"
+          disabled={busy}
+          style={{ fontFamily: '"SF Mono", Menlo, Consolas, monospace', letterSpacing: '0.06em' }}
+        />
+      </div>
+
+      <div className="sr-form-row">
+        <label>Consent method</label>
+        <select
+          className="sr-select"
+          value={consentMethod}
+          onChange={(e) => setConsentMethod(e.target.value)}
+          disabled={busy}
+          style={{ flex: 1 }}
+        >
+          {CONSENT_METHODS.map(({ id, label }) => (
+            <option key={id} value={id}>{label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="sr-form-row">
+        <label>When obtained</label>
+        <input
+          type="datetime-local"
+          value={consentTimestampStr}
+          onChange={(e) => setConsentTimestampStr(e.target.value)}
+          max={toDatetimeLocalValue(Date.now())}
+          disabled={busy}
+        />
+      </div>
+
+      <div className="sr-form-row">
+        <label>Attestor</label>
+        <input
+          type="text"
+          value={consentAttestor}
+          onChange={(e) => setConsentAttestor(e.target.value)}
+          placeholder="(defaults to your admin email if blank)"
+          maxLength={200}
+          disabled={busy}
+        />
+      </div>
+
+      <div className="sr-form-row" style={{ alignItems: 'flex-start' }}>
+        <label style={{ paddingTop: 8 }}>Notes</label>
+        <textarea
+          value={consentNotes}
+          onChange={(e) => setConsentNotes(e.target.value)}
+          placeholder="Describe how consent was obtained, who was present, anything the IRB would want to see (min 10 chars)."
+          minLength={10}
+          maxLength={1000}
+          rows={3}
+          disabled={busy}
+          style={{
+            flex: 1,
+            padding: '7px 10px',
+            fontSize: 13,
+            border: '1px solid #cbd5e1',
+            borderRadius: 8,
+            background: '#fff',
+            outline: 'none',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+          }}
+        />
+      </div>
+      <div className="sr-form-row">
+        <label>Attachment</label>
+        <input
+          type="text"
+          value={attachmentRef}
+          onChange={(e) => setAttachmentRef(e.target.value)}
+          placeholder="Optional: Firebase Storage path to a paper consent scan"
+          maxLength={500}
+          disabled={busy}
+        />
+      </div>
+
+      <label
+        className="sr-attestation"
+        style={{
+          display: 'flex',
+          gap: 8,
+          padding: '10px 12px',
+          margin: '10px 0',
+          background: '#fef9c3',
+          border: '1px solid #fcd34d',
+          borderRadius: 8,
+          fontSize: 13,
+          color: '#78350f',
+          cursor: 'pointer',
+          lineHeight: 1.5,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={attestationChecked}
+          onChange={(e) => setAttestationChecked(e.target.checked)}
+          disabled={busy}
+          style={{ marginTop: 3, accentColor: '#d97706' }}
+        />
+        <span>
+          <strong>I attest</strong> that the patient identified by this clinic code provided
+          IRB STUDY-14-00050 consent through the method indicated above, and that I have
+          reviewed this session before linking. This action is logged and audited.
+        </span>
+      </label>
+
+      <div className="sr-form-actions">
+        <button className="sr-btn-ghost" onClick={onCancel} disabled={busy}>Cancel</button>
+        <button className="sr-btn-primary" onClick={handleSubmit} disabled={!canSubmit}>
+          {busy ? <Loader2 size={14} className="sr-spin" /> : <Link2 size={14} />}
+          <span>Link to Mount Sinai cohort</span>
+        </button>
       </div>
     </div>
   );
