@@ -7,6 +7,11 @@ import CryptoJS from 'crypto-js';
 // submitToRedcap: callable function for local-storage users to push directly
 export { syncToRedcap, submitToRedcap } from './redcapSync';
 
+// Sinai clinic cohort — stateless REDCap submission path (IRB STUDY-14-00050).
+// No clinical data is persisted in Firestore on this path; only the
+// clinicCodes/{code} audit row is updated.
+export { validateClinicCode, submitSinaiCohort } from './sinaiCohort';
+
 // Type definitions for better type safety
 interface AdminLoginData {
   email: string;
