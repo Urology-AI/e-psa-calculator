@@ -215,26 +215,21 @@
     "closeButton": "Close",
     "privacy": {
       "title": "Privacy & Data Protection",
-      "text": "ePSA is an educational research tool. The privacy posture of your data depends on which storage option you choose. Read each section below to understand what is and is not collected in your chosen path."
+      "text": "ePSA is an educational research tool. Sign-in to ePSA uses an anonymous session key only — we do not collect an email address, phone number, or other contact identifier. This page describes what we do and do not collect, and where your data is stored."
     },
     "baa": {
       "title": "HIPAA / BAA Status",
       "label": "Important:",
-      "text": "This tool runs on Google Firebase. Cloud Firestore and Firebase Authentication are HIPAA-eligible services only under an executed Google Cloud Business Associate Agreement (BAA). The BAA status for this deployment is being finalized as part of Mount Sinai's review. Until the BAA is confirmed in writing, do not enter information you would consider Protected Health Information (PHI) in a clinical setting. ePSA is not a medical device and is not FDA-cleared."
+      "text": "This tool runs on Google Firebase (Cloud Firestore for storage and Firebase Authentication for the anonymous session key). Firebase is HIPAA-eligible only under an executed Google Cloud Business Associate Agreement (BAA). The BAA status for this deployment is being finalized as part of Mount Sinai's review. Until the BAA is confirmed in writing, do not enter information you would consider Protected Health Information (PHI) in a clinical setting. ePSA is not a medical device and is not FDA-cleared."
     },
     "sessionOnly": {
-      "title": "Anonymous Session Key (no contact info)",
-      "noEmailPhoneLabel": "Anonymous key path:",
-      "noEmailPhoneText": "If you choose the anonymous session key option, cloud storage uses a short random key only (e.g. A1B2C3D4). On that path we do not collect your email address or phone number.",
+      "title": "Anonymous Session Key Only",
+      "noEmailPhoneLabel": "No email or phone collected:",
+      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short random key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number, and the user record we create explicitly carries email and phone as null.",
       "noIdentityLabel": "No identity linking:",
-      "noIdentityText": "On the anonymous-key path, your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
+      "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
       "saveKeyLabel": "Save your key:",
-      "saveKeyText": "If you lose your session key, we cannot recover your data. We have no way to associate the data with you on that path."
-    },
-    "emailPhoneAuth": {
-      "title": "Email or Phone Sign-In (contact info IS collected)",
-      "label": "If you sign in with email or phone:",
-      "text": "If you choose the email or phone sign-in option, Firebase Authentication does collect and store your email address or phone number. That identifier is stored alongside your session and assessment data in your Firestore user document. Choose the anonymous session key instead if you do not want a contact identifier linked to your data."
+      "saveKeyText": "If you lose your session key, we cannot recover your data. We have no way to associate the data with you."
     },
     "importCloud": {
       "title": "Data Import & Cloud",
@@ -245,7 +240,7 @@
     },
     "choices": {
       "title": "Your Choices",
-      "text": "You can use the tool with data stored only on this device (\"This device only\"), with an anonymous session key in the cloud (no contact info), or with email/phone sign-in (contact info collected). Choose the option that matches your privacy preference."
+      "text": "You can use ePSA with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No contact information is required in either path."
     },
     "disclaimer": {
       "label": "Disclaimer:",
@@ -276,8 +271,8 @@
       "intro": "Depending on the storage option you select when using ePSA, we may collect the following categories of information:",
       "assessmentLabel": "Assessment inputs and results:",
       "assessmentText": "Your responses to the risk-assessment questions (including age, BMI, PSA value, IPSS and SHIM symptom scores, family history, self-reported ancestry, prior biopsy and MRI findings, and other clinical inputs) and the model outputs derived from them.",
-      "authLabel": "Contact identifiers (only if you sign in with email or phone):",
-      "authText": "If you choose the email or phone sign-in option, Firebase Authentication collects and stores the email address or phone number you provide. If you choose the anonymous session-key option, or use ePSA in local-device-only mode, no contact identifier is collected by ePSA.",
+      "authLabel": "Contact identifiers:",
+      "authText": "ePSA does NOT collect an email address, phone number, or other contact identifier from users. Sign-in to ePSA uses an anonymous session key only, and the user record we create explicitly stores email and phone as null. There is no email- or phone-based sign-in path in the current production build.",
       "technicalLabel": "Technical and usage data:",
       "technicalText": "Standard server logs (IP address, browser type, request timestamps) generated by Firebase Hosting and Cloud Firestore for security, abuse prevention, and reliability. We do not currently deploy advertising trackers or third-party analytics SDKs on ePSA."
     },
@@ -291,7 +286,7 @@
     },
     "cookiesAndTracking": {
       "title": "Cookies and Tracking",
-      "text": "ePSA uses a minimal set of cookies and similar storage required to keep you signed in (Firebase Authentication), to defend against abuse (Google reCAPTCHA on auth flows), and to remember your in-session preferences (such as text scale and language). ePSA does not use advertising cookies and does not currently transmit data to Google Analytics in its research configuration. If analytics are enabled in the future, they will be either de-identified to a tier-label only or gated behind explicit consent, and this Privacy Policy will be updated accordingly."
+      "text": "ePSA uses a minimal set of cookies and similar local storage required to keep your anonymous session active (Firebase Authentication) and to remember your in-session preferences (such as text scale and language). ePSA does not use advertising cookies and does not currently transmit identifiable data to Google Analytics in its research configuration. If analytics are enabled in the future, they will be either de-identified to a tier-label only or gated behind explicit consent, and this Privacy Policy will be updated accordingly."
     },
     "hipaaNotice": {
       "title": "Relationship to Mount Sinai's HIPAA Notice",
@@ -342,8 +337,8 @@
       "text": "The information and content in ePSA — including text, numerical scores, risk percentages, charts, and any printed or exported output — is for informational and research purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health-care provider with any questions you may have regarding your medical care, and never disregard professional medical advice or delay seeking it because of something you have read on or via ePSA. Reliance on any information appearing in ePSA is solely at your own risk."
     },
     "accountResponsibility": {
-      "title": "Accounts, Session Keys, and Data Responsibility",
-      "text": "If you create an account using email or phone authentication, or if you use an anonymous session key, you are responsible for keeping your credentials and session key secure. If you lose your anonymous session key, the associated assessment data cannot be recovered. You may not use ePSA in a way that interferes with another user's access, attempts to defeat security controls, or violates applicable law."
+      "title": "Session Keys and Data Responsibility",
+      "text": "Sign-in to ePSA uses an anonymous session key only. You are responsible for keeping your session key secure — anyone with the key can access the associated assessment data. If you lose your session key, the associated assessment data cannot be recovered, as we do not collect any contact information that would let us restore it. You may not use ePSA in a way that interferes with another user's access, attempts to defeat security controls, or violates applicable law."
     },
     "intellectualProperty": {
       "title": "Intellectual Property",
@@ -376,12 +371,12 @@
   },
   "storage": {
     "cloudTitle": "Cloud Storage",
-    "cloudDescription": "Store your data securely by email or phone number. Access from any device and share with healthcare providers.",
+    "cloudDescription": "Store your data securely under an anonymous session key. Access from any device using the key — no email or phone number required.",
     "cloudFeatureSecure": "Secure cloud storage",
-    "cloudFeatureAnyDevice": "Access from any device",
+    "cloudFeatureAnyDevice": "Access from any device with your session key",
     "cloudFeatureCollaboration": "Provider collaboration",
     "cloudFeatureBackups": "Automatic backups",
-    "cloudFeatureAuth": "Email or phone authentication",
+    "cloudFeatureAuth": "Anonymous session-key authentication",
     "cloudContinue": "Continue with Cloud Storage",
     "localTitle": "Local Storage",
     "localDescription": "Store your data only on this device. No account or phone number required. Use import/export to save or move your data.",
