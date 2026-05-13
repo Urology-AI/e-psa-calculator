@@ -22,23 +22,16 @@ const AdminApp = () => {
 
   const checkAuthentication = async () => {
     setIsLoading(true);
-    
-    // First check if user is already authenticated
+
+    // Email-link completion is handled inside AdminLogin behind an explicit
+    // user click, so that link-prefetching email scanners cannot consume the
+    // single-use oobCode before the real user arrives.
     if (adminAuthService.isAdminAuthenticated()) {
       const user = adminAuthService.getCurrentAdmin();
       setAdminUser(user);
       setIsAuthenticated(true);
-      setIsLoading(false);
-      return;
     }
-    
-    // Check if user is coming from email link
-    const linkResult = await adminAuthService.checkForEmailLink();
-    if (linkResult && linkResult.success) {
-      setAdminUser(linkResult.user);
-      setIsAuthenticated(true);
-    }
-    
+
     setIsLoading(false);
   };
 
