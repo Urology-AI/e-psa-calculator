@@ -30,6 +30,11 @@ const PrivacyPolicyPopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
+            <h3>{t('privacyPolicy.institutional.title')}</h3>
+            <p>{t('privacyPolicy.institutional.text')}</p>
+          </section>
+
+          <section className="docs-section">
             <h3>{t('privacyPolicy.dataCollected.title')}</h3>
             <p>{t('privacyPolicy.dataCollected.intro')}</p>
             <ul className="limitations-list">
@@ -50,8 +55,28 @@ const PrivacyPolicyPopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
+            <h3>{t('privacyPolicy.cookiesAndTracking.title')}</h3>
+            <p>{t('privacyPolicy.cookiesAndTracking.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('privacyPolicy.hipaaNotice.title')}</h3>
+            <p>{t('privacyPolicy.hipaaNotice.text')}</p>
+          </section>
+
+          <section className="docs-section">
             <h3>{t('privacyPolicy.yourRights.title')}</h3>
             <p>{t('privacyPolicy.yourRights.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('privacyPolicy.childrens.title')}</h3>
+            <p>{t('privacyPolicy.childrens.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('privacyPolicy.changes.title')}</h3>
+            <p>{t('privacyPolicy.changes.text')}</p>
           </section>
 
           <section className="docs-section">

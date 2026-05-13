@@ -30,6 +30,11 @@ const TermsOfServicePopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
+            <h3>{t('terms.institutional.title')}</h3>
+            <p>{t('terms.institutional.text')}</p>
+          </section>
+
+          <section className="docs-section">
             <h3>{t('terms.educationalUse.title')}</h3>
             <p>{t('terms.educationalUse.text')}</p>
           </section>
@@ -45,13 +50,33 @@ const TermsOfServicePopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
-            <h3>{t('terms.disclaimer.title')}</h3>
-            <p>{t('terms.disclaimer.text')}</p>
+            <h3>{t('terms.intellectualProperty.title')}</h3>
+            <p>{t('terms.intellectualProperty.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('terms.noWarranty.title')}</h3>
+            <p>{t('terms.noWarranty.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('terms.limitationOfLiability.title')}</h3>
+            <p>{t('terms.limitationOfLiability.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('terms.indemnity.title')}</h3>
+            <p>{t('terms.indemnity.text')}</p>
           </section>
 
           <section className="docs-section">
             <h3>{t('terms.changes.title')}</h3>
             <p>{t('terms.changes.text')}</p>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('terms.governingLaw.title')}</h3>
+            <p>{t('terms.governingLaw.text')}</p>
           </section>
 
           <section className="docs-section">
