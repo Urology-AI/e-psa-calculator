@@ -10,7 +10,17 @@ export { syncToRedcap, submitToRedcap } from './redcapSync';
 // Sinai clinic cohort — stateless REDCap submission path (IRB STUDY-14-00050).
 // No clinical data is persisted in Firestore on this path; only the
 // clinicCodes/{code} audit row is updated.
-export { validateClinicCode, submitSinaiCohort } from './sinaiCohort';
+//   - validateClinicCode: pre-form code check
+//   - submitSinaiCohort: live REDCap submission via API
+//   - claimCodeOffline: interim path while live REDCap is not yet enabled
+//                       (browser builds CSV, function only consumes the code)
+//   - markCodeImported: admin closes the loop after manual REDCap import
+export {
+  validateClinicCode,
+  submitSinaiCohort,
+  claimCodeOffline,
+  markCodeImported,
+} from './sinaiCohort';
 
 // Type definitions for better type safety
 interface AdminLoginData {

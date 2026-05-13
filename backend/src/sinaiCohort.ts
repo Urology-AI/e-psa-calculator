@@ -218,9 +218,24 @@ function callerKey(context: functions.https.CallableContext): string {
 // AUDIT LOG (does not contain clinical data — only the action and outcome)
 // ─────────────────────────────────────────────────────────────────────────────
 
+type AuditAction =
+  | 'validate'
+  | 'submit'
+  | 'submit_failed'
+  | 'claim_offline'
+  | 'mark_imported';
+
+type AuditOutcome =
+  | CodeStatus
+  | 'submitted'
+  | 'redcap_error'
+  | 'claimed_offline'
+  | 'marked_imported'
+  | 'unauthorized';
+
 async function logCodeAudit(
-  action: 'validate' | 'submit' | 'submit_failed',
-  outcome: CodeStatus | 'submitted' | 'redcap_error',
+  action: AuditAction,
+  outcome: AuditOutcome,
   details: {
     normalizedCode?: string;
     callerKey: string;
@@ -670,6 +685,230 @@ export const submitSinaiCohort = functions.https.onCall(
         'internal',
         'Could not submit to Mount Sinai REDCap. Please try again, or contact the study team if the problem persists.'
       );
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALLABLE  —  claimCodeOffline
+//
+// Interim path for when the live REDCap integration is not yet enabled.
+// The frontend builds the CSV itself (no clinical data is sent to this
+// function) and calls this endpoint with only the clinic code to atomically
+// claim it. The audit row records `submittedOffline: true` so the admin
+// dashboard can show "captured offline, awaiting manual REDCap import."
+//
+// Whether to use this path vs. submitSinaiCohort is decided by the
+// `appConfig/sinai.redcapEnabled` flag (read client-side).
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ClaimOfflineInput {
+  code?: unknown;
+  sessionId?: string;
+}
+
+interface ClaimOfflineResult {
+  ok: true;
+  sessionId: string;
+}
+
+export const claimCodeOffline = functions.https.onCall(
+  async (data: ClaimOfflineInput, context): Promise<ClaimOfflineResult> => {
+    const key = callerKey(context);
+    if (!rateLimit(submitRateMap, key, SUBMIT_WINDOW_MS, SUBMIT_MAX_PER_WINDOW)) {
+      throw new functions.https.HttpsError(
+        'resource-exhausted',
+        'Too many submission attempts. Please wait a minute and try again.'
+      );
+    }
+
+    const normalized = normalizeCode(data?.code);
+    if (!normalized) {
+      await logCodeAudit('submit_failed', 'malformed', { callerKey: key });
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid clinic code format.');
+    }
+
+    const db = admin.firestore();
+    const codeRef = db.collection(CLINIC_CODES_COLLECTION).doc(normalized);
+    const sessionId =
+      typeof data?.sessionId === 'string' && data.sessionId.length > 0
+        ? data.sessionId
+        : crypto.randomUUID();
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(codeRef);
+        if (!snap.exists) {
+          throw new functions.https.HttpsError('not-found', 'Clinic code not recognized.');
+        }
+        const doc = snap.data() as ClinicCodeDoc;
+        if (doc.revoked) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has been revoked.');
+        }
+        if (doc.used) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has already been used.');
+        }
+        if (doc.expiresAt && doc.expiresAt.toMillis() < Date.now()) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has expired.');
+        }
+        if (!constantTimeEqual(doc.code, normalized)) {
+          throw new functions.https.HttpsError('not-found', 'Clinic code not recognized.');
+        }
+        tx.update(codeRef, {
+          used: true,
+          usedAt: admin.firestore.FieldValue.serverTimestamp(),
+          sessionId,
+          submittedOffline: true,
+          submittedToRedcap: false,
+          redcapManuallyImportedAt: null,
+        });
+      });
+
+      await logCodeAudit('claim_offline', 'claimed_offline', {
+        normalizedCode: normalized,
+        callerKey: key,
+        sessionId,
+      });
+
+      return { ok: true, sessionId };
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) {
+        await logCodeAudit('submit_failed', 'not_found', {
+          normalizedCode: normalized,
+          callerKey: key,
+          errorMessage: err.message,
+        });
+        throw err;
+      }
+      functions.logger.error('claimCodeOffline: transaction failed', err);
+      throw new functions.https.HttpsError('internal', 'Could not claim clinic code. Please try again.');
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALLABLE  —  markCodeImported  (admin-only)
+//
+// Used by the admin dashboard (PR #3) to record that an offline-captured
+// session was manually imported into REDCap by a study team member.
+// Closes the audit loop for codes whose data took the offline path.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface MarkImportedInput {
+  code?: unknown;
+  redcapRecordId?: unknown;
+  notes?: unknown;
+}
+
+interface MarkImportedResult {
+  ok: true;
+  redcapRecordId: string;
+}
+
+async function callerIsAdmin(
+  context: functions.https.CallableContext
+): Promise<{ allowed: boolean; uid: string | null; email: string | null }> {
+  if (!context.auth) return { allowed: false, uid: null, email: null };
+  const uid = context.auth.uid;
+  const email = (context.auth.token.email as string | undefined) ?? null;
+
+  // Super-admin domains (mirrors firestore.rules isSuperAdmin)
+  if (email) {
+    const lower = email.toLowerCase();
+    if (lower.endsWith('@mountsinai.org') || lower.endsWith('@mssm.edu')) {
+      return { allowed: true, uid, email };
+    }
+    if (lower === 'aditya.dixit@mssm.edu' || lower === 'adixit@nyu.edu') {
+      return { allowed: true, uid, email };
+    }
+  }
+
+  // Otherwise check the admins/{uid} doc with isActive == true
+  try {
+    const snap = await admin.firestore().collection('admins').doc(uid).get();
+    const data = snap.data() as { isActive?: boolean } | undefined;
+    if (data?.isActive === true) return { allowed: true, uid, email };
+  } catch (e) {
+    functions.logger.warn('callerIsAdmin: admins/ lookup failed', e);
+  }
+  return { allowed: false, uid, email };
+}
+
+export const markCodeImported = functions.https.onCall(
+  async (data: MarkImportedInput, context): Promise<MarkImportedResult> => {
+    const auth = await callerIsAdmin(context);
+    if (!auth.allowed) {
+      await logCodeAudit('mark_imported', 'unauthorized', {
+        callerKey: auth.uid ? `uid:${auth.uid}` : 'ip:unknown',
+      });
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Only the study team may mark sessions as imported.'
+      );
+    }
+
+    const normalized = normalizeCode(data?.code);
+    if (!normalized) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid clinic code format.');
+    }
+
+    const redcapRecordId =
+      typeof data?.redcapRecordId === 'string' && data.redcapRecordId.length > 0
+        ? data.redcapRecordId
+        : null;
+    if (!redcapRecordId) {
+      throw new functions.https.HttpsError('invalid-argument', 'REDCap record ID is required.');
+    }
+
+    const notes =
+      typeof data?.notes === 'string' && data.notes.length > 0 && data.notes.length <= 500
+        ? data.notes
+        : null;
+
+    const db = admin.firestore();
+    const codeRef = db.collection(CLINIC_CODES_COLLECTION).doc(normalized);
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(codeRef);
+        if (!snap.exists) {
+          throw new functions.https.HttpsError('not-found', 'Clinic code not recognized.');
+        }
+        const doc = snap.data() as ClinicCodeDoc & {
+          submittedOffline?: boolean;
+          redcapManuallyImportedAt?: admin.firestore.Timestamp | null;
+        };
+        if (!doc.submittedOffline) {
+          throw new functions.https.HttpsError(
+            'failed-precondition',
+            'This code was not captured offline; nothing to import manually.'
+          );
+        }
+        if (doc.redcapManuallyImportedAt) {
+          throw new functions.https.HttpsError(
+            'failed-precondition',
+            'This session has already been marked as imported.'
+          );
+        }
+        tx.update(codeRef, {
+          redcapRecordId,
+          redcapManuallyImportedAt: admin.firestore.FieldValue.serverTimestamp(),
+          redcapImportedBy: auth.email ?? auth.uid,
+          redcapImportNotes: notes,
+        });
+      });
+
+      await logCodeAudit('mark_imported', 'marked_imported', {
+        normalizedCode: normalized,
+        callerKey: auth.uid ? `uid:${auth.uid}` : 'admin',
+        redcapRecordId,
+      });
+
+      return { ok: true, redcapRecordId };
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) throw err;
+      functions.logger.error('markCodeImported: transaction failed', err);
+      throw new functions.https.HttpsError('internal', 'Could not mark session as imported.');
     }
   }
 );
