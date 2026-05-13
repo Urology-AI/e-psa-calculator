@@ -152,6 +152,29 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Admin access log — every time an admin views Sinai clinical data or
+    // performs a privileged action, an entry is written server-side. NO PHI.
+    // Read-only for admins; written exclusively by Cloud Functions.
+    match /adminAccessLog/{entryId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // ============================================
+    // SINAI SESSIONS (clinical data for Sinai cohort — IRB STUDY-14-00050)
+    //
+    // Holds the patient's ePSA responses identified ONLY by clinic code (no
+    // name, MRN, or other PII). Auto-deleted after 30 days via Firestore TTL
+    // on the expiresAt field.
+    //
+    // Written exclusively by Cloud Functions (Admin SDK bypasses rules).
+    // Read-only for admins; clients never read or write directly.
+    // ============================================
+    match /sinaiSessions/{sessionId} {
+      allow get, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
     // App-level feature flags. Currently used for:
     //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
     // The frontend reads this to choose between the live REDCap submit
