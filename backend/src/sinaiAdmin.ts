@@ -769,3 +769,268 @@ export const adminResyncPublicSession = functions.https.onCall(
   }
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// adminLinkPublicSessionToSinai
+//
+// Admin-attested promotion of a public-consented session into the Mount Sinai
+// cohort. Two gates must both pass:
+//   1. ENROLLMENT — a valid, unused, non-revoked, unexpired clinic code
+//   2. CONSENT    — admin documents the consent method, attestor, timestamp,
+//                   and free-text notes (≥10 chars enforced server-side)
+//
+// On success, atomically:
+//   - claim the clinic code (marking it used + linked + which sessionId)
+//   - copy the public session's clinical data into a new sinaiSessions/{id}
+//     doc with full consent provenance baked in
+//   - stamp the original public session with a linkedToSinai marker
+//
+// The original public session is NOT deleted — the audit trail (who linked
+// when, with what attestation) is the point. The new sinaiSessions row is
+// the canonical Sinai-cohort copy from this point forward.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CONSENT_METHODS = ['verbal', 'written', 'paper', 'electronic'] as const;
+type ConsentMethod = typeof CONSENT_METHODS[number];
+
+interface LinkInput {
+  sessionId?: unknown;
+  clinicCode?: unknown;
+  consentMethod?: unknown;
+  consentTimestampMillis?: unknown;
+  consentAttestor?: unknown;     // who confirmed (defaults to admin email)
+  consentNotes?: unknown;        // required, ≥10 chars
+  consentAttachmentRef?: unknown; // optional Firebase Storage path
+  adminAttestation?: unknown;    // must be true — "I attest..." checkbox
+}
+
+interface LinkResult {
+  ok: true;
+  sinaiSessionId: string;
+  publicSessionId: string;
+  clinicCode: string;
+}
+
+export const adminLinkPublicSessionToSinai = functions.https.onCall(
+  async (data: LinkInput, context): Promise<LinkResult> => {
+    const auth = await requireAdmin(context);
+
+    // ── 1. Validate inputs upfront ───────────────────────────────────────
+    const publicSessionId =
+      typeof data?.sessionId === 'string' && data.sessionId.length > 0 ? data.sessionId : null;
+    if (!publicSessionId) {
+      throw new functions.https.HttpsError('invalid-argument', 'sessionId is required.');
+    }
+
+    const normalized = normalizeCode(data?.clinicCode);
+    if (!normalized) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Clinic code is invalid or wrong format.'
+      );
+    }
+
+    const consentMethod =
+      typeof data?.consentMethod === 'string' &&
+      (CONSENT_METHODS as readonly string[]).includes(data.consentMethod)
+        ? (data.consentMethod as ConsentMethod)
+        : null;
+    if (!consentMethod) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        `Consent method is required (one of: ${CONSENT_METHODS.join(', ')}).`
+      );
+    }
+
+    const consentTimestampMillis =
+      typeof data?.consentTimestampMillis === 'number' && data.consentTimestampMillis > 0
+        ? data.consentTimestampMillis
+        : null;
+    if (!consentTimestampMillis) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Consent timestamp is required (must be a positive number of milliseconds).'
+      );
+    }
+    if (consentTimestampMillis > Date.now() + 60 * 1000) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Consent timestamp cannot be in the future.'
+      );
+    }
+
+    const consentAttestor =
+      typeof data?.consentAttestor === 'string' && data.consentAttestor.length > 0 && data.consentAttestor.length <= 200
+        ? data.consentAttestor
+        : (auth.email ?? auth.uid);
+
+    const consentNotes =
+      typeof data?.consentNotes === 'string' ? data.consentNotes.trim() : '';
+    if (consentNotes.length < 10) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Consent notes are required (at least 10 characters) — please describe how consent was obtained.'
+      );
+    }
+    if (consentNotes.length > 1000) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Consent notes are too long (max 1000 characters).'
+      );
+    }
+
+    const consentAttachmentRef =
+      typeof data?.consentAttachmentRef === 'string' && data.consentAttachmentRef.length > 0 && data.consentAttachmentRef.length <= 500
+        ? data.consentAttachmentRef
+        : null;
+
+    if (data?.adminAttestation !== true) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Admin attestation checkbox must be checked.'
+      );
+    }
+
+    // ── 2. Load and validate the public session + user consent ───────────
+    const db = admin.firestore();
+    const publicSessionRef = db.collection('sessions').doc(publicSessionId);
+    const publicSessionSnap = await publicSessionRef.get();
+    if (!publicSessionSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Public session not found.');
+    }
+    const publicSession = publicSessionSnap.data() as Record<string, unknown>;
+    const userId = String(publicSession.userId ?? '');
+    if (!userId) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'Public session has no associated user.'
+      );
+    }
+
+    if (publicSession.linkedToSinai) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'This public session has already been linked to a Mount Sinai clinic code.'
+      );
+    }
+
+    const userSnap = await db.collection('users').doc(userId).get();
+    const userDoc = userSnap.exists ? (userSnap.data() as Record<string, unknown>) : {};
+    if (userDoc.researchConsent !== true) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'This user has not given research consent — cannot link to Mount Sinai cohort.'
+      );
+    }
+
+    // ── 3. Atomically claim the code + create sinaiSessions + link back ──
+    const sinaiSessionId = `sinai-link-${crypto.randomUUID()}`;
+    const codeRef = db.collection(CLINIC_CODES_COLLECTION).doc(normalized);
+    const sinaiSessionRef = db.collection(SINAI_SESSIONS_COLLECTION).doc(sinaiSessionId);
+    const now = admin.firestore.Timestamp.now();
+    const ttlMs = SINAI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000;
+    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + ttlMs);
+    const consentTimestamp = admin.firestore.Timestamp.fromMillis(consentTimestampMillis);
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const codeSnap = await tx.get(codeRef);
+        if (!codeSnap.exists) {
+          throw new functions.https.HttpsError('not-found', 'Clinic code not recognized.');
+        }
+        const codeDoc = codeSnap.data() as Record<string, unknown>;
+        if (codeDoc.revoked === true) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has been revoked.');
+        }
+        if (codeDoc.used === true) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has already been used.');
+        }
+        const codeExpiresAt = codeDoc.expiresAt as admin.firestore.Timestamp | null | undefined;
+        if (codeExpiresAt && codeExpiresAt.toMillis() < Date.now()) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code has expired.');
+        }
+
+        // Copy clinical data from public session, plus consent provenance
+        const sinaiDoc = {
+          clinicCode: normalized,
+          status: 'pending' as const,
+          createdAt: now,
+          expiresAt,
+          pathwayMode: publicSession.pathwayMode ?? 'unknown',
+          step1: publicSession.step1 ?? {},
+          ...(publicSession.step2 ? { step2: publicSession.step2 } : {}),
+          result: publicSession.result ?? {},
+          ...(publicSession.finalCategory ? { finalCategory: publicSession.finalCategory } : {}),
+          ...(publicSession.finalScore !== undefined ? { finalScore: publicSession.finalScore } : {}),
+
+          // Linkage provenance — for both audit and REDCap stratification
+          linkedFromPublic: true,
+          linkedFromPublicSessionId: publicSessionId,
+          linkedAt: now,
+          linkedBy: auth.email ?? auth.uid,
+
+          // Consent provenance — admin-attested, not patient-self-attested
+          consentSource: 'admin_attested' as const,
+          consentMethod,
+          consentTimestamp,
+          consentAttestor,
+          consentNotes,
+          ...(consentAttachmentRef ? { consentAttachmentRef } : {}),
+        };
+
+        tx.set(sinaiSessionRef, sinaiDoc);
+
+        // Claim the clinic code
+        tx.update(codeRef, {
+          used: true,
+          usedAt: now,
+          sessionId: sinaiSessionId,
+          linkedFromPublicSessionId: publicSessionId,
+          consentSource: 'admin_attested',
+          consentMethod,
+          consentAttestor,
+        });
+
+        // Mark the original public session as linked (for visibility, not deletion)
+        tx.update(publicSessionRef, {
+          linkedToSinai: {
+            clinicCode: normalized,
+            sinaiSessionId,
+            linkedAt: now,
+            linkedBy: auth.email ?? auth.uid,
+            consentMethod,
+          },
+        });
+      });
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) throw err;
+      functions.logger.error('adminLinkPublicSessionToSinai: transaction failed', err);
+      throw new functions.https.HttpsError('internal', 'Could not link session. Please try again.');
+    }
+
+    // ── 4. Audit trail (both logs) ────────────────────────────────────────
+    await logAdminAccess(auth.uid, auth.email, 'link_public_to_sinai', 'sessions', publicSessionId, {
+      sinaiSessionId,
+      clinicCode: normalized,
+      consentMethod,
+      consentAttestor,
+    });
+    await logCodeAudit('link_public_to_sinai', 'linked', {
+      normalizedCode: normalized,
+      callerKey: `uid:${auth.uid}`,
+      sessionId: sinaiSessionId,
+      metadata: {
+        publicSessionId,
+        consentMethod,
+        consentAttestor,
+      },
+    });
+
+    return {
+      ok: true,
+      sinaiSessionId,
+      publicSessionId,
+      clinicCode: normalized,
+    };
+  }
+);
+

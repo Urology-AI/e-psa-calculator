@@ -42,6 +42,24 @@ export const getPublicSession = (sessionId) =>
 export const resyncPublicSession = (sessionId) =>
   call('adminResyncPublicSession', { sessionId });
 
+/**
+ * Admin-attested promotion of a public-consented session into the Sinai cohort.
+ *
+ * Payload:
+ *   sessionId               — public session ID being linked
+ *   clinicCode              — normalized or dashed; backend normalizes
+ *   consentMethod           — 'verbal' | 'written' | 'paper' | 'electronic'
+ *   consentTimestampMillis  — when the patient gave consent (must be ≤ now)
+ *   consentAttestor         — who confirmed (defaults to admin email server-side)
+ *   consentNotes            — required, ≥10 chars
+ *   consentAttachmentRef    — optional Firebase Storage path
+ *   adminAttestation        — must be true (the "I attest..." checkbox)
+ *
+ * Returns: { ok, sinaiSessionId, publicSessionId, clinicCode }
+ */
+export const linkPublicSessionToSinai = (payload) =>
+  call('adminLinkPublicSessionToSinai', payload);
+
 // ── Clinic codes ───────────────────────────────────────────────────────────
 
 export const generateClinicCodes = (count, expiresInDays) =>

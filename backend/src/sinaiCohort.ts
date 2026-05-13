@@ -244,7 +244,7 @@ function callerKey(context: functions.https.CallableContext): string {
 // AUDIT LOG (no PHI — only lifecycle events)
 // ─────────────────────────────────────────────────────────────────────────────
 
-type AuditAction =
+export type AuditAction =
   | 'validate'
   | 'submit'
   | 'submit_failed'
@@ -254,9 +254,10 @@ type AuditAction =
   | 'admin_view'
   | 'admin_mint_codes'
   | 'admin_revoke_code'
-  | 'admin_toggle_flag';
+  | 'admin_toggle_flag'
+  | 'link_public_to_sinai';
 
-type AuditOutcome =
+export type AuditOutcome =
   | CodeStatus
   | 'submitted_redcap'
   | 'submitted_pending'
@@ -267,6 +268,7 @@ type AuditOutcome =
   | 'revoked'
   | 'toggled'
   | 'unauthorized'
+  | 'linked'
   | 'ok';
 
 async function logCodeAudit(

@@ -31,6 +31,8 @@ export {
   adminListPublicConsentedSessions,
   adminGetPublicSession,
   adminResyncPublicSession,
+  // Admin-attested linking of a public session into the Sinai cohort
+  adminLinkPublicSessionToSinai,
 } from './sinaiAdmin';
 
 // Type definitions for better type safety
