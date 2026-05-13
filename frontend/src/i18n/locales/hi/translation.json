@@ -235,27 +235,6 @@
       "text": "यह सारांश बताता है कि ePSA एप्लिकेशन गोपनीयता उद्देश्यों के लिए डेटा कैसे संभालता है। यह कानूनी सलाह नहीं है।"
     }
   },
-  "storage": {
-    "cloudTitle": "क्लाउड स्टोरेज",
-    "cloudDescription": "ईमेल या फ़ोन नंबर द्वारा अपना डेटा सुरक्षित रूप से संग्रहीत करें। किसी भी डिवाइस से एक्सेस करें।",
-    "cloudFeatureSecure": "सुरक्षित क्लाउड स्टोरेज",
-    "cloudFeatureAnyDevice": "किसी भी डिवाइस से एक्सेस",
-    "cloudFeatureCollaboration": "प्रदाता सहयोग",
-    "cloudFeatureBackups": "स्वचालित बैकअप",
-    "cloudFeatureAuth": "ईमेल या फ़ोन प्रमाणीकरण",
-    "cloudContinue": "क्लाउड स्टोरेज के साथ जारी रखें",
-    "localTitle": "स्थानीय स्टोरेज",
-    "localDescription": "अपना डेटा केवल इस डिवाइस पर संग्रहीत करें। कोई खाता या फ़ोन नंबर आवश्यक नहीं।",
-    "localFeatureNoSignIn": "कोई साइन-इन आवश्यक नहीं",
-    "localFeatureSame": "समान प्रश्नावली और परिणाम",
-    "localFeatureExport": "JSON में निर्यात करें या प्रिंट करें",
-    "localFeaturePrivacy": "इस डिवाइस पर गोपनीयता",
-    "localContinue": "स्थानीय स्टोरेज के साथ जारी रखें",
-    "importPrompt": "पहले से मूल्यांकन है?",
-    "importButton": "पिछला डेटा आयात करें",
-    "footerText": "आपका स्वास्थ्य डेटा सुरक्षित और निजी तरीके से संग्रहीत है।",
-    "privacyNote": "HIPAA-अनुपालित सुरक्षित स्टोरेज"
-  },
   "info": {
     "learnMore": "{{title}} के बारे में अधिक जानें",
     "sources": "स्रोत:",
@@ -945,83 +924,6 @@
       "unhappy": "दुखी",
       "terrible": "बहुत बुरा"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "शुरू करने के लिए अपना फ़ोन नंबर दर्ज करें",
-    "phoneLabel": "फ़ोन नंबर",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "हम आपको SMS के माध्यम से एक सत्यापन कोड भेजेंगे",
-    "sending": "भेजा जा रहा है...",
-    "sendCode": "सत्यापन कोड भेजें",
-    "verificationCodeLabel": "सत्यापन कोड",
-    "codePlaceholder": "123456",
-    "codeSentTo": "{{phone}} पर भेजा गया 6-अंकीय कोड दर्ज करें",
-    "verifying": "सत्यापन हो रहा है...",
-    "verifyCode": "कोड सत्यापित करें",
-    "changePhoneNumber": "फ़ोन नंबर बदलें",
-    "errors": {
-      "invalidPhone10Digits": "कृपया एक वैध 10-अंकीय फ़ोन नंबर दर्ज करें",
-      "recaptchaExpired": "reCAPTCHA समाप्त हो गया। कृपया पुनः प्रयास करें।",
-      "invalidVerificationCodeGeneric": "अमान्य सत्यापन कोड। कृपया पुनः प्रयास करें।",
-      "invalidVerificationCode": "अमान्य सत्यापन कोड। कृपया जांचें और पुनः प्रयास करें।",
-      "codeExpired": "सत्यापन कोड समाप्त हो गया। कृपया एक नए कोड का अनुरोध करें।"
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "प्रोस्टेट-विशिष्ट जागरूकता",
-    "subtitle": "एक गैर-मान्य शैक्षिक जोखिम उपकरण",
-    "enterPhonePrompt": "शुरू करने के लिए अपना फ़ोन नंबर दर्ज करें",
-    "phoneLabel": "फ़ोन नंबर",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "भेजा जा रहा है...",
-    "sendCode": "सत्यापन कोड भेजें",
-    "smsHint": "हम आपको SMS के माध्यम से एक सत्यापन कोड भेजेंगे",
-    "enterCodePrompt": "इस पर भेजा गया सत्यापन कोड दर्ज करें:",
-    "verificationCodeLabel": "सत्यापन कोड",
-    "codePlaceholder": "6-अंकीय कोड दर्ज करें",
-    "back": "वापस",
-    "verifying": "सत्यापन हो रहा है...",
-    "verifyCode": "कोड सत्यापित करें",
-    "didNotReceive": "कोड नहीं मिला? अपने संदेश जांचें या पुनः प्रयास करें।"
-  },
-  "emailAuth": {
-    "signIn": "साइन इन करें",
-    "createAccount": "खाता बनाएं",
-    "resetPassword": "पासवर्ड रीसेट करें",
-    "emailLabel": "ईमेल पता",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "पासवर्ड",
-    "createPasswordLabel": "पासवर्ड बनाएं",
-    "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
-    "createPasswordPlaceholder": "एक मजबूत पासवर्ड बनाएं",
-    "pleaseWait": "कृपया प्रतीक्षा करें...",
-    "sendResetEmail": "रीसेट ईमेल भेजें",
-    "forgotPassword": "पासवर्ड भूल गए?",
-    "needAccount": "खाता चाहिए? साइन अप करें",
-    "subtitle": {
-      "signIn": "अपने ePSA मूल्यांकन परिणाम एक्सेस करें",
-      "signUp": "अपना प्रोस्टेट स्वास्थ्य मूल्यांकन शुरू करें",
-      "forgot": "हम आपको एक पासवर्ड रीसेट लिंक भेजेंगे"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "साइन-इन लिंक के लिए अपना ईमेल जांचें!",
-    "signingInTitle": "साइन इन हो रहा है...",
-    "verifyingLink": "आपका ईमेल लिंक सत्यापित हो रहा है",
-    "pleaseWait": "कृपया प्रतीक्षा करें जब हम आपको साइन इन करते हैं...",
-    "requestNewLink": "नया लिंक अनुरोध करें",
-    "checkYourEmail": "अपना ईमेल जांचें",
-    "signInWithEmail": "ईमेल से साइन इन करें",
-    "sentLinkTo": "हमने {{email}} पर एक साइन-इन लिंक भेजा",
-    "enterEmailSecureLink": "एक सुरक्षित साइन-इन लिंक प्राप्त करने के लिए अपना ईमेल दर्ज करें",
-    "emailLabel": "ईमेल पता",
-    "emailPlaceholder": "your@email.com",
-    "sending": "भेजा जा रहा है...",
-    "sendSignInLink": "साइन-इन लिंक भेजें",
-    "emailSent": "ईमेल भेजा गया!",
-    "didNotReceive": "नहीं मिला?",
-    "sendNewLink": "नया लिंक भेजें",
-    "goBack": "वापस जाएं"
   },
   "welcomeGh": {
     "description": "यह 5-मिनट की प्रश्नावली मान्य नैदानिक उपकरणों का उपयोग करके आपका व्यक्तिगत जोखिम मूल्यांकन गणना करती है।",

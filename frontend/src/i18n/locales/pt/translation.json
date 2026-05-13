@@ -235,27 +235,6 @@
       "text": "Este resumo descreve como o aplicativo ePSA lida com dados para fins de privacidade. Não é aconselhamento jurídico. Para perguntas sobre HIPAA ou suas informações de saúde, consulte seu prestador de cuidados de saúde ou assessoria jurídica."
     }
   },
-  "storage": {
-    "cloudTitle": "Armazenamento em Nuvem",
-    "cloudDescription": "Armazene seus dados com segurança por e-mail ou número de telefone. Acesse de qualquer dispositivo e compartilhe com prestadores de cuidados de saúde.",
-    "cloudFeatureSecure": "Armazenamento seguro na nuvem",
-    "cloudFeatureAnyDevice": "Acesso de qualquer dispositivo",
-    "cloudFeatureCollaboration": "Colaboração com prestadores",
-    "cloudFeatureBackups": "Backups automáticos",
-    "cloudFeatureAuth": "Autenticação por e-mail ou telefone",
-    "cloudContinue": "Continuar com Armazenamento em Nuvem",
-    "localTitle": "Armazenamento Local",
-    "localDescription": "Armazene seus dados apenas neste dispositivo. Nenhuma conta ou número de telefone necessário. Use importação/exportação para salvar ou mover seus dados.",
-    "localFeatureNoSignIn": "Sem necessidade de login",
-    "localFeatureSame": "Mesmo questionário e resultados",
-    "localFeatureExport": "Exportar para JSON ou imprimir",
-    "localFeaturePrivacy": "Privacidade neste dispositivo",
-    "localContinue": "Continuar com Armazenamento Local",
-    "importPrompt": "Já tem uma avaliação?",
-    "importButton": "Importar Dados Anteriores",
-    "footerText": "Seus dados de saúde são armazenados com segurança e privacidade. Nunca compartilhamos ou vendemos suas informações.",
-    "privacyNote": "Armazenamento seguro conforme HIPAA"
-  },
   "info": {
     "learnMore": "Saiba mais sobre {{title}}",
     "sources": "Fontes:",
@@ -945,83 +924,6 @@
       "unhappy": "Infeliz",
       "terrible": "Péssimo"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Insira seu número de telefone para começar",
-    "phoneLabel": "Número de Telefone",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "Enviaremos um código de verificação por SMS",
-    "sending": "Enviando...",
-    "sendCode": "Enviar Código de Verificação",
-    "verificationCodeLabel": "Código de Verificação",
-    "codePlaceholder": "123456",
-    "codeSentTo": "Insira o código de 6 dígitos enviado para {{phone}}",
-    "verifying": "Verificando...",
-    "verifyCode": "Verificar Código",
-    "changePhoneNumber": "Alterar Número de Telefone",
-    "errors": {
-      "invalidPhone10Digits": "Por favor, insira um número de telefone válido de 10 dígitos",
-      "recaptchaExpired": "reCAPTCHA expirou. Por favor, tente novamente.",
-      "invalidVerificationCodeGeneric": "Código de verificação inválido. Por favor, tente novamente.",
-      "invalidVerificationCode": "Código de verificação inválido. Por favor, verifique e tente novamente.",
-      "codeExpired": "Código de verificação expirado. Por favor, solicite um novo código."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Conscientização Específica da Próstata",
-    "subtitle": "Uma Ferramenta Educacional de Risco Não Validada",
-    "enterPhonePrompt": "Insira seu número de telefone para começar",
-    "phoneLabel": "Número de Telefone",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Enviando...",
-    "sendCode": "Enviar Código de Verificação",
-    "smsHint": "Enviaremos um código de verificação por SMS",
-    "enterCodePrompt": "Insira o código de verificação enviado para:",
-    "verificationCodeLabel": "Código de Verificação",
-    "codePlaceholder": "Insira o código de 6 dígitos",
-    "back": "Voltar",
-    "verifying": "Verificando...",
-    "verifyCode": "Verificar Código",
-    "didNotReceive": "Não recebeu o código? Verifique suas mensagens ou tente novamente."
-  },
-  "emailAuth": {
-    "signIn": "Entrar",
-    "createAccount": "Criar Conta",
-    "resetPassword": "Redefinir Senha",
-    "emailLabel": "Endereço de E-mail",
-    "emailPlaceholder": "seu@email.com",
-    "passwordLabel": "Senha",
-    "createPasswordLabel": "Criar Senha",
-    "passwordPlaceholder": "Insira sua senha",
-    "createPasswordPlaceholder": "Crie uma senha forte",
-    "pleaseWait": "Por favor, aguarde...",
-    "sendResetEmail": "Enviar E-mail de Redefinição",
-    "forgotPassword": "Esqueceu a senha?",
-    "needAccount": "Precisa de uma conta? Cadastre-se",
-    "subtitle": {
-      "signIn": "Acesse seus resultados de avaliação ePSA",
-      "signUp": "Inicie sua avaliação de saúde prostática",
-      "forgot": "Enviaremos um link de redefinição de senha"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Verifique seu e-mail para um link de login!",
-    "signingInTitle": "Fazendo Login...",
-    "verifyingLink": "Verificando seu link de e-mail",
-    "pleaseWait": "Aguarde enquanto fazemos seu login...",
-    "requestNewLink": "Solicitar Novo Link",
-    "checkYourEmail": "Verifique Seu E-mail",
-    "signInWithEmail": "Entrar com E-mail",
-    "sentLinkTo": "Enviamos um link de login para {{email}}",
-    "enterEmailSecureLink": "Insira seu e-mail para receber um link de login seguro",
-    "emailLabel": "Endereço de E-mail",
-    "emailPlaceholder": "seu@email.com",
-    "sending": "Enviando...",
-    "sendSignInLink": "Enviar Link de Login",
-    "emailSent": "E-mail Enviado!",
-    "didNotReceive": "Não recebeu?",
-    "sendNewLink": "Enviar Novo Link",
-    "goBack": "Voltar"
   },
   "welcomeGh": {
     "description": "Este questionário de 5 minutos calcula sua avaliação de risco personalizada usando instrumentos clínicos validados.",
