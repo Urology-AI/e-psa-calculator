@@ -128,7 +128,68 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isAuthorizedAdmin();
       allow update, delete: if false;
     }
-    
+
+    // ============================================
+    // SINAI CLINIC CODES (Mount Sinai cohort — IRB STUDY-14-00050)
+    //
+    // Minted by super-admins (or the generateCodes script via Admin SDK,
+    // which bypasses these rules). The submitSinaiCohort Cloud Function
+    // reads and updates these via the Admin SDK; no client writes directly.
+    //
+    // Admins can read the audit metadata (used / usedAt / sessionId /
+    // redcapRecordId). Documents contain NO clinical data — only the code
+    // lifecycle audit row.
+    // ============================================
+    match /clinicCodes/{code} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
+    }
+
+    // Clinic code audit log — written server-side via Admin SDK only,
+    // read-only for admins. Contains code lifecycle events; NO PHI.
+    match /clinicCodeAuditLog/{entryId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // Admin access log — every time an admin views Sinai clinical data or
+    // performs a privileged action, an entry is written server-side. NO PHI.
+    // Read-only for admins; written exclusively by Cloud Functions.
+    match /adminAccessLog/{entryId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // ============================================
+    // SINAI SESSIONS (clinical data for Sinai cohort — IRB STUDY-14-00050)
+    //
+    // Holds the patient's ePSA responses identified ONLY by clinic code (no
+    // name, MRN, or other PII). Auto-deleted after 30 days via Firestore TTL
+    // on the expiresAt field.
+    //
+    // Written exclusively by Cloud Functions (Admin SDK bypasses rules).
+    // Read-only for admins; clients never read or write directly.
+    // ============================================
+    match /sinaiSessions/{sessionId} {
+      allow get, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // App-level feature flags. Currently used for:
+    //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
+    // The frontend reads this to choose between the live REDCap submit
+    // path (PR #1) and the offline-CSV fallback (active when redcapEnabled
+    // is false or the doc is missing).
+    //
+    // Public read so unauthenticated patients can determine which flow to
+    // present. Super-admin write only. The doc must not contain secrets —
+    // it carries flags, not tokens.
+    match /appConfig/{docId} {
+      allow get: if docId == 'sinai';
+      allow list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
+    }
+
     // ============================================
     // DEFAULT: DENY ALL
     // ============================================
