@@ -548,3 +548,224 @@ export const adminListClinicCodeAuditLog = functions.https.onCall(
     };
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUBLIC-COHORT VIEWERS (sessions/* + users/{uid}, gated on researchConsent)
+//
+// Public-cohort sessions are persisted by the existing public flow (PR #54)
+// at sessions/{sessionId}, with the patient's research consent flag on
+// users/{uid}. We expose them here so admins can see ALL research data in
+// one dashboard, clearly badged by cohort.
+//
+// Read-only for now. Linking a public session to a Mount Sinai clinic code
+// (admin-attested) is the next PR.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ListPublicInput {
+  limit?: number;
+  startAfterMillis?: number;
+  syncStatus?: 'all' | 'synced' | 'unsynced' | 'error';
+}
+
+interface PublicSessionSummary {
+  sessionId: string;
+  userId: string;
+  userIdPrefix: string;       // first 8 chars — used in cohort labels
+  createdAtMillis: number;
+  status: string;              // STEP1_COMPLETE, STEP2_COMPLETE, etc.
+  pathwayMode: string;
+  researchConsent: boolean;
+  researchTimestampMillis: number | null;
+  redcapSynced: boolean;
+  redcapSyncedAtMillis: number | null;
+  redcapSyncError: string | null;
+  finalCategory: string | null;
+  finalScore: number | null;
+  linkedToSinai: { clinicCode: string; linkedAtMillis: number } | null;
+}
+
+export const adminListPublicConsentedSessions = functions.https.onCall(
+  async (data: ListPublicInput, context): Promise<{
+    sessions: PublicSessionSummary[];
+    nextStartAfterMillis: number | null;
+  }> => {
+    const auth = await requireAdmin(context);
+    const limit = Math.max(1, Math.min(200, data?.limit ?? 50));
+
+    let q: admin.firestore.Query = admin.firestore()
+      .collection('sessions')
+      .orderBy('createdAt', 'desc');
+
+    if (typeof data?.startAfterMillis === 'number') {
+      q = q.startAfter(admin.firestore.Timestamp.fromMillis(data.startAfterMillis));
+    }
+
+    // Sync-status filter is applied client-side after we join with user docs,
+    // because researchConsent lives on users/{uid} not on sessions/*. The
+    // limit here is paged but we may need to skip rows that aren't consented.
+    q = q.limit(limit * 2); // over-fetch to compensate for filtering
+
+    const snap = await q.get();
+
+    // Resolve unique user IDs and fetch their consent flags in one batch
+    const userIds = [...new Set(snap.docs.map((d) => (d.data() as { userId?: string }).userId).filter(Boolean) as string[])];
+    const userDocs = await Promise.all(
+      userIds.map((uid) =>
+        admin.firestore().collection('users').doc(uid).get().then((s) => ({
+          uid,
+          data: s.exists ? (s.data() as Record<string, unknown>) : null,
+        }))
+      )
+    );
+    const userById = new Map(userDocs.map((u) => [u.uid, u.data]));
+
+    const sessions: PublicSessionSummary[] = [];
+    for (const d of snap.docs) {
+      if (sessions.length >= limit) break;
+      const doc = d.data() as Record<string, unknown>;
+      const userId = String(doc.userId ?? '');
+      if (!userId) continue;
+      const userDoc = userById.get(userId);
+      if (!userDoc || userDoc.researchConsent !== true) continue; // gate
+
+      const summary: PublicSessionSummary = {
+        sessionId: d.id,
+        userId,
+        userIdPrefix: userId.slice(0, 8),
+        createdAtMillis: (doc.createdAt as admin.firestore.Timestamp | undefined)?.toMillis() ?? 0,
+        status: String(doc.status ?? ''),
+        pathwayMode: String(doc.pathwayMode ?? ''),
+        researchConsent: true,
+        researchTimestampMillis:
+          (userDoc.researchTimestamp as admin.firestore.Timestamp | undefined)?.toMillis() ??
+          ((typeof userDoc.researchTimestamp === 'string')
+            ? new Date(userDoc.researchTimestamp).getTime()
+            : null),
+        redcapSynced: doc.redcapSynced === true,
+        redcapSyncedAtMillis:
+          (doc.redcapSyncedAt as admin.firestore.Timestamp | undefined)?.toMillis() ?? null,
+        redcapSyncError: (doc.redcapSyncError as string | undefined) ?? null,
+        finalCategory: (doc.finalCategory as string | undefined) ?? null,
+        finalScore: (doc.finalScore as number | undefined) ?? null,
+        linkedToSinai:
+          doc.linkedToSinai && typeof doc.linkedToSinai === 'object'
+            ? {
+                clinicCode: String((doc.linkedToSinai as { clinicCode?: string }).clinicCode ?? ''),
+                linkedAtMillis:
+                  ((doc.linkedToSinai as { linkedAt?: admin.firestore.Timestamp }).linkedAt)?.toMillis() ?? 0,
+              }
+            : null,
+      };
+
+      // Apply syncStatus filter
+      const f = data?.syncStatus ?? 'all';
+      if (f === 'synced' && !summary.redcapSynced) continue;
+      if (f === 'unsynced' && (summary.redcapSynced || summary.redcapSyncError)) continue;
+      if (f === 'error' && !summary.redcapSyncError) continue;
+
+      sessions.push(summary);
+    }
+
+    const nextStartAfterMillis =
+      sessions.length === limit ? sessions[sessions.length - 1].createdAtMillis : null;
+
+    await logAdminAccess(auth.uid, auth.email, 'list_public_sessions', 'sessions', 'list', {
+      count: sessions.length,
+      syncStatus: data?.syncStatus ?? 'all',
+    });
+
+    return { sessions, nextStartAfterMillis };
+  }
+);
+
+interface GetPublicSessionInput { sessionId?: unknown; }
+
+export const adminGetPublicSession = functions.https.onCall(
+  async (data: GetPublicSessionInput, context) => {
+    const auth = await requireAdmin(context);
+    const sessionId = typeof data?.sessionId === 'string' ? data.sessionId : null;
+    if (!sessionId) {
+      throw new functions.https.HttpsError('invalid-argument', 'sessionId is required');
+    }
+
+    const sessionRef = admin.firestore().collection('sessions').doc(sessionId);
+    const snap = await sessionRef.get();
+    if (!snap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Session not found.');
+    }
+
+    const sessionDoc = snap.data() as Record<string, unknown>;
+    const userId = String(sessionDoc.userId ?? '');
+    if (!userId) {
+      throw new functions.https.HttpsError('failed-precondition', 'Session has no associated user.');
+    }
+
+    const userSnap = await admin.firestore().collection('users').doc(userId).get();
+    const userDoc = userSnap.exists ? (userSnap.data() as Record<string, unknown>) : {};
+    if (userDoc.researchConsent !== true) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'This session is not in the research cohort (user has not granted research consent).'
+      );
+    }
+
+    await logAdminAccess(auth.uid, auth.email, 'view_public_session', 'sessions', sessionId);
+
+    // Convert Timestamps to millis recursively for the client
+    const tsToMillis = (v: unknown): unknown => {
+      if (v instanceof admin.firestore.Timestamp) return v.toMillis();
+      if (Array.isArray(v)) return v.map(tsToMillis);
+      if (v && typeof v === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const [k, val] of Object.entries(v as Record<string, unknown>)) out[k] = tsToMillis(val);
+        return out;
+      }
+      return v;
+    };
+
+    return {
+      _id: sessionId,
+      cohort: 'public_consented' as const,
+      userId,
+      userIdPrefix: userId.slice(0, 8),
+      researchConsent: true,
+      researchTimestampMillis:
+        (userDoc.researchTimestamp instanceof admin.firestore.Timestamp)
+          ? userDoc.researchTimestamp.toMillis()
+          : (typeof userDoc.researchTimestamp === 'string')
+            ? new Date(userDoc.researchTimestamp).getTime()
+            : null,
+      consentBasis: userDoc.consentBasis ?? null,
+      session: tsToMillis(sessionDoc),
+    };
+  }
+);
+
+interface ResyncPublicInput { sessionId?: unknown; }
+
+export const adminResyncPublicSession = functions.https.onCall(
+  async (data: ResyncPublicInput, context) => {
+    const auth = await requireAdmin(context);
+    const sessionId = typeof data?.sessionId === 'string' ? data.sessionId : null;
+    if (!sessionId) {
+      throw new functions.https.HttpsError('invalid-argument', 'sessionId is required');
+    }
+
+    // Touch the doc with a bump field — this re-fires the existing
+    // syncToRedcap onWrite trigger, which already enforces researchConsent.
+    const ref = admin.firestore().collection('sessions').doc(sessionId);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Session not found.');
+    }
+
+    await ref.update({
+      adminResyncRequestedAt: admin.firestore.FieldValue.serverTimestamp(),
+      adminResyncBy: auth.email ?? auth.uid,
+    });
+
+    await logAdminAccess(auth.uid, auth.email, 'resync_public_session', 'sessions', sessionId);
+    return { ok: true as const };
+  }
+);
+
