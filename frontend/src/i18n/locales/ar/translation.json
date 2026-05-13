@@ -235,27 +235,6 @@
       "text": "يصف هذا الملخص كيفية تعامل تطبيق ePSA مع البيانات لأغراض الخصوصية. إنه ليس نصيحة قانونية. للاستفسار عن HIPAA أو معلوماتك الصحية، استشر مزود الرعاية الصحية أو المستشار القانوني."
     }
   },
-  "storage": {
-    "cloudTitle": "التخزين السحابي",
-    "cloudDescription": "خزّن بياناتك بأمان عبر البريد الإلكتروني أو رقم الهاتف. الوصول من أي جهاز ومشاركتها مع مزودي الرعاية الصحية.",
-    "cloudFeatureSecure": "تخزين سحابي آمن",
-    "cloudFeatureAnyDevice": "الوصول من أي جهاز",
-    "cloudFeatureCollaboration": "التعاون مع مزودي الخدمة",
-    "cloudFeatureBackups": "نسخ احتياطية تلقائية",
-    "cloudFeatureAuth": "مصادقة بالبريد الإلكتروني أو الهاتف",
-    "cloudContinue": "المتابعة مع التخزين السحابي",
-    "localTitle": "التخزين المحلي",
-    "localDescription": "خزّن بياناتك على هذا الجهاز فقط. لا يلزم حساب أو رقم هاتف. استخدم الاستيراد/التصدير لحفظ بياناتك أو نقلها.",
-    "localFeatureNoSignIn": "لا يلزم تسجيل الدخول",
-    "localFeatureSame": "نفس الاستبيان والنتائج",
-    "localFeatureExport": "تصدير إلى JSON أو طباعة",
-    "localFeaturePrivacy": "الخصوصية على هذا الجهاز",
-    "localContinue": "المتابعة مع التخزين المحلي",
-    "importPrompt": "هل لديك تقييم بالفعل؟",
-    "importButton": "استيراد البيانات السابقة",
-    "footerText": "يتم تخزين بيانات صحتك بأمان وخصوصية. نحن لا نشارك أو نبيع معلوماتك أبداً.",
-    "privacyNote": "تخزين آمن متوافق مع HIPAA"
-  },
   "info": {
     "learnMore": "اعرف المزيد عن {{title}}",
     "sources": "المصادر:",
@@ -945,83 +924,6 @@
       "unhappy": "غير سعيد",
       "terrible": "سيئ للغاية"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "أدخل رقم هاتفك للبدء",
-    "phoneLabel": "رقم الهاتف",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "سنرسل لك رمز التحقق عبر الرسائل القصيرة",
-    "sending": "جارٍ الإرسال...",
-    "sendCode": "إرسال رمز التحقق",
-    "verificationCodeLabel": "رمز التحقق",
-    "codePlaceholder": "123456",
-    "codeSentTo": "أدخل الرمز المكوّن من 6 أرقام المُرسَل إلى {{phone}}",
-    "verifying": "جارٍ التحقق...",
-    "verifyCode": "التحقق من الرمز",
-    "changePhoneNumber": "تغيير رقم الهاتف",
-    "errors": {
-      "invalidPhone10Digits": "يرجى إدخال رقم هاتف صحيح مكوّن من 10 أرقام",
-      "recaptchaExpired": "انتهت صلاحية reCAPTCHA. يرجى المحاولة مرة أخرى.",
-      "invalidVerificationCodeGeneric": "رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.",
-      "invalidVerificationCode": "رمز التحقق غير صحيح. يرجى التحقق والمحاولة مرة أخرى.",
-      "codeExpired": "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "الوعي الخاص بالبروستاتا",
-    "subtitle": "أداة تثقيفية للمخاطر غير المُعتمدة",
-    "enterPhonePrompt": "أدخل رقم هاتفك للبدء",
-    "phoneLabel": "رقم الهاتف",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "جارٍ الإرسال...",
-    "sendCode": "إرسال رمز التحقق",
-    "smsHint": "سنرسل لك رمز التحقق عبر الرسائل القصيرة",
-    "enterCodePrompt": "أدخل رمز التحقق المُرسَل إلى:",
-    "verificationCodeLabel": "رمز التحقق",
-    "codePlaceholder": "أدخل الرمز المكوّن من 6 أرقام",
-    "back": "رجوع",
-    "verifying": "جارٍ التحقق...",
-    "verifyCode": "التحقق من الرمز",
-    "didNotReceive": "لم تستلم الرمز؟ تحقق من رسائلك أو حاول مرة أخرى."
-  },
-  "emailAuth": {
-    "signIn": "تسجيل الدخول",
-    "createAccount": "إنشاء حساب",
-    "resetPassword": "إعادة تعيين كلمة المرور",
-    "emailLabel": "عنوان البريد الإلكتروني",
-    "emailPlaceholder": "بريدك@الإلكتروني.com",
-    "passwordLabel": "كلمة المرور",
-    "createPasswordLabel": "إنشاء كلمة مرور",
-    "passwordPlaceholder": "أدخل كلمة مرورك",
-    "createPasswordPlaceholder": "أنشئ كلمة مرور قوية",
-    "pleaseWait": "يرجى الانتظار...",
-    "sendResetEmail": "إرسال بريد إعادة التعيين",
-    "forgotPassword": "نسيت كلمة المرور؟",
-    "needAccount": "تحتاج إلى حساب؟ سجّل الآن",
-    "subtitle": {
-      "signIn": "الوصول إلى نتائج تقييم ePSA الخاصة بك",
-      "signUp": "ابدأ تقييم صحة البروستاتا الخاص بك",
-      "forgot": "سنرسل لك رابط إعادة تعيين كلمة المرور"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "تحقق من بريدك الإلكتروني للحصول على رابط تسجيل الدخول!",
-    "signingInTitle": "جارٍ تسجيل الدخول...",
-    "verifyingLink": "جارٍ التحقق من رابط بريدك الإلكتروني",
-    "pleaseWait": "يرجى الانتظار بينما نقوم بتسجيل دخولك...",
-    "requestNewLink": "طلب رابط جديد",
-    "checkYourEmail": "تحقق من بريدك الإلكتروني",
-    "signInWithEmail": "تسجيل الدخول بالبريد الإلكتروني",
-    "sentLinkTo": "أرسلنا رابط تسجيل الدخول إلى {{email}}",
-    "enterEmailSecureLink": "أدخل بريدك الإلكتروني لتلقي رابط تسجيل دخول آمن",
-    "emailLabel": "عنوان البريد الإلكتروني",
-    "emailPlaceholder": "بريدك@الإلكتروني.com",
-    "sending": "جارٍ الإرسال...",
-    "sendSignInLink": "إرسال رابط تسجيل الدخول",
-    "emailSent": "تم إرسال البريد الإلكتروني!",
-    "didNotReceive": "لم تستلمه؟",
-    "sendNewLink": "إرسال رابط جديد",
-    "goBack": "رجوع"
   },
   "welcomeGh": {
     "description": "يحسب هذا الاستبيان الذي يستغرق 5 دقائق تقييم المخاطر الشخصي الخاص بك باستخدام أدوات سريرية مُعتمدة.",

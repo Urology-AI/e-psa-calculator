@@ -235,27 +235,6 @@
       "text": "Questo riepilogo descrive come l'applicazione ePSA gestisce i dati per scopi di privacy. Non è un consiglio legale."
     }
   },
-  "storage": {
-    "cloudTitle": "Archiviazione cloud",
-    "cloudDescription": "Archivia i tuoi dati in modo sicuro tramite email o numero di telefono. Accedi da qualsiasi dispositivo.",
-    "cloudFeatureSecure": "Archiviazione cloud sicura",
-    "cloudFeatureAnyDevice": "Accesso da qualsiasi dispositivo",
-    "cloudFeatureCollaboration": "Collaborazione con il provider",
-    "cloudFeatureBackups": "Backup automatici",
-    "cloudFeatureAuth": "Autenticazione email o telefono",
-    "cloudContinue": "Continua con l'archiviazione cloud",
-    "localTitle": "Archiviazione locale",
-    "localDescription": "Archivia i tuoi dati solo su questo dispositivo. Non è richiesto alcun account o numero di telefono.",
-    "localFeatureNoSignIn": "Nessun accesso richiesto",
-    "localFeatureSame": "Stesso questionario e risultati",
-    "localFeatureExport": "Esporta in JSON o stampa",
-    "localFeaturePrivacy": "Privacy su questo dispositivo",
-    "localContinue": "Continua con l'archiviazione locale",
-    "importPrompt": "Hai già una valutazione?",
-    "importButton": "Importa dati precedenti",
-    "footerText": "I tuoi dati sanitari vengono archiviati in modo sicuro e privato. Non condividiamo né vendiamo mai le tue informazioni.",
-    "privacyNote": "Archiviazione sicura conforme HIPAA"
-  },
   "info": {
     "learnMore": "Scopri di più su {{title}}",
     "sources": "Fonti:",
@@ -945,83 +924,6 @@
       "unhappy": "Infelice",
       "terrible": "Terribile"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Inserisci il tuo numero di telefono per iniziare",
-    "phoneLabel": "Numero di telefono",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "Ti invieremo un codice di verifica via SMS",
-    "sending": "Invio in corso...",
-    "sendCode": "Invia codice di verifica",
-    "verificationCodeLabel": "Codice di verifica",
-    "codePlaceholder": "123456",
-    "codeSentTo": "Inserisci il codice a 6 cifre inviato a {{phone}}",
-    "verifying": "Verifica in corso...",
-    "verifyCode": "Verifica codice",
-    "changePhoneNumber": "Cambia numero di telefono",
-    "errors": {
-      "invalidPhone10Digits": "Inserisci un numero di telefono valido a 10 cifre",
-      "recaptchaExpired": "reCAPTCHA scaduto. Riprova.",
-      "invalidVerificationCodeGeneric": "Codice di verifica non valido. Riprova.",
-      "invalidVerificationCode": "Codice di verifica non valido. Controlla e riprova.",
-      "codeExpired": "Codice di verifica scaduto. Richiedi un nuovo codice."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Consapevolezza Prostata-Specifica",
-    "subtitle": "Uno Strumento Educativo di Rischio Non Validato",
-    "enterPhonePrompt": "Inserisci il tuo numero di telefono per iniziare",
-    "phoneLabel": "Numero di telefono",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Invio in corso...",
-    "sendCode": "Invia codice di verifica",
-    "smsHint": "Ti invieremo un codice di verifica via SMS",
-    "enterCodePrompt": "Inserisci il codice di verifica inviato a:",
-    "verificationCodeLabel": "Codice di verifica",
-    "codePlaceholder": "Inserisci il codice a 6 cifre",
-    "back": "Indietro",
-    "verifying": "Verifica in corso...",
-    "verifyCode": "Verifica codice",
-    "didNotReceive": "Non hai ricevuto il codice? Controlla i tuoi messaggi o riprova."
-  },
-  "emailAuth": {
-    "signIn": "Accedi",
-    "createAccount": "Crea account",
-    "resetPassword": "Reimposta password",
-    "emailLabel": "Indirizzo email",
-    "emailPlaceholder": "tua@email.com",
-    "passwordLabel": "Password",
-    "createPasswordLabel": "Crea password",
-    "passwordPlaceholder": "Inserisci la tua password",
-    "createPasswordPlaceholder": "Crea una password sicura",
-    "pleaseWait": "Attendere...",
-    "sendResetEmail": "Invia email di reimpostazione",
-    "forgotPassword": "Password dimenticata?",
-    "needAccount": "Hai bisogno di un account? Registrati",
-    "subtitle": {
-      "signIn": "Accedi ai risultati della tua valutazione ePSA",
-      "signUp": "Inizia la tua valutazione della salute prostatica",
-      "forgot": "Ti invieremo un link per reimpostare la password"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Controlla la tua email per il link di accesso!",
-    "signingInTitle": "Accesso in corso...",
-    "verifyingLink": "Verifica del link email in corso",
-    "pleaseWait": "Attendi mentre ti facciamo accedere...",
-    "requestNewLink": "Richiedi nuovo link",
-    "checkYourEmail": "Controlla la tua email",
-    "signInWithEmail": "Accedi con email",
-    "sentLinkTo": "Abbiamo inviato un link di accesso a {{email}}",
-    "enterEmailSecureLink": "Inserisci la tua email per ricevere un link di accesso sicuro",
-    "emailLabel": "Indirizzo email",
-    "emailPlaceholder": "tua@email.com",
-    "sending": "Invio in corso...",
-    "sendSignInLink": "Invia link di accesso",
-    "emailSent": "Email inviata!",
-    "didNotReceive": "Non l'hai ricevuta?",
-    "sendNewLink": "Invia nuovo link",
-    "goBack": "Torna indietro"
   },
   "welcomeGh": {
     "description": "Questo questionario di 5 minuti calcola la tua valutazione del rischio personalizzata usando strumenti clinici validati.",
