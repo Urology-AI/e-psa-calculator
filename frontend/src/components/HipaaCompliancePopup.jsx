@@ -41,13 +41,6 @@ const HipaaCompliancePopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
-            <h3>{t('hipaa.emailPhoneAuth.title')}</h3>
-            <p>
-              <strong>{t('hipaa.emailPhoneAuth.label')}</strong> {t('hipaa.emailPhoneAuth.text')}
-            </p>
-          </section>
-
-          <section className="docs-section">
             <h3>{t('hipaa.importCloud.title')}</h3>
             <ul className="limitations-list">
               <li>
