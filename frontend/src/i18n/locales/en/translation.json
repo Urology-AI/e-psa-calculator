@@ -553,8 +553,7 @@
         "raceInline": "Please select your race/ethnicity"
       },
       "stepErrorTitle": "Please complete the following before continuing:",
-      "selectOption": "Please select an option"
-      ,
+      "selectOption": "Please select an option",
       "validate": {
         "step0": {
           "ageInvalid": "Please enter a valid age (18+)",
@@ -816,8 +815,7 @@
       "q2": "PIRADS Score on MRI",
       "q2Note": "PI-RADS (Prostate Imaging Reporting and Data System) scores range from 1-5, with higher scores indicating higher suspicion for clinically significant prostate cancer."
     }
-  }
-  ,
+  },
   "part1Results": {
     "noResults": "No results available.",
     "empiricalProbabilityText": "In our validation study (N={{n}}), {{events}} in {{n}} patients at this risk tier had clinically significant prostate cancer ({{rate}}%; 95% CI {{ciLo}}%–{{ciHi}}%).",
@@ -883,8 +881,7 @@
     "exportFailedAlert": "Export failed. Please try again.",
     "btnExportData": "Export Data",
     "btnExportCsv": "Export CSV"
-  }
-  ,
+  },
   "part2Results": {
     "disclaimer": "ePSA is an educational tool — not a medical test or diagnosis. It estimates your risk using your answers, population research, and screening guidelines from AUA, NCCN, and EAU. For men with strong risk factors, ePSA may suggest having a screening conversation earlier than general guidelines do. Always discuss the result with a doctor before deciding about testing or treatment. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "noResults": "No results available.",
@@ -953,12 +950,25 @@
         }
       },
       "pirads": {
-        "0": { "label": "No reportable lesion", "detail": "MRI found no significant lesion." },
-        "1": { "label": "Very unlikely" },
-        "2": { "label": "Unlikely" },
-        "3": { "label": "Uncertain" },
-        "4": { "label": "Likely suspicious" },
-        "5": { "label": "Highly suspicious" }
+        "0": {
+          "label": "No reportable lesion",
+          "detail": "MRI found no significant lesion."
+        },
+        "1": {
+          "label": "Very unlikely"
+        },
+        "2": {
+          "label": "Unlikely"
+        },
+        "3": {
+          "label": "Uncertain"
+        },
+        "4": {
+          "label": "Likely suspicious"
+        },
+        "5": {
+          "label": "Highly suspicious"
+        }
       },
       "gauge": {
         "low": "Low",
@@ -1157,83 +1167,6 @@
       "shimRange": "SHIM total must be between 0 and 25",
       "calculationFailed": "Calculation failed. Please double-check your inputs."
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Enter your phone number to get started",
-    "phoneLabel": "Phone Number",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "We'll send you a verification code via SMS",
-    "sending": "Sending...",
-    "sendCode": "Send Verification Code",
-    "verificationCodeLabel": "Verification Code",
-    "codePlaceholder": "123456",
-    "codeSentTo": "Enter the 6-digit code sent to {{phone}}",
-    "verifying": "Verifying...",
-    "verifyCode": "Verify Code",
-    "changePhoneNumber": "Change Phone Number",
-    "errors": {
-      "invalidPhone10Digits": "Please enter a valid 10-digit phone number",
-      "recaptchaExpired": "reCAPTCHA expired. Please try again.",
-      "invalidVerificationCodeGeneric": "Invalid verification code. Please try again.",
-      "invalidVerificationCode": "Invalid verification code. Please check and try again.",
-      "codeExpired": "Verification code expired. Please request a new code."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Prostate-Specific Awareness",
-    "subtitle": "A Non-Validated Educational Risk Tool",
-    "enterPhonePrompt": "Enter your phone number to get started",
-    "phoneLabel": "Phone Number",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Sending...",
-    "sendCode": "Send Verification Code",
-    "smsHint": "We'll send you a verification code via SMS",
-    "enterCodePrompt": "Enter the verification code sent to:",
-    "verificationCodeLabel": "Verification Code",
-    "codePlaceholder": "Enter 6-digit code",
-    "back": "Back",
-    "verifying": "Verifying...",
-    "verifyCode": "Verify Code",
-    "didNotReceive": "Didn't receive the code? Check your messages or try again."
-  },
-  "emailAuth": {
-    "signIn": "Sign In",
-    "createAccount": "Create Account",
-    "resetPassword": "Reset Password",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "Password",
-    "createPasswordLabel": "Create Password",
-    "passwordPlaceholder": "Enter your password",
-    "createPasswordPlaceholder": "Create a strong password",
-    "pleaseWait": "Please wait...",
-    "sendResetEmail": "Send Reset Email",
-    "forgotPassword": "Forgot password?",
-    "needAccount": "Need an account? Sign up",
-    "subtitle": {
-      "signIn": "Access your ePSA assessment results",
-      "signUp": "Start your prostate health assessment",
-      "forgot": "We'll send you a password reset link"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Check your email for a sign-in link!",
-    "signingInTitle": "Signing You In...",
-    "verifyingLink": "Verifying your email link",
-    "pleaseWait": "Please wait while we sign you in...",
-    "requestNewLink": "Request New Link",
-    "checkYourEmail": "Check Your Email",
-    "signInWithEmail": "Sign In with Email",
-    "sentLinkTo": "We sent a sign-in link to {{email}}",
-    "enterEmailSecureLink": "Enter your email to receive a secure sign-in link",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "your@email.com",
-    "sending": "Sending...",
-    "sendSignInLink": "Send Sign-In Link",
-    "emailSent": "Email Sent!",
-    "didNotReceive": "Didn't receive it?",
-    "sendNewLink": "Send New Link",
-    "goBack": "Go Back"
   },
   "welcomeGh": {
     "description": "This 5-minute questionnaire calculates your personalized risk assessment using validated clinical instruments.",

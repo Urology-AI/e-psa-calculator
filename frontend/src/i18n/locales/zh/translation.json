@@ -235,27 +235,6 @@
       "text": "本摘要描述了ePSA应用程序如何处理数据以保护隐私。这不是法律建议。如有关于HIPAA或您的健康信息的问题，请咨询您的医疗保健提供者或法律顾问。"
     }
   },
-  "storage": {
-    "cloudTitle": "云存储",
-    "cloudDescription": "通过电子邮件或电话号码安全存储您的数据。从任何设备访问并与医疗提供者共享。",
-    "cloudFeatureSecure": "安全云存储",
-    "cloudFeatureAnyDevice": "从任何设备访问",
-    "cloudFeatureCollaboration": "提供者协作",
-    "cloudFeatureBackups": "自动备份",
-    "cloudFeatureAuth": "电子邮件或电话身份验证",
-    "cloudContinue": "继续使用云存储",
-    "localTitle": "本地存储",
-    "localDescription": "仅在此设备上存储您的数据。无需账户或电话号码。使用导入/导出来保存或移动数据。",
-    "localFeatureNoSignIn": "无需登录",
-    "localFeatureSame": "相同的问卷和结果",
-    "localFeatureExport": "导出为JSON或打印",
-    "localFeaturePrivacy": "设备上的隐私保护",
-    "localContinue": "继续使用本地存储",
-    "importPrompt": "已有评估？",
-    "importButton": "导入之前的数据",
-    "footerText": "您的健康数据安全私密地存储。我们从不共享或出售您的信息。",
-    "privacyNote": "符合HIPAA的安全存储"
-  },
   "info": {
     "learnMore": "了解更多关于{{title}}的信息",
     "sources": "来源：",
@@ -945,83 +924,6 @@
       "unhappy": "不开心",
       "terrible": "非常糟糕"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "输入您的电话号码以开始",
-    "phoneLabel": "电话号码",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "我们将通过短信向您发送验证码",
-    "sending": "发送中...",
-    "sendCode": "发送验证码",
-    "verificationCodeLabel": "验证码",
-    "codePlaceholder": "123456",
-    "codeSentTo": "输入发送到{{phone}}的6位验证码",
-    "verifying": "验证中...",
-    "verifyCode": "验证码",
-    "changePhoneNumber": "更改电话号码",
-    "errors": {
-      "invalidPhone10Digits": "请输入有效的10位电话号码",
-      "recaptchaExpired": "reCAPTCHA已过期。请重试。",
-      "invalidVerificationCodeGeneric": "无效的验证码。请重试。",
-      "invalidVerificationCode": "无效的验证码。请检查后重试。",
-      "codeExpired": "验证码已过期。请请求新的验证码。"
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "前列腺特异性意识",
-    "subtitle": "一种未经验证的教育风险工具",
-    "enterPhonePrompt": "输入您的电话号码以开始",
-    "phoneLabel": "电话号码",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "发送中...",
-    "sendCode": "发送验证码",
-    "smsHint": "我们将通过短信向您发送验证码",
-    "enterCodePrompt": "输入发送到以下号码的验证码：",
-    "verificationCodeLabel": "验证码",
-    "codePlaceholder": "输入6位验证码",
-    "back": "返回",
-    "verifying": "验证中...",
-    "verifyCode": "验证码",
-    "didNotReceive": "没有收到验证码？请检查您的短信或重试。"
-  },
-  "emailAuth": {
-    "signIn": "登录",
-    "createAccount": "创建账户",
-    "resetPassword": "重置密码",
-    "emailLabel": "电子邮件地址",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "密码",
-    "createPasswordLabel": "创建密码",
-    "passwordPlaceholder": "输入您的密码",
-    "createPasswordPlaceholder": "创建强密码",
-    "pleaseWait": "请稍候...",
-    "sendResetEmail": "发送重置电子邮件",
-    "forgotPassword": "忘记密码？",
-    "needAccount": "需要账户？注册",
-    "subtitle": {
-      "signIn": "访问您的ePSA评估结果",
-      "signUp": "开始您的前列腺健康评估",
-      "forgot": "我们将向您发送密码重置链接"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "请查看您的电子邮件以获取登录链接！",
-    "signingInTitle": "正在登录...",
-    "verifyingLink": "正在验证您的电子邮件链接",
-    "pleaseWait": "请稍候，我们正在为您登录...",
-    "requestNewLink": "请求新链接",
-    "checkYourEmail": "检查您的电子邮件",
-    "signInWithEmail": "用电子邮件登录",
-    "sentLinkTo": "我们向{{email}}发送了一个登录链接",
-    "enterEmailSecureLink": "输入您的电子邮件以接收安全登录链接",
-    "emailLabel": "电子邮件地址",
-    "emailPlaceholder": "your@email.com",
-    "sending": "发送中...",
-    "sendSignInLink": "发送登录链接",
-    "emailSent": "电子邮件已发送！",
-    "didNotReceive": "没有收到？",
-    "sendNewLink": "发送新链接",
-    "goBack": "返回"
   },
   "welcomeGh": {
     "description": "这个5分钟问卷使用经过验证的临床工具计算您的个性化风险评估。",
