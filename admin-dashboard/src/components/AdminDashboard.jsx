@@ -14,6 +14,7 @@ import InsightsDashboard from './admin/InsightsDashboard';
 import UserManagement from './admin/UserManagement';
 import SystemStatus from './admin/SystemStatus';
 import AdminManagement from './admin/AdminManagement';
+import SinaiResearch from './admin/SinaiResearch';
 import { getCalculatorConfig, saveCalculatorConfig, refreshCalculatorConfig } from '../utils/dynamicCalculator';
 import { getAdminInsightsData } from '../services/adminAnalyticsService';
 import { trackAdminEvent } from '../services/adminAnalyticsService';
@@ -100,6 +101,8 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
         );
       case 'users':
         return <AdminManagement />;
+      case 'sinai':
+        return <SinaiResearch />;
       case 'system':
         return <SystemStatus insights={insights} />;
       default:
@@ -294,15 +297,23 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
               <span>Analytics</span>
             </button>
             
-            <button 
+            <button
               className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
               onClick={() => setActiveTab('users')}
             >
               <Users size={20} />
               <span>User Management</span>
             </button>
-            
-            <button 
+
+            <button
+              className={`nav-item ${activeTab === 'sinai' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sinai')}
+            >
+              <Shield size={20} />
+              <span>Mount Sinai Research</span>
+            </button>
+
+            <button
               className={`nav-item ${activeTab === 'system' ? 'active' : ''}`}
               onClick={() => setActiveTab('system')}
             >
