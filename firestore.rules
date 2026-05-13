@@ -128,7 +128,30 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isAuthorizedAdmin();
       allow update, delete: if false;
     }
-    
+
+    // ============================================
+    // SINAI CLINIC CODES (Mount Sinai cohort — IRB STUDY-14-00050)
+    //
+    // Minted by super-admins (or the generateCodes script via Admin SDK,
+    // which bypasses these rules). The submitSinaiCohort Cloud Function
+    // reads and updates these via the Admin SDK; no client writes directly.
+    //
+    // Admins can read the audit metadata (used / usedAt / sessionId /
+    // redcapRecordId). Documents contain NO clinical data — only the code
+    // lifecycle audit row.
+    // ============================================
+    match /clinicCodes/{code} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
+    }
+
+    // Clinic code audit log — written server-side via Admin SDK only,
+    // read-only for admins. Contains code lifecycle events; NO PHI.
+    match /clinicCodeAuditLog/{entryId} {
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+      allow create, update, delete: if false;
+    }
+
     // ============================================
     // DEFAULT: DENY ALL
     // ============================================
