@@ -81,6 +81,17 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
             </p>
           </div>
 
+          <div className="consent-data-use">
+            <p>
+              <strong>{t('consent.rightToWithdrawTitle')}:</strong> {t('consent.rightToWithdrawBody')}
+            </p>
+            <p>{t('consent.notMedicalDevice')}</p>
+            <p>
+              <strong>{t('consent.researcherContactTitle')}:</strong>{' '}
+              {t('consent.researcherContactBody')}
+            </p>
+          </div>
+
           {/* ── Research Consent — separate, optional ── */}
           <div className="consent-research-section">
             <div className="consent-research-header">

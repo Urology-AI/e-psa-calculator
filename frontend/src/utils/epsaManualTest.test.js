@@ -77,10 +77,9 @@ describe('ePSA Part 1 — Clinical test patients', () => {
   it('Black 35yo same score as white 35yo (age gate)', () => {
     const black = calculateDynamicEPsa({ age: 35, race: 'black', bmi: 24, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
     const white = calculateDynamicEPsa({ age: 35, race: 'white', bmi: 24, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
-    const blackItem = black.itemImpacts.find(b => b.item === 'Black ancestry');
-    const whiteItem = white.itemImpacts.find(b => b.item === 'Black ancestry');
-    expect(blackItem.points).toBe(0);
-    expect(whiteItem.points).toBe(0);
+    // Age < 40: engine returns age-gate shell — both get belowMinAge=true and score=0
+    expect(black.belowMinAge).toBe(true);
+    expect(white.belowMinAge).toBe(true);
     expect(black.score).toBe(white.score);
   });
 
@@ -103,6 +102,8 @@ describe('ePSA Part 1 — Clinical test patients', () => {
 
   it('Ideal young patient gets PSA_NOT_RECOMMENDED', () => {
     const r = calculateDynamicEPsa({ age: 35, race: 'white', bmi: 22, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
+    // Age < 40: engine returns age-gate shell with recommendPSA=false and belowMinAge=true
+    expect(r.belowMinAge).toBe(true);
     expect(r.recommendPSA).toBe(false);
     expect(r.epsaTierKey).toBe('low');
   });

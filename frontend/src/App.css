@@ -1,21 +1,29 @@
-/* ─── ePSA Design System ─── */
+/* ─── ePSA Design System — Mount Sinai Brand ─── */
 :root {
-  /* Brand blues */
-  --brand-950: #071b2c;
-  --brand-900: #0b2a43;
-  --brand-800: #0e3a5e;
-  --brand-700: #134f7a;
-  --brand-600: #1f6ea3;
-  --brand-500: #2d8bc7;
-  --brand-400: #5aaeda;
-  --brand-100: #ddeeff;
-  --brand-50:  #f0f8ff;
+  /* Mount Sinai Blue (primary brand) */
+  --brand-950: #001632;
+  --brand-900: #002060;
+  --brand-800: #002880;
+  --brand-700: #003087;
+  --brand-600: #005baa;
+  --brand-500: #009FDA;
+  --brand-400: #40b8ea;
+  --brand-100: #cceef8;
+  --brand-50:  #e6f6fc;
 
-  /* Teal / awareness */
-  --teal-700: #0e7490;
-  --teal-600: #0891b2;
-  --teal-400: #22d3ee;
-  --teal-50:  #ecfeff;
+  /* Mount Sinai Magenta (secondary brand) */
+  --magenta-700: #9c0e5e;
+  --magenta-600: #c01070;
+  --magenta-500: #DA1884;
+  --magenta-400: #e84dab;
+  --magenta-100: #fce0f0;
+  --magenta-50:  #fff0f8;
+
+  /* Mount Sinai Navy (tertiary brand) */
+  --teal-700: #003087;
+  --teal-600: #005baa;
+  --teal-400: #009FDA;
+  --teal-50:  #e6f6fc;
 
   /* Risk colors */
   --risk-lower:    #16a34a;
@@ -57,11 +65,11 @@
   --gold-100: #fef3c7;
 
   /* Shadows */
-  --shadow-xs:   0 0.0625rem 0.1875rem rgba(11, 42, 67, 0.07);
-  --shadow-sm:   0 0.25rem 0.625rem rgba(11, 42, 67, 0.08);
-  --shadow-md:   0 0.5rem 1.5rem rgba(11, 42, 67, 0.10);
-  --shadow-soft: 0 0.75rem 1.875rem rgba(11, 42, 67, 0.08);
-  --shadow-lg:   0 1.25rem 3rem rgba(11, 42, 67, 0.12);
+  --shadow-xs:   0 0.0625rem 0.1875rem rgba(0, 48, 135, 0.07);
+  --shadow-sm:   0 0.25rem 0.625rem rgba(0, 48, 135, 0.08);
+  --shadow-md:   0 0.5rem 1.5rem rgba(0, 48, 135, 0.10);
+  --shadow-soft: 0 0.75rem 1.875rem rgba(0, 48, 135, 0.08);
+  --shadow-lg:   0 1.25rem 3rem rgba(0, 48, 135, 0.12);
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -81,8 +89,8 @@
   --text-4xl:  2.25rem;
 
   /* App background + surfaces */
-  --app-bg: linear-gradient(160deg, #f0f7ff 0%, #eaf3fb 40%, #f5f8fc 100%);
-  --header-logo-bg: linear-gradient(180deg, #f8fbff 0%, #f1f7fd 100%);
+  --app-bg: linear-gradient(160deg, #f0f6fc 0%, #e8f2fa 40%, #f4f8fc 100%);
+  --header-logo-bg: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
 
   /* Readable type: user A−/A+ × gentle boost on tablet/phone (see html font-size below) */
   --epsa-user-text-scale: 1;
@@ -207,7 +215,7 @@ body {
 }
 
 .logo {
-  display: block !important;
+  display: block;
   margin: 0 auto;
   max-width: 11.5625rem;
   max-height: 6.25rem;
@@ -215,6 +223,10 @@ body {
   height: auto;
   object-fit: contain;
 }
+
+.logo--dark { display: none; }
+.theme-dark .logo--light { display: none; }
+.theme-dark .logo--dark  { display: block; }
 
 .header-text {
   text-align: center;
@@ -242,6 +254,31 @@ body {
   font-size: var(--text-sm);
   color: var(--ink-500);
   font-style: italic;
+}
+
+.header-authorship {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-600, #4b5563);
+  letter-spacing: 0.01em;
+}
+.header-authorship strong {
+  color: var(--ink-800, #1f2937);
+  font-weight: 600;
+}
+.header-authorship em {
+  color: var(--ink-500, #6b7280);
+  font-style: italic;
+}
+.theme-dark .header-authorship {
+  color: rgba(255, 255, 255, 0.7);
+}
+.theme-dark .header-authorship strong {
+  color: rgba(255, 255, 255, 0.92);
+}
+.theme-dark .header-authorship em {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .header-actions {
@@ -496,7 +533,7 @@ body {
 }
 
 .stage-mri {
-  background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #9c0e5e 0%, #DA1884 100%);
   color: #fff;
 }
 
@@ -556,6 +593,23 @@ body {
   color: var(--brand-700);
   font-weight: 600;
   font-size: var(--text-lg);
+}
+
+/* Brief Part-1 calculating transition screen */
+.part1-transition-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  min-height: 18rem;
+  animation: fadeIn 0.25s ease;
+}
+.part1-transition-gauge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ─── Stage Actions ─── */
@@ -673,5 +727,75 @@ body {
   .container {
     padding: 1rem 0.875rem;
     border-radius: var(--radius-md);
+  }
+}
+
+/* ─── Print stylesheet ───
+   Strips interactive chrome, normalizes colors for paper, and
+   keeps result cards / citations from being split across pages. */
+@media print {
+  @page {
+    margin: 0.6in 0.5in;
+  }
+
+  html, body, .App, .container {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  .container {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .header-actions,
+  .header-logo-container,
+  .stage-indicator,
+  .change-pathway-btn,
+  .logout-btn,
+  .theme-toggle-btn,
+  .text-scale-control,
+  .language-switcher,
+  .global-back-btn,
+  .app-footer,
+  .btn-model-docs,
+  .credits-modal,
+  .hipaa-popup,
+  button[aria-label="Open menu"],
+  nav[role="navigation"] {
+    display: none !important;
+  }
+
+  .app-header {
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    page-break-after: avoid;
+  }
+
+  .app-header .header-text,
+  .app-header .header-authorship,
+  .app-header .subtitle {
+    color: #000 !important;
+  }
+
+  a, a:visited {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  /* Encourage citation lists to print fully */
+  .citations-list,
+  .citations-grid,
+  [class*="citation"] {
+    page-break-inside: avoid;
+  }
+
+  /* Generic card avoid-split */
+  .card,
+  [class*="-card"] {
+    page-break-inside: avoid;
   }
 }

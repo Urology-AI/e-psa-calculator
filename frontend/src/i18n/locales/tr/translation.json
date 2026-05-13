@@ -1,0 +1,1072 @@
+{
+  "common": {
+    "language": "Dil",
+    "back": "Geri"
+  },
+  "app": {
+    "header": {
+      "title": "Prostata Özgü Farkındalık",
+      "subtitle": "Doğrulanmamış Eğitsel Bir Risk Aracı"
+    },
+    "textScale": {
+      "groupLabel": "Yazı boyutu",
+      "smaller": "A−",
+      "bigger": "A+",
+      "decreaseTitle": "Daha küçük yazı",
+      "increaseTitle": "Daha büyük yazı",
+      "decreaseAria": "Yazı boyutunu küçült",
+      "increaseAria": "Yazı boyutunu büyüt"
+    },
+    "stage": {
+      "stagePre": "Aşama 1: Tarama Önceliği",
+      "stagePost": "Aşama 2: Risk Değerlendirmesi"
+    },
+    "footer": {
+      "text": "ePSA Prostata Özgü Farkındalık | Doğrulanmamış Eğitsel Bir Risk Aracı",
+      "modelDocs": "Model Belgeleri",
+      "hipaa": "HIPAA Uyumlu"
+    },
+    "loadingResults": {
+      "title": "Sonuçlarınız yükleniyor...",
+      "note": "Bu durum devam ederse sayfayı yenilemeyi deneyin."
+    },
+    "continueToRisk": "Risk Değerlendirmesine Devam →",
+    "alerts": {
+      "completeRequiredFields": "Skorunuzu hesaplamadan önce lütfen tüm zorunlu alanları doldurun. Hakkınızda, Aile ve Genetik Risk, Vücut Ölçüleri, Yaşam Tarzı ve Belirtiler bölümlerindeki tüm zorunlu alanları doldurduğunuzdan emin olun.",
+      "completePart1BeforeRiskAssessment": "Risk Değerlendirmesine geçmeden önce lütfen 1. Bölümü (Tarama Önceliği) tamamlayın.",
+      "cloudSessionRestoreUnavailable": "Oturum kimliği ile geri yükleme yalnızca bulut depolama ile kullanılabilir. Onun yerine JSON dosyası için İçe Aktar seçeneğini kullanın.",
+      "cloudDemoNoSessionKey": "Buluttan yükleme bu demoda mevcut değildir. Oturum anahtarınızı kullanmak için Firebase ile birlikte tam uygulamayı kullanın.",
+      "completeRequiredFieldsGh": "Skoru hesaplamadan önce lütfen tüm zorunlu alanları doldurun.",
+      "calculationFailedGh": "Hesaplama başarısız oldu. Lütfen cevaplarınızı kontrol edip tekrar deneyin."
+    },
+    "confirm": {
+      "clearAllDataStartOver": "Tüm verileri temizleyip baştan başlamak istediğinize emin misiniz? Bu işlem mevcut oturumunuzu silecektir.",
+      "startOverClearAllDataGh": "Baştan başlansın mı? Bu işlem tüm verileri temizleyecektir."
+    }
+  },
+  "anonymousAuth": {
+    "header": {
+      "title": "Prostata Özgü Farkındalık",
+      "subtitle": "Doğrulanmamış Eğitsel Bir Risk Aracı"
+    },
+    "instruction": {
+      "title": "Başlamak için anonim bir oturum oluşturun",
+      "subtitle": "Oturumunuz benzersiz bir kimlikle takip edilecektir. Kişisel bilgi gerekmez."
+    },
+    "sessionIdLabel": "Oturum Kimliğiniz:",
+    "regenerate": "Yeniden Oluştur",
+    "creatingSession": "Oturum Oluşturuluyor...",
+    "startAssessment": "Değerlendirmeye Başla",
+    "saveSessionIdStrong": "Bu Oturum Kimliğini kaydedin:",
+    "saveSessionIdRest": "Sonuçlarınıza daha sonra erişmek için bu kimliğe ihtiyacınız olacak. Ekran görüntüsü alın veya bir yere yazın.",
+    "sessionCreatedTitle": "Oturum Oluşturuldu!",
+    "importantStrong": "Önemli:",
+    "sessionWarningRest": "Sonuçlarınıza daha sonra erişmek için bu Oturum Kimliğini kaydedin. Onsuz değerlendirmenize geri dönemezsiniz.",
+    "otherWaysTitle": "Diğer giriş yöntemleri:",
+    "phoneNumber": "Telefon Numarası",
+    "email": "E-posta"
+  },
+  "welcome": {
+    "heroBadge": "Eğitsel Klinik Destek Aracı",
+    "heroTitle": "Bir sonraki üroloji ziyaretinizden önce PSA başlangıç riskinizi öğrenin",
+    "heroDescription": "Prostat kanseri riskinizin kişiselleştirilmiş bir resmini edinin; böylece hekiminizle PSA hakkında daha bilinçli bir görüşme yapabilirsiniz — bu bir karar değil, bir başlangıç noktasıdır.",
+    "psaIntro": {
+      "kicker": "Başlamadan önce",
+      "heading": "PSA nedir ve neden önemlidir?",
+      "body": "Prostata özgü antijen (PSA), prostatınız tarafından üretilen ve basit bir kan testinde görülen bir proteindir. Daha yüksek düzeyler — kanıt olmamakla birlikte — prostat kanseri veya diğer prostat sorunlarının bir ipucu olabilir. ePSA; yaşınızı, aile öykünüzü, soyunuzu ve belirtilerinizi inceleyerek bir PSA testinin şu anda sizin için ne kadar uygun olduğunu tahmin eder, böylece doktorunuzla görüşmeniz bir bağlamla başlar.",
+      "seeDoctorNudge": "Halihazırda idrar şikâyetleriniz veya bilinen bir aile prostat kanseri öykünüz varsa lütfen doktorunuzla görüşün — bu aracı beklemeyin."
+    },
+    "featureGuidedQuestions": "27 rehberli soru",
+    "featureTime": "~5 dakika",
+    "featurePrivate": "Tasarım gereği gizli",
+    "storageChoiceTitle": "İlerlemenizi nasıl kaydedeceğinizi seçin",
+    "storageDeviceOnlyTitle": "Yalnızca bu cihazı kullan",
+    "storageDeviceOnlySub": "Giriş yok · veriler bu tarayıcıda kalır",
+    "storageCloudTitle": "Buluta anonim olarak kaydet",
+    "storageCloudSub": "Oturum anahtarı alın · telefon veya e-posta gerekmez",
+    "startAssessment": "Değerlendirmeye Başla",
+    "importPreviousSession": "Önceki Oturumu İçe Aktar",
+    "quickEntry": "Hızlı Giriş",
+    "viewPrintableFormTitle": "Çevrimdışı Formu Görüntüle",
+    "viewPrintableForm": "Yazdırılabilir Formu Görüntüle",
+    "trustNoAccount": "Hesap gerekmez",
+    "trustClinicianConversations": "Hekim görüşmeleri için tasarlandı",
+    "trustClearRiskSummary": "Anlaşılır risk özeti çıktısı",
+    "flow": {
+      "step1Title": "Risk Profili",
+      "step1Body": "Demografi, yaşam tarzı, aile öyküsü ve idrar belirtilerini kapsayan 27 rehberli soru.",
+      "step2Title": "Klinik Veriler",
+      "step2Body": "Tahmini iyileştirmek için isteğe bağlı olarak PSA düzeyinizi ve MRI PI-RADS skorunuzu ekleyin.",
+      "step3Title": "Kişiselleştirilmiş Sonuçlar",
+      "step3Body": "Hekim görüşmeniz için yazdırılabilir kılavuzla birlikte bir ePSA risk düzeyi alın."
+    },
+    "footerInstitution": "Icahn School of Medicine at Mount Sinai · Üroloji Bölümü",
+    "footerGuidelines": "Mount Sinai hasta verileri üzerine inşa edilmiştir · Öneriler AUA / NCCN kılavuzlarını izler",
+    "footerDisclaimer": "ePSA, Mount Sinai'nin kendi hasta verileri üzerine inşa edilmiştir; ancak tarama önerileri AUA/NCCN kılavuzlarıyla uyumludur. Bu araç yalnızca eğitim amaçlıdır ve bir tanı değildir. Sağlıkla ilgili karar vermeden önce daima aile hekiminize veya üroloğunuza danışın."
+  },
+  "welcome2": {
+    "stage2Title": "Aşama 2: Risk Değerlendirmesi",
+    "stage2Subtitle": "Prostat kanseri risk faktörlerinizin ayrıntılı değerlendirmesi",
+    "priorityResultHeading": "Tarama Önceliği Sonucunuz",
+    "priorityBadge": "{{riskTier}} Risk (%{{probability}})",
+    "priorityDescription": "İlk değerlendirmenize göre, prostat kanseri taraması için {{priorityTierLower}} önceliğe sahipsiniz. Bu aşamada, risk profilinizi iyileştirmek için ek klinik bilgiler toplanacaktır.",
+    "modelDetails": {
+      "heading": "Risk Değerlendirme Modeli Ayrıntıları",
+      "intro": "Bu aşama, ilk tarama önceliğinizi ek klinik değişkenlerle birleştirerek kapsamlı bir risk skoru üretir:",
+      "factors": {
+        "clinical": {
+          "title": "Klinik Ölçümler",
+          "desc": "PSA öyküsü, DRE bulguları, idrar belirtileri (IPSS)"
+        },
+        "history": {
+          "title": "Tıbbi Öykü",
+          "desc": "Önceki biyopsiler, enfeksiyonlar, ilaçlar"
+        },
+        "genetic": {
+          "title": "Genetik ve Aile Faktörleri",
+          "desc": "Ayrıntılı aile öyküsü, biliniyorsa genetik belirteçler"
+        }
+      }
+    },
+    "modelBreakdown": {
+      "heading": "Risk Değerlendirme Modeli",
+      "combined": {
+        "heading": "Birleşik Risk Hesaplaması",
+        "desc": "Bu aşama, ilk tarama önceliğinizi ek klinik değişkenlerle birleştirerek kapsamlı bir risk skoru üretir:"
+      },
+      "formula": {
+        "stage1": {
+          "label": "Aşama 1 Skoru:",
+          "value": "İlk değerlendirmeden gelen başlangıç olasılığı"
+        },
+        "stage2": {
+          "label": "Aşama 2 Düzeltmeleri:",
+          "value": "Başlangıç taşıması + PSA puanları + PI-RADS puanları/geçersiz kılma"
+        },
+        "final": {
+          "label": "Nihai Risk Skoru:",
+          "value": "Toplam puanlardan dinamik kategori eşlemesi"
+        }
+      },
+      "riskCategories": {
+        "heading": "Risk Kategorileri",
+        "probabilityLabel": "olasılık"
+      }
+    },
+    "references": {
+      "label": "Kaynaklar:",
+      "item1": "Prostat Kanseri Erken Tespiti için NCCN Klinik Uygulama Kılavuzları",
+      "item2": "Prostat Kanseri ile İlgili EAU Kılavuzları",
+      "item3": "PCPT Risk Hesaplayıcı 2.0"
+    },
+    "hideDetails": "Ayrıntıları Gizle",
+    "viewModelDetails": "Risk Değerlendirme Modeli Ayrıntılarını Görüntüle",
+    "importantNote": {
+      "label": "Önemli Not:",
+      "text": "Bu değerlendirme yalnızca eğitim amaçlıdır ve tıbbi tavsiye niteliği taşımaz. Risk modeli yayımlanmış araştırmalara dayanmaktadır ancak nitelikli bir sağlık uzmanı ile görüşmenin yerine geçmemelidir. Sağlıkla ilgili karar vermeden önce sonuçlarınızı daima doktorunuzla tartışın."
+    },
+    "estimatedTime": "Tahmini süre: ~5-7 dakika",
+    "beginStage2Button": "Risk Değerlendirmesine Başla →",
+    "footerText": "ePSA Prostata Özgü Farkındalık | Doğrulanmamış Eğitsel Bir Risk Aracı",
+    "viewDocsButton": "Risk Değerlendirme Belgelerini Görüntüle"
+  },
+  "consent": {
+    "title": "Onam",
+    "intro": "Devam etmeden önce, lütfen değerlendirme verilerinizin nasıl saklandığını ve nasıl kullanılabileceğini inceleyin.",
+    "reasonStorage": "Değerlendirme verileriniz seçiminize bağlı olarak ya bu cihazda ya da bulutta saklanır.",
+    "reasonCloudKey": "Bulut depolama, anonim bir oturum anahtarı kullanır (e-posta veya telefon gerekmez).",
+    "reasonPrivacy": "Uygulamada adınızı, e-postanızı veya telefon numaranızı toplamaz veya saklamayız.",
+    "reasonDataUse": "Kimliği gizlenmiş değerlendirme verileri, modelin gelecekteki sürümlerini iyileştirmek ve doğrulamak için anonim olarak kullanılabilir.",
+    "acknowledgement": "Bu aracı kullanarak yukarıda açıklanan veri uygulamalarını kabul ettiğinizi onaylamış olursunuz.",
+    "disclaimerNotePrefix": "Not:",
+    "disclaimerMain": "Aracı kullanmanız, bu koşulları kabul ettiğiniz anlamına gelir.",
+    "firstVisitDisclaimer": "Bu onam bildirimi, her tarayıcı/cihaz için ilk ziyarette gösterilir.",
+    "dataUseTitle": "Veri kullanım bildirimi:",
+    "dataUseBody": "Bulut oturum verileri 30 güne kadar saklanır ve kimliği gizlenmiş veriler modelin gelecekteki sürümlerini iyileştirmek ve doğrulamak için anonim olarak kullanılabilir. Yerel mod cihazınızda kalır ve kontrolünüz altındadır; veriler cihazınızdan çıkarılır veya üçüncü taraf bir cihaz aracılığıyla toplanırsa paylaşılabilir. Cihazınızdan veya üçüncü taraf cihazlardan taşınan verilerden sorumlu olmadığımız için lütfen veri toplayıcıyla teyit edin. Bulut oturumları için güvenli aktarım ve uyumluluk odaklı koruma önlemleri kullanırız.",
+    "continueButton": "Devam",
+    "errorNoSelection": "Devam etmek için lütfen bir seçenek seçin"
+  },
+  "auth": {
+    "createSessionHeading": "Buluta kaydetmek için anonim bir oturum oluşturun",
+    "subtitle": "Bir oturum anahtarı alacaksınız. Verilerinizi sonra yüklemek için saklayın. E-posta veya telefon toplanmaz.",
+    "sessionPreviewLabel": "Şunun gibi bir oturum anahtarı alacaksınız:",
+    "sessionExample": "A1B2C3D4",
+    "sessionNote": "Değerlendirmenizi daha sonra buluttan yüklemek için bu anahtarı saklayın.",
+    "buttonCreating": "Oluşturuluyor...",
+    "buttonCreateSession": "Oturum oluştur",
+    "infoLine": "Verileriniz yalnızca bu anahtar altında saklanır. Hiçbir kişisel bilgi toplanmaz.",
+    "errors": {
+      "generic": "Oturum oluşturulamadı. Lütfen tekrar deneyin.",
+      "operationNotAllowed": "Anonim giriş devre dışı. Auth (veya Auth Emulator) ayarlarında Anonim sağlayıcıyı etkinleştirin ve tekrar deneyin.",
+      "adminRestricted": "Bu Firebase projesinde anonim giriş kısıtlanmıştır. Kimlik Doğrulama ayarlarında \"Anonim sağlayıcıyı etkinleştirin\" veya doğru yapılandırma ile emülatörü kullanın.",
+      "permissionDenied": "Oturum oluşturuldu ancak Firestore yazma işlemi reddedildi. Firestore kurallarını/emülatörünü kontrol edin ve tekrar deneyin.",
+      "firestoreUnavailable": "Firestore kullanılamıyor. Firestore emülatörünün çalıştığından emin olun."
+    }
+  },
+  "hipaa": {
+    "title": "HIPAA Uyumluluğu",
+    "closeButton": "Kapat",
+    "privacy": {
+      "title": "Gizlilik ve Veri Koruma",
+      "text": "ePSA aracı, sağlık bilgilerinizi HIPAA hususları doğrultusunda korumak üzere tasarlanmıştır. Ad, e-posta veya telefon numarası gibi kişisel olarak tanımlanabilir bilgileri (PII) veya korunan sağlık bilgilerini (PHI) toplamaz, saklamaz veya birbirine bağlamayız."
+    },
+    "sessionOnly": {
+      "title": "Yalnızca Anonim Oturum Anahtarı",
+      "noEmailPhoneLabel": "E-posta veya telefon yok:",
+      "noEmailPhoneText": "Bulut depolama yalnızca anonim bir oturum anahtarı kullanır. Verilerinizi daha sonra yüklemek için kısa bir anahtar (ör. A1B2C3D4) alırsınız. E-posta adresinizi veya telefon numaranızı toplamayız veya saklamayız.",
+      "noIdentityLabel": "Kimlik bağlantısı yok:",
+      "noIdentityText": "Değerlendirme verileriniz, kim olduğunuzu ortaya çıkarabilecek hiçbir tanımlayıcıya bağlı değildir. Bu oturumun verilerine yalnızca oturum anahtarınıza sahip olan kişi erişebilir.",
+      "saveKeyLabel": "Anahtarınızı kaydedin:",
+      "saveKeyText": "Oturum anahtarınızı kaybederseniz verilerinizi kurtaramayız. Verileri sizinle ilişkilendirmemizin hiçbir yolu yoktur."
+    },
+    "importCloud": {
+      "title": "Veri İçe Aktarma ve Bulut",
+      "fileImportLabel": "Dosya içe aktarma:",
+      "fileImportText": "Bir JSON dosyasını içe aktardığınızda, bu verileri mevcut bir bulut oturumuna bağlamayız. Veriler yalnızca yerel olarak yüklenir. Daha sonra \"Buluta taşı\" seçeneğini kullanarak yeni bir anonim oturum anahtarı altında kaydedebilirsiniz.",
+      "loadCloudLabel": "Buluttan yükleme:",
+      "loadCloudText": "Önceki bir oturuma devam etmek için oturum anahtarınızı girmeniz gerekir. İçe aktarılan dosyalardaki bilgileri mevcut oturumları aramak veya onlara eklemek için kullanmayız."
+    },
+    "choices": {
+      "title": "Seçenekleriniz",
+      "text": "Aracı yalnızca bu cihazda saklanan verilerle (\"Yalnızca bu cihaz\") kullanabilir veya anonim bir oturum anahtarı kullanarak buluta kaydedebilirsiniz. Bulut depolama için kişisel iletişim bilgisi gerekmez."
+    },
+    "disclaimer": {
+      "label": "Sorumluluk reddi:",
+      "text": "Bu özet, ePSA uygulamasının gizlilik amacıyla verileri nasıl işlediğini açıklar. Hukuki tavsiye değildir. HIPAA veya sağlık bilgilerinizle ilgili sorular için sağlık uzmanınıza veya hukuk müşavirinize danışın."
+    }
+  },
+  "info": {
+    "learnMore": "{{title}} hakkında daha fazla bilgi edinin",
+    "sources": "Kaynaklar:",
+    "guidelineBadge": "AUA/NCCN kılavuz faktörü",
+    "modelOnlyBadge": "Yalnızca ePSA modeli — AUA/NCCN'de yok",
+    "guidelineNote": "AUA ve NCCN, bu faktörü resmi PSA tarama kriterlerinde kullanır. Kılavuzları aşağıdaki kaynaklarda ilk sırada listelenir.",
+    "modelOnlyNote": "Bu faktör ePSA modeli tarafından kullanılır ancak resmi AUA/NCCN PSA tarama kriterlerinin bir parçası değildir. Yalnızca araştırma kanıtlarına dayanır."
+  },
+  "part1": {
+    "fields": {
+      "age": {
+        "title": "Yaş",
+        "placeholder": "Yaş (18+)",
+        "helper": "Prostat kanseri riski zamanla arttığı için yaşınız tarama önceliğini belirlemeye yardımcı olur.",
+        "description": "Risk yaşla birlikte, özellikle 50'den sonra artar. Tanı için ortalama yaş 66'dır."
+      },
+      "race": {
+        "title": "Irk/Etnik Köken",
+        "selectPlaceholder": "Irk/etnik köken seçin",
+        "helper": "Kendinizi nasıl tanımladığınıza en uygun kategoriyi seçin; soy, tarama önerilerini etkileyebilir.",
+        "description": "Siyahi/Afrikalı Amerikalı erkeklerde risk daha yüksektir ve prostat kanserine daha genç yaşta yakalanma olasılıkları daha fazladır."
+      },
+      "familyHistory": {
+        "title": "Aile Öyküsü",
+        "helper": "Prostat kanseri olan baba, erkek kardeş veya oğul gibi yakın kan bağı olan akrabaları sayın.",
+        "description": "Prostat kanseri olan bir baba veya erkek kardeşin olması, bir erkeğin riskini iki kattan fazla artırır. Etkilenen birden çok akraba varsa risk daha da yüksektir."
+      },
+      "inflammationHistory": {
+        "title": "İltihaplanma Öyküsü",
+        "description": "Vücutta uzun süreli iltihaplanma — prostat iltihabı (prostatit) veya iltihaplı bağırsak hastalığı (ülseratif kolit, Crohn) gibi — zamanla prostat kanseri riskini artırabilir."
+      },
+      "brcaStatus": {
+        "title": "Kalıtsal Kanser Gen Testi",
+        "helper": "Kalıtsal prostat kanseri gen değişiklikleri (BRCA1/2, HOXB13, ATM veya Lynch sendromu gibi) için genetik test yaptırdınız mı? Yalnızca bir testle taşıdığınız doğrulandıysa Evet seçin. Test yapıldıysa ve hiçbir şey bulunmadıysa Hayır seçin. Hiç test yaptırmadıysanız Bilinmiyor seçin.",
+        "description": "Bazı kalıtsal gen değişiklikleri prostat kanseri riskini artırır. BRCA2 daha yüksek risk ve daha agresif hastalıkla ilişkilidir. HOXB13 (özellikle G84E varyantı) bazı ailelerde görülür ve riski artırır. ATM ve Lynch sendromu genleri de riski artırır. AUA, NCCN ve EAU kılavuzları, bir testle taşıdığınız doğrulandıysa daha erken ve daha sık PSA taraması önerir."
+      },
+      "heightWeight": {
+        "title": "Boy ve Kilo (BMI)",
+        "description": "Fazla kilolu olmak, agresif prostat kanseri olasılığının daha yüksek olmasıyla ilişkilidir. Çok uzun boylu olmak da riski hafifçe artırabilir."
+      },
+      "exercise": {
+        "title": "Egzersiz Düzeyi",
+        "helper": "Tipik bir haftayı düşünün ve planlı fiziksel aktiviteyi en iyi yansıtan seçeneği belirleyin.",
+        "description": "Düzenli fiziksel aktivite, agresif prostat kanseri riskinin azalmasıyla ilişkilidir."
+      },
+      "smoking": {
+        "title": "Sigara Durumu",
+        "helper": "Mevcut veya geçmiş sigara durumunuzu seçerken sigara veya diğer düzenli tütün kullanımını dahil edin.",
+        "description": "Sigara içmek, agresif prostat kanseri ve daha kötü sonuçlar olasılığının artmasıyla ilişkilidir."
+      },
+      "chemicalExposure": {
+        "title": "11 Eylül veya Kimyasal Maruziyet",
+        "helper": "11 Eylül sonrası Dünya Ticaret Merkezi alanında bulunduysanız ya da işiniz, askeri göreviniz veya çevreniz nedeniyle pestisitler veya endüstriyel kimyasallara maruz kaldıysanız Evet seçin. Emin değilseniz Bilinmiyor seçin.",
+        "description": "11 Eylül alanında bulunan kişiler ve işyerinde pestisitler veya endüstriyel kimyasallara maruz kalanlarda birçok kanser oranı daha yüksektir. Not: Bu, ePSA'nın modelinin bir parçasıdır — resmi AUA/SUO tarama kılavuzlarında kullanılmaz."
+      },
+      "diet": {
+        "title": "Beslenme Düzeni",
+        "helper": "Olağan yeme alışkanlıklarınızı en yakından tanımlayan düzeni seçin.",
+        "description": "Çok fazla kırmızı et ve yüksek yağlı süt ürünleri tüketmek riski artırabilir. Çoğunlukla bitkisel beslenmek riski azaltmaya yardımcı olabilir."
+      },
+      "ipss": {
+        "title": "İdrar Belirtileri (IPSS)",
+        "description": "Bu sorular zayıf akım, sık idrara çıkma ihtiyacı veya gece kalkma gibi idrar sorunlarını ölçer. Prostat büyüdüğünde güçlü belirtiler yaygındır."
+      },
+      "shim": {
+        "title": "Cinsel Sağlık (SHIM)",
+        "description": "Bu sorular ereksiyon sorunlarını değerlendirir. Ereksiyon sorunları bazen başka prostat veya damar sağlığı sorunlarının erken belirtisi olabilir."
+      },
+      "comorbidities": {
+        "title": "Diğer Sağlık Durumları (kalp, tansiyon, kolesterol, diyabet)",
+        "description": "Yüksek tansiyon, yüksek kolesterol, kalp hastalığı veya diyabet tanısı aldınız mı? Bunlardan herhangi birinin olup olmadığını — ve evet ise bunlardan biri mi yoksa iki veya daha fazlası mı olduğunu soracağız."
+      }
+    },
+    "steps": {
+      "aboutYou": {
+        "sectionTitle": "Hakkınızda",
+        "shortLabel": "Hakkınızda"
+      },
+      "familyGeneticRisk": {
+        "sectionTitle": "Aile ve Genetik Risk",
+        "shortLabel": "Aile ve Genetik Risk"
+      },
+      "bodyMetrics": {
+        "sectionTitle": "Vücut Ölçüleri",
+        "shortLabel": "Vücut Ölçüleri"
+      },
+      "lifestyle": {
+        "sectionTitle": "Yaşam Tarzı",
+        "shortLabel": "Yaşam Tarzı"
+      },
+      "additionalInfo": {
+        "sectionTitle": "Ek Bilgiler",
+        "shortLabel": "Ek Bilgi"
+      },
+      "ipss": {
+        "sectionTitle": "İdrar Belirtileri (IPSS)",
+        "shortLabel": "IPSS"
+      },
+      "shim": {
+        "sectionTitle": "Cinsel Sağlık (SHIM)",
+        "sectionTitleIief": "Cinsel Sağlık (IIEF-5)",
+        "shortLabel": "SHIM"
+      }
+    },
+    "race": {
+      "white": "Beyaz / Kafkas",
+      "black": "Siyahi / Afrikalı Amerikalı",
+      "hispanic": "Hispanik / Latin",
+      "asian": "Asyalı / Pasifik Adalı",
+      "mixed": "Karma / Çok Irklı",
+      "other": "Diğer"
+    },
+    "nonGuideline": {
+      "badge": "KILAVUZ DIŞI",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC, PSA tarama kararı için bu faktörü kullanmaz. Yalnızca ePSA risk modeli tarafından kullanılır.",
+      "note": "AUA/NCCN/EAU/ERSPC tarama kriterlerinin bir parçası değildir; yalnızca ePSA modelinde kullanılır."
+    },
+    "guideline": {
+      "badge": "KILAVUZ TABANLI",
+      "badgeTooltip": "Bu faktör AUA, NCCN ve EAU prostat kanseri tarama kılavuzlarında doğrudan atıfta bulunulur."
+    },
+    "chemicalExposureOptions": {
+      "question": "Aşağıdaki maruziyetlerden herhangi birini yaşadınız mı? (Geçerli olanların tümünü seçin)",
+      "agentOrange": "Agent Orange (askeri / Vietnam dönemi)",
+      "nineEleven": "Dünya Ticaret Merkezi / 11 Eylül alanı",
+      "otherChemical": "Diğer mesleki veya çevresel kimyasallar (ör. pestisitler, çözücüler)",
+      "none": "Yukarıdakilerin hiçbiri",
+      "unknown": "Bilinmiyor / emin değilim",
+      "evidenceProven": "Güçlü epidemiyolojik kanıt",
+      "evidenceUnspecified": "Olası ilişki; daha az kanıtlanmış"
+    },
+    "ipssShort": {
+      "toggleShort": "Kısa sürümü kullan (tek şiddet sorusu)",
+      "toggleFull": "Tam IPSS'i kullan (7 soru)",
+      "skip": "Atla — idrar şikâyetim yok",
+      "singleQuestionLabel": "Genel olarak, idrar belirtileriniz sizi ne kadar rahatsız ediyor?",
+      "options": {
+        "none": "Hiç",
+        "mild": "Hafif",
+        "moderate": "Orta",
+        "severe": "Şiddetli"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Kısa sürümü kullan (tek şiddet sorusu)",
+      "toggleFull": "Tam SHIM'i kullan (5 soru)",
+      "skip": "Atla — ereksiyon sorunu yok",
+      "singleQuestionLabel": "Genel olarak, son 6 aydaki ereksiyon işlevinizi nasıl tanımlarsınız?",
+      "options": {
+        "none": "Ereksiyon sorunu yok",
+        "mild": "Hafif ED",
+        "mildModerate": "Hafif–Orta ED",
+        "moderate": "Orta ED",
+        "severe": "Şiddetli ED"
+      }
+    },
+    "abnormalPsaLikelihood": "Anormal PSA / csPCa tahmini olasılığı:",
+    "errors": {
+      "step0": {
+        "ageInline": "Lütfen yaş girin (18-120)",
+        "raceInline": "Lütfen ırk/etnik kökeninizi seçin"
+      },
+      "stepErrorTitle": "Devam etmeden önce lütfen aşağıdakileri tamamlayın:",
+      "selectOption": "Lütfen bir seçenek seçin",
+      "validate": {
+        "step0": {
+          "ageInvalid": "Lütfen geçerli bir yaş girin (18+)",
+          "raceInvalid": "Lütfen ırk/etnik kökeninizi seçin"
+        },
+        "step1": {
+          "familyHistoryInvalid": "Lütfen aile öyküsü sorusunu yanıtlayın",
+          "brcaInvalid": "Lütfen genetik mutasyon sorusunu yanıtlayın"
+        },
+        "step2": {
+          "heightInvalid": "Lütfen geçerli bir boy girin",
+          "weightInvalid": "Lütfen geçerli bir kilo girin",
+          "bmiInvalid": "BMI hesaplanamadı - lütfen boy ve kiloyu kontrol edin"
+        },
+        "step3": {
+          "exerciseInvalid": "Lütfen egzersiz düzeyini seçin",
+          "smokingInvalid": "Lütfen sigara durumunu seçin",
+          "chemicalInvalid": "Lütfen kimyasal maruziyet sorusunu yanıtlayın"
+        },
+        "step4": {
+          "dietInvalid": "Lütfen beslenme düzeninizi seçin",
+          "comorbidityInvalid": "Lütfen eşlik eden hastalık sorularını yanıtlayın"
+        },
+        "step5": {
+          "ipssInvalid": "Lütfen 7 IPSS sorusunun tümünü yanıtlayın"
+        },
+        "step6": {
+          "shimInvalid": "Lütfen 5 SHIM sorusunun tümünü yanıtlayın"
+        }
+      }
+    },
+    "options": {
+      "yes": "Evet",
+      "no": "Hayır",
+      "unknown": "Bilinmiyor"
+    },
+    "skip": {
+      "preferNotToSay": "Söylemek istemiyorum / Atla",
+      "skippedLabel": "Atlandı — tahminde nötr bir varsayılan kullanılacaktır.",
+      "sectionPrompt": "Bunları şimdi yanıtlamak istemiyor musunuz? Bu bölümü atlayabilirsiniz.",
+      "sectionSkippedNote": "Bu bölüm atlanmıştır. Tahminde nötr bir varsayılan kullanılacaktır.",
+      "skipSection": "Bu bölümü atla",
+      "answerInstead": "Bunun yerine yanıtla"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "Yalnızca ePSA"
+    },
+    "step1": {
+      "familyHistory": {
+        "title": "Prostat Kanseri Aile Öyküsü"
+      },
+      "inflammationHistory": {
+        "title": "Önceki İltihaplanma Öyküsü",
+        "prompt": "Daha önce herhangi bir iltihaplı durum tanısı aldınız mı?",
+        "example": "(ör. Ülseratif Kolit, Crohn hastalığı, kronik prostatit)"
+      }
+    },
+    "step2": {
+      "heightQuestion": "Boy",
+      "weightQuestion": "Kilo",
+      "heightHelper": "Boy, bu tarama profiline dahil edilen faktörlerden biri olan BMI'yi tahmin etmek için kilo ile birlikte kullanılır.",
+      "weightHelper": "Kilo, BMI'yi otomatik hesaplamak için boy ile birlikte kullanılır; tam kilo bilinmiyorsa bir tahmin yeterlidir.",
+      "heightUnit": {
+        "imperial": "Fit / İnç",
+        "metric": "Santimetre"
+      },
+      "stepNote": {
+        "imperial": "İmparatorluk",
+        "metric": "Metrik"
+      },
+      "heightImperialFeetPlaceholder": "Fit (3-8)",
+      "heightImperialInchesPlaceholder": "İnç (0-11)",
+      "heightImperialFeetError": "Fit 3 ile 8 arasında olmalıdır",
+      "heightImperialInchesError": "İnç 0 ile 11 arasında olmalıdır",
+      "heightMetricPlaceholder": "Boy cm cinsinden (100-250)",
+      "heightMetricError": "Boy 100 ile 250 cm arasında olmalıdır",
+      "weightUnit": {
+        "lbs": "Pound (lbs)",
+        "kg": "Kilogram (kg)"
+      },
+      "weightMetricPlaceholder": "Kilo kg cinsinden (25-250)",
+      "weightImperialPlaceholder": "Kilo lbs cinsinden (50-500)",
+      "weightImperialError": "Kilo 50 ile 500 lbs arasında olmalıdır",
+      "weightMetricError": "Kilo 25 ile 250 kg arasında olmalıdır",
+      "bmiLabel": "BMI (otomatik hesaplanır)"
+    },
+    "step3": {
+      "exercise": {
+        "regular": "Düzenli (haftada 3+ gün)",
+        "some": "Biraz (haftada 1-2 gün)",
+        "none": "Hiç"
+      },
+      "smoking": {
+        "current": "Hâlâ içiyor",
+        "former": "Eskiden içerdi",
+        "never": "Hiç içmedi"
+      },
+      "chemicalQuestion": "11 Eylül veya Kimyasal Maruziyet (ör. WTC alanı, pestisitler, endüstriyel kimyasallar)"
+    },
+    "step4": {
+      "diet": {
+        "western": "Batı / Standart Amerikan",
+        "mediterranean": "Akdeniz",
+        "indian": "Hint",
+        "dash": "DASH tarzı",
+        "plantBased": "Bitki bazlı (Vejetaryen / Vegan)",
+        "pescatarian": "Pesketaryen",
+        "lowCarbKeto": "Düşük karbonhidrat / Keto",
+        "other": "Diğer / Söylemek istemiyorum"
+      },
+      "comorbidities": {
+        "prompt": "Aşağıdakilerden herhangi biri için tanı aldınız mı? (Hipertansiyon, Hiperlipidemi, Koroner Arter Hastalığı, Diyabet).",
+        "askAnyLabel": "Bu durumlardan herhangi biri sizde var mı?",
+        "howManyLabel": "Bu durumlardan kaç tanesi sizde var?",
+        "one": "Bir",
+        "twoOrMore": "İki veya daha fazla"
+      }
+    },
+    "form": {
+      "stepChip": "Adım {{current}} / {{total}}",
+      "flowNote": "En yararlı tarama önceliği tahminini oluşturmak için her bölümü dikkatlice tamamlayın.",
+      "answeredCounter": "{{answeredCount}}/{{totalQuestions}} yanıtlandı"
+    },
+    "nav": {
+      "back": "← Geri",
+      "next": "İleri →",
+      "calculate": "Skorumu Hesapla ✓",
+      "calculateIncomplete": "Tüm soruları tamamlayın ({{answeredCount}}/{{totalQuestions}})",
+      "calculateTitleDisabled": "Lütfen tüm zorunlu alanları doldurun",
+      "calculateTitleEnabled": "Skorunuzu hesaplamak için tıklayın"
+    },
+    "ipss": {
+      "note": "Son bir ay içinde aşağıdakileri ne sıklıkla yaşadınız:",
+      "helper": "Son bir ay içindeki idrar belirtilerinize göre yanıtlayın.",
+      "answeredCount": "({{answeredCount}}/{{total}} yanıtlandı)",
+      "totalLabel": "IPSS Toplamı",
+      "q1": "Tam boşaltamama — mesanenizi tam olarak boşaltamamak?",
+      "q2": "Sıklık — 2 saat içinde tekrar idrara çıkma?",
+      "q3": "Kesintili akış — idrar yaparken durup başlama?",
+      "q4": "Aciliyet — idrarı erteleme zorluğu?",
+      "q5": "Zayıf akım — zayıf idrar akımı?",
+      "q6": "Ikınma — başlamak için itme veya ıkınma?",
+      "q7": "Noktüri — geceleri idrara çıkmak için kalkma?",
+      "label0": "Hiç",
+      "label1": "< 5'te 1",
+      "label2": "< Yarısı",
+      "label3": "~ Yarısı",
+      "label4": "> Yarısı",
+      "label5": "Her zaman"
+    },
+    "shim": {
+      "note": "Son 6 ay içinde:",
+      "helper": "Son 6 ay içindeki cinsel işlevinize göre yanıtlayın.",
+      "answeredCount": "({{answeredCount}}/{{total}} yanıtlandı)",
+      "totalLabel": "SHIM Toplamı",
+      "totalLabelIief": "IIEF-5 Toplamı",
+      "regionLabel": "Kılavuz bölgesi",
+      "regionUs": "ABD (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / İngiltere (IIEF-5)",
+      "regionNoteUs": "SHIM = Erkekler için Cinsel Sağlık Envanteri; AUA / NCCN tarafından kullanılan 5 maddelik formdur.",
+      "regionNoteEau": "IIEF-5, EAU / İngiltere uygulamasında kullanılan Uluslararası Erektil İşlev İndeksinin kısaltılmış halidir. (SHIM ve IIEF-5 aynı 5 sorudur ve aynı 0–25 puanlamasıdır — hekiminiz tam IIEF-15'i de kullanabilir.)",
+      "severityHeading": "Bu toplam ne anlama gelir?",
+      "severitySevere": "Şiddetli ED",
+      "severityModerate": "Orta ED",
+      "severityMildModerate": "Hafif ila orta ED",
+      "severityMild": "Hafif ED",
+      "severityNone": "ED yok",
+      "q1": "Ereksiyon olabileceğiniz ve sürdürebileceğiniz konusundaki güveninizi nasıl değerlendirirsiniz?",
+      "q1.opt1": "Çok düşük",
+      "q1.opt2": "Düşük",
+      "q1.opt3": "Orta",
+      "q1.opt4": "Yüksek",
+      "q1.opt5": "Çok yüksek",
+      "q2": "Cinsel uyarılma ile ereksiyon olduğunuzda, ne sıklıkla penetrasyona yetecek kadar sert oldu?",
+      "q2.opt0": "Aktivite yok",
+      "q2.opt1": "Neredeyse hiç",
+      "q2.opt2": "Birkaç kez",
+      "q2.opt3": "Bazen",
+      "q2.opt4": "Çoğu zaman",
+      "q2.opt5": "Neredeyse her zaman",
+      "q3": "İlişki sırasında, penetrasyondan sonra ereksiyonunuzu ne sıklıkla sürdürebildiniz?",
+      "q3.opt0": "Denemedi",
+      "q3.opt1": "Neredeyse hiç",
+      "q3.opt2": "Birkaç kez",
+      "q3.opt3": "Bazen",
+      "q3.opt4": "Çoğu zaman",
+      "q3.opt5": "Neredeyse her zaman",
+      "q4": "İlişki sırasında, ereksiyonunuzu sonuna kadar sürdürmek ne kadar zordu?",
+      "q4.opt0": "Denemedi",
+      "q4.opt1": "Aşırı zor",
+      "q4.opt2": "Çok zor",
+      "q4.opt3": "Zor",
+      "q4.opt4": "Biraz zor",
+      "q4.opt5": "Zor değil",
+      "q5": "İlişki denemenizde, ne sıklıkla sizin için tatmin ediciydi?",
+      "q5.opt0": "Denemedi",
+      "q5.opt1": "Neredeyse hiç",
+      "q5.opt2": "Birkaç kez",
+      "q5.opt3": "Bazen",
+      "q5.opt4": "Çoğu zaman",
+      "q5.opt5": "Neredeyse her zaman"
+    }
+  },
+  "part2": {
+    "form": {
+      "errorPreResult": "Risk Değerlendirmesine geçmeden önce lütfen 1. Bölümü (Tarama Önceliği) tamamlayın."
+    },
+    "flow": {
+      "stepChip": "Adım {{current}} / 2",
+      "note": "Risk değerlendirme sonuçlarınızı iyileştirmek için PSA ve MRI bilgilerinizi kullanın."
+    },
+    "steps": {
+      "psa": {
+        "sectionTitle": "PSA Düzeyi"
+      },
+      "mri": {
+        "sectionTitle": "MRI Sonuçları (İsteğe Bağlı)"
+      }
+    },
+    "summary": {
+      "label": "1. Bölüm Sonuçları:",
+      "scoreLabel": "Skor",
+      "riskLabel": "Risk"
+    },
+    "nav": {
+      "next": "İleri →",
+      "calculate": "Risk Değerlendirmesini Hesapla ✓"
+    },
+    "psa": {
+      "sectionTitle": "PSA Düzeyi",
+      "q1": "PSA düzeyinizi biliyor musunuz?",
+      "q1OptNo": "Hayır, PSA'mı bilmiyorum",
+      "q1OptYes": "Evet, PSA düzeyimi biliyorum",
+      "q2": "PSA Düzeyini Girin (ng/mL)",
+      "psaPlaceholder": "PSA düzeyi (0.1-100)",
+      "psaInvalidValidity": "PSA düzeyi 0.1 ile 100 ng/mL arasında olmalıdır",
+      "psaInvalid": "PSA düzeyi 0.1 ile 100 ng/mL arasında olmalıdır",
+      "psaNote": "PSA (Prostata Özgü Antijen), prostat kanseri taraması için kullanılan bir kan testidir.",
+      "q3": "PSA'yı etkileyebilecek hormonal ilaçlar kullanıyor musunuz?",
+      "q3InfoTitle": "Finasterid (Propecia/Proscar), dutasterid (Avodart) veya diğer 5-alfa redüktaz inhibitörleri gibi ilaçlar PSA düzeylerini yaklaşık %50 düşürebilir. Bu, doğru risk değerlendirmesi için önemlidir.",
+      "q3OptNo": "Hayır / Emin değilim",
+      "q3OptYes": "Evet, hormon tedavisi alıyorum",
+      "q4Label": "Hangi ilaç? (isteğe bağlı)",
+      "q4OptFinasteride": "Finasterid (Propecia/Proscar)",
+      "q4OptDutasteride": "Dutasterid (Avodart)",
+      "q4OptOther": "Diğer / Emin değilim",
+      "q4Note": "Not: Bu ilaçlar PSA'yı yaklaşık %50 düşürebilir. Doktorunuzun doğru yorumlama için PSA değerini ayarlaması gerekebilir."
+    },
+    "mri": {
+      "sectionTitle": "MRI Sonuçları (İsteğe Bağlı)",
+      "q1": "MRI PIRADS skorunuzu biliyor musunuz?",
+      "q1OptNo": "Hayır",
+      "q1OptYes": "Evet",
+      "q2": "MRI'da PIRADS Skoru",
+      "q2Note": "PI-RADS (Prostat Görüntüleme Raporlama ve Veri Sistemi) skorları 1-5 arasında değişir; daha yüksek skorlar klinik olarak anlamlı prostat kanserine yönelik daha yüksek şüpheyi gösterir."
+    },
+    "piradsInfo": {
+      "title": "PI-RADS ve ePSA risk tahmini hakkında",
+      "description": "PI-RADS, radyologların prostat MR'daki lezyonları derecelendirmek için kullandığı 1–5 ölçeğidir. PI-RADS 4, MR'ın klinik olarak anlamlı bir lezyonun muhtemel olduğunu önerdiği anlamına gelir; PI-RADS 5, lezyonun oldukça şüpheli olduğu anlamına gelir.\n\nÖnemli — ePSA yüzdesinin anlamı: ePSA, PI-RADS ve PSA'dan bir olasılık tahmin ettiğinde GG3+ csPCa'yı öngörür — Gleason ≥3 düzeyinde klinik olarak anlamlı prostat kanseri, yani daha yüksek riskli hastalık — herhangi bir prostat kanseri değil. Bu daha katı bir uç nokta olduğu için sayı, başka bir yerde görmüş olabileceğiniz popüler \"PI-RADS 4 ≈ %60 kanser\" rakamından daha düşük görünebilir. Her iki sayı da aynı anda doğru olabilir — farklı şeyleri tanımlarlar.\n\nPI-RADS puanınızın anlamını her zaman ürologunuzla görüşün."
+    }
+  },
+  "part1Results": {
+    "noResults": "Sonuç mevcut değil.",
+    "empiricalProbabilityText": "Doğrulama çalışmamızda (N={{n}}), bu risk düzeyindeki {{n}} hastanın {{events}} tanesinde klinik olarak anlamlı prostat kanseri saptandı (%{{rate}}; %95 GA %{{ciLo}}–%{{ciHi}}).",
+    "educationalEstimateNote": "Bu eğitsel bir tahmindir — kanser tanısı koymaz. Doktorunuzla yapacağınız görüşme için bir başlangıç noktası olarak kullanın.",
+    "sessionKeyLabel": "Oturum anahtarı",
+    "savedToCloud": "Buluta kaydedildi",
+    "saving": "Kaydediliyor...",
+    "moveToCloud": "Buluta taşı",
+    "scoreTierLabel": "ePSA RİSK DÜZEYİNİZ",
+    "scoreTierFallback": "ePSA Düzeyi",
+    "psaEquivalentLabel": "PSA-eşdeğeri",
+    "recommendation": {
+      "psaRecommended": "PSA Öneriliyor",
+      "psaNotRecommended": "PSA Önerilmiyor",
+      "unavailable": "Öneri Mevcut Değil",
+      "subtitleRecommended": "1. Bölüm'den eşik tabanlı öneri",
+      "subtitleNotRecommended": "1. Bölüm'de öneri eşiğinin altında",
+      "subtitleFallback": "Düzey tabanlı kılavuzluğa geri dönülüyor"
+    },
+    "riskBadge": {
+      "riskSuffix": "RİSK"
+    },
+    "explanations": {
+      "riskExplanation": "Sonucunuz, girdiğiniz bilgilere dayanan eğitsel bir tahmindir. Kaç tane prostat kanseri risk bayrağınız olduğunu özetler (yaş, BMI, idrar belirtileri, egzersiz, sigara, beslenme, aile/genetik faktörler ve diğerleri), ancak prostat kanseri olup olmadığınızı belirlemez. Bunu, riskinizi bağlamında yorumlayabilecek bir hekimle yapacağınız görüşme için bir başlangıç noktası olarak kullanın.",
+      "displayRangeExplanation": "Gösterilen aralık, skorunuzun etrafında ±%5'lik bir banttır. Yakın skorlar arasındaki küçük farkların aşırı yorumlanmasını önlemek için oradadır. İstatistiksel bir güven aralığı değildir ve ölçüm hassasiyetini temsil etmez.",
+      "guidelineContext": "Yüksek risk altındaki kişilerde — özellikle Siyahi soyundan gelenler, germ hattı mutasyonu olanlar veya güçlü prostat kanseri aile öyküsü olanlar — tarama 40–45 yaşlarında başlamalıdır. Ortalama riskli kişiler için, başlangıç PSA'sı 45–50 yaşları arasında önerilebilir; 50–69 yaş arası kişiler için her 2–4 yılda bir düzenli tarama yapılır. Klinik olarak kullanılan yaşa bağlı PSA eşikleri yaklaşık şunlardır: 2.5 ng/mL (40–49 yaş), 3.5 (50–59), 4.5 (60–69) ve 6.5 (70–79).",
+      "guidelineDivergence": "Mevcut kılavuzlar, ırk, aile öyküsü veya 50 yaşın altındaki yaşı tek başına tetikleyici olarak tarama eşiklerini ayarlamaz. ePSA aracı, daha erken değerlendirme için bu yüksek riskli profilleri bilinçli olarak işaretler; bu projenin amaçladığı klinik boşluk budur."
+    },
+    "tierDescription": {
+      "LOWER": "DAHA DÜŞÜK, modelin referans verilerindeki diğerlerine göre daha düşük tahmini bir olasılığı gösterir. Daha düşük, risk yok anlamına gelmez ve hekim kılavuzluğunun yerine geçmez.",
+      "MODERATE": "ORTA, modelin referans verilerinin orta aralığında tahmini bir olasılığı gösterir. Kişisel risk faktörlerinizi ve önceki PSA öykünüzü bir hekimle gözden geçirmek önemli bir bağlam ekleyebilir.",
+      "HIGHER": "DAHA YÜKSEK, modelin referans verilerindeki diğerlerine göre daha yüksek tahmini bir olasılığı gösterir. Daha yüksek, kanserin mevcut olduğu anlamına gelmez. Bir hekimle tarama seçeneklerini gözden geçirmek için yararlı bir uyarı olabilir."
+    },
+    "actionText": {
+      "LOWER": "Bu sonucu bir sonraki rutin ziyaretinize getirin. Tarama, aile öyküsü veya belirtilerle ilgili sorularınız varsa iyi bir başlangıç noktasıdır.",
+      "MODERATE": "Bunu doktorunuzla görüşün. Birlikte, yaşınıza, sizin için önemli olana ve geçmiş sonuçlara göre bir PSA testinin mantıklı olup olmadığına karar verebilirsiniz.",
+      "HIGHER": "Bunu yakında doktorunuzla görüşmeye özen gösterin. Doktorunuz sonucu açıklamanıza ve sizin için bir PSA testi veya başka bir takip yapılmasının mantıklı olup olmadığına karar vermenize yardımcı olabilir.",
+      "default": "Bunu doktorunuzla görüşün."
+    },
+    "disclaimer": "ePSA eğitsel bir araçtır — tıbbi bir test veya tanı değildir. Riskinizi cevaplarınız, popülasyon araştırmaları ve AUA, NCCN ve EAU tarama kılavuzlarını kullanarak tahmin eder. Güçlü risk faktörleri olan erkekler için ePSA, genel kılavuzlardan daha erken bir tarama görüşmesi yapmayı önerebilir. Test veya tedaviye karar vermeden önce sonucu her zaman bir doktorla görüşün. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "riskLevels": {
+      "LOWER": "Daha az risk bayrağı",
+      "MODERATE": "Bazı risk bayrakları",
+      "HIGHER": "Birçok risk bayrağı"
+    },
+    "sectionRiskExplanationTitle": "Risk açıklaması",
+    "sectionHowCalculatedTitle": "Bu skor nasıl hesaplanır",
+    "explanationHowScoreCalculated": "ePSA skorunuz cevaplarınıza göre puanları toplar. Her risk faktörü — 60+ yaşında olmak, 30 veya daha yüksek BMI'ye sahip olmak, idrar belirtileri, az veya hiç egzersiz yapmamak, sigara içmek, kırmızı et ağırlıklı beslenme, Siyahi soy, aile öyküsü, genetik mutasyon, iltihaplanma, 11 Eylül veya kimyasal maruziyet veya ereksiyon sorunları gibi — birkaç puan ekler. Toplam %0–100 ölçeğine dönüştürülür ve normal belirsizliği yansıtmak için küçük bir ±%5 aralığı gösteririz.",
+    "sectionWhatTierMeansTitle": "Düzeyiniz ne anlama gelir",
+    "sectionGuidelineContextTitle": "Kılavuz bağlamı (AUA/SUO 2026)",
+    "labelRecommendationThreshold": "Öneri Eşiği",
+    "labelRiskTier": "Risk Düzeyi",
+    "notAvailable": "Yok",
+    "labelDisplayedRange": "Gösterilen Aralık",
+    "labelAge": "Yaş",
+    "labelBMI": "BMI",
+    "labelIPSS": "IPSS",
+    "labelSHIM": "SHIM",
+    "btnEditAnswers": "Cevapları Düzenle",
+    "btnStartOver": "Baştan Başla",
+    "btnPrintResults": "Sonuçları Yazdır",
+    "btnPrintForm": "Formu Yazdır",
+    "exportFailedAlert": "Dışa aktarma başarısız oldu. Lütfen tekrar deneyin.",
+    "btnExportData": "Veriyi Dışa Aktar",
+    "btnExportCsv": "CSV Olarak Dışa Aktar"
+  },
+  "part2Results": {
+    "disclaimer": "ePSA eğitsel bir araçtır — tıbbi bir test veya tanı değildir. Riskinizi cevaplarınız, popülasyon araştırmaları ve AUA, NCCN ve EAU tarama kılavuzlarını kullanarak tahmin eder. Güçlü risk faktörleri olan erkekler için ePSA, genel kılavuzlardan daha erken bir tarama görüşmesi yapmayı önerebilir. Test veya tedaviye karar vermeden önce sonucu her zaman bir doktorla görüşün. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "noResults": "Sonuç mevcut değil.",
+    "sessionKeyLabel": "Oturum anahtarı",
+    "savedToCloud": "Buluta kaydedildi",
+    "saving": "Kaydediliyor...",
+    "moveToCloud": "Buluta taşı",
+    "scoreTierLabel": "EĞİTSEL RİSK KATEGORİNİZ",
+    "displayRangeLabel": "Gösterim aralığı",
+    "lowPsaWarningTitle": "Düşük PSA Uyarısı",
+    "discordanceTitle": "Risk Tutarsızlığı Saptandı",
+    "basedOnPart1Label": "1. Bölüm Skoruna Göre:",
+    "epsaScoreLabel": "ePSA Skoru",
+    "riskLevelLabel": "Risk Düzeyi",
+    "nextStepsTitle": "SONRAKİ ADIMLARI GÖRÜŞMEYİ DÜŞÜNÜN",
+    "defaultNextStep": "Bu sonuçları hekiminizle görüşün ve PSA/MRI takip seçeneklerini gözden geçirin.",
+    "watchVideoTitle": "Video İzle",
+    "viewMobileUnitTitle": "Mobil Ünite Konumunu Görüntüle",
+    "sectionRiskExplanationTitle": "Risk açıklaması",
+    "sectionHowSummarizedTitle": "Risk düzeyi nasıl özetlenir",
+    "sectionAboutPiradsTitle": "PI-RADS hakkında",
+    "sectionKeyInputsTitle": "Anahtar klinik girdiler",
+    "labelPSA": "PSA",
+    "labelPsaTier": "PSA Düzeyi",
+    "labelPirads": "PI-RADS",
+    "notAvailable": "Yok",
+    "notProvided": "Sağlanmadı",
+    "labelPart1Score": "1. Bölüm Skoru",
+    "labelPart1Risk": "1. Bölüm Riski",
+    "btnEditAnswers": "Cevapları Düzenle",
+    "btnStartOver": "Baştan Başla",
+    "btnPrintResults": "Sonuçları Yazdır",
+    "btnPrintForm": "Formu Yazdır",
+    "exportFailedAlert": "Dışa aktarma başarısız oldu. Lütfen tekrar deneyin.",
+    "btnExportData": "Veriyi Dışa Aktar",
+    "btnExportCsv": "CSV Olarak Dışa Aktar",
+    "explanations": {
+      "part2RiskExplanation": "2. Bölüm, ePSA risk profilinizi PSA düzeyinizle ve (varsa) MRI PI-RADS skorunuzla birleştirerek eğitsel bir risk düzeyi sunar. Burada girilen PSA düzeyleri ve PI-RADS skorları yalnızca eğitsel risk sınıflandırması için kullanılır. Ortak karar verme ile birlikte PSA tabanlı tarama önerilen standarttır — bu araç, hekiminizle bu görüşmenin yerine geçmek değil, onu desteklemek içindir. Yeni saptanan yüksek bir PSA, biyopsi veya başka bir tetkik yapılmadan önce genellikle tekrar testle doğrulanmalıdır.",
+      "piradsExplanationProvided": "MRI ve PI-RADS skorlaması, klinik olarak anlamlı prostat kanserinin (GG2+) saptanmasını artırmak için ilk biyopsiden önce kullanılabilir. 3 veya daha yüksek bir PI-RADS skoru, daha ileri değerlendirme gerektiren şüpheli bir lezyonu gösterir. Bu araç, multiparametrik MRI bulgularının radyolog tarafından yorumlanmasının yerine geçmez.",
+      "piradsExplanationNotProvided": "PI-RADS dahil edilmemişse, 2. Bölüm kategorisi yalnızca başlangıç tahminine ve PSA bilgisine dayanır. Bir hekim, tam klinik bağlamınıza göre MRI önerebilir (veya önermeyebilir).",
+      "pointsExplanation": "2. Bölüm risk düzeyiniz; 1. Bölüm risk profilinizi PSA düzeyinizle ve mümkün olduğunda MRI PI-RADS skorunuzla birleştiren eğitsel bir tahmin olarak özetlenir. Ortaya çıkan kategori, hekiminizle ortak karar vermeyi desteklemek içindir — klinik yargının yerine geçmek için değil."
+    }
+  },
+  "printableForm": {
+    "back": "Geri",
+    "generatingPdf": "PDF oluşturuluyor...",
+    "downloadPdf": "PDF İndir",
+    "exportJson": "JSON Olarak Dışa Aktar",
+    "howToUseTitle": "Bu form nasıl kullanılır:",
+    "howToUseText": "Lütfen her bölümü hastayla birlikte gözden geçirin ve boş alanları doldurun. Bir değer zaten gösteriliyorsa doğru olduğunu teyit edin. İlaçlar, son lab geçmişi, belirtiler veya takip planları gibi ayrıntılar için Notlar kutusunu kullanın.",
+    "notesLabel": "Notlar:",
+    "notesPlaceholder": "Notları buraya girin...",
+    "logoAlt": "ePSA Logosu",
+    "millionStrongMenTitle": "Million Strong Men — ePSA",
+    "questionnaireTitle": "ePSA Anketi",
+    "tagline": "Prostata Özgü Farkındalık | Doğrulanmamış Eğitsel Bir Risk Aracı",
+    "phoneLabel": "Telefon Numarası:",
+    "phonePlaceholder": "(___)-___-____",
+    "sectionAboutYou": "Hakkınızda",
+    "sectionFamilyGeneticRisk": "Aile ve Genetik Risk",
+    "sectionBodyMetrics": "Vücut Ölçüleri",
+    "sectionLifestyle": "Yaşam Tarzı",
+    "sectionComorbidities": "Eşlik Eden Hastalıklar.",
+    "sectionSymptoms": "Belirtiler",
+    "sectionIpSs": "13. İdrar Belirtileri (IPSS) — 0-5 arası puanlayın:",
+    "sectionShim": "14. Cinsel Sağlık (SHIM):",
+    "sectionPart2": "2. Bölüm: Klinik Veriler",
+    "blank2": "__",
+    "blank3": "___",
+    "blank4": "____",
+    "blankCm": "___ cm",
+    "ft": "ft",
+    "in": "in",
+    "lbs": "lbs",
+    "kg": "kg",
+    "inflammationExamples": "(ör. Ülseratif Kolit, Crohn hastalığı, kronik prostatit)",
+    "comorbidityPrompt": "Bu durumlardan herhangi biri sizde var mı?",
+    "ipssScaleReminder": "IPSS ölçek hatırlatması: 0 = Hiç, 1 = < 5'te 1, 2 = < Yarısı, 3 = ~ Yarısı, 4 = > Yarısı, 5 = Her zaman.",
+    "shimScaleReminder": "SHIM ölçek hatırlatması: her madde için bir puan seçin (S1 1-5 puan; S2-S5 0-5 puan). Daha yüksek toplam = daha iyi ereksiyon işlevi.",
+    "notApplicable": "Geçerli değil",
+    "footerDisclaimer": "Eğitim ve araştırma amaçlıdır. Hekim incelemesi olmadan klinik karar verme için değildir. | Ashutosh K. Tewari, MD — Üroloji Bölümü — Mount Sinai Health System"
+  },
+  "dataImport": {
+    "back": "Geri",
+    "title": "Değerlendirme Verilerini İçe Aktar",
+    "subtitle": "Kaldığınız yerden devam etmek için önceki ePSA değerlendirme verilerinizi yükleyin.",
+    "loadFromCloud": "Buluttan yükle",
+    "cloudDescription": "Kaydedilmiş değerlendirme verilerinizi yüklemek için anonim oturum anahtarınızı girin",
+    "sessionPlaceholder": "ör. A1B2C3D4",
+    "loading": "Yükleniyor...",
+    "load": "Yükle",
+    "uploadJsonData": "JSON verisini yükle",
+    "uploadDescription": "Dışa aktarılan değerlendirme veri dosyanızı yükleyin (Veri Dışa Aktar'dan alınan JSON).",
+    "dragDrop": "JSON dosyanızı buraya sürükleyip bırakın",
+    "or": "veya",
+    "chooseJson": "JSON dosyası seç",
+    "importing": "Verileriniz içe aktarılıyor...",
+    "errorPrefix": "Hata",
+    "howToImport": "Nasıl içe aktarılır",
+    "how": {
+      "uploadJsonLabel": "JSON yükleyin:",
+      "uploadJsonText": "Sonuç ekranınızdaki Veri Dışa Aktar'dan elde ettiğiniz JSON dosyasını kullanın.",
+      "restoreText": "Verileriniz geri yüklenecek ve eksik alanları tamamlayabilir veya düzenleyebilirsiniz.",
+      "cloudLocal": "Hem yerel hem de bulut depolama ile çalışır."
+    },
+    "errors": {
+      "uploadJsonOnly": "Lütfen bir JSON dosyası yükleyin (Veri Dışa Aktar'dan).",
+      "importFailed": "Dosya içe aktarılamadı. Lütfen dosya biçimini kontrol edin.",
+      "invalidSessionKey": "Lütfen geçerli 8 karakterli bir oturum anahtarı girin (yalnızca harfler ve rakamlar)",
+      "loadCloudFailed": "Buluttan yüklenemedi. Lütfen tekrar deneyin."
+    }
+  },
+  "quickEntry": {
+    "title": "Hızlı Giriş",
+    "subtitle": "Yaş/Irk + SHIM/IPSS toplamları -> anında sonuç",
+    "exit": "Çıkış",
+    "ageLabel": "Yaş (18-120)",
+    "agePlaceholder": "ör. 55",
+    "raceLabel": "Irk / Etnik Köken",
+    "selectRace": "Irk/etnik köken seçin",
+    "race": {
+      "white": "Beyaz / Kafkas",
+      "black": "Siyahi / Afrikalı Amerikalı",
+      "hispanic": "Hispanik / Latin",
+      "asian": "Asyalı / Pasifik Adalı",
+      "mixed": "Karma / Çok Irklı",
+      "other": "Diğer"
+    },
+    "bmiLabel": "BMI",
+    "bmiPlaceholder": "ör. 25.49",
+    "bmiHint": "Modelde doğrulama aralığı: BMI 15-60",
+    "familyHistoryLabel": "Aile öyküsü",
+    "family": {
+      "none": "Hiç",
+      "one": "1 akraba",
+      "twoPlus": "2+ akraba",
+      "unknown": "Bilinmiyor"
+    },
+    "ipssLabel": "IPSS toplamı (0-35)",
+    "ipssPlaceholder": "ör. 4",
+    "shimLabel": "SHIM toplamı (0-25)",
+    "shimPlaceholder": "ör. 25",
+    "ipssQolLabel": "IPSS'inizi bilmiyor musunuz? İdrar belirtileriniz aynı kalsaydı nasıl hissederdiniz seçin (IPSS-QoL)",
+    "ipssQolPlaceholder": "Atla — yukarıdaki IPSS toplamını kullanacağım",
+    "ipssQolHint": "Yalnızca yukarıdaki IPSS toplamını boş bırakırsanız kullanılır. İdrar rahatsızlığı için kabaca bir vekildir.",
+    "ipssQol": {
+      "delighted": "Çok memnun",
+      "pleased": "Memnun",
+      "mostlySatisfied": "Çoğunlukla memnun",
+      "mixed": "Karışık (memnun ve memnuniyetsiz hemen hemen eşit)",
+      "mostlyDissatisfied": "Çoğunlukla memnuniyetsiz",
+      "unhappy": "Mutsuz",
+      "terrible": "Berbat"
+    },
+    "defaultsTitle": "Varsayılanlar (isteğe bağlı)",
+    "editDefaults": "Varsayılanları düzenle",
+    "defaultsHint": "Kullanılıyor: Sigara = Hiç içmedi, Beslenme = Düzenli (Batı), Kimyasal maruziyet = Hayır, Genetik mutasyon = Hayır, İltihaplanma = Hayır, Eşlik eden hastalıklar = Yok, Egzersiz = Düzenli.",
+    "exerciseLabel": "Egzersiz düzeyi",
+    "exercise": {
+      "regular": "Düzenli (haftada 3+ gün)",
+      "some": "Biraz (haftada 1-2 gün)",
+      "none": "Hiç"
+    },
+    "comorbiditiesLabel": "Eşlik eden hastalıklar",
+    "comorbidities": {
+      "one": "Evet, bir",
+      "twoPlus": "Evet, iki veya daha fazla"
+    },
+    "smokingLabel": "Sigara durumu",
+    "smoking": {
+      "never": "Hiç içmedi",
+      "former": "Eskiden içerdi",
+      "current": "Hâlâ içiyor"
+    },
+    "dietLabel": "Beslenme düzeni",
+    "diet": {
+      "western": "Batı / Düzenli",
+      "mediterranean": "Akdeniz",
+      "indian": "Hint",
+      "dash": "DASH tarzı",
+      "plantBased": "Bitki bazlı",
+      "pescatarian": "Pesketaryen",
+      "lowCarbKeto": "Düşük karbonhidrat / Keto",
+      "other": "Diğer / Söylemek istemiyorum"
+    },
+    "brcaLabel": "Genetik mutasyon",
+    "inflammationLabel": "İltihaplanma öyküsü",
+    "chemicalExposureLabel": "Kimyasal maruziyet",
+    "defaultsAffectHint": "Varsayılanlar; SHIM/IPSS ile birlikte risk skorunu (ve PSA önerisini) etkiler.",
+    "fixToCalculate": "Hesaplamak için bunları düzeltin:",
+    "headsUp": "Dikkat:",
+    "calculate": "Sonucu hesapla",
+    "errors": {
+      "ipssRange": "IPSS toplamı 0 ile 35 arasında olmalıdır",
+      "shimRange": "SHIM toplamı 0 ile 25 arasında olmalıdır",
+      "calculationFailed": "Hesaplama başarısız oldu. Lütfen girdilerinizi tekrar kontrol edin."
+    }
+  },
+  "welcomeGh": {
+    "description": "Bu 5 dakikalık anket, doğrulanmış klinik araçları kullanarak kişiselleştirilmiş risk değerlendirmenizi hesaplar.",
+    "demoVersion": "Demo Sürümü",
+    "demoStorage": "Veriler yalnızca tarayıcınızda yerel olarak saklanır",
+    "featureQuestions": "27 soru",
+    "featureTime": "~5 dk",
+    "featureLocalStorage": "Yerel depolama",
+    "availableInDemo": "Bu demoda mevcut:",
+    "notAvailableInDemo": "Demoda mevcut değil:",
+    "startDemo": "Demo Değerlendirmesini Başlat",
+    "importJson": "JSON Dosyası İçe Aktar",
+    "viewOfflineFormTitle": "Çevrimdışı Formu Görüntüle",
+    "footerDisclaimer": "Eğitim ve araştırma amaçlıdır. Hekim incelemesi olmadan klinik karar verme için değildir.",
+    "availableItems": {
+      "questionnaire": "✅ Eksiksiz değerlendirme anketi",
+      "results": "✅ Risk hesaplamaları ve sonuçlar",
+      "json": "✅ JSON içe/dışa aktarma",
+      "print": "✅ Yazdırma işlevi"
+    },
+    "notAvailableItems": {
+      "phoneAuth": "❌ Telefon kimlik doğrulaması",
+      "cloudSync": "❌ Bulut depolama ve senkronizasyon",
+      "pdfImport": "❌ PDF içe aktarma"
+    }
+  },
+  "modelDocs": {
+    "title": "Model Belgeleri (ePSA Tarama Önceliği)",
+    "closeAriaLabel": "Kapat",
+    "closeButton": "Belgeleri Kapat",
+    "validationStudyButton": "Doğrulama Çalışması",
+    "validationStudyTitle": "Doğrulama Çalışması (AUC 0.707)",
+    "overview": {
+      "title": "Genel Bakış",
+      "bodyStart": "Aşama 1 (Tarama Önceliği), eğitsel bir ePSA skoru (%0-100) ve risk düzeyi üretmek için kısa bir anket kullanır. Bu, prostat kanseri taraması (ör. PSA testi) hakkında bir hekimle yapılacak görüşmeyi bilgilendirmeye yardımcı olur. Bu bir",
+      "notDiagnosisStrong": "tanı değildir",
+      "bodyEnd": "ve klinik yargının yerine geçmez.",
+      "warningStrong": "Doğrulanmamış eğitsel araç.",
+      "warningBody": "Tarama kararları nitelikli bir sağlık uzmanı ile birlikte verilmelidir. Risk düzeyleri, AUA, NCCN ve EAU'dan gelen popülasyon düzeyindeki verilere ve kılavuz eşiklerine dayanır ve yüksek riskli demografik profiller için mevcut eşiklerden daha erken değerlendirme önerebilir. Bu fark bilinçlidir ve ortak karar verme bağlamında yorumlanmalıdır."
+    },
+    "inputs": {
+      "title": "Anket Girdileri",
+      "intro": "Model, ankette aşağıdaki girdileri kullanır:",
+      "demographicsLabel": "Demografi:",
+      "demographics": "Yaş, ırk/etnik köken",
+      "anthropometricsLabel": "Antropometri:",
+      "anthropometrics": "Boy, kilo, BMI",
+      "familyGeneticsLabel": "Aile ve genetik:",
+      "familyGenetics": "Prostat kanseri aile öyküsü, BRCA durumu",
+      "lifestyleLabel": "Yaşam tarzı:",
+      "lifestyle": "Egzersiz düzeyi, sigara, beslenme düzeni, 11 Eylül veya kimyasal maruziyet",
+      "medicalHistoryLabel": "Tıbbi öykü:",
+      "medicalHistory": "Prostatit/iltihaplanma, hipertansiyon, hiperlipidemi, koroner arter hastalığı, diyabet",
+      "validatedLabel": "Doğrulanmış araçlar:",
+      "validated": "IPSS (idrar belirtileri, 7 soru, 0-35) ve SHIM (ereksiyon işlevi, 5 soru, 0-25)"
+    },
+    "scoring": {
+      "title": "Skor Nasıl Hesaplanır",
+      "body": "ePSA modeli puana dayalı (gruplanmış) bir yaklaşım kullanır. Cevaplarınız risk faktörlerine dönüştürülür (ör. yaş 50-59, 60-69, 70+; BMI 25-29.9 veya >=30; IPSS şiddeti; egzersiz; Siyahi ırk; aile öyküsü). Bunlar tek bir skorda birleştirilir ve %0-100 ölçeğine normalleştirilir. Küçük farkların aşırı yorumlanmasını önlemek için +/-%5'lik bir aralık gösterilir.",
+      "formula": "Model türü: {{modelType}}. Risk düzeyleri: DAHA DÜŞÜK (%{{lowerPct}} altında), ORTA (%{{lowerPct}}-%{{moderatePct}}), DAHA YÜKSEK (%{{moderatePct}} üzerinde)."
+    },
+    "riskTiers": {
+      "title": "Risk Düzeyleri ve PSA Önerisi",
+      "body": "Sonucunuz üç düzeyden birine yerleştirilir (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK). Ayrıca model, bir eşiğe dayalı olarak PSA testinin \"Önerilen\" veya \"Önerilmeyen\" olduğunu belirtebilir (ör. yaklaşık %{{recommendPct}}'in üzerindeki bir skor, bir hekimle PSA görüşmesi yapmayı düşünmeyi önerebilir). Bu yalnızca eğitsel kullanım içindir ve doktorunuzla gözden geçirilmelidir."
+    },
+    "limitations": {
+      "title": "Sınırlamalar",
+      "item1": "Tanısal değildir; kanseri saptamaz veya ekarte etmez.",
+      "item2": "Popülasyon düzeyindeki ilişkilere dayanır; bireysel risk değişebilir.",
+      "item3": "Bir hekim tarafından belirtildiğinde DRE, PSA, MRI veya biyopsinin yerine geçmez."
+    },
+    "references": {
+      "title": "Kaynaklar",
+      "body": "Risk değerlendirme aşamasına (PSA, PI-RADS, Aşama 2) ilişkin ayrıntılar için Aşama 1'i tamamladıktan sonra uygulamaya bakın. Model ile ilgili sorular için Üroloji Bölümü, Mount Sinai Health System ile iletişime geçin."
+    },
+    "validationStudyModal": {
+      "heroTitle": "Doğrulama (N={{n}})",
+      "csPcaCount": "csPCa+ n={{positive}}",
+      "heroSubtitle": "Bu örneklemde Bayesçi yeniden kalibre edilmiş ePSA ile PSA için AUC istatistiksel olarak eşdeğerdir (Youden-optimal kesim noktaları).",
+      "cardAucBayesLabel": "AUC (Bayesçi ePSA)",
+      "cardAucPsaLabel": "AUC (PSA)",
+      "cardAucDiffLabel": "AUC farkı (Bayesçi − PSA)",
+      "aucDiffMeta": "(%95 GA {{ciLow}} ile {{ciHigh}}), p={{p}}",
+      "youdenTitle": "Youden-optimal performans",
+      "bayesTableTitle": "Bayesçi ePSA (eşik {{thr}})",
+      "psaTableTitle": "PSA (eşik {{thr}})",
+      "sensitivityLabel": "Duyarlılık",
+      "specificityLabel": "Özgüllük",
+      "ppvLabel": "PPV",
+      "npvLabel": "NPV",
+      "tpLabel": "TP",
+      "fnLabel": "FN",
+      "fpLabel": "FP",
+      "tnLabel": "TN",
+      "bottomLineTitle": "Sonuç",
+      "bottomLineBodyStart": "Bu veri kümesi boyutuyla Bayesçi ePSA, PSA kadar iyi performans gösterir. Ana pratik avantaj",
+      "higherNpv": "daha yüksek NPV",
+      "bottomLineBodyEnd": "Youden-optimal kesim noktalarındadır.",
+      "interpretationNote": "Yorumlama notu: bu, csPCa+ n={{positive}} olan N={{n}} üzerinde örneklem içi bir değerlendirmedir. İstatistiksel eşdeğerliğin ötesinde ayrımı göstermek için daha büyük bir veri kümesi gereklidir."
+    }
+  },
+  "profileManager": {
+    "loading": "Yükleniyor...",
+    "sessionKeyLabel": "Oturum anahtarı",
+    "deleteSession": "Oturumu sil",
+    "deleteWarning": "Bu işlem \"{{sessionId}}\" oturumunu ve ilişkili tüm verileri kalıcı olarak silecektir. Bu işlem geri alınamaz.",
+    "warningItem1": "Tüm değerlendirme verileri silinecek",
+    "warningItem2": "Bu oturum anahtarı artık çalışmayacak",
+    "warningItem3": "Tekrar buluta kaydetmek için yeni bir oturum oluşturmanız gerekecek",
+    "deleting": "Siliniyor...",
+    "cancel": "İptal",
+    "sessionKeyTitle": "Oturum anahtarı",
+    "created": "Oluşturuldu",
+    "notAvailable": "Mevcut değil",
+    "successDeleted": "Oturum başarıyla silindi.",
+    "errorDeleteFailed": "Oturum silinemedi. Lütfen tekrar deneyin."
+  },
+  "riskDocs": {
+    "title": "Risk Değerlendirme Belgeleri",
+    "close": "Kapat",
+    "closeDocumentation": "Belgeleri Kapat",
+    "overviewTitle": "Genel Bakış",
+    "importantLabel": "Önemli:",
+    "nonValidatedStrong": "doğrulanmamış eğitsel risk değerlendirme aracı",
+    "formulaTitle": "Risk Hesaplama Formülü",
+    "variableDefinitionsTitle": "Değişken Tanımları",
+    "categoriesTitle": "Risk Kategorileri ve Sonraki Adımlar",
+    "piradsOverrideTitle": "PI-RADS Geçersiz Kılma Mantığı",
+    "hormonalTitle": "Hormon Tedavisi Hususları",
+    "limitationsTitle": "Sınırlamalar",
+    "referencesTitle": "Kaynaklar",
+    "low": "Düşük",
+    "moderate": "Orta",
+    "high": "Yüksek",
+    "followupAction": "Bir hekimle PSA/MRI takibini görüşmeyi düşünün.",
+    "highAction": "Sonraki adımlar hakkında bir hekimle görüşmeye öncelik vermeyi düşünün.",
+    "table": {
+      "variable": "Değişken",
+      "type": "Tür",
+      "coefficient": "Katsayı",
+      "description": "Açıklama",
+      "range": "Aralık",
+      "points": "Puanlar"
+    }
+  }
+}

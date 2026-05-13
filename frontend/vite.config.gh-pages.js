@@ -5,6 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/e-psa-calculator/',
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   build: {
     outDir: '../docs',
     emptyOutDir: true,

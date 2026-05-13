@@ -96,7 +96,13 @@
     },
     "footerInstitution": "École de médecine Icahn du Mont Sinaï · Département d'urologie",
     "footerGuidelines": "Basé sur les directives de : AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "Cet outil est uniquement à des fins éducatives et ne constitue pas un diagnostic. Il n'a pas été validé cliniquement pour la prise de décision autonome et doit être utilisé en parallèle avec les conseils d'un professionnel de santé agréé."
+    "footerDisclaimer": "Cet outil est uniquement à des fins éducatives et ne constitue pas un diagnostic. Il n'a pas été validé cliniquement pour la prise de décision autonome et doit être utilisé en parallèle avec les conseils d'un professionnel de santé agréé.",
+    "psaIntro": {
+      "kicker": "Avant de commencer",
+      "heading": "Qu'est-ce que le PSA, et pourquoi est-ce important ?",
+      "body": "L'antigène prostatique spécifique (PSA) est une protéine produite par votre prostate qui se mesure par une simple prise de sang. Un taux élevé peut être un indice — sans être une preuve — d'un cancer de la prostate ou d'autres affections prostatiques. ePSA prend en compte votre âge, vos antécédents familiaux, vos origines et vos symptômes pour estimer dans quelle mesure un test PSA est pertinent pour vous en ce moment, afin que la conversation avec votre médecin commence avec du contexte.",
+      "seeDoctorNudge": "Si vous présentez déjà des symptômes urinaires ou si vous avez des antécédents familiaux connus de cancer de la prostate, parlez-en à votre médecin — n'attendez pas en utilisant cet outil."
+    }
   },
   "welcome2": {
     "stage2Title": "Étape 2 : Évaluation des risques",
@@ -229,30 +235,13 @@
       "text": "Ce résumé décrit comment l'application ePSA gère les données à des fins de confidentialité. Il ne constitue pas un avis juridique. Pour des questions sur HIPAA ou vos informations de santé, consultez votre prestataire de soins de santé ou un conseiller juridique."
     }
   },
-  "storage": {
-    "cloudTitle": "Stockage cloud",
-    "cloudDescription": "Stockez vos données en toute sécurité par e-mail ou numéro de téléphone. Accédez depuis n'importe quel appareil et partagez avec les prestataires de soins.",
-    "cloudFeatureSecure": "Stockage cloud sécurisé",
-    "cloudFeatureAnyDevice": "Accès depuis n'importe quel appareil",
-    "cloudFeatureCollaboration": "Collaboration avec les prestataires",
-    "cloudFeatureBackups": "Sauvegardes automatiques",
-    "cloudFeatureAuth": "Authentification par e-mail ou téléphone",
-    "cloudContinue": "Continuer avec le stockage cloud",
-    "localTitle": "Stockage local",
-    "localDescription": "Stockez vos données uniquement sur cet appareil. Aucun compte ou numéro de téléphone requis. Utilisez l'importation/exportation pour sauvegarder ou déplacer vos données.",
-    "localFeatureNoSignIn": "Aucune connexion requise",
-    "localFeatureSame": "Même questionnaire et résultats",
-    "localFeatureExport": "Exportation en JSON ou impression",
-    "localFeaturePrivacy": "Confidentialité sur cet appareil",
-    "localContinue": "Continuer avec le stockage local",
-    "importPrompt": "Vous avez déjà une évaluation ?",
-    "importButton": "Importer des données précédentes",
-    "footerText": "Vos données de santé sont stockées de manière sécurisée et privée. Nous ne partageons ni ne vendons jamais vos informations.",
-    "privacyNote": "Stockage sécurisé conforme HIPAA"
-  },
   "info": {
     "learnMore": "En savoir plus sur {{title}}",
-    "sources": "Sources :"
+    "sources": "Sources :",
+    "guidelineBadge": "Facteur des recommandations AUA/NCCN",
+    "modelOnlyBadge": "Modèle ePSA uniquement — absent des recommandations AUA/NCCN",
+    "guidelineNote": "L'AUA et le NCCN utilisent ce facteur dans leurs critères officiels de dépistage par PSA. Leurs recommandations figurent en premier dans les sources ci-dessous.",
+    "modelOnlyNote": "Ce facteur est utilisé par le modèle ePSA mais ne fait pas partie des critères officiels de dépistage par PSA de l'AUA/NCCN. Il repose uniquement sur des données de recherche."
   },
   "part1": {
     "fields": {
@@ -346,7 +335,8 @@
       },
       "shim": {
         "sectionTitle": "Santé sexuelle (SHIM)",
-        "shortLabel": "SHIM"
+        "shortLabel": "SHIM",
+        "sectionTitleIief": "Santé sexuelle (IIEF-5)"
       }
     },
     "race": {
@@ -354,7 +344,8 @@
       "black": "Noir / Afro-américain",
       "hispanic": "Hispanique / Latino",
       "asian": "Asiatique / Insulaire du Pacifique",
-      "other": "Autre / Mixte"
+      "other": "Autre / Mixte",
+      "mixed": "Métis / Multiracial"
     },
     "errors": {
       "step0": {
@@ -540,7 +531,76 @@
       "q5.opt2": "Quelques fois",
       "q5.opt3": "Parfois",
       "q5.opt4": "La plupart du temps",
-      "q5.opt5": "Presque toujours"
+      "q5.opt5": "Presque toujours",
+      "totalLabelIief": "Total IIEF-5",
+      "regionLabel": "Région des recommandations",
+      "regionUs": "États-Unis (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / Royaume-Uni (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, le questionnaire à 5 items utilisé par l'AUA / NCCN.",
+      "regionNoteEau": "L'IIEF-5 est la version abrégée de l'International Index of Erectile Function utilisée dans la pratique EAU / Royaume-Uni. (Le SHIM et l'IIEF-5 sont les mêmes 5 questions avec le même score de 0 à 25 — votre clinicien peut aussi utiliser l'IIEF-15 complet.)",
+      "severityHeading": "Que signifie ce total ?",
+      "severitySevere": "ED sévère",
+      "severityModerate": "ED modérée",
+      "severityMildModerate": "ED légère à modérée",
+      "severityMild": "ED légère",
+      "severityNone": "Aucune ED"
+    },
+    "nonGuideline": {
+      "badge": "HORS RECOMMANDATIONS",
+      "badgeTooltip": "L'AUA, le NCCN, l'EAU et l'ERSPC n'utilisent pas ce facteur pour la décision de dépistage par PSA. Il n'est utilisé que par le modèle de risque ePSA.",
+      "note": "Ne fait pas partie des critères de dépistage de l'AUA/NCCN/EAU/ERSPC ; utilisé uniquement par le modèle ePSA."
+    },
+    "guideline": {
+      "badge": "FONDÉ SUR LES RECOMMANDATIONS",
+      "badgeTooltip": "Ce facteur est directement cité par les recommandations de dépistage du cancer de la prostate de l'AUA, du NCCN et de l'EAU."
+    },
+    "chemicalExposureOptions": {
+      "question": "Avez-vous été exposé à l'un des éléments suivants ? (Sélectionnez tout ce qui s'applique)",
+      "agentOrange": "Agent Orange (militaire / époque du Vietnam)",
+      "nineEleven": "Site du World Trade Center / 11 septembre",
+      "otherChemical": "Autres produits chimiques professionnels ou environnementaux (p. ex., pesticides, solvants)",
+      "none": "Aucune des réponses ci-dessus",
+      "unknown": "Inconnu / incertain",
+      "evidenceProven": "Données épidémiologiques solides",
+      "evidenceUnspecified": "Association possible ; moins établie"
+    },
+    "ipssShort": {
+      "toggleShort": "Utiliser la version courte (une seule question de sévérité)",
+      "toggleFull": "Utiliser l'IPSS complet (7 questions)",
+      "skip": "Passer — je n'ai pas de symptômes urinaires",
+      "singleQuestionLabel": "Dans l'ensemble, à quel point vos symptômes urinaires vous gênent-ils ?",
+      "options": {
+        "none": "Aucun",
+        "mild": "Légers",
+        "moderate": "Modérés",
+        "severe": "Sévères"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Utiliser la version courte (une seule question de sévérité)",
+      "toggleFull": "Utiliser le SHIM complet (5 questions)",
+      "skip": "Passer — aucune préoccupation érectile",
+      "singleQuestionLabel": "Dans l'ensemble, comment décririez-vous votre fonction érectile au cours des 6 derniers mois ?",
+      "options": {
+        "none": "Aucune dysfonction érectile",
+        "mild": "ED légère",
+        "mildModerate": "ED légère à modérée",
+        "moderate": "ED modérée",
+        "severe": "ED sévère"
+      }
+    },
+    "abnormalPsaLikelihood": "Probabilité estimée d'un PSA anormal / csPCa :",
+    "skip": {
+      "preferNotToSay": "Préfère ne pas répondre / Passer",
+      "skippedLabel": "Passé — une valeur neutre par défaut sera utilisée dans l'estimation.",
+      "sectionPrompt": "Vous ne voulez pas répondre maintenant ? Vous pouvez passer cette section.",
+      "sectionSkippedNote": "Cette section est passée. Une valeur neutre par défaut sera utilisée dans l'estimation.",
+      "skipSection": "Passer cette section",
+      "answerInstead": "Répondre plutôt"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "ePSA uniquement"
     }
   },
   "part2": {
@@ -595,6 +655,10 @@
       "q1OptYes": "Oui",
       "q2": "Score PIRADS sur IRM",
       "q2Note": "Les scores PI-RADS (Système de rapportage et de données d'imagerie prostatique) vont de 1 à 5, des scores plus élevés indiquant une plus grande suspicion de cancer de la prostate cliniquement significatif."
+    },
+    "piradsInfo": {
+      "title": "À propos du PI-RADS et de l'estimation de risque ePSA",
+      "description": "PI-RADS est une échelle de 1 à 5 que les radiologues utilisent pour classer les lésions à l'IRM prostatique. PI-RADS 4 signifie que l'IRM suggère qu'une lésion cliniquement significative est probable ; PI-RADS 5 signifie qu'elle est hautement suspecte.\n\nImportant — ce que signifie le pourcentage ePSA : lorsque ePSA estime une probabilité à partir du PI-RADS et du PSA, il prédit un csPCa GG3+ — un cancer de la prostate cliniquement significatif de Gleason ≥3, la forme la plus à risque — et non « n'importe quel cancer de la prostate ». Comme il s'agit d'un critère plus strict, le chiffre peut sembler plus bas que la valeur populaire « PI-RADS 4 ≈ 60 % de cancer » que vous avez pu voir ailleurs. Les deux chiffres peuvent être vrais en même temps — ils décrivent des choses différentes.\n\nDiscutez toujours de la signification de votre score PI-RADS avec votre urologue."
     }
   },
   "part1Results": {
@@ -659,7 +723,9 @@
     "btnPrintForm": "Imprimer le formulaire",
     "exportFailedAlert": "L'exportation a échoué. Veuillez réessayer.",
     "btnExportData": "Exporter les données",
-    "btnExportCsv": "Exporter en CSV"
+    "btnExportCsv": "Exporter en CSV",
+    "empiricalProbabilityText": "Dans notre étude de validation (N={{n}}), {{events}} patients sur {{n}} dans ce niveau de risque présentaient un cancer de la prostate cliniquement significatif ({{rate}} % ; IC 95 % {{ciLo}} %–{{ciHi}} %).",
+    "educationalEstimateNote": "Il s'agit d'une estimation éducative — elle ne diagnostique pas un cancer. Utilisez-la comme point de départ pour une conversation avec votre médecin."
   },
   "part2Results": {
     "disclaimer": "ePSA est un outil éducatif d'évaluation des risques non validé. Les niveaux de risque sont basés sur des données au niveau de la population et des seuils de directives de l'AUA, NCCN et EAU. Dans les profils démographiques à haut risque, ePSA peut suggérer une évaluation plus précoce que ce que recommandent les seuils standard des directives. Cet outil ne remplace pas le jugement du médecin et n'est pas destiné à la prise de décision clinique sans revue médicale. — Ashutosh K. Tewari, MD, École de médecine Icahn du Mont Sinaï",
@@ -786,7 +852,8 @@
       "black": "Noir / Afro-américain",
       "hispanic": "Hispanique / Latino",
       "asian": "Asiatique / Insulaire du Pacifique",
-      "other": "Autre / Mixte"
+      "other": "Autre / Mixte",
+      "mixed": "Métis / Multiracial"
     },
     "bmiLabel": "IMC",
     "bmiPlaceholder": "ex. 25.49",
@@ -844,84 +911,19 @@
       "ipssRange": "Le total IPSS doit être entre 0 et 35",
       "shimRange": "Le total SHIM doit être entre 0 et 25",
       "calculationFailed": "Le calcul a échoué. Veuillez vérifier vos entrées."
+    },
+    "ipssQolLabel": "Vous ne connaissez pas votre IPSS ? Choisissez comment vous vous sentiriez si vos symptômes urinaires restaient identiques (IPSS-QoL)",
+    "ipssQolPlaceholder": "Passer — j'utiliserai le total IPSS ci-dessus",
+    "ipssQolHint": "Utilisé uniquement si vous laissez le total IPSS ci-dessus vide. Un indicateur approximatif de la gêne urinaire.",
+    "ipssQol": {
+      "delighted": "Ravi",
+      "pleased": "Satisfait",
+      "mostlySatisfied": "Plutôt satisfait",
+      "mixed": "Mitigé (autant satisfait qu'insatisfait)",
+      "mostlyDissatisfied": "Plutôt insatisfait",
+      "unhappy": "Mécontent",
+      "terrible": "Très mal"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Entrez votre numéro de téléphone pour commencer",
-    "phoneLabel": "Numéro de téléphone",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "Nous vous enverrons un code de vérification par SMS",
-    "sending": "Envoi...",
-    "sendCode": "Envoyer le code de vérification",
-    "verificationCodeLabel": "Code de vérification",
-    "codePlaceholder": "123456",
-    "codeSentTo": "Entrez le code à 6 chiffres envoyé au {{phone}}",
-    "verifying": "Vérification...",
-    "verifyCode": "Vérifier le code",
-    "changePhoneNumber": "Changer le numéro de téléphone",
-    "errors": {
-      "invalidPhone10Digits": "Veuillez entrer un numéro de téléphone valide à 10 chiffres",
-      "recaptchaExpired": "reCAPTCHA expiré. Veuillez réessayer.",
-      "invalidVerificationCodeGeneric": "Code de vérification invalide. Veuillez réessayer.",
-      "invalidVerificationCode": "Code de vérification invalide. Veuillez vérifier et réessayer.",
-      "codeExpired": "Code de vérification expiré. Veuillez demander un nouveau code."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Sensibilisation spécifique à la prostate",
-    "subtitle": "Un outil éducatif de risque non validé",
-    "enterPhonePrompt": "Entrez votre numéro de téléphone pour commencer",
-    "phoneLabel": "Numéro de téléphone",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Envoi...",
-    "sendCode": "Envoyer le code de vérification",
-    "smsHint": "Nous vous enverrons un code de vérification par SMS",
-    "enterCodePrompt": "Entrez le code de vérification envoyé à :",
-    "verificationCodeLabel": "Code de vérification",
-    "codePlaceholder": "Entrez le code à 6 chiffres",
-    "back": "Retour",
-    "verifying": "Vérification...",
-    "verifyCode": "Vérifier le code",
-    "didNotReceive": "Vous n'avez pas reçu le code ? Vérifiez vos messages ou réessayez."
-  },
-  "emailAuth": {
-    "signIn": "Se connecter",
-    "createAccount": "Créer un compte",
-    "resetPassword": "Réinitialiser le mot de passe",
-    "emailLabel": "Adresse e-mail",
-    "emailPlaceholder": "votre@email.com",
-    "passwordLabel": "Mot de passe",
-    "createPasswordLabel": "Créer un mot de passe",
-    "passwordPlaceholder": "Entrez votre mot de passe",
-    "createPasswordPlaceholder": "Créez un mot de passe fort",
-    "pleaseWait": "Veuillez patienter...",
-    "sendResetEmail": "Envoyer l'e-mail de réinitialisation",
-    "forgotPassword": "Mot de passe oublié ?",
-    "needAccount": "Besoin d'un compte ? S'inscrire",
-    "subtitle": {
-      "signIn": "Accédez à vos résultats d'évaluation ePSA",
-      "signUp": "Commencez votre évaluation de santé prostatique",
-      "forgot": "Nous vous enverrons un lien de réinitialisation du mot de passe"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Vérifiez votre e-mail pour un lien de connexion !",
-    "signingInTitle": "Connexion en cours...",
-    "verifyingLink": "Vérification de votre lien e-mail",
-    "pleaseWait": "Veuillez patienter pendant que nous vous connectons...",
-    "requestNewLink": "Demander un nouveau lien",
-    "checkYourEmail": "Vérifiez votre e-mail",
-    "signInWithEmail": "Se connecter avec e-mail",
-    "sentLinkTo": "Nous avons envoyé un lien de connexion à {{email}}",
-    "enterEmailSecureLink": "Entrez votre e-mail pour recevoir un lien de connexion sécurisé",
-    "emailLabel": "Adresse e-mail",
-    "emailPlaceholder": "votre@email.com",
-    "sending": "Envoi...",
-    "sendSignInLink": "Envoyer le lien de connexion",
-    "emailSent": "E-mail envoyé !",
-    "didNotReceive": "Vous ne l'avez pas reçu ?",
-    "sendNewLink": "Envoyer un nouveau lien",
-    "goBack": "Retour"
   },
   "welcomeGh": {
     "description": "Ce questionnaire de 5 minutes calcule votre évaluation personnalisée des risques en utilisant des instruments cliniques validés.",

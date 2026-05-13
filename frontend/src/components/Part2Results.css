@@ -1,5 +1,77 @@
 /* ─── Part 2 Results ─── */
 
+/* ─── PSA / Input highlight row ─── */
+.p2r-key-inputs {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
+
+.p2r-key-input {
+  flex: 1;
+  min-width: 7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.75rem;
+}
+
+.p2r-key-input--muted {
+  opacity: 0.75;
+}
+
+.p2r-key-input-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #6b7c93;
+}
+
+.p2r-key-input-value {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.p2r-key-input-unit {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.p2r-key-input-tier {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.125rem;
+}
+
+.p2r-key-input-detail {
+  font-size: 0.6875rem;
+  color: #6b7c93;
+  line-height: 1.4;
+  margin-top: 0.125rem;
+}
+
+.theme-dark .p2r-key-input {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.theme-dark .p2r-key-input-label,
+.theme-dark .p2r-key-input-detail {
+  color: var(--ink-400);
+}
+
 .p2r-container {
   max-width: 47.5rem;
   margin: 0 auto;
@@ -73,6 +145,30 @@
   text-align: center;
   color: #607286;
   padding: 3rem 1rem;
+}
+
+/* ─── Inline alert (hormonal therapy) ─── */
+.p2r-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.75rem;
+  border-left: 3px solid;
+}
+.p2r-alert--warning {
+  background: #fffbeb;
+  border-color: #d97706;
+  color: #78350f;
+}
+.p2r-alert-icon { flex-shrink: 0; margin-top: 2px; }
+.p2r-alert-title { font-size: 0.8125rem; font-weight: 700; margin-bottom: 2px; }
+.p2r-alert-body { margin: 0; font-size: 0.8125rem; line-height: 1.5; }
+
+.theme-dark .p2r-alert--warning {
+  background: rgba(217,119,6,0.1);
+  border-color: rgba(217,119,6,0.6);
+  color: #fcd34d;
 }
 
 /* ─── Cloud row ─── */
@@ -1516,3 +1612,74 @@
 .theme-dark .p2r-collapsible-body [style*="color"] {
   color: var(--ink-500) !important;
 }
+
+/* ─── Shared Decision-Making highlight ──────────────────────────────
+   Per clinical-team feedback: the SDM section should visually stand
+   out so patients see it is the "talk-with-your-doctor" pivot of the
+   page rather than blending in with the other expandable sections. */
+.sdm-collapsible.collapsible-section {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ffffff 100%);
+  border: 0.0625rem solid #d4c5f9;
+  border-left: 0.25rem solid #7c3aed;
+  border-radius: 0.5rem;
+}
+.sdm-collapsible .collapsible-toggle {
+  color: #5b21b6;
+  font-weight: 700;
+}
+.sdm-collapsible .collapsible-toggle::before {
+  content: "🤝";
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+.sdm-collapsible .collapsible-body {
+  background: rgba(255, 255, 255, 0.6);
+}
+.theme-dark .sdm-collapsible.collapsible-section {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.12) 0%, transparent 100%);
+  border-color: rgba(167, 139, 250, 0.4);
+  border-left-color: #a78bfa;
+}
+.theme-dark .sdm-collapsible .collapsible-toggle {
+  color: #c4b5fd;
+}
+
+/* ─── Multi-guideline support matrix ─── */
+.guideline-matrix {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.guideline-matrix-card {
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 0.0625rem solid #e2eaf2;
+  background: #ffffff;
+  text-align: center;
+}
+.guideline-matrix-card--supports {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.guideline-matrix-card--neutral {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+.guideline-matrix-card-name {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+.guideline-matrix-card-status {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.guideline-matrix-card--supports .guideline-matrix-card-status { color: #166534; }
+.guideline-matrix-card--neutral  .guideline-matrix-card-status { color: #6b7280; }
+.theme-dark .guideline-matrix-card { background: #1f2937; border-color: #374151; }
+.theme-dark .guideline-matrix-card--supports { background: rgba(22, 101, 52, 0.2); border-color: rgba(134, 239, 172, 0.4); }
+.theme-dark .guideline-matrix-card--supports .guideline-matrix-card-status { color: #86efac; }

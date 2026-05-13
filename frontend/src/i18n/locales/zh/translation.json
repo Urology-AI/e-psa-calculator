@@ -96,7 +96,13 @@
     },
     "footerInstitution": "西奈山伊坎医学院 · 泌尿外科",
     "footerGuidelines": "基于以下指南：AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "本工具仅供教育目的，不构成诊断。本工具未经临床验证，不能单独用于决策，应与持牌医疗专业人员的指导配合使用。"
+    "footerDisclaimer": "本工具仅供教育目的，不构成诊断。本工具未经临床验证，不能单独用于决策，应与持牌医疗专业人员的指导配合使用。",
+    "psaIntro": {
+      "kicker": "开始之前",
+      "heading": "什么是 PSA？为什么它很重要？",
+      "body": "前列腺特异性抗原（PSA）是前列腺产生的一种蛋白质，通过一次简单的血液检查即可检测。数值偏高可能提示——但不能证明——前列腺癌或其他前列腺问题。ePSA 会结合您的年龄、家族史、族裔背景和症状，估算 PSA 检测目前对您的相关程度，让您与医生的交流从有据可依的角度开始。",
+      "seeDoctorNudge": "如果您已经出现排尿症状或已知有前列腺癌家族史，请直接咨询医生，不要依赖本工具等待。"
+    }
   },
   "welcome2": {
     "stage2Title": "第二阶段：风险评估",
@@ -229,30 +235,13 @@
       "text": "本摘要描述了ePSA应用程序如何处理数据以保护隐私。这不是法律建议。如有关于HIPAA或您的健康信息的问题，请咨询您的医疗保健提供者或法律顾问。"
     }
   },
-  "storage": {
-    "cloudTitle": "云存储",
-    "cloudDescription": "通过电子邮件或电话号码安全存储您的数据。从任何设备访问并与医疗提供者共享。",
-    "cloudFeatureSecure": "安全云存储",
-    "cloudFeatureAnyDevice": "从任何设备访问",
-    "cloudFeatureCollaboration": "提供者协作",
-    "cloudFeatureBackups": "自动备份",
-    "cloudFeatureAuth": "电子邮件或电话身份验证",
-    "cloudContinue": "继续使用云存储",
-    "localTitle": "本地存储",
-    "localDescription": "仅在此设备上存储您的数据。无需账户或电话号码。使用导入/导出来保存或移动数据。",
-    "localFeatureNoSignIn": "无需登录",
-    "localFeatureSame": "相同的问卷和结果",
-    "localFeatureExport": "导出为JSON或打印",
-    "localFeaturePrivacy": "设备上的隐私保护",
-    "localContinue": "继续使用本地存储",
-    "importPrompt": "已有评估？",
-    "importButton": "导入之前的数据",
-    "footerText": "您的健康数据安全私密地存储。我们从不共享或出售您的信息。",
-    "privacyNote": "符合HIPAA的安全存储"
-  },
   "info": {
     "learnMore": "了解更多关于{{title}}的信息",
-    "sources": "来源："
+    "sources": "来源：",
+    "guidelineBadge": "AUA/NCCN 指南因素",
+    "modelOnlyBadge": "仅 ePSA 模型使用——不在 AUA/NCCN 中",
+    "guidelineNote": "AUA 和 NCCN 在其官方 PSA 筛查标准中使用此因素。下方资料来源中，它们的指南列在首位。",
+    "modelOnlyNote": "此因素由 ePSA 模型使用，但不属于 AUA/NCCN 官方 PSA 筛查标准。它仅基于研究证据。"
   },
   "part1": {
     "fields": {
@@ -346,7 +335,8 @@
       },
       "shim": {
         "sectionTitle": "性健康（SHIM）",
-        "shortLabel": "SHIM"
+        "shortLabel": "SHIM",
+        "sectionTitleIief": "性健康（IIEF-5）"
       }
     },
     "race": {
@@ -354,7 +344,8 @@
       "black": "黑人/非裔美国人",
       "hispanic": "西班牙裔/拉丁裔",
       "asian": "亚裔/太平洋岛民",
-      "other": "其他/混合"
+      "other": "其他/混合",
+      "mixed": "混合 / 多种族"
     },
     "errors": {
       "step0": {
@@ -540,7 +531,76 @@
       "q5.opt2": "少数几次",
       "q5.opt3": "有时",
       "q5.opt4": "大多数时候",
-      "q5.opt5": "几乎总是"
+      "q5.opt5": "几乎总是",
+      "totalLabelIief": "IIEF-5 总分",
+      "regionLabel": "指南地区",
+      "regionUs": "美国（SHIM · AUA / NCCN）",
+      "regionEau": "EAU / 英国（IIEF-5）",
+      "regionNoteUs": "SHIM = 男性性健康问卷，AUA / NCCN 使用的 5 题版本。",
+      "regionNoteEau": "IIEF-5 是 EAU / 英国临床使用的国际勃起功能指数简版。（SHIM 与 IIEF-5 是同样的 5 个问题、同样的 0–25 分——您的医生也可能使用完整版 IIEF-15。）",
+      "severityHeading": "这个总分意味着什么？",
+      "severitySevere": "重度 ED",
+      "severityModerate": "中度 ED",
+      "severityMildModerate": "轻至中度 ED",
+      "severityMild": "轻度 ED",
+      "severityNone": "无 ED"
+    },
+    "nonGuideline": {
+      "badge": "非指南",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC 不将此因素用于 PSA 筛查决策。它仅由 ePSA 风险模型使用。",
+      "note": "不属于 AUA/NCCN/EAU/ERSPC 筛查标准；仅由 ePSA 模型使用。"
+    },
+    "guideline": {
+      "badge": "基于指南",
+      "badgeTooltip": "AUA、NCCN 和 EAU 的前列腺癌筛查指南直接引用了此因素。"
+    },
+    "chemicalExposureOptions": {
+      "question": "您是否有过以下任何接触史？（可多选）",
+      "agentOrange": "橙剂（军人 / 越战时期）",
+      "nineEleven": "世贸中心 / 9-11 现场",
+      "otherChemical": "其他职业或环境化学品（如农药、溶剂）",
+      "none": "以上均无",
+      "unknown": "未知 / 不确定",
+      "evidenceProven": "强流行病学证据",
+      "evidenceUnspecified": "可能相关；证据尚不充分"
+    },
+    "ipssShort": {
+      "toggleShort": "使用简短版（单一严重程度问题）",
+      "toggleFull": "使用完整 IPSS（7 个问题）",
+      "skip": "跳过——我没有排尿症状",
+      "singleQuestionLabel": "总体而言，您的排尿症状对您困扰有多大？",
+      "options": {
+        "none": "无",
+        "mild": "轻度",
+        "moderate": "中度",
+        "severe": "重度"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "使用简短版（单一严重程度问题）",
+      "toggleFull": "使用完整 SHIM（5 个问题）",
+      "skip": "跳过——无勃起方面困扰",
+      "singleQuestionLabel": "总体而言，您如何描述过去 6 个月的勃起功能？",
+      "options": {
+        "none": "无勃起功能障碍",
+        "mild": "轻度 ED",
+        "mildModerate": "轻至中度 ED",
+        "moderate": "中度 ED",
+        "severe": "重度 ED"
+      }
+    },
+    "abnormalPsaLikelihood": "PSA 异常 / csPCa 的估计可能性：",
+    "skip": {
+      "preferNotToSay": "不愿回答 / 跳过",
+      "skippedLabel": "已跳过——估算时将使用中性默认值。",
+      "sectionPrompt": "暂时不想回答这些问题？您可以跳过此部分。",
+      "sectionSkippedNote": "此部分已跳过。估算时将使用中性默认值。",
+      "skipSection": "跳过此部分",
+      "answerInstead": "改为回答"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "仅 ePSA"
     }
   },
   "part2": {
@@ -595,6 +655,10 @@
       "q1OptYes": "是",
       "q2": "MRI上的PIRADS评分",
       "q2Note": "PI-RADS（前列腺影像报告和数据系统）评分范围为1-5分，分数越高表示临床上显著性前列腺癌的可能性越大。"
+    },
+    "piradsInfo": {
+      "title": "关于 PI-RADS 与 ePSA 风险估算",
+      "description": "PI-RADS 是放射科医生用来对前列腺 MRI 病灶进行分级的 1–5 评分。PI-RADS 4 表示 MRI 提示可能存在临床有意义的病灶；PI-RADS 5 表示高度可疑。\n\n重要说明 —— ePSA 百分比的含义：当 ePSA 根据 PI-RADS 和 PSA 估算概率时，它预测的是 GG3+ csPCa —— 即 Gleason ≥3 的临床显著前列腺癌（更高风险的疾病），而不是「任何前列腺癌」。因为这是更严格的终点，该数字可能看起来低于您可能在别处看到的「PI-RADS 4 ≈ 60% 癌症」常见数字。两个数字可以同时为真 —— 它们描述的是不同的事情。\n\n请始终与您的泌尿科医生讨论您的 PI-RADS 评分的含义。"
     }
   },
   "part1Results": {
@@ -659,7 +723,9 @@
     "btnPrintForm": "打印表格",
     "exportFailedAlert": "导出失败。请重试。",
     "btnExportData": "导出数据",
-    "btnExportCsv": "导出CSV"
+    "btnExportCsv": "导出CSV",
+    "empiricalProbabilityText": "在我们的验证研究中（N={{n}}），处于此风险层级的 {{n}} 位患者中有 {{events}} 位确诊有临床显著意义的前列腺癌（{{rate}}%；95% CI {{ciLo}}%–{{ciHi}}%）。",
+    "educationalEstimateNote": "这是一个教育性的估算——它并不能诊断癌症。请把它作为与医生沟通的起点。"
   },
   "part2Results": {
     "disclaimer": "ePSA是一种未经验证的教育风险评估工具。风险等级基于AUA、NCCN和EAU的人群数据和指南阈值。在高风险人口档案中，ePSA可能建议比标准指南阈值更早的评估。本工具不替代医生判断，未经医生审查不适用于临床决策。——Ashutosh K. Tewari医学博士，西奈山伊坎医学院",
@@ -786,7 +852,8 @@
       "black": "黑人/非裔美国人",
       "hispanic": "西班牙裔/拉丁裔",
       "asian": "亚裔/太平洋岛民",
-      "other": "其他/混合"
+      "other": "其他/混合",
+      "mixed": "混合 / 多种族"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "例如 25.49",
@@ -844,84 +911,19 @@
       "ipssRange": "IPSS总分必须在0到35之间",
       "shimRange": "SHIM总分必须在0到25之间",
       "calculationFailed": "计算失败。请仔细检查您的输入。"
+    },
+    "ipssQolLabel": "不知道自己的 IPSS 分数？请选择如果排尿症状保持不变，您会有怎样的感受（IPSS-QoL）",
+    "ipssQolPlaceholder": "跳过——我将使用上方的 IPSS 总分",
+    "ipssQolHint": "仅在您未填写上方 IPSS 总分时使用。用作排尿困扰程度的粗略替代指标。",
+    "ipssQol": {
+      "delighted": "非常满意",
+      "pleased": "满意",
+      "mostlySatisfied": "大体满意",
+      "mixed": "一半满意一半不满意",
+      "mostlyDissatisfied": "大体不满意",
+      "unhappy": "不开心",
+      "terrible": "非常糟糕"
     }
-  },
-  "phoneAuth": {
-    "subtitle": "输入您的电话号码以开始",
-    "phoneLabel": "电话号码",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "我们将通过短信向您发送验证码",
-    "sending": "发送中...",
-    "sendCode": "发送验证码",
-    "verificationCodeLabel": "验证码",
-    "codePlaceholder": "123456",
-    "codeSentTo": "输入发送到{{phone}}的6位验证码",
-    "verifying": "验证中...",
-    "verifyCode": "验证码",
-    "changePhoneNumber": "更改电话号码",
-    "errors": {
-      "invalidPhone10Digits": "请输入有效的10位电话号码",
-      "recaptchaExpired": "reCAPTCHA已过期。请重试。",
-      "invalidVerificationCodeGeneric": "无效的验证码。请重试。",
-      "invalidVerificationCode": "无效的验证码。请检查后重试。",
-      "codeExpired": "验证码已过期。请请求新的验证码。"
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "前列腺特异性意识",
-    "subtitle": "一种未经验证的教育风险工具",
-    "enterPhonePrompt": "输入您的电话号码以开始",
-    "phoneLabel": "电话号码",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "发送中...",
-    "sendCode": "发送验证码",
-    "smsHint": "我们将通过短信向您发送验证码",
-    "enterCodePrompt": "输入发送到以下号码的验证码：",
-    "verificationCodeLabel": "验证码",
-    "codePlaceholder": "输入6位验证码",
-    "back": "返回",
-    "verifying": "验证中...",
-    "verifyCode": "验证码",
-    "didNotReceive": "没有收到验证码？请检查您的短信或重试。"
-  },
-  "emailAuth": {
-    "signIn": "登录",
-    "createAccount": "创建账户",
-    "resetPassword": "重置密码",
-    "emailLabel": "电子邮件地址",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "密码",
-    "createPasswordLabel": "创建密码",
-    "passwordPlaceholder": "输入您的密码",
-    "createPasswordPlaceholder": "创建强密码",
-    "pleaseWait": "请稍候...",
-    "sendResetEmail": "发送重置电子邮件",
-    "forgotPassword": "忘记密码？",
-    "needAccount": "需要账户？注册",
-    "subtitle": {
-      "signIn": "访问您的ePSA评估结果",
-      "signUp": "开始您的前列腺健康评估",
-      "forgot": "我们将向您发送密码重置链接"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "请查看您的电子邮件以获取登录链接！",
-    "signingInTitle": "正在登录...",
-    "verifyingLink": "正在验证您的电子邮件链接",
-    "pleaseWait": "请稍候，我们正在为您登录...",
-    "requestNewLink": "请求新链接",
-    "checkYourEmail": "检查您的电子邮件",
-    "signInWithEmail": "用电子邮件登录",
-    "sentLinkTo": "我们向{{email}}发送了一个登录链接",
-    "enterEmailSecureLink": "输入您的电子邮件以接收安全登录链接",
-    "emailLabel": "电子邮件地址",
-    "emailPlaceholder": "your@email.com",
-    "sending": "发送中...",
-    "sendSignInLink": "发送登录链接",
-    "emailSent": "电子邮件已发送！",
-    "didNotReceive": "没有收到？",
-    "sendNewLink": "发送新链接",
-    "goBack": "返回"
   },
   "welcomeGh": {
     "description": "这个5分钟问卷使用经过验证的临床工具计算您的个性化风险评估。",

@@ -193,20 +193,6 @@ export function checkGuardrails(formData, pathwayMode) {
     });
   }
 
-  // 4. Age < 50 with no high-risk features: consider genetics
-  if (Number.isFinite(age) && age < 50 && !formData?.highRiskFeatures) {
-    alerts.push({
-      level: 'info',
-      code: 'YOUNG_PATIENT_CONSIDER_GENETICS',
-      title: 'Age < 50 — Genetic Counseling Recommended',
-      message:
-        'For patients under 50, NCCN and EAU guidelines recommend genetic counseling and ' +
-        'consideration of germline testing (BRCA2, ATM, HOXB13) before initiating active ' +
-        'surveillance. ePSA does not yet incorporate germline risk scores.',
-      guideline: 'NCCN Prostate Cancer v1.2025 PROST-A; EAU 2024 §4.1',
-    });
-  }
-
   return alerts;
 }
 
@@ -362,6 +348,31 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : normalizeRaceValue(race) === 'black';
 
   const ageNum = parseInt(age, 10);
+
+  // Age-range guard: model coefficients were derived on ages 40–75.
+  // Return a minimal shell so the display layer shows the correct
+  // age-out messaging without producing a meaningless score.
+  if (ageNum < 40 || ageNum > 75) {
+    return {
+      score: 0,
+      age: ageNum,
+      bmi: Number(bmi).toFixed(1),
+      ipssTotal,
+      shimTotal,
+      itemImpacts: [],
+      guardrailAlerts: [],
+      belowMinAge: ageNum < 40,
+      aboveMaxScreeningAge: ageNum > 75,
+      // Age < 40: no PSA recommended per AUA/NCCN. Age > 75: requires SDM, not automatic.
+      recommendPSA: ageNum < 40 ? false : null,
+      epsaTierKey: 'low',
+      pathwayMode: formData.pathwayMode || 'pre_psa',
+      calculationDetails: { rawScore: 0, maxScore: 80 },
+      modelVersion: config.version,
+      skippedFields: Array.from(new Set(Array.isArray(formData.skippedFields) ? formData.skippedFields : [])),
+    };
+  }
+
   const bmiNum = parseFloat(bmi);
   const exerciseCode = Number(exercise);
   const fhBinary = familyHistory === 'unknown' ? 0 : familyHistory > 0 ? 1 : 0;
@@ -420,9 +431,10 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ---------------------------------------------------------------------------
   let rawScore = 0;
   const MAX_POINTS = 80;
+  const _skippedFields = new Set(Array.isArray(formData.skippedFields) ? formData.skippedFields : []);
   const itemImpacts = [];
-  const addImpact = (item, value, points) => {
-    itemImpacts.push({ item, value, points });
+  const addImpact = (item, value, points, fieldKey = null) => {
+    itemImpacts.push({ item, value, points, wasSkipped: fieldKey ? _skippedFields.has(fieldKey) : false });
     rawScore += points;
   };
 
@@ -435,34 +447,50 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   else addImpact('BMI', Number.isFinite(bmiNum) ? bmiNum.toFixed(1) : 'N/A', 0);
 
   // Only IPSS moderate (8-19) and severe (20-35) score points. Mild (0-7) scores 0.
-  if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8);
-  else addImpact('IPSS total', `${ipssTotal}/35`, 0);
+  if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8, 'ipss');
+  else addImpact('IPSS total', `${ipssTotal}/35`, 0, 'ipss');
 
-  if (exerciseCode === 1) addImpact('Exercise', 'Some', 2);
-  else if (exerciseCode === 2) addImpact('Exercise', 'None', 4);
-  else addImpact('Exercise', 'Regular', 0);
+  if (exerciseCode === 1) addImpact('Exercise', 'Some', 2, 'exercise');
+  else if (exerciseCode === 2) addImpact('Exercise', 'None', 4, 'exercise');
+  else addImpact('Exercise', 'Regular', 0, 'exercise');
 
-  if (smokingCode === 1) addImpact('Smoking', 'Former', 2);
-  else if (smokingCode === 2) addImpact('Smoking', 'Current', 6);
-  else addImpact('Smoking', 'Never', 0);
+  if (smokingCode === 1) addImpact('Smoking', 'Former', 2, 'smoking');
+  else if (smokingCode === 2) addImpact('Smoking', 'Current', 6, 'smoking');
+  else addImpact('Smoking', 'Never', 0, 'smoking');
 
   // Only 'western' and 'red_meat' score — 'mixed' scores 0
-  if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4);
-  else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0);
+  if (dietPattern === 'western' || dietPattern === 'red_meat') addImpact('Diet pattern', String(dietPattern), 4, 'dietPattern');
+  else addImpact('Diet pattern', String(dietPattern || 'N/A'), 0, 'dietPattern');
 
   addImpact('Black ancestry', isBlack ? 'Yes' : 'No', (isBlack && ageNum >= 40) ? 8 : 0);
-  addImpact('Family history', familyHistory === 'unknown' ? 'Unknown' : fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0);
+  addImpact('Family history', familyHistory === 'unknown' ? 'Unknown' : fhBinary === 1 ? 'Yes' : 'No', fhBinary === 1 ? 10 : 0, 'familyHistory');
 
   const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
   const brcaLabel = brcaPositive ? 'Reported' : brcaStatus === 'no' ? 'None reported' : 'Not tested / Unknown';
-  addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0);
+  addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0, 'brcaStatus');
   addImpact(
     'Inflammation history',
     (inflammationHistory === 1 || inflammationHistory === 'yes') ? 'Yes' : 'No',
-    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0
+    (inflammationHistory === 1 || inflammationHistory === 'yes') ? 4 : 0,
+    'inflammationHistory'
   );
-  addImpact('9/11 / Chemical exposure', chemicalExposure === 'yes' ? 'Yes' : chemicalExposure === 'unknown' ? 'Unknown' : 'No', chemicalExposure === 'yes' ? 4 : chemicalExposure === 'unknown' ? 2 : 0);
-  addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0);
+  // Chemical exposure: support legacy ('yes'/'no'/'unknown') and expanded values
+  //   - agent_orange / nine_eleven      -> strong epidemiologic evidence (4 pts)
+  //   - other_chemical                  -> possible association          (2 pts)
+  //   - yes (legacy)                    -> treat as positive exposure    (4 pts)
+  //   - unknown                         -> partial credit                (2 pts)
+  //   - none / no / null                -> no exposure                   (0 pts)
+  const _ce = chemicalExposure;
+  const _ceStrong = _ce === 'agent_orange' || _ce === 'nine_eleven' || _ce === 'yes';
+  const _ceWeak = _ce === 'other_chemical' || _ce === 'unknown';
+  const _ceLabel = _ce === 'agent_orange' ? 'Agent Orange'
+    : _ce === 'nine_eleven' ? '9/11 / WTC site'
+    : _ce === 'other_chemical' ? 'Other chemical'
+    : _ce === 'yes' ? 'Yes'
+    : _ce === 'unknown' ? 'Unknown'
+    : 'No';
+  addImpact('9/11 / Chemical exposure', _ceLabel, _ceStrong ? 4 : _ceWeak ? 2 : 0, 'chemicalExposure');
+  addImpact('SHIM total', `${shimTotal}/25`, (shimTotal > 0 && shimTotal < 12) ? 8 : 0, 'shim');
 
   const isYes = (v) => v === 'yes' || v === true || v === 1;
   let comorbidityPoints = 0;
@@ -510,16 +538,20 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
   // (Statement 4, Conditional Recommendation, Evidence Level: Grade B)
-  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason === null) {
+  // This always overrides 'score_threshold' at this age because the guideline
+  // recommendation already supports PSA — the model is NOT deviating from AUA/NCCN.
+  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason !== 'high_risk_early_screening') {
     recommendPSA = true;
     psaRecommendReason = 'baseline_psa_45_50';
   }
 
   // Step 2 — AUA regular screening window: ages 50–69 every 2–4 years
   // (Statement 6, Strong Recommendation, Evidence Level: Grade A)
+  // Also overrides 'score_threshold' so the deviation banner does not fire when
+  // guidelines already support PSA at this age.
   if (ageNum >= 50 && ageNum <= 69) {
     recommendPSA = true;
-    if (psaRecommendReason === null || psaRecommendReason === 'baseline_psa_45_50') {
+    if (psaRecommendReason === null || psaRecommendReason === 'baseline_psa_45_50' || psaRecommendReason === 'score_threshold') {
       psaRecommendReason = 'age_guideline_50_69';
     }
   }
@@ -545,20 +577,86 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     }
   }
 
+  // Step 5 — Older shared decision (ages 70-75)
+  // AUA/SUO 2026 Statement 8 + NCCN Early Detection v1.2024 + EAU 2024:
+  // Routine PSA screening above age 70 is an individualized shared decision
+  // based on overall health and life expectancy. Above 75 is handled separately
+  // by the `aboveMaxScreeningAge` flag.
+  if (ageNum >= 70 && ageNum <= 75 && psaRecommendReason === null) {
+    psaRecommendReason = 'older_shared_decision';
+  }
+
+  // Step 6 — Symptomatic out-of-guideline (moderate-to-severe LUTS outside
+  // the standard 50-69 PSA screening window).
+  // AUA/SUO BPH/LUTS guidelines define IPSS >= 8 as moderate, warranting
+  // urological evaluation regardless of PSA screening age. This is a
+  // referral signal — not a PSA screening recommendation per se.
+  if (
+    psaRecommendReason === null &&
+    Number.isFinite(ipssTotal) && ipssTotal >= 8 &&
+    (ageNum < 50 || ageNum > 75)
+  ) {
+    psaRecommendReason = 'symptomatic_out_of_guideline';
+  }
+
+  // Step 7 — Low-risk follow-up (informational, NOT a screening recommendation)
+  // AUA/SUO 2026 routine re-assessment guidance: low-risk asymptomatic men
+  // aged 40-44 with no high-risk anchors (Black ancestry, hereditary mutation,
+  // first-degree family history) may continue routine primary care and
+  // re-evaluate in 1-2 years. `recommendPSA` remains false (Step 1 default).
+  if (
+    psaRecommendReason === null &&
+    ageNum >= 40 && ageNum < 45 &&
+    rawScore <= 10 &&
+    !isBlack && !brcaPositive && fhBinary !== 1
+  ) {
+    psaRecommendReason = 'low_risk_followup';
+  }
+
   const PSA_RECOMMEND_MESSAGES = {
     score_threshold:
-      'Your ePSA score exceeds the model\'s screening threshold. A PSA test may be warranted. Note: this recommendation is based on the ePSA predictive model — it is not an official AUA/SUO guideline recommendation. Please speak with your physician to discuss whether PSA testing is appropriate for you.',
+      'Your ePSA score exceeds the model\'s screening threshold. Based on the ePSA predictive model you are a candidate for PSA testing. This is an ePSA model finding (not an AUA/NCCN/EAU/ERSPC guideline recommendation). Please speak with your physician to discuss whether PSA testing is appropriate for you.',
     baseline_psa_45_50:
-      'AUA/SUO guidelines suggest clinicians may offer a baseline PSA test to people between ages 45 and 50 (Conditional Recommendation; Evidence Level: Grade B). A baseline PSA at this age helps establish a reference value for future comparisons. Discuss with your physician whether baseline testing is appropriate for you.',
+      'Multi-guideline support for baseline PSA at age 45–50: AUA/SUO 2026 (Conditional, Grade B), NCCN Early Detection v1.2024, EAU 2024, and ERSPC all support offering a baseline PSA in this age window for shared decision-making. A baseline PSA establishes a reference value for future comparisons. Discuss with your physician whether baseline testing is appropriate for you.',
     age_guideline_50_69:
-      'AUA/SUO guidelines recommend regular prostate cancer screening every 2 to 4 years for people aged 50 to 69 (Strong Recommendation; Evidence Level: Grade A). Please speak with your doctor about whether PSA testing is right for you.',
+      'Multi-guideline support for screening ages 50–69: AUA/SUO 2026 (Strong, Grade A; every 2–4 years), NCCN Early Detection v1.2024 (every 1–4 years), EAU 2024 (risk-adapted), and ERSPC (every 2–4 years). Please speak with your doctor about whether PSA testing is right for you.',
     high_risk_early_screening:
-      'Due to your high-risk profile (Black ancestry or a germline mutation such as BRCA1/2, ATM, or Lynch Syndrome), AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.',
+      'Due to your high-risk profile (Black ancestry or a germline mutation such as BRCA1/2, ATM, or Lynch Syndrome), multiple guidelines (AUA/SUO 2026, NCCN v1.2024, EAU 2024) recommend discussing PSA screening beginning at age 40–45 (Strong; Grade B). Please speak with your physician.',
     family_history_override:
-      'Due to your strong family history of prostate cancer, AUA/SUO guidelines recommend discussing PSA screening beginning at age 40 to 45 (Strong Recommendation; Evidence Level: Grade B). Please speak with your physician.'
+      'Due to your strong family history of prostate cancer, multiple guidelines (AUA/SUO 2026, NCCN v1.2024, EAU 2024) recommend discussing PSA screening beginning at age 40–45 (Strong; Grade B). Please speak with your physician.',
+    low_risk_followup:
+      'Per AUA/SUO 2026 routine re-assessment guidance, low-risk asymptomatic men aged 40–44 with no high-risk anchors (Black ancestry, hereditary mutation, first-degree family history) may continue routine primary care without PSA screening and re-evaluate in 1–2 years. Informational — not a guideline screening recommendation. Discuss with your physician.',
+    symptomatic_out_of_guideline:
+      'Your urinary symptom score (IPSS ≥ 8) is in the moderate-to-severe range. Although you are outside the standard PSA screening age window (50–69), AUA/SUO BPH/LUTS guidelines recommend urological evaluation for moderate IPSS regardless of screening age. Please consult your physician or urologist.',
+    older_shared_decision:
+      'AUA/SUO 2026 (Statement 8) recommends individualized shared decision-making for PSA screening at ages 70–74, based on overall health and life expectancy. NCCN Early Detection v1.2024 and EAU 2024 align. Discuss with your physician whether continued screening is appropriate for you.'
   };
 
   const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
+
+  // ---------------------------------------------------------------------------
+  // Guideline support matrix — which of the four major guidelines support
+  // each recommendation reason. `score_threshold` is an ePSA-model finding
+  // and is explicitly NOT a guideline recommendation (0/4).
+  // ---------------------------------------------------------------------------
+  const PSA_GUIDELINE_SUPPORT = {
+    score_threshold:              { aua: false, nccn: false, eau: false, erspc: false },
+    baseline_psa_45_50:           { aua: true,  nccn: true,  eau: true,  erspc: true  },
+    age_guideline_50_69:          { aua: true,  nccn: true,  eau: true,  erspc: true  },
+    high_risk_early_screening:    { aua: true,  nccn: true,  eau: true,  erspc: false },
+    family_history_override:      { aua: true,  nccn: true,  eau: true,  erspc: false },
+    low_risk_followup:            { aua: true,  nccn: false, eau: false, erspc: false },
+    symptomatic_out_of_guideline: { aua: false, nccn: false, eau: false, erspc: false },
+    older_shared_decision:        { aua: true,  nccn: true,  eau: true,  erspc: false }
+  };
+  const psaGuidelineSupport = psaRecommendReason
+    ? (PSA_GUIDELINE_SUPPORT[psaRecommendReason] || null)
+    : (recommendPSA === false
+        ? { aua: true, nccn: true, eau: true, erspc: true }
+        : null);
+  const psaGuidelineSupportCount = psaGuidelineSupport
+    ? Object.values(psaGuidelineSupport).filter(Boolean).length
+    : null;
 
   let tierRisk, tierColor, tierScoreRange;
   if (probability < part1.riskCutoffs.lower.threshold) {
@@ -595,19 +693,19 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ---------------------------------------------------------------------------
   const EPSA_TIER_DEFS = [
     {
-      key: 'low', label: 'Low Risk', scoreRange: 'score 0-10', normalizedRange: '<= 12.5%',
-      guideline: 'Your ePSA score is in the low-risk range. Routine screening timeline applies. Discuss with your physician.',
+      key: 'low', label: 'Low — Routine Screening', scoreRange: 'score 0-10', normalizedRange: '<= 12.5%',
+      guideline: 'Your ePSA score is in the low range. The model indicates a low likelihood of an abnormal PSA result. Routine screening timeline applies. Discuss with your physician.',
       // Empirical: 7% csPCa rate [1%-31%] N=14
       empiricalRate: EPSA_TIER_CALIBRATION.low
     },
     {
-      key: 'intermediate', label: 'Intermediate Risk', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
-      guideline: 'Your ePSA score is in the intermediate range. Based on this model score, a PSA test may be appropriate — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Speak with your physician.',
+      key: 'intermediate', label: 'Intermediate — Consider PSA Discussion', scoreRange: 'score 11-17', normalizedRange: '13.75%-21.25%',
+      guideline: 'Your ePSA score is in the intermediate range. Based on this model score, PSA testing may be appropriate — this is an ePSA model-based finding, not an AUA/NCCN/EAU/ERSPC guideline recommendation. Speak with your physician.',
       empiricalRate: EPSA_TIER_CALIBRATION.intermediate
     },
     {
-      key: 'elevated', label: 'Elevated Risk', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
-      guideline: 'Your ePSA score is elevated. Based on this model score, a PSA test is strongly suggested — this is an ePSA model-based finding, not an AUA/SUO guideline recommendation. Please speak with your physician promptly.',
+      key: 'elevated', label: 'Strong Candidate for PSA Testing', scoreRange: 'score >= 18', normalizedRange: '>= 22.5%',
+      guideline: 'Your ePSA score suggests an elevated likelihood of an abnormal PSA test. Based on this model score, PSA testing is strongly suggested — this is an ePSA model-based finding, not an AUA/NCCN/EAU/ERSPC guideline recommendation. Please speak with your physician promptly.',
       empiricalRate: EPSA_TIER_CALIBRATION.elevated
     }
   ];
@@ -634,13 +732,12 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   const isHighRiskFlagged = rawScore >= 18 && hasHighRiskAnchor;
 
   // ---------------------------------------------------------------------------
-  // Empirical probability display text
-  // "In our study, X in Y patients with your risk level had significant cancer"
+  // Empirical probability display — return data fields only.
+  // UI renders the sentence via i18n (`part1Results.empiricalProbabilityText`)
+  // so it translates correctly across locales.
   // ---------------------------------------------------------------------------
   const cal = epsaTierDef.empiricalRate;
-  const empiricalProbabilityText = cal
-    ? `In our validation study (N=${cal.n}), ${cal.events} in ${cal.n} patients at this risk tier had clinically significant prostate cancer (${Math.round(cal.rate * 100)}%; 95% CI ${Math.round(cal.ci_lo * 100)}%–${Math.round(cal.ci_hi * 100)}%).`
-    : null;
+  const empiricalProbabilityText = null; // deprecated — kept for callers that null-check; UI builds string via i18n
 
   const guardrailAlerts = checkGuardrails({
     psa: null,
@@ -650,6 +747,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   }, formData.pathwayMode || 'pre_psa');
 
   return {
+    // Provenance — used by the results meta-bar for audit/citation
+    computedAt: new Date().toISOString(),
+    engineVersion: '1.0.0',
     // Core score
     score: scorePercent,
     scoreRange,
@@ -665,6 +765,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     recommendPSA,
     psaRecommendReason,
     psaRecommendMessage,
+    psaGuidelineSupport,
+    psaGuidelineSupportCount,
 
     // Legacy tier fields
     tierRisk,
@@ -674,7 +776,9 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     // 3-tier classification
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
-    epsaTierLabel: epsaTierDef.label,
+    epsaTierLabel: (epsaTierIndex === 2 && isHighRiskFlagged)
+      ? 'Strong candidate for PSA testing'
+      : epsaTierDef.label,
     epsaTierScoreRange: epsaTierDef.scoreRange,
     epsaTierNormalizedRange: epsaTierDef.normalizedRange,
     epsaTierBoundaries: { lowMax: 10, intermediateMax: 17, maxScore: MAX_POINTS },
@@ -684,6 +788,8 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     empiricalRate: cal?.rate ?? null,
     empiricalRateCiLo: cal?.ci_lo ?? null,
     empiricalRateCiHi: cal?.ci_hi ?? null,
+    empiricalRateN: cal?.n ?? null,
+    empiricalRateEvents: cal?.events ?? null,
 
     // Risk factors
     isHighRiskFlagged,
@@ -711,20 +817,36 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     modelVersion: config.version,
     displayRange: `${rangeLow}%-${rangeHigh}%`,
     pathwayMode: formData.pathwayMode || 'pre_psa',
-    calculationDetails: { probability, rawScore, maxScore: MAX_POINTS }
+    calculationDetails: { probability, rawScore, maxScore: MAX_POINTS },
+    skippedFields: Array.from(_skippedFields),
   };
 };
 
 // =============================================================================
 // MODELS 2 & 3 — post_psa / post_mri
 // =============================================================================
+// Defense-in-depth: clamp/reject pathological numeric inputs reaching the
+// engine from cloud-restore, JSON import, or upstream UI bugs. Form-level
+// validation handles the typical-typo case; this catches the rest so the
+// engine never produces a wild output from a wild input.
+const sanitizePostInput = (value, { min, max, allowNull = true } = {}) => {
+  if (value === '' || value === null || value === undefined) return allowNull ? null : NaN;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return NaN;
+  if (min != null && n < min) return NaN;
+  if (max != null && n > max) return NaN;
+  return n;
+};
+
 export const calculateDynamicEPsaPost = (preResult, postData, customConfig = null) => {
   const config = customConfig || DEFAULT_CALCULATOR_CONFIG;
-  const { psa, pirads, knowPirads } = postData || {};
-  const prostateVolumeValRaw =
-    postData?.prostateVolume !== '' && postData?.prostateVolume != null
-      ? Number(postData.prostateVolume)
-      : null;
+  const { piradsLesions, knowPirads } = postData || {};
+  // Range-clamp numeric inputs. PSA = 0–1000 ng/mL (anything >1000 is a typo
+  // or unit-mistake; engine separately fires PSA>100 guardrail). PI-RADS is
+  // strictly 1–5. Prostate volume 5–500 mL (validated range for PSAD).
+  const psa = sanitizePostInput(postData?.psa, { min: 0, max: 1000 });
+  const pirads = sanitizePostInput(postData?.pirads, { min: 1, max: 5 });
+  const prostateVolumeValRaw = sanitizePostInput(postData?.prostateVolume, { min: 5, max: 500 });
 
   const preScorePct = Number(preResult?.score) || 0;
   let baseRawScore = preResult?.calculationDetails?.rawScore;
@@ -774,8 +896,18 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }
 
   // PI-RADS scoring (Model 3 only)
+  // Multi-lesion support: if `piradsLesions` array provided, take the highest score
+  // (worst-lesion drives clinical decision-making, per AUA/EAU and ESUR PI-RADS v2.1).
+  // Fallback to legacy single `pirads` field if no array supplied.
+  const _piradsCandidates = Array.isArray(piradsLesions)
+    ? piradsLesions
+        .map(v => (v === '' || v === null || v === undefined ? null : Number(v)))
+        .filter(v => v != null && !Number.isNaN(v) && v > 0)
+    : [];
+  const _piradsFromArray = _piradsCandidates.length > 0 ? Math.max(..._piradsCandidates) : null;
+  const _piradsFromSingle = (pirads === '' || pirads === null || pirads === undefined) ? null : Number(pirads);
   const piradsVal = knowPirads
-    ? (pirads === '' || pirads === null || pirads === undefined ? null : Number(pirads))
+    ? (_piradsFromArray != null ? _piradsFromArray : _piradsFromSingle)
     : null;
   let piradsPoints = 0;
   let piradsOverridden = false;
@@ -886,8 +1018,16 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     if (diff > 0) {
       const severity = diff === 1 ? 'yellow' : 'orange';
       discordanceFlag = {
+        direction: 'epsa_higher',
         severity,
-        text: `Risk Discordance Detected. Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. This may indicate that your individual risk factors — such as race, family history, or genetic markers — place you at elevated risk that standard PSA screening alone may underestimate. Discuss this discordance with your physician before concluding that your PSA result is reassuring.`
+        text: `Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. Your individual risk factors — such as race, family history, or genetic markers — may place you at elevated risk that PSA alone underestimates. Discuss this with your physician before concluding your PSA result is reassuring.`
+      };
+    } else if (diff < 0) {
+      // PSA is higher than ePSA combined tier — patient should not be falsely reassured
+      discordanceFlag = {
+        direction: 'psa_higher',
+        severity: 'yellow',
+        text: `Your PSA level (${psaVal} ng/mL, ${psaTierLabel}) is in a higher range than your combined ePSA tier (${tierDef.label}) alone suggests. A PSA in this range warrants follow-up with your physician regardless of your overall ePSA profile. Do not rely on the combined tier alone — your PSA result is an independent signal that should be discussed with your doctor.`
       };
     }
   }
@@ -909,12 +1049,14 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   // ---------------------------------------------------------------------------
   // Empirical probability display (Models 2 & 3)
+  // Return data only — UI renders via i18n
+  // (`part2Results.empiricalProbabilityText`). For the `low` combined tier,
+  // rate is null (no cases in the biopsied referral cohort) and the UI hides
+  // the line entirely — this is correct behavior, not a tier mismatch.
   // ---------------------------------------------------------------------------
   const cal = tierDef.empiricalRate;
-  let empiricalProbabilityText = null;
-  if (cal && cal.rate !== null) {
-    empiricalProbabilityText = `In our validation study, approximately ${Math.round(cal.rate * 100)}% of patients at this combined risk tier had clinically significant prostate cancer (N=${cal.n}). ${cal.note}.`;
-  }
+  const empiricalProbabilityText = null; // deprecated — UI builds via i18n
+  const empiricalNote = cal?.note ?? null;
 
   // ---------------------------------------------------------------------------
   // Biopsy / urology referral recommendation
@@ -948,7 +1090,64 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     biopsyMessage = 'Your ePSA risk profile is significantly higher than your PSA level alone suggests. Combined with your other risk factors, urologist review and biopsy discussion are recommended per AUA/SUO 2026 guidelines.';
   }
 
+  // ---------------------------------------------------------------------------
+  // Guideline support matrix — which guidelines back each biopsy reason.
+  // ERSPC focuses on screening intervals, not biopsy triggers, so it is
+  // conservatively marked false for biopsy-decision rows.
+  // ---------------------------------------------------------------------------
+  const BIOPSY_GUIDELINE_SUPPORT = {
+    pirads_5:                { aua: true,  nccn: true,  eau: true,  erspc: false },
+    combined_score_high:     { aua: true,  nccn: true,  eau: true,  erspc: false },
+    high_risk_discordance:   { aua: true,  nccn: false, eau: false, erspc: false }
+  };
+  // Combined-tier guideline backing for the tier recommendation itself.
+  const COMBINED_TIER_GUIDELINE_SUPPORT = {
+    'low':               { aua: true, nccn: true, eau: true, erspc: true  },
+    'intermediate-low':  { aua: true, nccn: true, eau: true, erspc: true  },
+    'intermediate-high': { aua: true, nccn: true, eau: true, erspc: false },
+    'high':              { aua: true, nccn: true, eau: true, erspc: false }
+  };
+  const biopsyGuidelineSupport = biopsyReason
+    ? (BIOPSY_GUIDELINE_SUPPORT[biopsyReason] || null)
+    : null;
+  const biopsyGuidelineSupportCount = biopsyGuidelineSupport
+    ? Object.values(biopsyGuidelineSupport).filter(Boolean).length
+    : null;
+  const tierGuidelineSupport = COMBINED_TIER_GUIDELINE_SUPPORT[tierDef.key] || null;
+  const tierGuidelineSupportCount = tierGuidelineSupport
+    ? Object.values(tierGuidelineSupport).filter(Boolean).length
+    : null;
+
   const pathwayMode = postData?.pathwayMode || (knowPirads ? 'post_mri' : 'post_psa');
+
+  // ---------------------------------------------------------------------------
+  // MRI recommendation — for post_psa pathway (no MRI data entered yet)
+  // AUA/NCCN/EAU 2026: mpMRI before biopsy is recommended when PSA or combined
+  // risk warrants further evaluation.
+  // ---------------------------------------------------------------------------
+  let mriRecommended = false;
+  let mriRecommendReason = null;
+  let mriRecommendMessage = null;
+
+  if (!knowPirads) {
+    if (psaVal >= 4.0) {
+      mriRecommended = true;
+      mriRecommendReason = 'psa_elevated';
+      mriRecommendMessage = 'Your PSA (≥ 4.0 ng/mL) warrants further evaluation. AUA/NCCN/EAU guidelines recommend an mpMRI before biopsy to characterize any suspicious lesion and reduce unnecessary biopsies.';
+    } else if (tierIndex >= 2) {
+      mriRecommended = true;
+      mriRecommendReason = 'combined_risk_elevated';
+      mriRecommendMessage = 'Your combined ePSA + PSA profile places you in an elevated risk tier. An mpMRI is recommended to better characterize risk before any biopsy decision, per AUA/NCCN/EAU guidelines.';
+    } else if (hasHighRiskFeature && psaVal >= 2.5) {
+      mriRecommended = true;
+      mriRecommendReason = 'high_risk_profile';
+      mriRecommendMessage = 'Given your high-risk profile (Black ancestry, family history, or genetic mutation), an mpMRI is recommended even at this PSA level per AUA/NCCN guidelines.';
+    } else if (discordanceFlag && discordanceFlag.severity === 'orange') {
+      mriRecommended = true;
+      mriRecommendReason = 'discordance';
+      mriRecommendMessage = 'Your ePSA profile is significantly higher than your PSA alone suggests. An mpMRI can help characterize your risk and is recommended per AUA/NCCN guidelines before biopsy.';
+    }
+  }
 
   const guardrailAlerts = checkGuardrails({
     psa: psaAdjusted,
@@ -960,6 +1159,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   }, pathwayMode);
 
   return {
+    // Provenance — used by the results meta-bar for audit/citation
+    computedAt: new Date().toISOString(),
+    engineVersion: '1.0.0',
     // Core combined score
     riskPct: tierDef.psaEquivalent,
     riskPctRange: null,
@@ -996,15 +1198,27 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     // High-grade risk (Model 3 logistic regression)
     highGradeRisk,
 
+    // MRI recommendation (post_psa pathway)
+    mriRecommended,
+    mriRecommendReason,
+    mriRecommendMessage,
+
     // Biopsy (Model 3)
     biopsyRecommended,
     biopsyReason,
     biopsyMessage,
+    biopsyGuidelineSupport,
+    biopsyGuidelineSupportCount,
+    tierGuidelineSupport,
+    tierGuidelineSupportCount,
 
     // Confidence
     piradsConfidenceText,
     empiricalProbabilityText,
     empiricalRate: cal?.rate ?? null,
+    empiricalRateN: cal?.n ?? null,
+    empiricalRateEvents: cal?.events ?? null,
+    empiricalNote,
 
     // Guardrails
     guardrailAlerts,
