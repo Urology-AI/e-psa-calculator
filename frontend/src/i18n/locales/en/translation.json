@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
       "modelDocs": "Model Documentation",
-      "hipaa": "HIPAA Compliant"
+      "hipaa": "Data Privacy",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
     },
     "loadingResults": {
       "title": "Loading your results...",
@@ -209,16 +211,21 @@
     }
   },
   "hipaa": {
-    "title": "HIPAA Compliance",
+    "title": "Data Privacy & HIPAA Status",
     "closeButton": "Close",
     "privacy": {
       "title": "Privacy & Data Protection",
-      "text": "The ePSA tool is designed to protect your health information in line with HIPAA considerations. We do not collect, store, or link any personally identifiable information (PII) or protected health information (PHI) such as name, email, or phone number."
+      "text": "ePSA is an educational research tool. Sign-in to ePSA uses an anonymous session key only — we do not collect an email address, phone number, or other contact identifier. This page describes what we do and do not collect, and where your data is stored."
+    },
+    "baa": {
+      "title": "HIPAA / BAA Status",
+      "label": "Important:",
+      "text": "This tool runs on Google Firebase (Cloud Firestore for storage and Firebase Authentication for the anonymous session key). Firebase is HIPAA-eligible only under an executed Google Cloud Business Associate Agreement (BAA). The BAA status for this deployment is being finalized as part of Mount Sinai's review. Until the BAA is confirmed in writing, do not enter information you would consider Protected Health Information (PHI) in a clinical setting. ePSA is not a medical device and is not FDA-cleared."
     },
     "sessionOnly": {
       "title": "Anonymous Session Key Only",
-      "noEmailPhoneLabel": "No email or phone:",
-      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number.",
+      "noEmailPhoneLabel": "No email or phone collected:",
+      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short random key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number, and the user record we create explicitly carries email and phone as null.",
       "noIdentityLabel": "No identity linking:",
       "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
       "saveKeyLabel": "Save your key:",
@@ -233,21 +240,143 @@
     },
     "choices": {
       "title": "Your Choices",
-      "text": "You can use the tool with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No personal contact information is required for cloud storage."
+      "text": "You can use ePSA with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No contact information is required in either path."
     },
     "disclaimer": {
       "label": "Disclaimer:",
-      "text": "This summary describes how the ePSA application handles data for privacy purposes. It is not legal advice. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
+      "text": "This summary describes how the ePSA application handles data. It is not legal advice and is not a substitute for a formal Privacy Policy or Notice of Privacy Practices. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
+    }
+  },
+  "privacyPolicy": {
+    "title": "ePSA Privacy Policy",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for Mount Sinai counsel review:",
+      "text": "This Privacy Policy is a working draft prepared for review by Mount Sinai's Office of General Counsel. It describes the application's current data handling in good faith but has not yet been reviewed or approved. Do not rely on this document as a final legal notice. The institutional Mount Sinai Privacy Policy at mountsinai.org/privacy continues to apply in parallel."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with an effective date upon counsel sign-off."
+    },
+    "whoWeAre": {
+      "title": "About ePSA",
+      "text": "ePSA (Prostate-Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\", \"we\", \"us\", or \"our\"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation."
+    },
+    "institutional": {
+      "title": "Relationship to the Mount Sinai Privacy Policy",
+      "text": "ePSA is a Mount Sinai application. The institutional Mount Sinai Privacy Policy (available at mountsinai.org/privacy) is incorporated into this Privacy Policy by reference and continues to apply to your use of ePSA. This document supplements that policy with provisions specific to the ePSA tool. In the event of a direct conflict between this document and the institutional policy with respect to ePSA-specific data flows, the more protective provision controls."
+    },
+    "dataCollected": {
+      "title": "Information We Collect",
+      "intro": "Depending on the storage option you select when using ePSA, we may collect the following categories of information:",
+      "assessmentLabel": "Assessment inputs and results:",
+      "assessmentText": "Your responses to the risk-assessment questions (including age, BMI, PSA value, IPSS and SHIM symptom scores, family history, self-reported ancestry, prior biopsy and MRI findings, and other clinical inputs) and the model outputs derived from them.",
+      "authLabel": "Contact identifiers:",
+      "authText": "ePSA does NOT collect an email address, phone number, or other contact identifier from users. Sign-in to ePSA uses an anonymous session key only, and the user record we create explicitly stores email and phone as null. There is no email- or phone-based sign-in path in the current production build.",
+      "technicalLabel": "Technical and usage data:",
+      "technicalText": "Standard server logs (IP address, browser type, request timestamps) generated by Firebase Hosting and Cloud Firestore for security, abuse prevention, and reliability. We do not currently deploy advertising trackers or third-party analytics SDKs on ePSA."
+    },
+    "howWeUse": {
+      "title": "How We Use Information",
+      "text": "We use the information described above to compute and display your risk estimates; to allow you to retrieve a prior assessment across sessions; to operate, secure, and improve the ePSA tool; and, in a de-identified and aggregate form consistent with IRB protocol STUDY-14-00050, to support ongoing model validation and academic research. We do not sell your data and do not use it for commercial advertising."
+    },
+    "storageAndSharing": {
+      "title": "Storage, Vendors, and HIPAA Status",
+      "text": "ePSA data is stored in Google Cloud Firestore (United States region) under Mount Sinai's Firebase project configuration. Firebase and Cloud Firestore are vendors to Mount Sinai. Firebase Authentication, Cloud Firestore, and related Firebase services are HIPAA-eligible only under an executed Google Cloud Business Associate Agreement (BAA); execution of the BAA covering this ePSA deployment is being finalized as part of Mount Sinai's review. Until that BAA is confirmed in writing, you should not enter information that you would consider Protected Health Information in a clinical setting. We do not share your ePSA data with third parties for marketing or advertising purposes."
+    },
+    "cookiesAndTracking": {
+      "title": "Cookies and Tracking",
+      "text": "ePSA uses a minimal set of cookies and similar local storage required to keep your anonymous session active (Firebase Authentication) and to remember your in-session preferences (such as text scale and language). ePSA does not use advertising cookies and does not currently transmit identifiable data to Google Analytics in its research configuration. If analytics are enabled in the future, they will be either de-identified to a tier-label only or gated behind explicit consent, and this Privacy Policy will be updated accordingly."
+    },
+    "hipaaNotice": {
+      "title": "Relationship to Mount Sinai's HIPAA Notice",
+      "text": "Mount Sinai maintains a separate Notice of Privacy Practices (NPP) under HIPAA covering its treatment, payment, and health-care-operations activities. ePSA is an educational and research tool and is not, in its current form, part of Mount Sinai's HIPAA-covered treatment workflow. Data entered into ePSA is therefore handled under this Privacy Policy and the IRB protocol governing the underlying study, not under the institutional NPP. For HIPAA questions specific to your clinical care at Mount Sinai, consult the institutional NPP."
+    },
+    "yourRights": {
+      "title": "Your Rights",
+      "text": "You may request access to, correction of, or deletion of your ePSA data at any time, and you may withdraw from the educational and research use of ePSA without penalty and without affecting your access to clinical care at Mount Sinai. Depending on your place of residence, you may also have additional rights under state or international law (including the rights described in Mount Sinai's institutional Privacy Policy under \"Personal Data Rights\")."
+    },
+    "childrens": {
+      "title": "Children's Privacy",
+      "text": "ePSA is intended for adult use only and is not directed to individuals under 18 years of age. We do not knowingly collect information from children. If you believe a child has provided information to ePSA, please contact the study team so the data can be deleted."
+    },
+    "changes": {
+      "title": "Changes to This Policy",
+      "text": "We may update this Privacy Policy from time to time. The most recent version will be accessible from the ePSA footer. Continued use of ePSA after an update constitutes acknowledgement of the revised policy."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For ePSA-specific privacy questions, data-access or deletion requests, or to withdraw from the research and educational use of ePSA, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai). For institutional Mount Sinai privacy matters, contact Compliance.info@mountsinai.org as described in the Mount Sinai Privacy Policy at mountsinai.org/privacy."
+    }
+  },
+  "terms": {
+    "title": "ePSA Terms of Service",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for Mount Sinai counsel review:",
+      "text": "These Terms of Service are a working draft prepared for review by Mount Sinai's Office of General Counsel. They describe the intended use of ePSA in good faith but have not yet been reviewed or approved. Do not rely on this document as a final legal agreement. The institutional Mount Sinai Terms and Conditions of Use continue to apply in parallel."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with an effective date upon counsel sign-off."
+    },
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "text": "BY ACCESSING OR USING ePSA, YOU AGREE TO BE BOUND BY THESE TERMS, BY THE ePSA PRIVACY POLICY, AND BY THE INSTITUTIONAL MOUNT SINAI TERMS AND CONDITIONS OF USE. IF YOU DO NOT AGREE, DO NOT ACCESS OR USE ePSA. You represent that you are at least 18 years of age and have the legal capacity to enter into these Terms."
+    },
+    "institutional": {
+      "title": "Relationship to Mount Sinai's Terms and Conditions of Use",
+      "text": "ePSA is owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\"). The institutional Mount Sinai Terms and Conditions of Use are incorporated into these Terms by reference and continue to apply to your use of ePSA. These Terms supplement that document with provisions specific to ePSA as a research and educational tool. In the event of a direct conflict between these Terms and the institutional Terms with respect to ePSA-specific functionality, the more restrictive provision controls."
+    },
+    "educationalUse": {
+      "title": "Educational and Research Use Only",
+      "text": "ePSA is an educational risk-assessment and research tool developed by Mount Sinai Urology in connection with IRB protocol STUDY-14-00050. ePSA is NOT a medical device, has NOT been cleared or approved by the U.S. Food and Drug Administration, and is intended to support — not replace — discussion with a qualified health-care provider. The risk models are internally validated only, against the Mount Sinai cohort described in the model documentation; no external validation cohort has been used to date."
+    },
+    "noMedicalAdvice": {
+      "title": "The ePSA Tool Does Not Provide Medical Advice",
+      "text": "The information and content in ePSA — including text, numerical scores, risk percentages, charts, and any printed or exported output — is for informational and research purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health-care provider with any questions you may have regarding your medical care, and never disregard professional medical advice or delay seeking it because of something you have read on or via ePSA. Reliance on any information appearing in ePSA is solely at your own risk."
+    },
+    "accountResponsibility": {
+      "title": "Session Keys and Data Responsibility",
+      "text": "Sign-in to ePSA uses an anonymous session key only. You are responsible for keeping your session key secure — anyone with the key can access the associated assessment data. If you lose your session key, the associated assessment data cannot be recovered, as we do not collect any contact information that would let us restore it. You may not use ePSA in a way that interferes with another user's access, attempts to defeat security controls, or violates applicable law."
+    },
+    "intellectualProperty": {
+      "title": "Intellectual Property",
+      "text": "ePSA, its underlying models, source code, documentation, user interface, and content are the intellectual property of Mount Sinai and its content providers. You are granted a personal, non-exclusive, non-transferable, revocable, and limited right to use ePSA for personal, non-commercial educational purposes only. You may not copy, redistribute, decompile, reverse-engineer, or create derivative works of ePSA without Mount Sinai's prior written consent."
+    },
+    "noWarranty": {
+      "title": "No Warranty",
+      "text": "ePSA IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY, OR FITNESS FOR CLINICAL DECISION-MAKING. MOUNT SINAI DISCLAIMS ALL SUCH WARRANTIES. MOUNT SINAI DOES NOT WARRANT THAT ePSA WILL BE UNINTERRUPTED OR ERROR-FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT THE OUTPUTS OF THE RISK MODELS WILL BE ACCURATE OR APPROPRIATE FOR YOUR INDIVIDUAL CIRCUMSTANCES."
+    },
+    "limitationOfLiability": {
+      "title": "Limitation of Liability",
+      "text": "TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL MOUNT SINAI OR ANY OF ITS TRUSTEES, OFFICERS, FACULTY, EMPLOYEES, AGENTS, INVESTIGATORS, OR CONTRACTORS BE LIABLE TO YOU OR ANY OTHER PARTY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF, OR INABILITY TO USE, ePSA, INCLUDING ANY DAMAGES RELATED TO A CLINICAL DECISION INFLUENCED BY ePSA OUTPUTS. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION WITH ePSA IS TO STOP USING IT."
+    },
+    "indemnity": {
+      "title": "Indemnity",
+      "text": "You agree to indemnify and hold harmless Mount Sinai and its trustees, officers, faculty, employees, agents, investigators, and contractors from any claim, demand, loss, or liability arising out of your breach of these Terms, your misuse of ePSA, or your reliance on ePSA outputs in a manner inconsistent with the educational and research purpose described above."
+    },
+    "changes": {
+      "title": "Changes to These Terms",
+      "text": "Mount Sinai may revise these Terms from time to time without separate notice. The most recent version will be accessible from the ePSA footer. Continued use of ePSA after a revision constitutes acceptance of the revised Terms."
+    },
+    "governingLaw": {
+      "title": "Governing Law",
+      "text": "These Terms are governed by and construed in accordance with the laws of the State of New York, without regard to conflict-of-laws principles, consistent with the institutional Mount Sinai Terms and Conditions of Use."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For questions about these Terms or about the ePSA tool, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai)."
     }
   },
   "storage": {
     "cloudTitle": "Cloud Storage",
-    "cloudDescription": "Store your data securely by email or phone number. Access from any device and share with healthcare providers.",
+    "cloudDescription": "Store your data securely under an anonymous session key. Access from any device using the key — no email or phone number required.",
     "cloudFeatureSecure": "Secure cloud storage",
-    "cloudFeatureAnyDevice": "Access from any device",
+    "cloudFeatureAnyDevice": "Access from any device with your session key",
     "cloudFeatureCollaboration": "Provider collaboration",
     "cloudFeatureBackups": "Automatic backups",
-    "cloudFeatureAuth": "Email or phone authentication",
+    "cloudFeatureAuth": "Anonymous session-key authentication",
     "cloudContinue": "Continue with Cloud Storage",
     "localTitle": "Local Storage",
     "localDescription": "Store your data only on this device. No account or phone number required. Use import/export to save or move your data.",
@@ -962,6 +1091,7 @@
     "bmiPlaceholder": "e.g., 25.49",
     "bmiHint": "Validation range in model: BMI 15-60",
     "familyHistoryLabel": "Family history",
+    "familyHistoryHint": "If you leave this on “None” your score is calculated as if no first-degree relative had prostate cancer. Note: “Unknown” is also scored as no family history by the current model — if you know any relative was affected, pick 1 or 2+ instead so your score reflects it.",
     "family": {
       "none": "None",
       "one": "1 relative",
