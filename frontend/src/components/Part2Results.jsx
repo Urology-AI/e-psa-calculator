@@ -1,26 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import './Part2Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
-import ModelDocumentation from './ModelDocumentation';
-import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
-import ModalInfoIcon from './InfoIcon';
+import RiskGauge from './RiskGauge';
+import ResultsLoading from './ResultsLoading';
+import InfoIcon from './InfoIcon';
+import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
+import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
-  DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon, ActivityIcon,
+  DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon,
+  MapPinIcon, PillIcon, ScanEyeIcon,
 } from 'lucide-react';
 
-/* ─── Collapsible (same style as Part 1) ─── */
-const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
+/* ─── Collapsible ─── */
+const CollapsibleSection = ({ title, children, defaultOpen = false, className = '' }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="collapsible-section">
+    <div className={`collapsible-section${className ? ` ${className}` : ''}`}>
       <button className="collapsible-toggle" onClick={() => setOpen(!open)} aria-expanded={open} type="button">
         <span>{title}</span>
         {open ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
@@ -32,11 +35,12 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
 
 /* ─── Risk Level Bar ─── */
 const RiskLevelBar = ({ riskClass }) => {
+  const { t } = useTranslation();
   const levels = [
-    { id: 'low',               label: 'Low',      color: '#16a34a' },
-    { id: 'intermediate-low',  label: 'Int-Low',  color: '#2563eb' },
-    { id: 'intermediate-high', label: 'Int-High', color: '#d97706' },
-    { id: 'high',              label: 'High',     color: '#dc2626' },
+    { id: 'low',               label: t('part2Results.tiers.riskBar.low'),              color: '#16a34a' },
+    { id: 'intermediate-low',  label: t('part2Results.tiers.riskBar.intermediateLow'),  color: '#2563eb' },
+    { id: 'intermediate-high', label: t('part2Results.tiers.riskBar.intermediateHigh'), color: '#d97706' },
+    { id: 'high',              label: t('part2Results.tiers.riskBar.high'),             color: '#dc2626' },
   ];
   const cls = String(riskClass || '').toLowerCase();
   const activeIdx = cls === 'very-high-risk' ? 3 : cls === 'high-risk' ? 2 : cls === 'moderate-risk' ? 1 : 0;
@@ -74,55 +78,62 @@ const GuardrailBanner = ({ alert }) => {
   );
 };
 
-/* ─── Guideline Deviation Banner ─── */
-const GuidelineDeviationBanner = ({ type }) => {
-  const isDiscordance = type === 'discordance';
-  const colorClass = isDiscordance ? 'guideline-deviation-banner--amber' : 'guideline-deviation-banner--red';
-
-  const title = isDiscordance
-    ? 'ePSA tier is higher than PSA alone suggests — goes beyond standard guidelines'
-    : 'Low PSA does not rule out risk — ePSA flags factors outside standard PSA interpretation';
-
-  const guidelineSays = isDiscordance
-    ? 'Standard PSA guidelines assign risk tier based on PSA value alone.'
-    : 'A PSA below 2.0 ng/mL is generally reassuring per AUA/NCCN. Routine guidelines do not mandate further action at this level.';
-
-  const epsaAdds = isDiscordance
-    ? 'ePSA combines PSA with your Part 1 profile — including race, family history, germline mutations, and additional factors like BMI, urinary symptoms, and lifestyle — pushing your combined tier higher than PSA alone suggests.'
-    : 'Your Part 1 profile contains high-risk features (Black ancestry, family history, or germline mutations) that AUA/NCCN identify as warranting earlier screening regardless of PSA level. ePSA surfaces this risk even when PSA appears low.';
-
+/* ─── Guideline Support Badge ─── */
+const GUIDELINE_LABELS = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
+const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
+  const [showTip, setShowTip] = useState(false);
+  if (!support) return null;
+  const total = 4;
+  const n = typeof count === 'number' ? count : Object.values(support).filter(Boolean).length;
+  const strong = n >= 3;
+  const partial = n >= 1 && n < 3;
+  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  const bg = variant === 'dark' ? 'rgba(255,255,255,0.18)' : (strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6');
+  const border = variant === 'dark' ? 'rgba(255,255,255,0.35)' : colour;
+  const text = variant === 'dark' ? '#fff' : colour;
   return (
-    <div role="alert" className={`guideline-deviation-banner ${colorClass}`}>
-      <div className="guideline-deviation-banner__header">
-        <AlertTriangleIcon size={15} className="guideline-deviation-banner__icon" />
-        <span className="guideline-deviation-banner__title">{title}</span>
-      </div>
-      <div className="guideline-deviation-banner__row">
-        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--guideline">Guidelines say</span>
-        <p className="guideline-deviation-banner__text">{guidelineSays}</p>
-      </div>
-      <div className="guideline-deviation-banner__row">
-        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--epsa">ePSA adds</span>
-        <p className="guideline-deviation-banner__text">{epsaAdds}</p>
-      </div>
-      <p className="guideline-deviation-banner__footer">Always discuss with your physician before drawing conclusions from this result alone.</p>
-    </div>
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${border}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: text, letterSpacing: '0.02em', cursor: 'help' }}
+      onMouseEnter={() => setShowTip(true)} onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)} onBlur={() => setShowTip(false)}
+      tabIndex={0} role="img"
+      aria-label={`Supported by ${n} of ${total} guidelines`}
+    >
+      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      Supported by {n} / {total} guidelines
+      {showTip && (
+        <span role="tooltip" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}>
+          {Object.entries(GUIDELINE_LABELS).map(([k, label]) => (
+            <span key={k} style={{ display: 'block' }}>
+              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+              {label}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
   );
 };
 
-/* ─── PSA / MRI Tier scales ─── */
-const PSA_TIER_SCALE = [
-  { key: 'low',               label: 'Low',          range: '< 1.0',    color: '#16a34a', bg: '#f0fdf4' },
-  { key: 'intermediate-low',  label: 'Int-Low',      range: '1.0–2.9',  color: '#2563eb', bg: '#eff6ff' },
-  { key: 'intermediate-high', label: 'Int-High',     range: '3.0–9.9',  color: '#d97706', bg: '#fffbeb' },
-  { key: 'high',              label: 'High',         range: '≥ 10.0',   color: '#dc2626', bg: '#fef2f2' },
-];
-const MRI_TIER_SCALE = [
-  { pirads: [1, 2], label: 'PI-RADS 1–2', meaning: 'Very Low / Low',          color: '#16a34a', bg: '#f0fdf4' },
-  { pirads: [3],    label: 'PI-RADS 3',   meaning: 'Intermediate (Equivocal)',color: '#2563eb', bg: '#eff6ff' },
-  { pirads: [4],    label: 'PI-RADS 4',   meaning: 'High — Likely',            color: '#d97706', bg: '#fffbeb' },
-  { pirads: [5],    label: 'PI-RADS 5',   meaning: 'Very High — Highly Likely',color: '#dc2626', bg: '#fef2f2' },
-];
+/* ─── PSA context colors (labels resolved via i18n inside component) ─── */
+const PSA_TIER_COLORS = {
+  'low':               '#16a34a',
+  'intermediate-low':  '#2563eb',
+  'intermediate-high': '#d97706',
+  'high':              '#dc2626',
+};
+const PSA_TIER_I18N_KEY = {
+  'low':               'low',
+  'intermediate-low':  'intermediateLow',
+  'intermediate-high': 'intermediateHigh',
+  'high':              'high',
+};
+
+/* ─── PI-RADS context colors (labels resolved via i18n inside component) ─── */
+const PIRADS_COLORS = ['#16a34a', '#16a34a', '#16a34a', '#2563eb', '#d97706', '#dc2626'];
+
+/* ─── Gauge tier colors for Part 2 ─── */
+const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' };
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -131,11 +142,19 @@ const Part2Results = ({
   onSaveToCloud = null, cloudAvailable = false,
   saveToCloudPending = false, saveToCloudError = null,
   researchConsent = false,
-  onShowModelDocs = null,
+  onShowModelDocs = null, onContinueToMRI = null,
 }) => {
+  const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
+
+  useEffect(() => {
+    if (!result) return;
+    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(loadingTimer);
+  }, [result]);
 
   const handleSubmitToResearch = async () => {
     if (!functions) return;
@@ -175,13 +194,25 @@ const Part2Results = ({
   }
 
   if (!result) return <div className="p2r-container"><p className="p2r-empty">No results available.</p></div>;
+  if (isLoading) return (
+    <div className="p2r-container">
+      <ResultsLoading
+        label="ePSA · Part 2"
+        message="Reviewing guidelines for your PSA…"
+        detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+      />
+    </div>
+  );
 
   const {
     riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
-    isOtherHormonal, psaTier, discordanceFlag, lowPsaWarning, lowPsaWarningText,
-    psadValue, psadFlag, biopsyRecommended, biopsyReason, biopsyMessage,
-    pathwayMode = 'post_mri', empiricalProbabilityText, piradsConfidenceText,
-    epsaTierKey, highGradeRisk, guardrailAlerts = [],
+    isOtherHormonal, psaTier, biopsyRecommended, biopsyReason, biopsyMessage,
+    biopsyGuidelineSupport, biopsyGuidelineSupportCount,
+    tierGuidelineSupport, tierGuidelineSupportCount,
+    mriRecommended, mriRecommendMessage,
+    pathwayMode = 'post_psa', empiricalProbabilityText,
+    epsaTierKey, guardrailAlerts = [],
+    discordanceFlag, lowPsaWarning,
   } = result;
 
   const getRiskColor = (rc) => {
@@ -198,17 +229,96 @@ const Part2Results = ({
     riskColor === '#d97706' ? 'risk-card--moderate' :
     'risk-card--lower';
 
+  const isVeryHighRisk = String(riskClass || '').toLowerCase().includes('very');
+
+  const p2GaugeTierKey = (() => {
+    if (epsaTierKey === 'high') return 'high';
+    if (epsaTierKey === 'intermediate-high') return 'moderate';
+    return 'low';
+  })();
+
+  const p2GaugeScore = (() => {
+    if (isVeryHighRisk) return 92;
+    if (epsaTierKey === 'high') return 78;
+    if (epsaTierKey === 'intermediate-high') return 50;
+    if (epsaTierKey === 'intermediate-low') return 28;
+    return 17;
+  })();
+
+  const psaTierLower = psaTier?.toLowerCase();
+  const psaTierKey = PSA_TIER_I18N_KEY[psaTierLower] || PSA_TIER_I18N_KEY['intermediate-high'];
+  const psaTierCtx = {
+    label: t(`part2Results.tiers.psaContext.${psaTierKey}.label`),
+    detail: t(`part2Results.tiers.psaContext.${psaTierKey}.detail`),
+    color: PSA_TIER_COLORS[psaTierLower] || PSA_TIER_COLORS['intermediate-high'],
+  };
+
+  const _piradsRaw = postData?.pirads;
+  const piradsVal = (_piradsRaw !== null && _piradsRaw !== undefined && _piradsRaw !== '')
+    ? Number(_piradsRaw)
+    : null;
+  const piradsCtx = (piradsVal != null && !isNaN(piradsVal))
+    ? (() => {
+        const idx = Math.min(5, Math.max(0, piradsVal));
+        const detailKey = `part2Results.tiers.pirads.${idx}.detail`;
+        const detail = t(detailKey);
+        return {
+          label: t(`part2Results.tiers.pirads.${idx}.label`),
+          color: PIRADS_COLORS[idx],
+          detail: detail === detailKey ? undefined : detail,
+        };
+      })()
+    : null;
+
+  const p2GaugeTiers = [
+    { key: 'low',      label: t('part2Results.tiers.gauge.low'),      color: P2_GAUGE_COLORS.low },
+    { key: 'moderate', label: t('part2Results.tiers.gauge.moderate'), color: P2_GAUGE_COLORS.moderate },
+    { key: 'high',     label: t('part2Results.tiers.gauge.high'),     color: P2_GAUGE_COLORS.high },
+  ];
+
   const heroVariant = biopsyRecommended
     ? (biopsyReason === 'high_risk_discordance' ? 'amber' : 'red')
     : 'blue';
   const heroIcon = heroVariant === 'red' ? <AlertCircleIcon size={20} /> : heroVariant === 'amber' ? <AlertTriangleIcon size={20} /> : <FlaskConicalIcon size={20} />;
-  const heroTitle = heroVariant === 'red' ? 'Biopsy Discussion Recommended' : heroVariant === 'amber' ? 'Urologist Review Recommended' : 'Next Steps';
-  const heroMessage = biopsyRecommended && biopsyMessage
-    ? biopsyMessage
-    : 'Discuss your combined risk profile with a urologist. Bring your printed ePSA results to your appointment.';
+  const heroTitle = heroVariant === 'red'
+    ? t('part2Results.tiers.hero.biopsy')
+    : heroVariant === 'amber'
+    ? t('part2Results.tiers.hero.urologistReview')
+    : t('part2Results.tiers.hero.nextSteps');
+
+  /* Plain-language recommendation based on tier — aligns with AUA/NCCN */
+  const tierRecommendation = (() => {
+    if (epsaTierKey === 'high' && isVeryHighRisk) return t('part2Results.tiers.recommendation.veryHigh');
+    if (epsaTierKey === 'high') return t('part2Results.tiers.recommendation.high');
+    if (epsaTierKey === 'intermediate-high') return t('part2Results.tiers.recommendation.intermediateHigh');
+    if (epsaTierKey === 'intermediate-low') return t('part2Results.tiers.recommendation.intermediateLow');
+    return t('part2Results.tiers.recommendation.low');
+  })();
+
+  const heroMessage = biopsyRecommended && biopsyMessage ? biopsyMessage : tierRecommendation;
+
+  /* Surface discordance or low-PSA context as a single calm footnote in the hero */
+  const hasContextNote = discordanceFlag || lowPsaWarning;
+  const contextNote = lowPsaWarning
+    ? t('part2Results.tiers.contextNote.lowPsa')
+    : discordanceFlag?.direction === 'psa_higher'
+    ? t('part2Results.tiers.contextNote.discordancePsaHigher')
+    : discordanceFlag
+    ? t('part2Results.tiers.contextNote.discordanceProfile')
+    : null;
+
+  /* Plain-language tier description for "Understanding Your Result" */
+  const tierExplanation = (() => {
+    if (epsaTierKey === 'high') return t('part2Results.tiers.explanation.high');
+    if (epsaTierKey === 'intermediate-high') return t('part2Results.tiers.explanation.intermediateHigh');
+    if (epsaTierKey === 'intermediate-low') return t('part2Results.tiers.explanation.intermediateLow');
+    return t('part2Results.tiers.explanation.low');
+  })();
 
   return (
     <div className="p2r-container" role="main">
+
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 2 · ePSA Combined Risk" />
 
       {/* ── Cloud row ── */}
       {(storageMode === 'local' && cloudAvailable && onSaveToCloud) && (
@@ -216,7 +326,25 @@ const Part2Results = ({
           <button type="button" className="p2r-btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
             <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
           </button>
-          {saveToCloudError && <span className="p2r-cloud-err">{saveToCloudError}</span>}
+          {saveToCloudError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.625rem 0.875rem',
+                background: 'rgba(217, 119, 6, 0.08)',
+                border: '1px solid rgba(217, 119, 6, 0.35)',
+                borderLeft: '4px solid #d97706',
+                borderRadius: '6px',
+                color: '#78350f',
+                fontSize: '0.8125rem',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Cloud save unavailable.</strong> {saveToCloudError}
+            </div>
+          )}
         </div>
       )}
 
@@ -315,26 +443,21 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── Guardrail alerts ── */}
-      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
-        <GuardrailBanner key={alert.code} alert={alert} />
-      ))}
+      {/* ── Critical guardrail alerts only (e.g. PSA > 100) ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts
+        .filter(a => a.level === 'critical')
+        .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
+      }
 
       {/* ── Risk Summary Card ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Risk Assessment · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
+          <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
           <span>Assessed today</span>
         </div>
 
-        <div className="v2-gauge-layout" style={{ alignItems: 'center', gap: '1rem' }}>
-          <div style={{ flex: '0 0 auto' }}>
-            {riskColor === '#16a34a'
-              ? <CheckCircle2Icon size={48} style={{ color: riskColor }} />
-              : riskColor === '#d97706'
-              ? <AlertTriangleIcon size={48} style={{ color: riskColor }} />
-              : <AlertCircleIcon size={48} style={{ color: riskColor }} />}
-          </div>
+        <div className="v2-gauge-layout">
+          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
           <div className="v2-tier-info">
             <div className="v2-tier-label">Combined Risk Tier</div>
             <h2 className="v2-tier-title" style={{ color: riskColor }}>{cleanRiskCat}</h2>
@@ -342,49 +465,91 @@ const Part2Results = ({
           </div>
         </div>
 
-        {/* Input summary pills */}
-        <div className="v2-why">
-          <div className="v2-why-head"><span className="v2-why-head-title">Based on</span></div>
-          <div className="v2-why-items">
-            <div className="v2-why-item">
-              <div className="v2-why-item-label">PSA</div>
-              <div className="v2-why-item-val">{postData?.psa != null ? `${postData.psa} ng/mL` : '—'}</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{psaTier || '—'}</div>
+        {/* ── PSA prominently displayed ── */}
+        <div className="p2r-key-inputs">
+          <div className="p2r-key-input">
+            <div className="p2r-key-input-label">PSA Result</div>
+            <div className="p2r-key-input-value" style={{ color: psaTierCtx.color }}>
+              {psaAdjustedFlag ? psaAdjusted : psaValue}
+              <span className="p2r-key-input-unit"> ng/mL</span>
             </div>
-            <div className="v2-why-item">
-              <div className="v2-why-item-label">Part 1</div>
-              <div className="v2-why-item-val">{preResult?.score ?? '—'}%</div>
-              <div className="v2-why-item-pts" style={{ color: riskColor }}>{preResult?.epsaTierLabel || preResult?.risk || '—'}</div>
-            </div>
-            {postData?.knowPirads && postData?.pirads && (
-              <div className="v2-why-item">
-                <div className="v2-why-item-label">MRI</div>
-                <div className="v2-why-item-val">PI-RADS {postData.pirads}</div>
-                <div className="v2-why-item-pts" style={{ color: riskColor }}>{Number(postData.pirads) >= 4 ? 'High' : Number(postData.pirads) === 3 ? 'Equivocal' : 'Low'}</div>
-              </div>
-            )}
-            {psadValue != null && (
-              <div className="v2-why-item">
-                <div className="v2-why-item-label">PSA Density</div>
-                <div className="v2-why-item-val">{psadValue.toFixed(3)}</div>
-                <div className="v2-why-item-pts" style={{ color: psadFlag ? '#d97706' : riskColor }}>{psadFlag ? 'Elevated' : 'Normal'}</div>
-              </div>
-            )}
+            <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
+            <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
           </div>
+
+          {postData?.knowPirads && piradsVal != null && piradsCtx && (
+            <div className="p2r-key-input">
+              <div className="p2r-key-input-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                MRI PI-RADS
+                <InfoIcon {...fieldReferences.part2.pirads} />
+              </div>
+              <div className="p2r-key-input-value" style={{ color: piradsCtx.color }}>
+                {piradsVal === 0 ? '—' : piradsVal}
+                {piradsVal !== 0 && <span className="p2r-key-input-unit"> / 5</span>}
+              </div>
+              <div className="p2r-key-input-tier" style={{ color: piradsCtx.color }}>{piradsCtx.label}</div>
+              {piradsCtx.detail && <div className="p2r-key-input-detail">{piradsCtx.detail}</div>}
+            </div>
+          )}
+
+          {preResult?.score != null && (
+            <div className="p2r-key-input p2r-key-input--muted">
+              <div className="p2r-key-input-label">Part 1 Score</div>
+              <div className="p2r-key-input-value">
+                {preResult.score}
+                <span className="p2r-key-input-unit">%</span>
+              </div>
+              <div className="p2r-key-input-tier">{preResult.epsaTierLabel || '—'}</div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Guideline Deviation Notices ── */}
-      {discordanceFlag && <GuidelineDeviationBanner type="discordance" />}
-      {lowPsaWarning && <GuidelineDeviationBanner type="low_psa" />}
+      {/* ── MRI Recommendation (post_psa only) ── */}
+      {pathwayMode === 'post_psa' && (
+        <div className={`v2-psa-hero v2-psa-hero--${mriRecommended ? 'amber' : 'blue'}`}>
+          <div className="v2-psa-hero-top">
+            <div className="v2-psa-hero-icon"><ScanEyeIcon size={20} /></div>
+            <div className="v2-psa-hero-body">
+              <h3 className="v2-psa-hero-title">
+                {mriRecommended ? 'MRI Recommended Before Biopsy' : 'MRI Not Required Right Now'}
+              </h3>
+              <p className="v2-psa-hero-desc">
+                {mriRecommended
+                  ? mriRecommendMessage || 'AUA/NCCN/EAU guidelines recommend an mpMRI before any biopsy decision. This gives your doctor a clearer picture and reduces unnecessary procedures.'
+                  : 'Your combined ePSA and PSA profile does not currently meet the threshold for an mpMRI. Continue with routine follow-up as directed by your physician.'}
+              </p>
+            </div>
+          </div>
+          {onContinueToMRI && mriRecommended && (
+            <div className="v2-psa-hero-ctas">
+              <button type="button" className="btn-results btn-results--solid v2-psa-hero-btn-solid" onClick={onContinueToMRI}>
+                Add MRI Results →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* ── Recommendation Hero ── */}
+      {/* ── Main Recommendation Hero ── */}
       <div className={`v2-psa-hero v2-psa-hero--${heroVariant}`}>
         <div className="v2-psa-hero-top">
           <div className="v2-psa-hero-icon">{heroIcon}</div>
           <div className="v2-psa-hero-body">
             <h3 className="v2-psa-hero-title">{heroTitle}</h3>
             <p className="v2-psa-hero-desc">{heroMessage}</p>
+            {hasContextNote && contextNote && (
+              <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'inherit', opacity: 0.85, fontStyle: 'italic' }}>{contextNote}</p>
+            )}
+            {(biopsyRecommended && biopsyGuidelineSupport) ? (
+              <div style={{ marginTop: '8px' }}>
+                <GuidelineSupportBadge support={biopsyGuidelineSupport} count={biopsyGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
+              </div>
+            ) : (tierGuidelineSupport ? (
+              <div style={{ marginTop: '8px' }}>
+                <GuidelineSupportBadge support={tierGuidelineSupport} count={tierGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
+              </div>
+            ) : null)}
           </div>
         </div>
         <div className="v2-psa-hero-ctas">
@@ -397,40 +562,33 @@ const Part2Results = ({
         </div>
       </div>
 
-      {/* ── High-Grade Risk (GG3+) ── */}
-      {pathwayMode === 'post_mri' && highGradeRisk != null && (() => {
-        const pct = Math.round(highGradeRisk.prob * 100);
-        const color = highGradeRisk.prob >= 0.30 ? '#dc2626' : highGradeRisk.prob >= 0.15 ? '#d97706' : '#16a34a';
-        const bg    = highGradeRisk.prob >= 0.30 ? '#fef2f2' : highGradeRisk.prob >= 0.15 ? '#fffbeb' : '#f0fdf4';
-        return (
-          <div style={{ background: bg, border: `1.5px solid ${color}`, borderRadius: '10px', padding: '16px', margin: '10px 0' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>High-Grade Cancer Risk (GG3+)</div>
-            <div style={{ fontSize: '38px', fontWeight: 700, color, lineHeight: 1, marginBottom: '4px' }}>{pct}%</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '2px' }}>Risk of GG3+ Cancer</div>
-            <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>AUC 0.694 · PI-RADS + PSA model</div>
-          </div>
-        );
-      })()}
-
       {/* ── Timeline ── */}
       <div className="v2-timeline">
         <div className="v2-timeline-head"><span className="v2-timeline-title">What happens next</span></div>
         <div className="v2-timeline-track">
           <div className="v2-timeline-step v2-timeline-step--current">
             <span className="v2-timeline-when">Today</span>
-            <span className="v2-timeline-desc">Review results and share with your GP or urologist</span>
+            <span className="v2-timeline-desc">Review these results and share with your GP or urologist</span>
           </div>
           <div className="v2-timeline-step">
             <span className="v2-timeline-when">Week 1</span>
-            <span className="v2-timeline-desc">Book a urology referral via your GP</span>
+            <span className="v2-timeline-desc">
+              {epsaTierKey === 'low'
+                ? 'Confirm your next PSA screening date with your doctor'
+                : 'Book a urology referral via your GP'}
+            </span>
           </div>
           <div className="v2-timeline-step">
             <span className="v2-timeline-when">Week 2–4</span>
-            <span className="v2-timeline-desc">Attend specialist appointment with your ePSA results</span>
+            <span className="v2-timeline-desc">
+              {epsaTierKey === 'low'
+                ? 'Continue monitoring — re-assess with ePSA if your health status changes'
+                : 'Attend specialist appointment with your ePSA results'}
+            </span>
           </div>
           <div className="v2-timeline-step">
-            <span className="v2-timeline-when">Week 4–8</span>
-            <span className="v2-timeline-desc">Decide on further workup (biopsy / watchful waiting)</span>
+            <span className="v2-timeline-when">Ongoing</span>
+            <span className="v2-timeline-desc">Re-assess with ePSA whenever your PSA changes or your health status changes</span>
           </div>
         </div>
       </div>
@@ -441,183 +599,36 @@ const Part2Results = ({
         <span className="v2-essential-text">Understanding your result</span>
       </div>
 
-      {/* ── Expandable sections ── */}
+      {/* ── Expandable Sections ── */}
       <div className="detail-sections">
 
-        <CollapsibleSection title="About Your Result" defaultOpen>
-          <p>
-            Your combined risk tier is <strong style={{ color: riskColor }}>{cleanRiskCat}</strong>.
-            {pathwayMode === 'post_mri' ? ' Combines your Part 1 profile, PSA, and MRI PI-RADS.' : ' Combines your Part 1 profile with PSA.'}
-          </p>
-          {empiricalProbabilityText && (
-            <p style={{ fontStyle: 'italic', fontSize: '0.875rem', color: '#4b5563', marginTop: '6px' }}>{empiricalProbabilityText}</p>
-          )}
+        <CollapsibleSection title="Understanding Your Result" defaultOpen>
+          <p>{tierExplanation}</p>
           {(nextSteps?.length > 0) && (
-            <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '8px' }}>
-              {nextSteps.map((step, i) => {
-                const hasVideoLink = step.includes('Learn more about prostate cancer health');
-                const hasMobileUnit = step.includes('Mount Sinai Mobile Unit');
-                return (
-                  <li key={i}>
-                    {step.replace(' →', '')}
-                    {hasVideoLink && <a href="https://www.youtube.com/@ashtewarimd7526" target="_blank" rel="noopener noreferrer" style={{ marginLeft: '4px', color: '#2563eb' }} aria-label="Watch video"><ExternalLinkIcon size={12} /></a>}
-                    {hasMobileUnit && <a href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" style={{ marginLeft: '4px', color: '#2563eb' }} aria-label="View location"><MapPinIcon size={12} /></a>}
-                  </li>
-                );
-              })}
+            <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '10px' }}>
+              {nextSteps.map((step, i) => (
+                <li key={i}>{step.replace(' →', '')}</li>
+              ))}
             </ul>
           )}
-          {(epsaTierKey === 'intermediate-high' || epsaTierKey === 'high') && (
-            <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#374151' }}>
-              Already had a biopsy?{' '}
-              <a href={`https://as.millionstrongmen.com?psa=${encodeURIComponent(psaValue ?? '')}&source=epsa`} target="_blank" rel="noopener noreferrer" style={{ color: '#16a34a', fontWeight: 600 }}>Open AI Surveillance Tool →</a>
-            </p>
-          )}
+          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
+            {t('part2Results.tiers.endpointNote')}
+          </p>
+          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
+            This result combines your PSA value with your Part 1 risk profile. It is an educational estimate — not a diagnosis. Always confirm any elevated PSA with a repeat test before considering a biopsy, and make decisions with your doctor.
+          </p>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Score Breakdown">
-          {/* Score bars */}
-          <div className="v2-score-stack" style={{ margin: '0 0 12px' }}>
-            <div className="v2-score-stack-row">
-              <span className="v2-score-stack-label">Part 1 (ePSA)</span>
-              <span className="v2-score-stack-val">{preResult?.score ?? '—'}%</span>
-              <div className="v2-score-stack-bar-track"><div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, preResult?.score ?? 0)}%` }} /></div>
-              <span className="v2-score-stack-pts">{preResult?.epsaTierLabel || '—'}</span>
-            </div>
-            <div className="v2-score-stack-row">
-              <span className="v2-score-stack-label">PSA Level</span>
-              <span className="v2-score-stack-val">{postData?.psa ? `${postData.psa} ng/mL` : '—'}</span>
-              <div className="v2-score-stack-bar-track"><div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, (parseFloat(postData?.psa) / 20) * 100)}%` }} /></div>
-              <span className="v2-score-stack-pts">{psaTier || '—'}</span>
-            </div>
-            {psadValue != null && (
-              <div className="v2-score-stack-row">
-                <span className="v2-score-stack-label">PSA Density</span>
-                <span className="v2-score-stack-val">{psadValue.toFixed(3)} ng/mL/mL</span>
-                <div className="v2-score-stack-bar-track"><div className="v2-score-stack-bar-fill" style={{ width: `${Math.min(100, (psadValue / 0.4) * 100)}%` }} /></div>
-                <span className="v2-score-stack-pts" style={{ color: psadFlag ? '#d97706' : undefined }}>{psadFlag ? 'Elevated' : 'Normal'}</span>
-              </div>
-            )}
-            {postData?.knowPirads && postData?.pirads && (
-              <div className="v2-score-stack-row">
-                <span className="v2-score-stack-label">MRI PI-RADS</span>
-                <span className="v2-score-stack-val">PI-RADS {postData.pirads}</span>
-                <div className="v2-score-stack-bar-track"><div className="v2-score-stack-bar-fill" style={{ width: `${(Number(postData.pirads) / 5) * 100}%` }} /></div>
-                <span className="v2-score-stack-pts">{Number(postData.pirads) >= 4 ? 'High' : Number(postData.pirads) === 3 ? 'Equivocal' : 'Low'}</span>
-              </div>
-            )}
-            <div className="v2-score-stack-total">
-              <span className="v2-score-stack-total-label">Combined Tier</span>
-              <span className="v2-score-stack-total-val" style={{ color: riskColor }}>{cleanRiskCat}</span>
-            </div>
-          </div>
-
-          {/* PSA tier chips */}
-          <div className="p2r-breakdown-block">
-            <div className="p2r-breakdown-heading"><FlaskConicalIcon size={13} style={{ flexShrink: 0 }} /><span>PSA Level Tier</span></div>
-            <div className="p2r-tier-chips-grid">
-              {PSA_TIER_SCALE.map(({ key, label, range, color, bg }) => {
-                const isActive = (psaTier ? psaTier.toLowerCase() : null) === key;
-                return (
-                  <div key={key} className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
-                    style={isActive ? { background: bg, borderColor: color, color } : {}} aria-current={isActive ? 'true' : undefined}>
-                    <span className="p2r-tier-chip-label">{label}</span>
-                    <span style={{ fontSize: '10px', color: isActive ? color : '#9ca3af' }}>{range} ng/mL</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* MRI PI-RADS chips */}
-          {postData?.knowPirads && postData?.pirads != null && (
-            <div className="p2r-breakdown-block">
-              <div className="p2r-breakdown-heading"><ActivityIcon size={13} style={{ flexShrink: 0 }} /><span>MRI PI-RADS</span></div>
-              <div className="p2r-tier-chips-grid">
-                {MRI_TIER_SCALE.map(({ pirads: piradsArr, label, meaning, color, bg }) => {
-                  const isActive = piradsArr.includes(Number(postData.pirads));
-                  return (
-                    <div key={label} className={`p2r-tier-chip${isActive ? ' p2r-tier-chip--active' : ''}`}
-                      style={isActive ? { background: bg, borderColor: color, color } : {}} aria-current={isActive ? 'true' : undefined}>
-                      <span className="p2r-tier-chip-label">{label}</span>
-                      <span style={{ fontSize: '10px', color: isActive ? color : '#9ca3af' }}>{meaning}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              {piradsConfidenceText && <p style={{ fontSize: '0.8rem', color: '#374151', marginTop: '8px' }}>{piradsConfidenceText}</p>}
-            </div>
-          )}
-
-          {/* Cohort data */}
-          <div className="p2r-cohort-card">
-            <div className="p2r-cohort-heading"><FlaskConicalIcon size={13} /><span>Mount Sinai Validation Cohort (N=94)</span></div>
-            <div className="p2r-cohort-table-wrap">
-              <table className="p2r-cohort-table">
-                <thead><tr><th>Tier</th><th>Range</th><th>N</th><th>csPCa Rate</th></tr></thead>
-                <tbody>
-                  <tr className={result.epsaTierKey === 'low' ? 'p2r-cohort-row--active' : ''}>
-                    <td>Low</td><td>≤13 pts</td><td>—</td><td><span className="p2r-cohort-na">No data</span></td>
-                  </tr>
-                  <tr className={result.epsaTierKey === 'intermediate-low' ? 'p2r-cohort-row--active' : ''}>
-                    <td>Int-Low</td><td>14–27</td><td>4</td><td><span className="p2r-cohort-rate p2r-cohort-rate--yellow">25% <span className="p2r-cohort-caution">(small N)</span></span></td>
-                  </tr>
-                  <tr className={result.epsaTierKey === 'intermediate-high' ? 'p2r-cohort-row--active' : ''}>
-                    <td>Int-High</td><td>28–55</td><td>58</td><td><span className="p2r-cohort-rate p2r-cohort-rate--amber">21%</span></td>
-                  </tr>
-                  <tr className={result.epsaTierKey === 'high' ? 'p2r-cohort-row--active' : ''}>
-                    <td>High</td><td>≥56</td><td>32</td><td><span className="p2r-cohort-rate p2r-cohort-rate--red">31%</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
-              Biopsied referral cohort — rates reflect referred patients, not a general screening population.{pathwayMode === 'post_mri' ? ' MRI not in cohort; PI-RADS scoring follows AUA/NCCN/EAU v2.1.' : ''}
-            </p>
-          </div>
-        </CollapsibleSection>
-
-        {preResult && (
-          <CollapsibleSection title="Your Part 1 Profile">
-            <div className="p2r-profile-summary-pills">
-              <div className="p2r-profile-pill">
-                <span className="p2r-profile-pill-val" style={{ color: getRiskColor(preResult?.risk) }}>{preResult?.score}%</span>
-                <span className="p2r-profile-pill-lbl">ePSA Score</span>
-              </div>
-              <div className="p2r-profile-pill">
-                <span className="p2r-profile-pill-val" style={{ color: getRiskColor(preResult?.risk) }}>{preResult?.epsaTierLabel || preResult?.risk || '—'}</span>
-                <span className="p2r-profile-pill-lbl">Risk Tier</span>
-              </div>
-              {preResult?.confidenceRange && (
-                <div className="p2r-profile-pill">
-                  <span className="p2r-profile-pill-val">{preResult.confidenceRange}</span>
-                  <span className="p2r-profile-pill-lbl">Confidence</span>
-                </div>
-              )}
-            </div>
-            {preResult?.highRiskAnchors?.length > 0 && (
-              <ul style={{ paddingLeft: '1rem', fontSize: '0.8rem', lineHeight: 1.8, marginTop: '10px' }}>
-                {preResult.highRiskAnchors.map((anchor, i) => (
-                  <li key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                    <AlertTriangleIcon size={12} style={{ color: '#dc2626', flexShrink: 0, marginTop: '3px' }} />
-                    <span>{anchor}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CollapsibleSection>
-        )}
-
-        <CollapsibleSection title="Shared Decision-Making">
+        <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen>
           <p>Choosing the next step is a joint decision between you and your doctor. Key questions to raise:</p>
           <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
-            <li><strong>How serious is this tier?</strong> — what does it mean for follow-up timing?</li>
-            <li><strong>Biopsy vs. watchful waiting?</strong> — weigh detection benefit against biopsy risks (bleeding, infection, anxiety).</li>
-            <li><strong>Your health and life expectancy</strong> — age and comorbidities guide whether further workup makes sense.</li>
-            <li><strong>Your baseline function</strong> — current IPSS and SHIM scores matter for any treatment discussion.</li>
+            <li><strong>What does this tier mean for me specifically?</strong> — ask how your PSA trend and personal history affect the picture.</li>
+            <li><strong>Should I repeat the PSA first?</strong> — a single elevated result can reflect inflammation, infection, or recent activity.</li>
+            <li><strong>Is an MRI recommended before biopsy?</strong> — AUA/NCCN/EAU guidelines now support MRI-targeted biopsy to reduce over-detection.</li>
+            <li><strong>What is the urgency?</strong> — most prostate cancers are slow-growing; ask whether a few weeks to gather more information is reasonable.</li>
           </ul>
           <p style={{ fontSize: '0.8rem', color: '#607286', fontStyle: 'italic', marginTop: '8px' }}>
-            AUA/ASTRO Part I–II, J Urol 2022 · NCCN v3.2024 · EAU 2024
+            AUA/SUO 2026 · NCCN v3.2024 · EAU 2024
           </p>
         </CollapsibleSection>
 
@@ -631,6 +642,19 @@ const Part2Results = ({
         )}
 
         <CollapsibleSection title="Important Disclaimer">
+          <p
+            className="detail-disclaimer"
+            style={{
+              padding: '0.75rem 1rem',
+              marginBottom: '0.75rem',
+              background: 'rgba(217, 119, 6, 0.08)',
+              borderLeft: '4px solid #d97706',
+              borderRadius: '6px',
+              color: '#78350f',
+            }}
+          >
+            <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
+          </p>
           <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
         </CollapsibleSection>

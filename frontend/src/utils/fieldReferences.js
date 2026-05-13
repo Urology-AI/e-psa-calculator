@@ -8,11 +8,26 @@ const pubmedSearch = (term) => `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeUR
 const cancerGovProstatePreventionUrl = 'https://www.cancer.gov/types/prostate/patient/prostate-prevention-pdq';
 const seerRiskUrl = 'https://training.seer.cancer.gov/prostate/intro/risk.html';
 
+// Canonical references used by AUA/NCCN PSA screening guidelines.
+// Surfaced on fields that AUA/NCCN actually use as screening criteria
+// (age, race/ancestry, family history, germline mutations).
+const auaScreeningGuideline = {
+  name: 'AUA/SUO Early Detection of Prostate Cancer Guideline (Wei JT, et al. 2023)',
+  url: 'https://www.auanet.org/guidelines-and-quality/guidelines/early-detection-of-prostate-cancer-guidelines',
+};
+const nccnScreeningGuideline = {
+  name: 'NCCN Guidelines® — Prostate Cancer Early Detection',
+  url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1460',
+};
+
 export const fieldReferences = {
   age: {
     titleKey: 'part1.fields.age.title',
     descriptionKey: 'part1.fields.age.description',
+    isGuideline: true,
     sources: [
+      auaScreeningGuideline,
+      nccnScreeningGuideline,
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'SEER Database', url: seerRiskUrl },
@@ -24,7 +39,10 @@ export const fieldReferences = {
   race: {
     titleKey: 'part1.fields.race.title',
     descriptionKey: 'part1.fields.race.description',
+    isGuideline: true,
     sources: [
+      auaScreeningGuideline,
+      nccnScreeningGuideline,
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
       { name: 'Tewari A., et al., Urol Onc. 2005', url: pubmedSearch('Tewari A Urol Onc 2005') },
@@ -35,7 +53,10 @@ export const fieldReferences = {
   familyHistory: {
     titleKey: 'part1.fields.familyHistory.title',
     descriptionKey: 'part1.fields.familyHistory.description',
+    isGuideline: true,
     sources: [
+      auaScreeningGuideline,
+      nccnScreeningGuideline,
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
@@ -46,12 +67,16 @@ export const fieldReferences = {
   inflammationHistory: {
     titleKey: 'part1.fields.inflammationHistory.title',
     descriptionKey: 'part1.fields.inflammationHistory.description',
+    isGuideline: false,
     sources: [{ name: 'PMC Study', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/' }],
   },
   brcaStatus: {
     titleKey: 'part1.fields.brcaStatus.title',
     descriptionKey: 'part1.fields.brcaStatus.description',
+    isGuideline: true,
     sources: [
+      auaScreeningGuideline,
+      nccnScreeningGuideline,
       { name: 'PMC Study', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9955741/' },
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'Hemminki H, et al., Eur Urol Open Sci 2024', url: pubmedSearch('Hemminki H Eur Urol Open Sci 2024') },
@@ -64,6 +89,7 @@ export const fieldReferences = {
   heightWeight: {
     titleKey: 'part1.fields.heightWeight.title',
     descriptionKey: 'part1.fields.heightWeight.description',
+    isGuideline: false,
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
@@ -73,6 +99,7 @@ export const fieldReferences = {
   exercise: {
     titleKey: 'part1.fields.exercise.title',
     descriptionKey: 'part1.fields.exercise.description',
+    isGuideline: false,
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
@@ -82,6 +109,7 @@ export const fieldReferences = {
   smoking: {
     titleKey: 'part1.fields.smoking.title',
     descriptionKey: 'part1.fields.smoking.description',
+    isGuideline: false,
     sources: [
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
       { name: 'KCUC', url: 'https://www.kcuc.com/know-your-prostate-cancer-risk-factors/' },
@@ -91,6 +119,7 @@ export const fieldReferences = {
   chemicalExposure: {
     titleKey: 'part1.fields.chemicalExposure.title',
     descriptionKey: 'part1.fields.chemicalExposure.description',
+    isGuideline: false,
     sources: [
       { name: 'CDC WTC Health Program – Toxins & Health Impacts', url: 'https://www.cdc.gov/wtc/exhibition/toxins-and-health-impacts.html' },
       { name: 'CDC', url: 'https://www.cdc.gov/prostate-cancer/risk-factors/index.html' },
@@ -100,6 +129,7 @@ export const fieldReferences = {
   diet: {
     titleKey: 'part1.fields.diet.title',
     descriptionKey: 'part1.fields.diet.description',
+    isGuideline: false,
     sources: [
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'ZERO Cancer', url: 'https://zerocancer.org/risk-factors' },
@@ -110,6 +140,7 @@ export const fieldReferences = {
   ipss: {
     titleKey: 'part1.fields.ipss.title',
     descriptionKey: 'part1.fields.ipss.description',
+    isGuideline: false,
     sources: [
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
       { name: 'van Leeuwen, PJ, et al., Can J Urol. 2011', url: pubmedSearch('van Leeuwen PJ Can J Urol 2011') },
@@ -118,6 +149,7 @@ export const fieldReferences = {
   shim: {
     titleKey: 'part1.fields.shim.title',
     descriptionKey: 'part1.fields.shim.description',
+    isGuideline: false,
     sources: [
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
     ],
@@ -125,6 +157,7 @@ export const fieldReferences = {
   comorbidities: {
     titleKey: 'part1.fields.comorbidities.title',
     descriptionKey: 'part1.fields.comorbidities.description',
+    isGuideline: false,
     sources: [
       { name: 'Tiruye et al. (2024) – Impact of comorbidities on prostate cancer-specific mortality', url: 'https://pubmed.ncbi.nlm.nih.gov/38798040/' },
       { name: 'Blanc-Lapierre A, et al., BMC Public Health 2015', url: pubmedSearch('Blanc-Lapierre A BMC Public Health 2015') },
@@ -167,6 +200,8 @@ export const fieldReferences = {
       ],
     },
     pirads: {
+      titleKey: 'part2.piradsInfo.title',
+      descriptionKey: 'part2.piradsInfo.description',
       sources: [
         {
           name: 'Park KJ., et al., J Urol. 2020',

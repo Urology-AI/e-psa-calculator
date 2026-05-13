@@ -265,6 +265,8 @@ const PrintableForm = ({ onBack, formData }) => {
               <div className="printable-title">{t('printableForm.millionStrongMenTitle')}</div>
               <h1 className="printable-heading">{t('printableForm.questionnaireTitle')}</h1>
               <p className="printable-tagline">{t('printableForm.tagline')}</p>
+              <p className="printable-attribution">{t('printableForm.headerAttribution')}</p>
+              <p className="printable-header-disclaimer">{t('printableForm.headerDisclaimer')}</p>
             </div>
           </div>
           <div className="phone-box">
@@ -282,13 +284,13 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">1.</span> {t('part1.fields.age.title')}:
+              <span className="field-number">1.</span> {t('part1.fields.age.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
               <input type="text" name="age" className="field-input-inline" placeholder={t('printableForm.blank4')} defaultValue={getFieldValue('age')} />
             </label>
           </div>
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">2.</span> {t('part1.fields.race.title')}:
+              <span className="field-number">2.</span> {t('part1.fields.race.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="race" value="white" defaultChecked={isChecked('race', 'white')} /> {t('part1.race.white')}</label>
               <label className="checkbox-inline"><input type="radio" name="race" value="black" defaultChecked={isChecked('race', 'black')} /> {t('part1.race.black')}</label>
               <label className="checkbox-inline"><input type="radio" name="race" value="hispanic" defaultChecked={isChecked('race', 'hispanic')} /> {t('part1.race.hispanic')}</label>
@@ -305,7 +307,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">3.</span> {t('part1.fields.familyHistory.title')}:
+              <span className="field-number">3.</span> {t('part1.fields.familyHistory.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="family" value="0" defaultChecked={isChecked('familyHistory', 0)} /> {t('quickEntry.family.none')}</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="1" defaultChecked={isChecked('familyHistory', 1)} /> {t('quickEntry.family.one')}</label>
               <label className="checkbox-inline"><input type="radio" name="family" value="2" defaultChecked={isChecked('familyHistory', 2)} /> {t('quickEntry.family.twoPlus')}</label>
@@ -317,7 +319,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">4.</span> {t('part1.fields.inflammationHistory.title')}:
+              <span className="field-number">4.</span> {t('part1.fields.inflammationHistory.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="inflammation" value="0" defaultChecked={isChecked('inflammationHistory', 0)} /> {t('part1.options.no')}</label>
               <label className="checkbox-inline"><input type="radio" name="inflammation" value="1" defaultChecked={isChecked('inflammationHistory', 1)} /> {t('part1.options.yes')}</label>
               <div style={{ fontSize: '0.6875rem', fontStyle: 'italic', marginTop: '4px', marginLeft: '20px' }}>
@@ -330,7 +332,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">5.</span> {t('part1.fields.brcaStatus.title')}:
+              <span className="field-number">5.</span> {t('part1.fields.brcaStatus.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="brca" value="yes" defaultChecked={isChecked('brcaStatus', 'yes')} /> {t('part1.options.yes')}</label>
               <label className="checkbox-inline"><input type="radio" name="brca" value="no" defaultChecked={isChecked('brcaStatus', 'no')} /> {t('part1.options.no')}</label>
               <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" defaultChecked={isChecked('brcaStatus', 'unknown')} /> {t('part1.options.unknown')}</label>
@@ -345,7 +347,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">6.</span> {t('part1.step2.heightQuestion')}:
+              <span className="field-number">6.</span> {t('part1.step2.heightQuestion')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="heightUnit" value="imperial" defaultChecked={getFieldValue('heightUnit') !== 'metric'} /> {t('part1.step2.heightUnit.imperial')}</label>
               <input type="text" name="heightFt" className="field-input-tiny" placeholder={t('printableForm.blank2')} defaultValue={getFieldValue('heightFt', '')} /> {t('printableForm.ft')}
               <input type="text" name="heightIn" className="field-input-tiny" placeholder={t('printableForm.blank2')} defaultValue={getFieldValue('heightIn', '')} /> {t('printableForm.in')}
@@ -358,7 +360,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">7.</span> {t('part1.step2.weightQuestion')}:
+              <span className="field-number">7.</span> {t('part1.step2.weightQuestion')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="weightUnit" value="lbs" defaultChecked={getFieldValue('weightUnit') !== 'kg'} /> {t('printableForm.lbs')}</label>
               <input type="text" name="weight" className="field-input-small" placeholder={t('printableForm.blank4')} defaultValue={getFieldValue('weight', '')} />
               <label className="checkbox-inline"><input type="radio" name="weightUnit" value="kg" defaultChecked={getFieldValue('weightUnit') === 'kg'} /> {t('printableForm.kg')}</label>
@@ -375,7 +377,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">8.</span> {t('part1.fields.exercise.title')}:
+              <span className="field-number">8.</span> {t('part1.fields.exercise.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="exercise" value="0" defaultChecked={isChecked('exercise', 0)} /> {t('part1.step3.exercise.regular')}</label>
               <label className="checkbox-inline"><input type="radio" name="exercise" value="1" defaultChecked={isChecked('exercise', 1)} /> {t('part1.step3.exercise.some')}</label>
               <label className="checkbox-inline"><input type="radio" name="exercise" value="2" defaultChecked={isChecked('exercise', 2)} /> {t('part1.step3.exercise.none')}</label>
@@ -386,7 +388,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">9.</span> {t('part1.fields.smoking.title')}:
+              <span className="field-number">9.</span> {t('part1.fields.smoking.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="smoking" value="0" defaultChecked={isChecked('smoking', 0)} /> {t('part1.step3.smoking.never')}</label>
               <label className="checkbox-inline"><input type="radio" name="smoking" value="1" defaultChecked={isChecked('smoking', 1)} /> {t('part1.step3.smoking.former')}</label>
               <label className="checkbox-inline"><input type="radio" name="smoking" value="2" defaultChecked={isChecked('smoking', 2)} /> {t('part1.step3.smoking.current')}</label>
@@ -397,7 +399,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">10.</span> {t('part1.fields.chemicalExposure.title')}:
+              <span className="field-number">10.</span> {t('part1.fields.chemicalExposure.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="yes" defaultChecked={isChecked('chemicalExposure', 'yes')} /> {t('part1.options.yes')}</label>
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="no" defaultChecked={isChecked('chemicalExposure', 'no')} /> {t('part1.options.no')}</label>
               <label className="checkbox-inline"><input type="radio" name="chemicalExposure" value="unknown" defaultChecked={isChecked('chemicalExposure', 'unknown')} /> {t('part1.options.unknown')}</label>
@@ -408,7 +410,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">11.</span> {t('part1.fields.diet.title')}:
+              <span className="field-number">11.</span> {t('part1.fields.diet.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
               <label className="checkbox-inline"><input type="radio" name="dietPattern" value="western" defaultChecked={isChecked('dietPattern', 'western')} /> {t('part1.step4.diet.western')}</label>
               <label className="checkbox-inline"><input type="radio" name="dietPattern" value="mediterranean" defaultChecked={isChecked('dietPattern', 'mediterranean')} /> {t('part1.step4.diet.mediterranean')}</label>
               <label className="checkbox-inline"><input type="radio" name="dietPattern" value="indian" defaultChecked={isChecked('dietPattern', 'indian')} /> {t('part1.step4.diet.indian')}</label>
@@ -448,7 +450,7 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">{t('printableForm.sectionIpSs')}</span>
+          <span className="section-label">{t('printableForm.sectionIpSs')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span></span>
         </div>
         <p className="score-help-text">{t('printableForm.ipssScaleReminder')}</p>
 
@@ -561,7 +563,7 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">{t('printableForm.sectionShim')}</span>
+          <span className="section-label">{t('printableForm.sectionShim')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span></span>
         </div>
         <p className="score-help-text">{t('printableForm.shimScaleReminder')}</p>
 

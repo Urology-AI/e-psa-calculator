@@ -23,6 +23,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     hormonalTherapyType: formData.hormonalTherapyType || '',
     knowPirads: hasMriPathway ? true : (formData.knowPirads || false),
     pirads: formData.pirads || '0',
+    piradsLesions: Array.isArray(formData.piradsLesions) ? formData.piradsLesions : [],
   });
 
   useEffect(() => {
@@ -143,7 +144,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 }}
               />
               {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
-                <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+                <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
                   {t('part2.psa.psaInvalid')}
                 </div>
               )}
@@ -275,25 +276,84 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
             <div className="question-text">{t('part2.mri.q2')}</div>
           </div>
           <div className="question-body">
-            <div className="option-grid c3">
-              {[
-                { value: '1', label: '1' },
-                { value: '2', label: '2' },
-                { value: '3', label: '3' },
-                { value: '4', label: '4' },
-                { value: '5', label: '5' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  className={`option-btn ${localData.pirads === opt.value ? 'selected' : ''}`}
-                  onClick={() => updateField('pirads', opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            {(() => {
+              // Multi-lesion support: array of PI-RADS scores per detected lesion.
+              // The engine takes the maximum (worst-lesion drives clinical decision).
+              // We keep `localData.pirads` in sync with the max for backward compat.
+              const lesionsRaw = Array.isArray(localData.piradsLesions) ? localData.piradsLesions : [];
+              const lesions = lesionsRaw.length > 0 ? lesionsRaw : [localData.pirads ?? null];
+              const updateLesions = (next) => {
+                const cleaned = next.map(v => (v === '' || v === null || v === undefined) ? null : String(v));
+                const maxVal = cleaned
+                  .filter(v => v != null)
+                  .map(v => Number(v))
+                  .reduce((a, b) => (b > a ? b : a), 0);
+                updateField('piradsLesions', cleaned);
+                updateField('pirads', maxVal > 0 ? String(maxVal) : null);
+              };
+              return (
+                <>
+                  {lesions.map((lesionVal, idx) => (
+                    <div key={idx} style={{ marginBottom: idx < lesions.length - 1 ? '12px' : 0 }}>
+                      {lesions.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151' }}>
+                            Lesion {idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = lesions.filter((_, i) => i !== idx);
+                              updateLesions(next.length > 0 ? next : [null]);
+                            }}
+                            style={{
+                              background: 'transparent', border: 'none', cursor: 'pointer',
+                              color: '#6b7280', fontSize: '0.75rem', textDecoration: 'underline',
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                      <div className="option-grid c3">
+                        {[
+                          { value: '1', label: '1' },
+                          { value: '2', label: '2' },
+                          { value: '3', label: '3' },
+                          { value: '4', label: '4' },
+                          { value: '5', label: '5' },
+                        ].map(opt => (
+                          <button
+                            key={opt.value}
+                            className={`option-btn ${lesionVal === opt.value ? 'selected' : ''}`}
+                            onClick={() => {
+                              const next = [...lesions];
+                              next[idx] = opt.value;
+                              updateLesions(next);
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => updateLesions([...lesions, null])}
+                    style={{
+                      marginTop: '10px', background: 'transparent', border: '1px dashed #9ca3af',
+                      borderRadius: '6px', padding: '6px 12px', cursor: 'pointer',
+                      color: '#374151', fontSize: '0.8125rem', fontWeight: 500,
+                    }}
+                  >
+                    + Add another lesion
+                  </button>
+                </>
+              );
+            })()}
             <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem' }}>
-              {t('part2.mri.q2Note')}
+              {t('part2.mri.q2Note')} If multiple lesions are present, add each one — the highest PI-RADS drives the assessment.
             </div>
           </div>
         </div>

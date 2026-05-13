@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
       "modelDocs": "Model Documentation",
-      "hipaa": "HIPAA Compliant"
+      "hipaa": "Data Privacy",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
     },
     "loadingResults": {
       "title": "Loading your results...",
@@ -68,8 +70,14 @@
   },
   "welcome": {
     "heroBadge": "Educational Clinical Support Tool",
-    "heroTitle": "Know your baseline risk before your next urology visit",
-    "heroDescription": "Complete a brief evidence-informed questionnaire to generate a personalized ePSA estimate for discussion with your clinician.",
+    "heroTitle": "Know your baseline PSA risk before your next urology visit",
+    "heroDescription": "Get a personalized picture of your prostate cancer risk so you can have a more informed PSA conversation with your clinician — not a verdict, a starting point.",
+    "psaIntro": {
+      "kicker": "Before you start",
+      "heading": "What is PSA, and why does this matter?",
+      "body": "Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.",
+      "seeDoctorNudge": "If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don't wait on this tool."
+    },
     "featureGuidedQuestions": "27 guided questions",
     "featureTime": "~5 minutes",
     "featurePrivate": "Private by design",
@@ -178,7 +186,12 @@
     "dataUseTitle": "Data use notice:",
     "dataUseBody": "Cloud session data is stored for up to 30 days and de-identified data may be used anonymously to improve and validate future versions of the model. Local mode stays on your device and remains under your control; if data is moved off your device or collected through a third-party device, it may be shared. Please confirm with the data collector, as we are not responsible for data moved from your device or other third-party devices. For cloud sessions, we use secure transfer and compliance-oriented safeguards.",
     "continueButton": "Continue",
-    "errorNoSelection": "Please select an option to continue"
+    "errorNoSelection": "Please select an option to continue",
+    "rightToWithdrawTitle": "Your rights",
+    "rightToWithdrawBody": "Participation is voluntary. You can stop using the tool at any time. If you used cloud storage, you can delete your saved session from the results screen — this is irreversible.",
+    "notMedicalDevice": "ePSA is not an FDA-cleared medical device and is not a substitute for evaluation by a clinician.",
+    "researcherContactTitle": "Questions or to withdraw your data",
+    "researcherContactBody": "Contact the study team: Aditya Dixit · aditya.dixit@mssm.edu · Department of Urology, Icahn School of Medicine at Mount Sinai."
   },
   "auth": {
     "createSessionHeading": "Create an anonymous session to save to cloud",
@@ -198,16 +211,21 @@
     }
   },
   "hipaa": {
-    "title": "HIPAA Compliance",
+    "title": "Data Privacy & HIPAA Status",
     "closeButton": "Close",
     "privacy": {
       "title": "Privacy & Data Protection",
-      "text": "The ePSA tool is designed to protect your health information in line with HIPAA considerations. We do not collect, store, or link any personally identifiable information (PII) or protected health information (PHI) such as name, email, or phone number."
+      "text": "ePSA is an educational research tool. Sign-in to ePSA uses an anonymous session key only — we do not collect an email address, phone number, or other contact identifier. This page describes what we do and do not collect, and where your data is stored."
+    },
+    "baa": {
+      "title": "HIPAA / BAA Status",
+      "label": "Important:",
+      "text": "This tool runs on Google Firebase (Cloud Firestore for storage and Firebase Authentication for the anonymous session key). Firebase is HIPAA-eligible only under an executed Google Cloud Business Associate Agreement (BAA). The BAA status for this deployment is being finalized as part of Mount Sinai's review. Until the BAA is confirmed in writing, do not enter information you would consider Protected Health Information (PHI) in a clinical setting. ePSA is not a medical device and is not FDA-cleared."
     },
     "sessionOnly": {
       "title": "Anonymous Session Key Only",
-      "noEmailPhoneLabel": "No email or phone:",
-      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number.",
+      "noEmailPhoneLabel": "No email or phone collected:",
+      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short random key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number, and the user record we create explicitly carries email and phone as null.",
       "noIdentityLabel": "No identity linking:",
       "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
       "saveKeyLabel": "Save your key:",
@@ -222,37 +240,142 @@
     },
     "choices": {
       "title": "Your Choices",
-      "text": "You can use the tool with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No personal contact information is required for cloud storage."
+      "text": "You can use ePSA with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No contact information is required in either path."
     },
     "disclaimer": {
       "label": "Disclaimer:",
-      "text": "This summary describes how the ePSA application handles data for privacy purposes. It is not legal advice. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
+      "text": "This summary describes how the ePSA application handles data. It is not legal advice and is not a substitute for a formal Privacy Policy or Notice of Privacy Practices. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
     }
   },
-  "storage": {
-    "cloudTitle": "Cloud Storage",
-    "cloudDescription": "Store your data securely by email or phone number. Access from any device and share with healthcare providers.",
-    "cloudFeatureSecure": "Secure cloud storage",
-    "cloudFeatureAnyDevice": "Access from any device",
-    "cloudFeatureCollaboration": "Provider collaboration",
-    "cloudFeatureBackups": "Automatic backups",
-    "cloudFeatureAuth": "Email or phone authentication",
-    "cloudContinue": "Continue with Cloud Storage",
-    "localTitle": "Local Storage",
-    "localDescription": "Store your data only on this device. No account or phone number required. Use import/export to save or move your data.",
-    "localFeatureNoSignIn": "No sign-in required",
-    "localFeatureSame": "Same questionnaire & results",
-    "localFeatureExport": "Export to JSON or print",
-    "localFeaturePrivacy": "Privacy on this device",
-    "localContinue": "Continue with Local Storage",
-    "importPrompt": "Already have an assessment?",
-    "importButton": "Import Previous Data",
-    "footerText": "Your health data is stored securely and privately. We never share or sell your information.",
-    "privacyNote": "HIPAA-compliant secure storage"
+  "privacyPolicy": {
+    "title": "ePSA Privacy Policy",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for Mount Sinai counsel review:",
+      "text": "This Privacy Policy is a working draft prepared for review by Mount Sinai's Office of General Counsel. It describes the application's current data handling in good faith but has not yet been reviewed or approved. Do not rely on this document as a final legal notice. The institutional Mount Sinai Privacy Policy at mountsinai.org/privacy continues to apply in parallel."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with an effective date upon counsel sign-off."
+    },
+    "whoWeAre": {
+      "title": "About ePSA",
+      "text": "ePSA (Prostate-Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\", \"we\", \"us\", or \"our\"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation."
+    },
+    "institutional": {
+      "title": "Relationship to the Mount Sinai Privacy Policy",
+      "text": "ePSA is a Mount Sinai application. The institutional Mount Sinai Privacy Policy (available at mountsinai.org/privacy) is incorporated into this Privacy Policy by reference and continues to apply to your use of ePSA. This document supplements that policy with provisions specific to the ePSA tool. In the event of a direct conflict between this document and the institutional policy with respect to ePSA-specific data flows, the more protective provision controls."
+    },
+    "dataCollected": {
+      "title": "Information We Collect",
+      "intro": "Depending on the storage option you select when using ePSA, we may collect the following categories of information:",
+      "assessmentLabel": "Assessment inputs and results:",
+      "assessmentText": "Your responses to the risk-assessment questions (including age, BMI, PSA value, IPSS and SHIM symptom scores, family history, self-reported ancestry, prior biopsy and MRI findings, and other clinical inputs) and the model outputs derived from them.",
+      "authLabel": "Contact identifiers:",
+      "authText": "ePSA does NOT collect an email address, phone number, or other contact identifier from users. Sign-in to ePSA uses an anonymous session key only, and the user record we create explicitly stores email and phone as null. There is no email- or phone-based sign-in path in the current production build.",
+      "technicalLabel": "Technical and usage data:",
+      "technicalText": "Standard server logs (IP address, browser type, request timestamps) generated by Firebase Hosting and Cloud Firestore for security, abuse prevention, and reliability. We do not currently deploy advertising trackers or third-party analytics SDKs on ePSA."
+    },
+    "howWeUse": {
+      "title": "How We Use Information",
+      "text": "We use the information described above to compute and display your risk estimates; to allow you to retrieve a prior assessment across sessions; to operate, secure, and improve the ePSA tool; and, in a de-identified and aggregate form consistent with IRB protocol STUDY-14-00050, to support ongoing model validation and academic research. We do not sell your data and do not use it for commercial advertising."
+    },
+    "storageAndSharing": {
+      "title": "Storage, Vendors, and HIPAA Status",
+      "text": "ePSA data is stored in Google Cloud Firestore (United States region) under Mount Sinai's Firebase project configuration. Firebase and Cloud Firestore are vendors to Mount Sinai. Firebase Authentication, Cloud Firestore, and related Firebase services are HIPAA-eligible only under an executed Google Cloud Business Associate Agreement (BAA); execution of the BAA covering this ePSA deployment is being finalized as part of Mount Sinai's review. Until that BAA is confirmed in writing, you should not enter information that you would consider Protected Health Information in a clinical setting. We do not share your ePSA data with third parties for marketing or advertising purposes."
+    },
+    "cookiesAndTracking": {
+      "title": "Cookies and Tracking",
+      "text": "ePSA uses a minimal set of cookies and similar local storage required to keep your anonymous session active (Firebase Authentication) and to remember your in-session preferences (such as text scale and language). ePSA does not use advertising cookies and does not currently transmit identifiable data to Google Analytics in its research configuration. If analytics are enabled in the future, they will be either de-identified to a tier-label only or gated behind explicit consent, and this Privacy Policy will be updated accordingly."
+    },
+    "hipaaNotice": {
+      "title": "Relationship to Mount Sinai's HIPAA Notice",
+      "text": "Mount Sinai maintains a separate Notice of Privacy Practices (NPP) under HIPAA covering its treatment, payment, and health-care-operations activities. ePSA is an educational and research tool and is not, in its current form, part of Mount Sinai's HIPAA-covered treatment workflow. Data entered into ePSA is therefore handled under this Privacy Policy and the IRB protocol governing the underlying study, not under the institutional NPP. For HIPAA questions specific to your clinical care at Mount Sinai, consult the institutional NPP."
+    },
+    "yourRights": {
+      "title": "Your Rights",
+      "text": "You may request access to, correction of, or deletion of your ePSA data at any time, and you may withdraw from the educational and research use of ePSA without penalty and without affecting your access to clinical care at Mount Sinai. Depending on your place of residence, you may also have additional rights under state or international law (including the rights described in Mount Sinai's institutional Privacy Policy under \"Personal Data Rights\")."
+    },
+    "childrens": {
+      "title": "Children's Privacy",
+      "text": "ePSA is intended for adult use only and is not directed to individuals under 18 years of age. We do not knowingly collect information from children. If you believe a child has provided information to ePSA, please contact the study team so the data can be deleted."
+    },
+    "changes": {
+      "title": "Changes to This Policy",
+      "text": "We may update this Privacy Policy from time to time. The most recent version will be accessible from the ePSA footer. Continued use of ePSA after an update constitutes acknowledgement of the revised policy."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For ePSA-specific privacy questions, data-access or deletion requests, or to withdraw from the research and educational use of ePSA, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai). For institutional Mount Sinai privacy matters, contact Compliance.info@mountsinai.org as described in the Mount Sinai Privacy Policy at mountsinai.org/privacy."
+    }
+  },
+  "terms": {
+    "title": "ePSA Terms of Service",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for Mount Sinai counsel review:",
+      "text": "These Terms of Service are a working draft prepared for review by Mount Sinai's Office of General Counsel. They describe the intended use of ePSA in good faith but have not yet been reviewed or approved. Do not rely on this document as a final legal agreement. The institutional Mount Sinai Terms and Conditions of Use continue to apply in parallel."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with an effective date upon counsel sign-off."
+    },
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "text": "BY ACCESSING OR USING ePSA, YOU AGREE TO BE BOUND BY THESE TERMS, BY THE ePSA PRIVACY POLICY, AND BY THE INSTITUTIONAL MOUNT SINAI TERMS AND CONDITIONS OF USE. IF YOU DO NOT AGREE, DO NOT ACCESS OR USE ePSA. You represent that you are at least 18 years of age and have the legal capacity to enter into these Terms."
+    },
+    "institutional": {
+      "title": "Relationship to Mount Sinai's Terms and Conditions of Use",
+      "text": "ePSA is owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\"). The institutional Mount Sinai Terms and Conditions of Use are incorporated into these Terms by reference and continue to apply to your use of ePSA. These Terms supplement that document with provisions specific to ePSA as a research and educational tool. In the event of a direct conflict between these Terms and the institutional Terms with respect to ePSA-specific functionality, the more restrictive provision controls."
+    },
+    "educationalUse": {
+      "title": "Educational and Research Use Only",
+      "text": "ePSA is an educational risk-assessment and research tool developed by Mount Sinai Urology in connection with IRB protocol STUDY-14-00050. ePSA is NOT a medical device, has NOT been cleared or approved by the U.S. Food and Drug Administration, and is intended to support — not replace — discussion with a qualified health-care provider. The risk models are internally validated only, against the Mount Sinai cohort described in the model documentation; no external validation cohort has been used to date."
+    },
+    "noMedicalAdvice": {
+      "title": "The ePSA Tool Does Not Provide Medical Advice",
+      "text": "The information and content in ePSA — including text, numerical scores, risk percentages, charts, and any printed or exported output — is for informational and research purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health-care provider with any questions you may have regarding your medical care, and never disregard professional medical advice or delay seeking it because of something you have read on or via ePSA. Reliance on any information appearing in ePSA is solely at your own risk."
+    },
+    "accountResponsibility": {
+      "title": "Session Keys and Data Responsibility",
+      "text": "Sign-in to ePSA uses an anonymous session key only. You are responsible for keeping your session key secure — anyone with the key can access the associated assessment data. If you lose your session key, the associated assessment data cannot be recovered, as we do not collect any contact information that would let us restore it. You may not use ePSA in a way that interferes with another user's access, attempts to defeat security controls, or violates applicable law."
+    },
+    "intellectualProperty": {
+      "title": "Intellectual Property",
+      "text": "ePSA, its underlying models, source code, documentation, user interface, and content are the intellectual property of Mount Sinai and its content providers. You are granted a personal, non-exclusive, non-transferable, revocable, and limited right to use ePSA for personal, non-commercial educational purposes only. You may not copy, redistribute, decompile, reverse-engineer, or create derivative works of ePSA without Mount Sinai's prior written consent."
+    },
+    "noWarranty": {
+      "title": "No Warranty",
+      "text": "ePSA IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY, OR FITNESS FOR CLINICAL DECISION-MAKING. MOUNT SINAI DISCLAIMS ALL SUCH WARRANTIES. MOUNT SINAI DOES NOT WARRANT THAT ePSA WILL BE UNINTERRUPTED OR ERROR-FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT THE OUTPUTS OF THE RISK MODELS WILL BE ACCURATE OR APPROPRIATE FOR YOUR INDIVIDUAL CIRCUMSTANCES."
+    },
+    "limitationOfLiability": {
+      "title": "Limitation of Liability",
+      "text": "TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL MOUNT SINAI OR ANY OF ITS TRUSTEES, OFFICERS, FACULTY, EMPLOYEES, AGENTS, INVESTIGATORS, OR CONTRACTORS BE LIABLE TO YOU OR ANY OTHER PARTY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF, OR INABILITY TO USE, ePSA, INCLUDING ANY DAMAGES RELATED TO A CLINICAL DECISION INFLUENCED BY ePSA OUTPUTS. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION WITH ePSA IS TO STOP USING IT."
+    },
+    "indemnity": {
+      "title": "Indemnity",
+      "text": "You agree to indemnify and hold harmless Mount Sinai and its trustees, officers, faculty, employees, agents, investigators, and contractors from any claim, demand, loss, or liability arising out of your breach of these Terms, your misuse of ePSA, or your reliance on ePSA outputs in a manner inconsistent with the educational and research purpose described above."
+    },
+    "changes": {
+      "title": "Changes to These Terms",
+      "text": "Mount Sinai may revise these Terms from time to time without separate notice. The most recent version will be accessible from the ePSA footer. Continued use of ePSA after a revision constitutes acceptance of the revised Terms."
+    },
+    "governingLaw": {
+      "title": "Governing Law",
+      "text": "These Terms are governed by and construed in accordance with the laws of the State of New York, without regard to conflict-of-laws principles, consistent with the institutional Mount Sinai Terms and Conditions of Use."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For questions about these Terms or about the ePSA tool, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai)."
+    }
   },
   "info": {
     "learnMore": "Learn more about {{title}}",
-    "sources": "Sources:"
+    "sources": "Sources:",
+    "guidelineBadge": "AUA/NCCN guideline factor",
+    "modelOnlyBadge": "ePSA model only — not in AUA/NCCN",
+    "guidelineNote": "AUA and NCCN use this factor in their official PSA screening criteria. Their guidelines are listed first in the sources below.",
+    "modelOnlyNote": "This factor is used by the ePSA model but is not part of official AUA/NCCN PSA screening criteria. It's based on research evidence only."
   },
   "part1": {
     "fields": {
@@ -275,16 +398,16 @@
       },
       "inflammationHistory": {
         "title": "Inflammation History",
-        "description": "Chronic inflammatory conditions like prostatitis, ulcerative colitis, and Crohn's disease may increase prostate cancer risk through chronic inflammation mechanisms."
+        "description": "Long-lasting inflammation in the body — such as prostate inflammation (prostatitis) or inflammatory bowel disease (ulcerative colitis, Crohn's) — may raise prostate cancer risk over time."
       },
       "brcaStatus": {
-        "title": "Known Genetic Mutation",
-        "helper": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13.",
-        "description": "Select Yes if you have been told you carry a hereditary prostate cancer-related mutation, such as BRCA2 or HOXB13. BRCA2 mutations are associated with increased prostate cancer risk and can be linked to more aggressive disease. HOXB13, especially the G84E variant in some families, is a hereditary prostate cancer susceptibility gene."
+        "title": "Hereditary Cancer Gene Testing",
+        "helper": "Have you had a genetic test for hereditary prostate cancer gene changes (like BRCA1/2, HOXB13, ATM, or Lynch syndrome)? Pick Yes only if a test confirmed you carry one. Pick No if you were tested and nothing was found. Pick Unknown if you've never been tested.",
+        "description": "Some inherited gene changes raise prostate cancer risk. BRCA2 is linked to higher risk and more aggressive disease. HOXB13 (especially the G84E version) runs in some families and also raises risk. ATM and Lynch-syndrome genes also raise risk. AUA, NCCN, and EAU guidelines recommend earlier and more frequent PSA screening if a test has confirmed you carry one."
       },
       "heightWeight": {
         "title": "Height & Weight (BMI)",
-        "description": "Obesity is associated with increased risk of aggressive prostate cancer. Taller height may be a slight risk factor."
+        "description": "Carrying extra weight is linked to a higher chance of aggressive prostate cancer. Being very tall may also slightly increase risk."
       },
       "exercise": {
         "title": "Exercise Level",
@@ -294,29 +417,29 @@
       "smoking": {
         "title": "Smoking Status",
         "helper": "Include cigarettes or other regular tobacco use when choosing your current or past smoking status.",
-        "description": "Smoking is linked to increased risk of aggressive prostate cancer and higher mortality rates."
+        "description": "Smoking is linked to a higher chance of aggressive prostate cancer and worse outcomes."
       },
       "chemicalExposure": {
         "title": "9/11 or Chemical Exposure",
-        "helper": "Answer Yes if you were present at the World Trade Center site after 9/11, or have had meaningful occupational, military, or environmental chemical exposure (e.g., pesticides, industrial chemicals). Answer Unknown if you are unsure.",
-        "description": "9/11 first responders and survivors have elevated rates of several cancers. Exposure to pesticides and certain industrial chemicals may also increase prostate cancer risk. Note: this factor is not part of AUA/SUO screening guidelines — it is an ePSA model variable."
+        "helper": "Pick Yes if you were at the World Trade Center site after 9/11, or if your job, military service, or environment exposed you to chemicals like pesticides or industrial chemicals. Pick Unknown if you're not sure.",
+        "description": "People who were at the 9/11 site, and people exposed to pesticides or industrial chemicals at work, have higher rates of several cancers. Note: this is part of ePSA's model — it is not used by official AUA/SUO screening guidelines."
       },
       "diet": {
         "title": "Diet Pattern",
         "helper": "Pick the pattern that most closely describes your usual eating habits.",
-        "description": "Diets high in red meat and high-fat dairy may increase risk. Plant-based diets may be protective."
+        "description": "Eating a lot of red meat and high-fat dairy may raise risk. Eating mostly plants may help lower it."
       },
       "ipss": {
-        "title": "IPSS (Urinary Symptoms)",
-        "description": "International Prostate Symptom Score measures lower urinary tract symptoms often associated with prostate enlargement."
+        "title": "Urinary Symptoms (IPSS)",
+        "description": "These questions measure urinary problems like weak stream, needing to go often, or waking up at night. Strong symptoms are common when the prostate is enlarged."
       },
       "shim": {
-        "title": "SHIM (Sexual Health)",
-        "description": "Sexual Health Inventory for Men (SHIM) assesses erectile dysfunction, which can be an indicator of prostate health issues."
+        "title": "Sexual Health (SHIM)",
+        "description": "These questions check for erection problems. Erection problems can sometimes be an early sign of other prostate or vascular health issues."
       },
       "comorbidities": {
-        "title": "Comorbidities (HTN, HLD, CAD, Diabetes)",
-        "description": "Hypertension (HTN), Hyperlipidemia (HLD), Coronary Artery Disease (CAD), and Diabetes. Two questions: (1) Have you had any? No / Yes. (2) If yes: One or Two or more?"
+        "title": "Other Health Conditions (heart, blood pressure, cholesterol, diabetes)",
+        "description": "Have you been diagnosed with high blood pressure, high cholesterol, heart disease, or diabetes? We'll ask if you have any — and if yes, whether it's one of these or two or more."
       }
     },
     "steps": {
@@ -346,6 +469,7 @@
       },
       "shim": {
         "sectionTitle": "Sexual Health (SHIM)",
+        "sectionTitleIief": "Sexual Health (IIEF-5)",
         "shortLabel": "SHIM"
       }
     },
@@ -354,16 +478,61 @@
       "black": "Black / African American",
       "hispanic": "Hispanic / Latino",
       "asian": "Asian / Pacific Islander",
-      "other": "Other / Mixed"
+      "mixed": "Mixed / Multi-racial",
+      "other": "Other"
     },
+    "nonGuideline": {
+      "badge": "NON-GUIDELINE",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC do not use this factor for the PSA screening decision. It is used by the ePSA risk model only.",
+      "note": "Not part of AUA/NCCN/EAU/ERSPC screening criteria; used by the ePSA model only."
+    },
+    "guideline": {
+      "badge": "GUIDELINE-BASED",
+      "badgeTooltip": "This factor is directly cited by AUA, NCCN, and EAU prostate cancer screening guidelines."
+    },
+    "chemicalExposureOptions": {
+      "question": "Have you had any of the following exposures? (Select all that apply)",
+      "agentOrange": "Agent Orange (military / Vietnam-era)",
+      "nineEleven": "World Trade Center / 9-11 site",
+      "otherChemical": "Other occupational or environmental chemicals (e.g., pesticides, solvents)",
+      "none": "None of the above",
+      "unknown": "Unknown / unsure",
+      "evidenceProven": "Strong epidemiologic evidence",
+      "evidenceUnspecified": "Possible association; less established"
+    },
+    "ipssShort": {
+      "toggleShort": "Use short version (single severity question)",
+      "toggleFull": "Use full IPSS (7 questions)",
+      "skip": "Skip — I don't have urinary symptoms",
+      "singleQuestionLabel": "Overall, how bothersome are your urinary symptoms?",
+      "options": {
+        "none": "None",
+        "mild": "Mild",
+        "moderate": "Moderate",
+        "severe": "Severe"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Use short version (single severity question)",
+      "toggleFull": "Use full SHIM (5 questions)",
+      "skip": "Skip — no erectile concerns",
+      "singleQuestionLabel": "Overall, how would you describe your erectile function over the past 6 months?",
+      "options": {
+        "none": "No erectile dysfunction",
+        "mild": "Mild ED",
+        "mildModerate": "Mild–Moderate ED",
+        "moderate": "Moderate ED",
+        "severe": "Severe ED"
+      }
+    },
+    "abnormalPsaLikelihood": "Estimated likelihood of an abnormal PSA / csPCa:",
     "errors": {
       "step0": {
         "ageInline": "Please enter age (18-120)",
         "raceInline": "Please select your race/ethnicity"
       },
       "stepErrorTitle": "Please complete the following before continuing:",
-      "selectOption": "Please select an option"
-      ,
+      "selectOption": "Please select an option",
       "validate": {
         "step0": {
           "ageInvalid": "Please enter a valid age (18+)",
@@ -399,6 +568,18 @@
       "yes": "Yes",
       "no": "No",
       "unknown": "Unknown"
+    },
+    "skip": {
+      "preferNotToSay": "Prefer not to say / Skip",
+      "skippedLabel": "Skipped — a neutral default will be used in the estimate.",
+      "sectionPrompt": "Don't want to answer these now? You can skip this section.",
+      "sectionSkippedNote": "This section is skipped. A neutral default will be used in the estimate.",
+      "skipSection": "Skip this section",
+      "answerInstead": "Answer instead"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "ePSA only"
     },
     "step1": {
       "familyHistory": {
@@ -508,6 +689,18 @@
       "helper": "Answer based on your sexual function over the past 6 months.",
       "answeredCount": "({{answeredCount}}/{{total}} answered)",
       "totalLabel": "SHIM Total",
+      "totalLabelIief": "IIEF-5 Total",
+      "regionLabel": "Guideline region",
+      "regionUs": "US (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / UK (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, the 5-item form used by AUA / NCCN.",
+      "regionNoteEau": "IIEF-5 is the abbreviated International Index of Erectile Function used in EAU / UK practice. (SHIM and IIEF-5 are the same 5 questions and the same 0–25 score — your clinician may also use the full IIEF-15.)",
+      "severityHeading": "What does this total mean?",
+      "severitySevere": "Severe ED",
+      "severityModerate": "Moderate ED",
+      "severityMildModerate": "Mild to moderate ED",
+      "severityMild": "Mild ED",
+      "severityNone": "No ED",
       "q1": "How do you rate your confidence that you could get and keep an erection?",
       "q1.opt1": "Very low",
       "q1.opt2": "Low",
@@ -547,6 +740,10 @@
   "part2": {
     "form": {
       "errorPreResult": "Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment."
+    },
+    "piradsInfo": {
+      "title": "About PI-RADS and the ePSA risk estimate",
+      "description": "PI-RADS is a 1–5 scale that radiologists use to grade prostate MRI lesions. PI-RADS 4 means the MRI suggests a clinically significant lesion is likely; PI-RADS 5 means it is highly suspicious.\n\nImportant — what the ePSA percentage means: when ePSA estimates a probability from PI-RADS and PSA, it predicts GG3+ csPCa — clinically significant prostate cancer at Gleason Grade ≥3, the higher-risk disease — not any prostate cancer. Because this is a stricter endpoint, the number may look lower than the popular \"PI-RADS 4 ≈ 60% cancer\" figure you may have seen elsewhere. Both numbers can be true at the same time — they describe different things.\n\nAlways discuss the meaning of your PI-RADS score with your urologist."
     },
     "flow": {
       "stepChip": "Step {{current}} of 2",
@@ -597,10 +794,11 @@
       "q2": "PIRADS Score on MRI",
       "q2Note": "PI-RADS (Prostate Imaging Reporting and Data System) scores range from 1-5, with higher scores indicating higher suspicion for clinically significant prostate cancer."
     }
-  }
-  ,
+  },
   "part1Results": {
     "noResults": "No results available.",
+    "empiricalProbabilityText": "In our validation study (N={{n}}), {{events}} in {{n}} patients at this risk tier had clinically significant prostate cancer ({{rate}}%; 95% CI {{ciLo}}%–{{ciHi}}%).",
+    "educationalEstimateNote": "This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.",
     "sessionKeyLabel": "Session key",
     "savedToCloud": "Saved to cloud",
     "saving": "Saving...",
@@ -631,12 +829,12 @@
       "HIGHER": "HIGHER suggests a higher estimated likelihood relative to others in the model's reference data. Higher does not mean cancer is present. It may be a useful prompt to review screening options with a clinician."
     },
     "actionText": {
-      "LOWER": "Consider using this result to support a routine conversation with your healthcare provider, especially if you have questions about screening, family history, or symptoms.",
-      "MODERATE": "Consider discussing this result with your healthcare provider. Together you can decide whether screening (such as PSA testing) makes sense based on your age, preferences, and prior results.",
-      "HIGHER": "Consider prioritizing a discussion with your healthcare provider. They can help interpret this estimate and decide whether additional evaluation (for example, PSA testing or follow-up) is appropriate for you.",
-      "default": "Consider discussing these results with your healthcare provider."
+      "LOWER": "Bring this result to your next routine visit. It's a good starting point if you have questions about screening, family history, or symptoms.",
+      "MODERATE": "Talk this over with your doctor. Together you can decide whether a PSA test makes sense based on your age, what matters to you, and any past results.",
+      "HIGHER": "Make a point of discussing this with your doctor soon. They can help explain the result and decide whether a PSA test or other follow-up makes sense for you.",
+      "default": "Talk this over with your doctor."
     },
-    "disclaimer": "ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "disclaimer": "ePSA is an educational tool — not a medical test or diagnosis. It estimates your risk using your answers, population research, and screening guidelines from AUA, NCCN, and EAU. For men with strong risk factors, ePSA may suggest having a screening conversation earlier than general guidelines do. Always discuss the result with a doctor before deciding about testing or treatment. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "riskLevels": {
       "LOWER": "Fewer risk flags",
       "MODERATE": "Some risk flags",
@@ -644,7 +842,7 @@
     },
     "sectionRiskExplanationTitle": "Risk explanation",
     "sectionHowCalculatedTitle": "How this score is calculated",
-    "explanationHowScoreCalculated": "The ePSA score is a point-based summary of your answers. Each risk factor (for example age 60+, BMI ≥30, mild urinary symptoms, little or no exercise, current or former smoking, high red meat diet, Black race, family history, genetic mutation, inflammation, 9/11 or chemical exposure, or a low SHIM score) adds points. The total points are then normalized to a 0–100% scale, and a ±5% range is shown instead of a single number.",
+    "explanationHowScoreCalculated": "Your ePSA score adds up points based on your answers. Each risk factor — like being 60+, having a BMI of 30 or higher, urinary symptoms, little or no exercise, smoking, a red-meat-heavy diet, Black ancestry, family history, a genetic mutation, inflammation, 9/11 or chemical exposure, or erection issues — adds a few points. The total is converted to a 0–100% scale, and we show a small ±5% range to reflect normal uncertainty.",
     "sectionWhatTierMeansTitle": "What your tier means",
     "sectionGuidelineContextTitle": "Guideline context (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Recommendation Threshold",
@@ -662,10 +860,9 @@
     "exportFailedAlert": "Export failed. Please try again.",
     "btnExportData": "Export Data",
     "btnExportCsv": "Export CSV"
-  }
-  ,
+  },
   "part2Results": {
-    "disclaimer": "ePSA is a non-validated educational risk assessment tool. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU. In high-risk demographic profiles, ePSA may suggest earlier evaluation than standard guideline thresholds recommend. This tool does not replace physician judgment and is not intended for clinical decision-making without physician review. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
+    "disclaimer": "ePSA is an educational tool — not a medical test or diagnosis. It estimates your risk using your answers, population research, and screening guidelines from AUA, NCCN, and EAU. For men with strong risk factors, ePSA may suggest having a screening conversation earlier than general guidelines do. Always discuss the result with a doctor before deciding about testing or treatment. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "noResults": "No results available.",
     "sessionKeyLabel": "Session key",
     "savedToCloud": "Saved to cloud",
@@ -705,6 +902,82 @@
       "piradsExplanationProvided": "MRI and PI-RADS scoring may be used prior to initial biopsy to increase detection of clinically significant prostate cancer (GG2+). A PI-RADS score of 3 or higher indicates a suspicious lesion warranting further evaluation. This tool does not replace a radiologist's interpretation of multiparametric MRI findings.",
       "piradsExplanationNotProvided": "If PI-RADS is not included, the Part 2 category is based on the baseline estimate and PSA information only. A clinician may recommend MRI (or not) depending on your full clinical context.",
       "pointsExplanation": "Your Part 2 risk tier is summarized as an educational estimate that combines your Part 1 risk profile with your PSA level and, when available, your MRI PI-RADS score. The resulting category is meant to support shared decision-making with your clinician—not to replace clinical judgment."
+    },
+    "tiers": {
+      "riskBar": {
+        "low": "Low",
+        "intermediateLow": "Int-Low",
+        "intermediateHigh": "Int-High",
+        "high": "High"
+      },
+      "psaContext": {
+        "low": {
+          "label": "Low range",
+          "detail": "Reassuring. Continue routine screening."
+        },
+        "intermediateLow": {
+          "label": "Low–intermediate range",
+          "detail": "Warrants monitoring. Ask your doctor about interval."
+        },
+        "intermediateHigh": {
+          "label": "Elevated",
+          "detail": "Warrants evaluation by a urologist."
+        },
+        "high": {
+          "label": "Significantly elevated",
+          "detail": "Prompt urology referral recommended."
+        }
+      },
+      "pirads": {
+        "0": {
+          "label": "No reportable lesion",
+          "detail": "MRI found no significant lesion."
+        },
+        "1": {
+          "label": "Very unlikely"
+        },
+        "2": {
+          "label": "Unlikely"
+        },
+        "3": {
+          "label": "Uncertain"
+        },
+        "4": {
+          "label": "Likely suspicious"
+        },
+        "5": {
+          "label": "Highly suspicious"
+        }
+      },
+      "gauge": {
+        "low": "Low",
+        "moderate": "Intermediate",
+        "high": "High"
+      },
+      "hero": {
+        "biopsy": "Consider discussing biopsy with your urologist",
+        "urologistReview": "Consider a urology review",
+        "nextSteps": "Suggested next steps"
+      },
+      "endpointNote": "How risk is defined: Models 1–2 estimate the chance of any high-grade prostate cancer (GG2+). Model 3 (MRI pathway) estimates the chance of higher-grade cancer (GG3+). These thresholds matter — discuss with your urologist which best fits your situation.",
+      "recommendation": {
+        "veryHigh": "Your combined risk is very high. AUA and NCCN guidelines recommend prompt urologist referral and strong consideration of biopsy. Additional staging imaging may also be discussed. This is an urgent conversation to have with your physician.",
+        "high": "Your combined risk is high. AUA and NCCN guidelines recommend prompt referral to a urologist. A urologist will discuss whether a biopsy is appropriate — this is a conversation, not an automatic decision.",
+        "intermediateHigh": "Your combined risk warrants further evaluation. AUA and NCCN guidelines recommend speaking with a urologist. An MRI before biopsy is often the recommended next step to get more information.",
+        "intermediateLow": "Your combined risk is low-intermediate. AUA and NCCN guidelines recommend continued monitoring. Talk with your doctor about how often to repeat your PSA — typically every 1–2 years.",
+        "low": "Your combined risk is low. AUA and NCCN guidelines are reassuring at this level. Continue routine PSA screening — a repeat test in 2–4 years is typically appropriate."
+      },
+      "contextNote": {
+        "lowPsa": "Note: Even with a low PSA, your background risk factors (race, family history, or genetic mutation) mean closer monitoring is warranted per AUA/NCCN guidelines.",
+        "discordancePsaHigher": "Note: Your PSA level is in a higher range than your combined tier alone suggests. Your PSA result is an independent signal — discuss it with your physician regardless of your overall profile.",
+        "discordanceProfile": "Note: Your Part 1 risk profile raises your combined tier above what PSA alone would suggest. Both factors matter for your overall risk."
+      },
+      "explanation": {
+        "high": "A high combined risk tier means your PSA level — together with your Part 1 risk profile — falls in the range where urologists typically discuss biopsy. This does not mean you have cancer; it means more investigation is warranted.",
+        "intermediateHigh": "An intermediate-high combined risk tier means your PSA level and risk profile suggest a urology consultation is appropriate. An MRI is often recommended before any biopsy decision to get a clearer picture.",
+        "intermediateLow": "An intermediate-low combined risk tier means your PSA is mildly elevated or your background risk factors are present, but there is no immediate cause for concern. Continued monitoring with your doctor is the right approach.",
+        "low": "A low combined risk tier means your PSA level and risk profile are reassuring. No additional testing is needed right now — continue with routine screening as recommended by your doctor."
+      }
     }
   },
   "printableForm": {
@@ -720,6 +993,8 @@
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "ePSA Questionnaire",
     "tagline": "Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+    "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Department of Urology",
+    "headerDisclaimer": "Educational use only — not an FDA-cleared medical device. Internally validated on the Mount Sinai ePSA cohort; no external validation yet.",
     "phoneLabel": "Phone Number:",
     "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "About You",
@@ -778,8 +1053,17 @@
   },
   "quickEntry": {
     "title": "Quick Entry",
-    "subtitle": "Age/Race + SHIM/IPSS totals -> instant result",
+    "subtitle": "Only Age and Race are required — everything else has a sensible default you can adjust.",
     "exit": "Exit",
+    "requiredLegend": "Required",
+    "scoreModifiers": "Score modifiers",
+    "advanced": "Lifestyle & history",
+    "advancedHint": "Open to fine-tune — defaults shown apply if you don't change them.",
+    "usingDefault": "Default",
+    "resetDefaults": "Reset to defaults",
+    "requiredMark": "*",
+    "iDontKnow": "I don't know my IPSS",
+    "iDontKnowHide": "Use IPSS number instead",
     "ageLabel": "Age (18-120)",
     "agePlaceholder": "e.g., 55",
     "raceLabel": "Race / Ethnicity",
@@ -789,12 +1073,14 @@
       "black": "Black / African American",
       "hispanic": "Hispanic / Latino",
       "asian": "Asian / Pacific Islander",
-      "other": "Other / Mixed"
+      "mixed": "Mixed / Multi-racial",
+      "other": "Other"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "e.g., 25.49",
     "bmiHint": "Validation range in model: BMI 15-60",
     "familyHistoryLabel": "Family history",
+    "familyHistoryHint": "If you leave this on “None” your score is calculated as if no first-degree relative had prostate cancer. Note: “Unknown” is also scored as no family history by the current model — if you know any relative was affected, pick 1 or 2+ instead so your score reflects it.",
     "family": {
       "none": "None",
       "one": "1 relative",
@@ -805,6 +1091,18 @@
     "ipssPlaceholder": "e.g., 4",
     "shimLabel": "SHIM total (0-25)",
     "shimPlaceholder": "e.g., 25",
+    "ipssQolLabel": "Don't know your IPSS? Pick how you'd feel if your urinary symptoms stayed the same (IPSS-QoL)",
+    "ipssQolPlaceholder": "Skip — I'll use the IPSS total above",
+    "ipssQolHint": "Only used if you leave the IPSS total above blank. A rough proxy for urinary bother.",
+    "ipssQol": {
+      "delighted": "Delighted",
+      "pleased": "Pleased",
+      "mostlySatisfied": "Mostly satisfied",
+      "mixed": "Mixed (about equally satisfied & dissatisfied)",
+      "mostlyDissatisfied": "Mostly dissatisfied",
+      "unhappy": "Unhappy",
+      "terrible": "Terrible"
+    },
     "defaultsTitle": "Defaults (optional)",
     "editDefaults": "Edit defaults",
     "defaultsHint": "Using: Smoking = Never, Diet = Regular (Western), Chemical exposure = No, Genetic mutation = No, Inflammation = No, Comorbidities = None, Exercise = Regular.",
@@ -848,83 +1146,6 @@
       "shimRange": "SHIM total must be between 0 and 25",
       "calculationFailed": "Calculation failed. Please double-check your inputs."
     }
-  },
-  "phoneAuth": {
-    "subtitle": "Enter your phone number to get started",
-    "phoneLabel": "Phone Number",
-    "phonePlaceholder": "(555) 123-4567",
-    "smsHint": "We'll send you a verification code via SMS",
-    "sending": "Sending...",
-    "sendCode": "Send Verification Code",
-    "verificationCodeLabel": "Verification Code",
-    "codePlaceholder": "123456",
-    "codeSentTo": "Enter the 6-digit code sent to {{phone}}",
-    "verifying": "Verifying...",
-    "verifyCode": "Verify Code",
-    "changePhoneNumber": "Change Phone Number",
-    "errors": {
-      "invalidPhone10Digits": "Please enter a valid 10-digit phone number",
-      "recaptchaExpired": "reCAPTCHA expired. Please try again.",
-      "invalidVerificationCodeGeneric": "Invalid verification code. Please try again.",
-      "invalidVerificationCode": "Invalid verification code. Please check and try again.",
-      "codeExpired": "Verification code expired. Please request a new code."
-    }
-  },
-  "phoneOnlyAuth": {
-    "title": "Prostate-Specific Awareness",
-    "subtitle": "A Non-Validated Educational Risk Tool",
-    "enterPhonePrompt": "Enter your phone number to get started",
-    "phoneLabel": "Phone Number",
-    "phonePlaceholder": "(555) 123-4567",
-    "sending": "Sending...",
-    "sendCode": "Send Verification Code",
-    "smsHint": "We'll send you a verification code via SMS",
-    "enterCodePrompt": "Enter the verification code sent to:",
-    "verificationCodeLabel": "Verification Code",
-    "codePlaceholder": "Enter 6-digit code",
-    "back": "Back",
-    "verifying": "Verifying...",
-    "verifyCode": "Verify Code",
-    "didNotReceive": "Didn't receive the code? Check your messages or try again."
-  },
-  "emailAuth": {
-    "signIn": "Sign In",
-    "createAccount": "Create Account",
-    "resetPassword": "Reset Password",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "Password",
-    "createPasswordLabel": "Create Password",
-    "passwordPlaceholder": "Enter your password",
-    "createPasswordPlaceholder": "Create a strong password",
-    "pleaseWait": "Please wait...",
-    "sendResetEmail": "Send Reset Email",
-    "forgotPassword": "Forgot password?",
-    "needAccount": "Need an account? Sign up",
-    "subtitle": {
-      "signIn": "Access your ePSA assessment results",
-      "signUp": "Start your prostate health assessment",
-      "forgot": "We'll send you a password reset link"
-    }
-  },
-  "emailLinkAuth": {
-    "checkEmailMessage": "Check your email for a sign-in link!",
-    "signingInTitle": "Signing You In...",
-    "verifyingLink": "Verifying your email link",
-    "pleaseWait": "Please wait while we sign you in...",
-    "requestNewLink": "Request New Link",
-    "checkYourEmail": "Check Your Email",
-    "signInWithEmail": "Sign In with Email",
-    "sentLinkTo": "We sent a sign-in link to {{email}}",
-    "enterEmailSecureLink": "Enter your email to receive a secure sign-in link",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "your@email.com",
-    "sending": "Sending...",
-    "sendSignInLink": "Send Sign-In Link",
-    "emailSent": "Email Sent!",
-    "didNotReceive": "Didn't receive it?",
-    "sendNewLink": "Send New Link",
-    "goBack": "Go Back"
   },
   "welcomeGh": {
     "description": "This 5-minute questionnaire calculates your personalized risk assessment using validated clinical instruments.",

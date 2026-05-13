@@ -8,10 +8,13 @@ import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon } from 'lucide-react';
+import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
+import VersionFooter from './components/VersionFooter.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
-import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
+import PrivacyPolicyPopup from './components/PrivacyPolicyPopup.jsx';
+import TermsOfServicePopup from './components/TermsOfServicePopup.jsx';
 import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
@@ -30,6 +33,19 @@ import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, ge
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
+
+// Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
+const safeLS = {
+  get(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* ignore */ }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  },
+};
 
 // Simple inline back button component for testing
 const TestBackButton = ({ onBack, show }) => {
@@ -54,11 +70,13 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
+  const [psaOverviewFrom, setPsaOverviewFrom] = useState('consent'); // tracks where overview was opened from
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
-  const [showHipaaPopup, setShowHipaaPopup] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
@@ -157,6 +175,9 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+  // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
+  // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
+  const [isCalculatingPart1, setIsCalculatingPart1] = useState(false);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -214,7 +235,7 @@ function App() {
               if (userData && userData.currentSessionId) {
                 const sessionId = userData.currentSessionId;
                 setSessionId(sessionId);
-                localStorage.setItem(`sessionId_${currentUser.uid}`, sessionId);
+                safeLS.set(`sessionId_${currentUser.uid}`, sessionId);
                 
                 // Load session data and restore stage/form state
                 try {
@@ -313,7 +334,7 @@ function App() {
                 }
               } else {
                 // No session found - try localStorage as fallback
-                const storedSessionId = localStorage.getItem(`sessionId_${currentUser.uid}`);
+                const storedSessionId = safeLS.get(`sessionId_${currentUser.uid}`);
                 if (storedSessionId) {
                   setSessionId(storedSessionId);
                   // Try to load session data
@@ -390,7 +411,7 @@ function App() {
               if (userData && userData.currentSessionId) {
                 const restoredSessionId = userData.currentSessionId;
                 setSessionId(restoredSessionId);
-                localStorage.setItem(`sessionId_${currentUser.uid}`, restoredSessionId);
+                safeLS.set(`sessionId_${currentUser.uid}`, restoredSessionId);
                 try {
                   const session = await getSession(restoredSessionId);
                   if (session) {
@@ -432,7 +453,7 @@ function App() {
                 }
               } else {
                 // Try localStorage as fallback
-                const storedSessionId = localStorage.getItem(`sessionId_${currentUser.uid}`);
+                const storedSessionId = safeLS.get(`sessionId_${currentUser.uid}`);
                 if (storedSessionId) {
                   setSessionId(storedSessionId);
                   try {
@@ -604,7 +625,7 @@ function App() {
           updatedAt: serverTimestamp(),
         }, { merge: true });
         setSessionId(sessionRef.id);
-        localStorage.setItem(`sessionId_${user.uid}`, sessionRef.id);
+        safeLS.set(`sessionId_${user.uid}`, sessionRef.id);
       } else {
         await updateDoc(doc(db, 'sessions', sessionId), {
           step1Partial: partialData,
@@ -711,23 +732,26 @@ function App() {
     if (user) {
       try {
         await upsertConsent(consent);
-        setAuthStep('app');
+        setPsaOverviewFrom('consent');
+        setAuthStep('psa_overview');
       } catch (error) {
         console.error('Error saving consent:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        
+
         // Check if it's a permission error
         if (error.code === 'permission-denied' || error.message.includes('permission')) {
           console.warn('Permission denied - Firestore rules may not be deployed.');
           setCloudSyncStatus('error');
         }
-        
+
         // Still proceed to app even if Firestore fails
-        setAuthStep('app');
+        setPsaOverviewFrom('consent');
+        setAuthStep('psa_overview');
       }
     } else {
-      setAuthStep('app');
+      setPsaOverviewFrom('consent');
+      setAuthStep('psa_overview');
     }
   };
 
@@ -841,7 +865,7 @@ function App() {
 
   const handleSaveLocalToCloud = async () => {
     if (!isFirebaseConfigured() || !auth || !functions || !preData || !preResult) {
-      setSaveToCloudError('Cloud save is not available or no data to save.');
+      setSaveToCloudError("Cloud save is not available right now. Your results are still saved on this device — you can keep working and try again later.");
       return;
     }
     setSaveToCloudPending(true);
@@ -858,7 +882,7 @@ function App() {
       const newSessionId = await saveSession(firebaseUser.uid, preData);
       if (newSessionId) {
         setSessionId(newSessionId);
-        localStorage.setItem(`sessionId_${firebaseUser.uid}`, newSessionId);
+        safeLS.set(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
       if (postData && postResult && newSessionId) {
         await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0);
@@ -866,7 +890,13 @@ function App() {
       setStorageMode('cloud');
     } catch (err) {
       console.error('Save to cloud error:', err);
-      setSaveToCloudError(err?.message || 'Failed to save to cloud.');
+      // Translate Firebase errors into a calm, user-friendly message.
+      // The internal err.message is kept in the console for debugging.
+      const networkLike = /network|offline|unavailable|timeout|fetch/i.test(err?.message || '');
+      const friendly = networkLike
+        ? "We couldn't reach the cloud — looks like a network issue. Your results are still saved on this device. Try again in a moment."
+        : "We couldn't save to the cloud. Your results are still saved on this device — you can keep working and try again later.";
+      setSaveToCloudError(friendly);
     } finally {
       setSaveToCloudPending(false);
     }
@@ -910,7 +940,7 @@ function App() {
 
         if (restored.currentSessionId) {
           setSessionId(restored.currentSessionId);
-          localStorage.setItem(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
+          safeLS.set(`sessionId_${firebaseUser.uid}`, restored.currentSessionId);
 
           // Load session JSON from Firebase so user continues where they left off
           try {
@@ -1151,7 +1181,7 @@ function App() {
     
     // Clear session ID from localStorage
     if (user) {
-      localStorage.removeItem(`sessionId_${user.uid}`);
+      safeLS.remove(`sessionId_${user.uid}`);
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1215,7 +1245,7 @@ function App() {
       setPart1Step(0);
       // Clear user-specific localStorage but keep general settings
       if (storageMode === 'cloud' && user) {
-        localStorage.removeItem(`sessionId_${user.uid}`);
+        safeLS.remove(`sessionId_${user.uid}`);
       }
   };
 
@@ -1245,8 +1275,14 @@ function App() {
         return;
       }
 
-      setPreResult(result);
-      
+      // Show the transition overlay first, then reveal the result after a brief delay.
+      // The delay lets the user "land" on the result screen with the gauge animation.
+      setIsCalculatingPart1(true);
+      setTimeout(() => {
+        setPreResult(result);
+        setIsCalculatingPart1(false);
+      }, 1400);
+
       // Track only in cloud mode
       if (shouldTrackAnalytics) {
         trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART1_COMPLETED, {
@@ -1268,7 +1304,7 @@ function App() {
             // No partial session yet — create a fresh STEP1_COMPLETE session
             const newSessionId = await saveSession(user.uid, preData);
             setSessionId(newSessionId);
-            localStorage.setItem(`sessionId_${user.uid}`, newSessionId);
+            safeLS.set(`sessionId_${user.uid}`, newSessionId);
           } else {
             // Upgrade the existing IN_PROGRESS partial session to STEP1_COMPLETE
             setCloudSyncStatus('saving');
@@ -1423,6 +1459,9 @@ function App() {
         case 'consent':
           setAuthStep('welcome');
           break;
+        case 'psa_overview':
+          setAuthStep('consent');
+          break;
         case 'welcome':
         default:
           // Can't go back from welcome
@@ -1436,6 +1475,7 @@ function App() {
   const shouldShowBackButton = () => {
     if (authStep === 'welcome') return false;
     if (authStep === 'import') return false;
+    if (authStep === 'psa_overview') return false; // overview provides its own back/skip controls
 
     // When the current screen already provides its own back button,
     // hide the global one to avoid duplicated controls.
@@ -1498,7 +1538,8 @@ function App() {
                 setStorageMode('cloud');
                 setAuthStep('login');
               }}
-              onImport={() => setAuthStep('import')} 
+              onImport={() => setAuthStep('import')}
+              onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
               formData={{}}
               urlEmail={urlEmail}
             />
@@ -1514,10 +1555,17 @@ function App() {
                 </button>
                 <button
                   className="btn-model-docs btn-hipaa"
-                  onClick={() => setShowHipaaPopup(true)}
+                  onClick={() => setShowPrivacyPolicy(true)}
                 >
                   <ShieldCheckIcon size={16} />
-                  <span>{t('app.footer.hipaa')}</span>
+                  <span>{t('app.footer.privacyPolicy')}</span>
+                </button>
+                <button
+                  className="btn-model-docs"
+                  onClick={() => setShowTermsOfService(true)}
+                >
+                  <FileTextIcon size={16} />
+                  <span>{t('app.footer.termsOfService')}</span>
                 </button>
                 <button
                   className="btn-model-docs"
@@ -1545,6 +1593,14 @@ function App() {
             phone={null}
             email={null}
             onConsentComplete={handleConsentComplete}
+          />
+        );
+      case 'psa_overview':
+        return (
+          <PSAOverviewScreen
+            onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
+            onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
+            continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
           />
         );
       default:
@@ -1591,7 +1647,36 @@ function App() {
       case 3:
         return (
           <div className="pre-results-step">
-            {preResult ? (
+            {isCalculatingPart1 ? (
+              <div className="part1-transition-screen">
+                <div className="part1-transition-gauge" aria-hidden="true">
+                  <svg viewBox="0 0 80 80" width="80" height="80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="#e2eaf2" strokeWidth="6" />
+                    <circle
+                      cx="40" cy="40" r="32" fill="none"
+                      stroke="#2563eb" strokeWidth="6" strokeLinecap="round"
+                      strokeDasharray="50 200"
+                      transform="rotate(-90 40 40)"
+                    >
+                      <animateTransform
+                        attributeName="transform"
+                        type="rotate"
+                        from="-90 40 40"
+                        to="270 40 40"
+                        dur="1.1s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  </svg>
+                </div>
+                <p style={{ marginTop: '20px', fontSize: '1rem', fontWeight: 600, color: '#1e3a5f' }}>
+                  Calculating your risk profile…
+                </p>
+                <p style={{ marginTop: '6px', fontSize: '0.8125rem', color: '#607286' }}>
+                  Combining your answers with AUA/NCCN/EAU/ERSPC guideline criteria.
+                </p>
+              </div>
+            ) : preResult ? (
               <Part1Results
                 result={preResult}
                 formData={{ ...preData, pathwayMode: pathwayMode || preResult?.pathwayMode || 'pre_psa' }}
@@ -1702,6 +1787,15 @@ function App() {
                   }
                 }}
                 onShowModelDocs={() => setShowModelDocs(true)}
+                onContinueToMRI={
+                  (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
+                    ? () => {
+                        setPathwayMode('post_mri');
+                        setCurrentStep(2);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    : null
+                }
               />
             )}
           </div>
@@ -1718,27 +1812,26 @@ function App() {
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-logo-container">
-            <img 
-              src="/logo.png"
-              alt="ePSA Logo" 
-              className="logo"
-              onError={(e) => {
-                console.error('Logo.png failed to load:', e.target.src);
-                // Fallback: try logo.jpg if logo.png doesn't exist
-                const currentSrc = e.target.src;
-                if (currentSrc.includes('logo.png')) {
-                  e.target.src = '/logo.jpg';
-                } else {
-                  console.warn('Both logo files failed to load');
-                  e.target.style.display = 'none';
-                }
-              }} 
+            <img
+              src="/sinai_light.png"
+              alt="Mount Sinai Logo"
+              className="logo logo--light"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <img
+              src="/sinai_dark.png"
+              alt="Mount Sinai Logo"
+              className="logo logo--dark"
+              onError={(e) => { e.target.style.display = 'none'; }}
             />
           </div>
           <div className="header-text">
             <h1>ePSA</h1>
             <h2>{t('app.header.title')}</h2>
             <p className="subtitle">{t('app.header.subtitle')}</p>
+            <p className="header-authorship" aria-label="Authorship and institutional affiliation">
+              Developed by <strong>Ashutosh K. Tewari, MD</strong> · Icahn School of Medicine at Mount Sinai · <em>Educational use only</em>
+            </p>
           </div>
           <div className="header-actions">
             <TextScaleControl />
@@ -1854,12 +1947,16 @@ function App() {
           onClose={() => setShowModelDocs(false)}
         />
       )}
-      {showHipaaPopup && (
-        <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />
+      {showPrivacyPolicy && (
+        <PrivacyPolicyPopup onClose={() => setShowPrivacyPolicy(false)} />
+      )}
+      {showTermsOfService && (
+        <TermsOfServicePopup onClose={() => setShowTermsOfService(false)} />
       )}
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
+      <VersionFooter />
     </div>
   );
 }

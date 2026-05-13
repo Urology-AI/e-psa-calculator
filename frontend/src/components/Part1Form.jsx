@@ -89,6 +89,61 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       {i18nKey ? t(i18nKey) : children}
     </div>
   );
+  // Badge components placed inline next to each question's title.
+  // Main's no-prop pattern: GuidelineBadge for the four AUA/NCCN screening factors
+  // (age, race, family history, BRCA); NonGuidelineBadge for ePSA-model-only factors.
+  const NonGuidelineBadge = () => (
+    <span
+      className="non-guideline-badge"
+      title={t('part1.nonGuideline.badgeTooltip')}
+      aria-label={t('part1.nonGuideline.badgeTooltip')}
+    >
+      {t('part1.nonGuideline.badge')}
+    </span>
+  );
+  const NonGuidelineNote = () => (
+    <div className="non-guideline-note">{t('part1.nonGuideline.note')}</div>
+  );
+  const GuidelineBadge = () => (
+    <span
+      className="guideline-badge"
+      title={t('part1.guideline.badgeTooltip')}
+      aria-label={t('part1.guideline.badgeTooltip')}
+    >
+      {t('part1.guideline.badge')}
+    </span>
+  );
+
+  // Small "Prefer not to say" control under skippable question cards.
+  // Uses neutral defaults from SKIP_DEFAULTS so the engine still receives valid values.
+  const SkipLink = ({ field }) => {
+    const skipped = isSkipped(field);
+    return (
+      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem' }}>
+        {skipped ? (
+          <span style={{ color: '#6B7280', fontStyle: 'italic' }}>
+            {t('part1.skip.skippedLabel')}
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => skipField(field)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#6B7280',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              padding: 0,
+              fontSize: '0.8125rem'
+            }}
+          >
+            {t('part1.skip.preferNotToSay')}
+          </button>
+        )}
+      </div>
+    );
+  };
   const [localData, setLocalData] = useState({
     age: formData.age || '',
     race: formData.race || null,
@@ -121,10 +176,40 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     diabetes: formData.diabetes ?? null,
     ipss: formData.ipss || Array(7).fill(null),
     shim: formData.shim || Array(5).fill(null),
+    guidelineRegion: formData.guidelineRegion || 'us',
+    skippedFields: Array.isArray(formData.skippedFields) ? [...formData.skippedFields] : [],
   });
 
   const [stepErrors, setStepErrors] = useState({});
   const [attemptedNext, setAttemptedNext] = useState(false);
+  // IPSS short-version mode: 'full' (7 questions) or 'short' (single severity picker).
+  // Short mode fills the 7-question array with a uniform per-question value so the engine sees a valid total.
+  const [ipssMode, setIpssMode] = useState('full');
+  const [ipssShortChoice, setIpssShortChoice] = useState(null); // 'none' | 'mild' | 'moderate' | 'severe'
+  const applyIpssShort = (choice) => {
+    setIpssShortChoice(choice);
+    const perQ = choice === 'none' ? 0 : choice === 'mild' ? 1 : choice === 'moderate' ? 3 : choice === 'severe' ? 5 : null;
+    if (perQ != null) {
+      setLocalData(prev => ({ ...prev, ipss: Array(7).fill(perQ) }));
+    }
+  };
+  // SHIM short-version mode: 'full' (5 questions) or 'short' (single severity picker).
+  // SHIM is reverse-scaled (higher = better function). Per-question fills map to standard
+  // SHIM severity tiers: No ED 22–25, Mild 17–21, Mild-Mod 12–16, Moderate 8–11, Severe ≤7.
+  const [shimMode, setShimMode] = useState('full');
+  const [shimShortChoice, setShimShortChoice] = useState(null); // 'none' | 'mild' | 'mildModerate' | 'moderate' | 'severe'
+  const applyShimShort = (choice) => {
+    setShimShortChoice(choice);
+    const perQ = choice === 'none' ? 5
+      : choice === 'mild' ? 4
+      : choice === 'mildModerate' ? 3
+      : choice === 'moderate' ? 2
+      : choice === 'severe' ? 1
+      : null;
+    if (perQ != null) {
+      setLocalData(prev => ({ ...prev, shim: Array(5).fill(perQ) }));
+    }
+  };
 
   useEffect(() => {
     const toInches = () => {
@@ -173,56 +258,64 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     setFormData(localData);
   }, [localData, setFormData]);
 
+  // Neutral defaults used to satisfy the engine when a user explicitly skips
+  // a non-essential question. These are population-typical / lowest-leverage values
+  // that minimize the influence of the skipped factor on the final score.
+  const SKIP_DEFAULTS = {
+    familyHistory: 0,
+    inflammationHistory: 0,
+    brcaStatus: 'unknown',
+    exercise: 1,           // "some"
+    smoking: 0,            // "never"
+    chemicalExposure: 'unknown',
+    dietPattern: 'other',
+    comorbidityScore: 0,
+    ipss: Array(7).fill(0),
+    shim: [4, 4, 4, 4, 4], // total 20 — population-typical for mid-age males (mild range)
+  };
+
+  const skipField = (field) => {
+    setLocalData(prev => {
+      const next = { ...prev };
+      next[field] = SKIP_DEFAULTS[field] !== undefined ? SKIP_DEFAULTS[field] : null;
+      const set = new Set(prev.skippedFields || []);
+      set.add(field);
+      next.skippedFields = Array.from(set);
+      return next;
+    });
+  };
+
+  const isSkipped = (field) => Array.isArray(localData.skippedFields) && localData.skippedFields.includes(field);
+
+  const clearSkip = (prev, field) => {
+    if (!Array.isArray(prev.skippedFields) || !prev.skippedFields.includes(field)) return prev.skippedFields;
+    return prev.skippedFields.filter(f => f !== field);
+  };
+
   const updateField = (field, value) => {
     if (field === 'age') {
       // Always allow typing, only validate on blur or submit
-      setLocalData(prev => ({ ...prev, [field]: value }));
+      setLocalData(prev => ({ ...prev, [field]: value, skippedFields: clearSkip(prev, field) }));
       return;
     }
 
-    if (field === 'heightFt') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'heightIn') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'heightCm') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'weight') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    if (field === 'weightKg') {
-      // Always allow typing
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      return;
-    }
-
-    setLocalData(prev => ({ ...prev, [field]: value }));
+    setLocalData(prev => ({ ...prev, [field]: value, skippedFields: clearSkip(prev, field) }));
   };
 
   const updateIPSS = (index, value) => {
-    const next = [...localData.ipss];
-    next[index] = parseInt(value, 10);
-    setLocalData(prev => ({ ...prev, ipss: next }));
+    setLocalData(prev => {
+      const next = [...prev.ipss];
+      next[index] = parseInt(value, 10);
+      return { ...prev, ipss: next, skippedFields: clearSkip(prev, 'ipss') };
+    });
   };
 
   const updateSHIM = (index, value) => {
-    const next = [...localData.shim];
-    next[index] = parseInt(value, 10);
-    setLocalData(prev => ({ ...prev, shim: next }));
+    setLocalData(prev => {
+      const next = [...prev.shim];
+      next[index] = parseInt(value, 10);
+      return { ...prev, shim: next, skippedFields: clearSkip(prev, 'shim') };
+    });
   };
 
   const hasValidHeight = () => {
@@ -244,46 +337,69 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     return !isNaN(lbs) && lbs >= 50 && lbs <= 500;
   };
 
+  // Counts a field as "answered" only if it has a real value AND is not in skippedFields.
+  // Skipped fields carry neutral defaults but should not count toward answered totals.
   const countAnswered = () => {
     let count = 0;
+    const skipped = (f) => isSkipped(f);
 
     if (localData.age) count++;
     if (localData.race !== null && localData.race !== undefined && localData.race !== '') count++;
-    if (localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
-    if (localData.inflammationHistory !== null && localData.inflammationHistory !== undefined) count++;
-    if (localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
+    if (!skipped('familyHistory') && localData.familyHistory !== null && localData.familyHistory !== undefined) count++;
+    if (!skipped('inflammationHistory') && localData.inflammationHistory !== null && localData.inflammationHistory !== undefined) count++;
+    if (!skipped('brcaStatus') && localData.brcaStatus !== null && localData.brcaStatus !== undefined) count++;
     if (hasValidHeight()) count++;
     if (hasValidWeight()) count++;
-    if (localData.exercise !== null && localData.exercise !== undefined) count++;
-    if (localData.smoking !== null && localData.smoking !== undefined) count++;
-    if (localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
-    if (localData.dietPattern !== '') count++;
-    if (localData.comorbidityScore !== null && localData.comorbidityScore !== undefined) count++;
+    if (!skipped('exercise') && localData.exercise !== null && localData.exercise !== undefined) count++;
+    if (!skipped('smoking') && localData.smoking !== null && localData.smoking !== undefined) count++;
+    if (!skipped('chemicalExposure') && localData.chemicalExposure !== null && localData.chemicalExposure !== undefined) count++;
+    if (!skipped('dietPattern') && localData.dietPattern !== '') count++;
+    if (!skipped('comorbidityScore') && localData.comorbidityScore !== null && localData.comorbidityScore !== undefined) count++;
 
-    localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
-    localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
+    if (!skipped('ipss')) {
+      localData.ipss.forEach(v => { if (v !== null && v !== undefined) count++; });
+    }
+    if (!skipped('shim')) {
+      localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
+    }
 
     return count;
   };
 
+  const countSkipped = () => {
+    if (!Array.isArray(localData.skippedFields)) return 0;
+    let n = 0;
+    for (const f of localData.skippedFields) {
+      if (f === 'ipss') n += 7;
+      else if (f === 'shim') n += 5;
+      else n += 1;
+    }
+    return n;
+  };
+
+  // canProceed allows skipped fields (which carry neutral defaults) to satisfy the engine.
+  // Only age + race are strictly required. Height/weight require valid numeric input
+  // (no skip option for BMI — the calculator needs it for adiposity scoring).
   const canProceed = () => {
     const ageNum = parseInt(localData.age, 10);
     const hasAge = localData.age !== '' && !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
     const hasRace = localData.race !== null && localData.race !== undefined && localData.race !== '';
-    const hasFamilyHistory = localData.familyHistory !== null && localData.familyHistory !== undefined;
-    const hasInflammationHistory = localData.inflammationHistory !== null && localData.inflammationHistory !== undefined;
-    const hasBrca = localData.brcaStatus !== null && localData.brcaStatus !== undefined;
     const hasHeight = hasValidHeight();
     const hasWeight = hasValidWeight();
     const hasBMI = localData.bmi > 0;
-    const hasExercise = localData.exercise !== null && localData.exercise !== undefined;
-    const hasSmoking = localData.smoking !== null && localData.smoking !== undefined;
-    const hasChem = localData.chemicalExposure !== null && localData.chemicalExposure !== undefined;
-    const hasDiet = localData.dietPattern !== '';
-    const hasComorbidityScore = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
 
-    const ipssComplete = Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined);
-    const shimComplete = Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined);
+    const hasOrSkipped = (field, hasVal) => isSkipped(field) || hasVal;
+    const hasFamilyHistory = hasOrSkipped('familyHistory', localData.familyHistory !== null && localData.familyHistory !== undefined);
+    const hasInflammationHistory = hasOrSkipped('inflammationHistory', localData.inflammationHistory !== null && localData.inflammationHistory !== undefined);
+    const hasBrca = hasOrSkipped('brcaStatus', localData.brcaStatus !== null && localData.brcaStatus !== undefined);
+    const hasExercise = hasOrSkipped('exercise', localData.exercise !== null && localData.exercise !== undefined);
+    const hasSmoking = hasOrSkipped('smoking', localData.smoking !== null && localData.smoking !== undefined);
+    const hasChem = hasOrSkipped('chemicalExposure', localData.chemicalExposure !== null && localData.chemicalExposure !== undefined);
+    const hasDiet = hasOrSkipped('dietPattern', localData.dietPattern !== '');
+    const hasComorbidityScore = hasOrSkipped('comorbidityScore', localData.comorbidityScore !== null && localData.comorbidityScore !== undefined);
+
+    const ipssComplete = isSkipped('ipss') || (Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined));
+    const shimComplete = isSkipped('shim') || (Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined));
 
     return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
   };
@@ -303,7 +419,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">1</div>
-          <div className="question-text">{t('part1.fields.age.title')}</div>
+          <div className="question-text">{t('part1.fields.age.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.age} />
           {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -320,17 +436,32 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             onChange={(e) => updateField('age', e.target.value)}
           />
           {attemptedNext && !ageValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.ageInline')}
             </div>
           )}
+          {(() => {
+            const ageNum = parseInt(localData.age, 10);
+            if (!Number.isFinite(ageNum)) return null;
+            if (ageNum < 40) return (
+              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+                <strong>Age under 40:</strong> PSA screening is not routinely recommended per AUA/NCCN guidelines. You can still complete the questionnaire — your clinician can review the results.
+              </div>
+            );
+            if (ageNum > 75) return (
+              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+                <strong>Age over 75:</strong> Continued PSA screening requires individualized assessment based on health and life expectancy (AUA/NCCN). Discuss with your physician.
+              </div>
+            );
+            return null;
+          })()}
         </div>
       </div>
 
       <div className="question-card" style={{ borderColor: raceValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">2</div>
-          <div className="question-text">{t('part1.fields.race.title')}</div>
+          <div className="question-text">{t('part1.fields.race.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.race} />
           {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -342,6 +473,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               { value: 'black', label: t('part1.race.black') },
               { value: 'hispanic', label: t('part1.race.hispanic') },
               { value: 'asian', label: t('part1.race.asian') },
+              { value: 'mixed', label: t('part1.race.mixed') },
               { value: 'other', label: t('part1.race.other') },
             ].map(opt => (
               <button
@@ -354,7 +486,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             ))}
           </div>
           {attemptedNext && !raceValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.errors.step0.raceInline')}
             </div>
           )}
@@ -379,7 +511,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">{t('part1.step1.familyHistory.title')}</div>
+          <div className="question-text">{t('part1.step1.familyHistory.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.familyHistory} />
           {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -401,11 +533,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !familyHistoryValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !familyHistoryValid && !isSkipped('familyHistory') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="familyHistory" />
         </div>
       </div>
 
@@ -438,18 +571,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !inflammationHistoryValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !inflammationHistoryValid && !isSkipped('inflammationHistory') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="inflammationHistory" />
         </div>
       </div>
 
       <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">5</div>
-          <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
+          <div className="question-text">{t('part1.fields.brcaStatus.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.brcaStatus} />
           {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -457,9 +591,9 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
           <div className="option-grid c3">
             {[
-              { value: 'yes', label: t('part1.options.yes') },
-              { value: 'no', label: t('part1.options.no') },
-              { value: 'unknown', label: t('part1.options.unknown') },
+              { value: 'yes', label: 'Yes — confirmed mutation' },
+              { value: 'no', label: 'Tested — no mutation' },
+              { value: 'unknown', label: 'Never tested / unsure' },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -470,11 +604,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !brcaValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="brcaStatus" />
         </div>
       </div>
     </div>
@@ -497,6 +632,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">6</div>
           <div className="question-text">{t('part1.step2.heightQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
           {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -520,17 +656,17 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
           )}
           {localData.heightUnit === 'imperial' && localData.heightFt && (parseInt(localData.heightFt, 10) < 3 || parseInt(localData.heightFt, 10) > 8) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialFeetError')}
             </div>
           )}
           {localData.heightUnit === 'imperial' && localData.heightIn && (parseInt(localData.heightIn, 10) < 0 || parseInt(localData.heightIn, 10) > 11) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightImperialInchesError')}
             </div>
           )}
           {localData.heightUnit === 'metric' && localData.heightCm && (parseFloat(localData.heightCm) < 100 || parseFloat(localData.heightCm) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.heightMetricError')}
             </div>
           )}
@@ -541,6 +677,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">7</div>
           <div className="question-text">{t('part1.step2.weightQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
           {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -561,12 +698,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
             <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
           )}
           {localData.weightUnit === 'lbs' && localData.weight && (parseFloat(localData.weight) < 50 || parseFloat(localData.weight) > 500) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightImperialError')}
             </div>
           )}
           {localData.weightUnit === 'kg' && localData.weightKg && (parseFloat(localData.weightKg) < 25 || parseFloat(localData.weightKg) > 250) && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
               {t('part1.step2.weightMetricError')}
             </div>
           )}
@@ -597,6 +734,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">8</div>
           <div className="question-text">{t('part1.fields.exercise.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.exercise} />
           {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -620,11 +758,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !exerciseValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !exerciseValid && !isSkipped('exercise') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="exercise" />
         </div>
       </div>
 
@@ -632,6 +771,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">9</div>
           <div className="question-text">{t('part1.fields.smoking.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.smoking} />
           {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -655,11 +795,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !smokingValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !smokingValid && !isSkipped('smoking') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="smoking" />
         </div>
       </div>
 
@@ -667,16 +808,19 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">10</div>
           <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.chemicalExposure} />
           {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
-          <div className="option-grid c3">
+          <div className="option-grid c2">
             {[
-              { value: 'yes', label: t('part1.options.yes'), Icon: AlertTriangle },
-              { value: 'no', label: t('part1.options.no'), Icon: CheckCircle2 },
-              { value: 'unknown', label: t('part1.options.unknown'), Icon: HelpCircle },
+              { value: 'agent_orange', label: t('part1.chemicalExposureOptions.agentOrange'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'nine_eleven', label: t('part1.chemicalExposureOptions.nineEleven'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'other_chemical', label: t('part1.chemicalExposureOptions.otherChemical'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceUnspecified') },
+              { value: 'none', label: t('part1.chemicalExposureOptions.none'), Icon: CheckCircle2 },
+              { value: 'unknown', label: t('part1.chemicalExposureOptions.unknown'), Icon: HelpCircle },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -685,16 +829,22 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               >
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <opt.Icon size={18} />
-                  {opt.label}
+                  <span>{opt.label}</span>
+                  {opt.evidence && (
+                    <span style={{ fontSize: '0.65rem', opacity: 0.75, fontWeight: 400 }}>
+                      {opt.evidence}
+                    </span>
+                  )}
                 </span>
               </button>
             ))}
           </div>
-          {attemptedNext && !chemicalValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !chemicalValid && !isSkipped('chemicalExposure') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="chemicalExposure" />
         </div>
       </div>
     </div>
@@ -720,6 +870,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">11</div>
           <div className="question-text">{t('part1.fields.diet.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.diet} />
           {dietValid && <CheckIcon size={16} style={{ color: '#27AE60', marginLeft: '8px' }} />}
         </div>
@@ -748,11 +899,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </button>
             ))}
           </div>
-          {attemptedNext && !dietValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !dietValid && !isSkipped('dietPattern') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}
             </div>
           )}
+          <SkipLink field="dietPattern" />
         </div>
       </div>
 
@@ -760,6 +912,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="question-header">
           <div className="question-number">12</div>
           <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
+          <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.comorbidities} />
           {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
         </div>
@@ -807,11 +960,12 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
               </div>
             </div>
           )}
-          {attemptedNext && !comorbiditiesValid && (
-            <div style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+          {attemptedNext && !comorbiditiesValid && !isSkipped('comorbidityScore') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.comorbidityQuestions')}
             </div>
           )}
+          <SkipLink field="comorbidityScore" />
         </div>
       </div>
     </div>
@@ -826,13 +980,13 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       value: v,
       label: t(IPSS_LABEL_KEY_BY_VALUE[v]),
     }));
-    
+
     return (
     <div className="part1-step">
       <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <span className="v2-section-eyebrow">Section 6 · 7 questions</span>
-          <span className="v2-section-title">{t('part1.steps.ipss.sectionTitle')}</span>
+          <span className="v2-section-title">{t('part1.steps.ipss.sectionTitle')} <NonGuidelineBadge /></span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.ipss} />
@@ -852,10 +1006,70 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
         {t('part1.ipss.note')}
       </div>
-      {ipssQuestions.map((q, index) => (
-        <div key={index} className="question-card" style={{ 
-          borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
-          borderWidth: '2px' 
+
+      {/* IPSS mode toggle: full 7-question vs short single-severity vs skip-no-symptoms */}
+      <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <button
+          type="button"
+          className={`option-btn ${ipssMode === 'full' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setIpssMode('full'); setIpssShortChoice(null); }}
+        >
+          {t('part1.ipssShort.toggleFull')}
+        </button>
+        <button
+          type="button"
+          className={`option-btn ${ipssMode === 'short' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => setIpssMode('short')}
+        >
+          {t('part1.ipssShort.toggleShort')}
+        </button>
+        <button
+          type="button"
+          className="option-btn"
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setIpssMode('short'); applyIpssShort('none'); }}
+        >
+          {t('part1.ipssShort.skip')}
+        </button>
+      </div>
+
+      {ipssMode === 'short' && (
+        <div className="question-card" style={{
+          borderColor: ipssShortChoice ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
+        }}>
+          <div className="question-header">
+            <div className="question-text">{t('part1.ipssShort.singleQuestionLabel')}</div>
+            {ipssShortChoice && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c2">
+              {[
+                { value: 'none',     label: t('part1.ipssShort.options.none') },
+                { value: 'mild',     label: t('part1.ipssShort.options.mild') },
+                { value: 'moderate', label: t('part1.ipssShort.options.moderate') },
+                { value: 'severe',   label: t('part1.ipssShort.options.severe') },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`option-btn ${ipssShortChoice === opt.value ? 'selected' : ''}`}
+                  onClick={() => applyIpssShort(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ipssMode === 'full' && ipssQuestions.map((q, index) => (
+        <div key={index} className="question-card" style={{
+          borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
         }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
@@ -878,9 +1092,11 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
-        {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
-      </div>
+      {ipssMode === 'full' && (
+        <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
+          {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+        </div>
+      )}
     </div>
   );
   };
@@ -892,13 +1108,28 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
       q: t(item.qKey),
       opts: item.opts.map(([score, labelKey]) => [score, t(labelKey)]),
     }));
-    
+
+    const region = localData.guidelineRegion === 'eau_uk' ? 'eau_uk' : 'us';
+    const isEau = region === 'eau_uk';
+    const shimTotal = shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : null;
+
+    const SEVERITY_BANDS = [
+      { key: 'severe',       labelKey: 'part1.shim.severitySevere',       range: '1–7',   color: '#dc2626', bg: '#fef2f2', min: 1,  max: 7  },
+      { key: 'moderate',     labelKey: 'part1.shim.severityModerate',     range: '8–11',  color: '#ea580c', bg: '#fff7ed', min: 8,  max: 11 },
+      { key: 'mildModerate', labelKey: 'part1.shim.severityMildModerate', range: '12–16', color: '#d97706', bg: '#fffbeb', min: 12, max: 16 },
+      { key: 'mild',         labelKey: 'part1.shim.severityMild',         range: '17–21', color: '#2563eb', bg: '#eff6ff', min: 17, max: 21 },
+      { key: 'none',         labelKey: 'part1.shim.severityNone',         range: '22–25', color: '#16a34a', bg: '#f0fdf4', min: 22, max: 25 },
+    ];
+    const activeBandKey = shimTotal == null ? null : (SEVERITY_BANDS.find(b => shimTotal >= b.min && shimTotal <= b.max)?.key || null);
+
     return (
     <div className="part1-step">
       <div className="v2-section-label" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <span className="v2-section-eyebrow">Section 7 · 5 questions</span>
-          <span className="v2-section-title">{t('part1.steps.shim.sectionTitle')}</span>
+          <span className="v2-section-title">
+            {isEau ? t('part1.steps.shim.sectionTitleIief') : t('part1.steps.shim.sectionTitle')} <NonGuidelineBadge />
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
           <InfoIcon {...fieldReferences.shim} />
@@ -910,13 +1141,119 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           )}
         </div>
       </div>
-      <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
+
+      {/* Guideline region toggle (SHIM ↔ IIEF-5 label switch) */}
+      <div
+        role="radiogroup"
+        aria-label={t('part1.shim.regionLabel')}
+        style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px',
+          margin: '0 0 10px', padding: '8px 10px',
+          background: '#f3f8fc', border: '1px solid #d6e6f1', borderRadius: '8px',
+          fontSize: '0.8125rem',
+        }}
+      >
+        <span style={{ fontWeight: 600, color: '#1a5c86' }}>{t('part1.shim.regionLabel')}:</span>
+        {[
+          { val: 'us',      label: t('part1.shim.regionUs') },
+          { val: 'eau_uk',  label: t('part1.shim.regionEau') },
+        ].map(({ val, label }) => {
+          const active = region === val;
+          return (
+            <button
+              key={val}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setLocalData(prev => ({ ...prev, guidelineRegion: val }))}
+              style={{
+                padding: '4px 10px', borderRadius: '20px',
+                border: `1px solid ${active ? '#1a5c86' : '#cbd9e6'}`,
+                background: active ? '#1a5c86' : '#fff',
+                color: active ? '#fff' : '#3a5a72',
+                fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="question-subtext" style={{ marginBottom: '12px', fontSize: '0.8125rem', lineHeight: 1.5, color: '#5a7a92' }}>
+        {isEau ? t('part1.shim.regionNoteEau') : t('part1.shim.regionNoteUs')}
+      </div>
+
+      <div className="question-note" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>
         {t('part1.shim.note')}
       </div>
-      {shimQuestions.map((item, index) => (
-        <div key={index} className="question-card" style={{ 
-          borderColor: localData.shim[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', 
-          borderWidth: '2px' 
+      <div style={{ marginBottom: '16px', padding: '6px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px', fontSize: '0.78rem', color: '#075985' }}>
+        <strong>Scale direction:</strong> Higher SHIM/IIEF-5 score = better sexual function (opposite of IPSS, where lower = better urinary function).
+      </div>
+
+      {/* SHIM mode toggle: full 5-question vs short single-severity vs skip-no-concerns */}
+      <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <button
+          type="button"
+          className={`option-btn ${shimMode === 'full' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setShimMode('full'); setShimShortChoice(null); }}
+        >
+          {t('part1.shimShort.toggleFull')}
+        </button>
+        <button
+          type="button"
+          className={`option-btn ${shimMode === 'short' ? 'selected' : ''}`}
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => setShimMode('short')}
+        >
+          {t('part1.shimShort.toggleShort')}
+        </button>
+        <button
+          type="button"
+          className="option-btn"
+          style={{ flex: '1 1 200px', fontSize: '0.8125rem' }}
+          onClick={() => { setShimMode('short'); applyShimShort('none'); }}
+        >
+          {t('part1.shimShort.skip')}
+        </button>
+      </div>
+
+      {shimMode === 'short' && (
+        <div className="question-card" style={{
+          borderColor: shimShortChoice ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
+        }}>
+          <div className="question-header">
+            <div className="question-text">{t('part1.shimShort.singleQuestionLabel')}</div>
+            {shimShortChoice && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+          <div className="question-body">
+            <div className="option-grid c2">
+              {[
+                { value: 'none',         label: t('part1.shimShort.options.none') },
+                { value: 'mild',         label: t('part1.shimShort.options.mild') },
+                { value: 'mildModerate', label: t('part1.shimShort.options.mildModerate') },
+                { value: 'moderate',     label: t('part1.shimShort.options.moderate') },
+                { value: 'severe',       label: t('part1.shimShort.options.severe') },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`option-btn ${shimShortChoice === opt.value ? 'selected' : ''}`}
+                  onClick={() => applyShimShort(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {shimMode === 'full' && shimQuestions.map((item, index) => (
+        <div key={index} className="question-card" style={{
+          borderColor: localData.shim[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0',
+          borderWidth: '2px'
         }}>
           <div className="question-header">
             <div className="question-number">{index + 1}</div>
@@ -935,8 +1272,42 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
           </div>
         </div>
       ))}
-      <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
-        {t('part1.shim.totalLabel')}: {shimComplete ? localData.shim.reduce((a, b) => a + b, 0) : '—'} / 25
+      {shimMode === 'full' && (
+        <div className="score-total" style={{ color: shimComplete ? '#27AE60' : undefined }}>
+          {isEau ? t('part1.shim.totalLabelIief') : t('part1.shim.totalLabel')}: {shimComplete ? shimTotal : '—'} / 25
+        </div>
+      )}
+
+      {/* Severity bands — always visible to clarify mild vs moderate ED */}
+      <div style={{ marginTop: '12px', padding: '12px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#374151', marginBottom: '8px' }}>
+          {t('part1.shim.severityHeading')}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '6px' }}>
+          {SEVERITY_BANDS.map(band => {
+            const isActive = activeBandKey === band.key;
+            return (
+              <div
+                key={band.key}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  background: isActive ? band.bg : '#fff',
+                  border: `1.5px solid ${isActive ? band.color : '#e5e7eb'}`,
+                  display: 'flex', flexDirection: 'column', gap: '2px',
+                }}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: isActive ? band.color : '#374151' }}>
+                  {t(band.labelKey)}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: isActive ? band.color : '#6b7280', fontWeight: 600 }}>
+                  Score {band.range}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -966,10 +1337,10 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     }
     
     if (step === 1) {
-      if (localData.familyHistory === null || localData.familyHistory === undefined) {
+      if (!isSkipped('familyHistory') && (localData.familyHistory === null || localData.familyHistory === undefined)) {
         errors.push(t('part1.errors.validate.step1.familyHistoryInvalid'));
       }
-      if (!localData.brcaStatus) {
+      if (!isSkipped('brcaStatus') && !localData.brcaStatus) {
         errors.push(t('part1.errors.validate.step1.brcaInvalid'));
       }
     }
@@ -987,35 +1358,35 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
     }
     
     if (step === 3) {
-      if (localData.exercise === null || localData.exercise === undefined) {
+      if (!isSkipped('exercise') && (localData.exercise === null || localData.exercise === undefined)) {
         errors.push(t('part1.errors.validate.step3.exerciseInvalid'));
       }
-      if (localData.smoking === null || localData.smoking === undefined) {
+      if (!isSkipped('smoking') && (localData.smoking === null || localData.smoking === undefined)) {
         errors.push(t('part1.errors.validate.step3.smokingInvalid'));
       }
-      if (!localData.chemicalExposure) {
+      if (!isSkipped('chemicalExposure') && !localData.chemicalExposure) {
         errors.push(t('part1.errors.validate.step3.chemicalInvalid'));
       }
     }
-    
+
     if (step === 4) {
-      if (!localData.dietPattern) {
+      if (!isSkipped('dietPattern') && !localData.dietPattern) {
         errors.push(t('part1.errors.validate.step4.dietInvalid'));
       }
-      if (localData.comorbidityScore === null || localData.comorbidityScore === undefined) {
+      if (!isSkipped('comorbidityScore') && (localData.comorbidityScore === null || localData.comorbidityScore === undefined)) {
         errors.push(t('part1.errors.validate.step4.comorbidityInvalid'));
       }
     }
-    
+
     if (step === 5) {
-      const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
+      const ipssComplete = isSkipped('ipss') || localData.ipss.every(v => v !== null && v !== undefined);
       if (!ipssComplete) {
         errors.push(t('part1.errors.validate.step5.ipssInvalid'));
       }
     }
-    
+
     if (step === 6) {
-      const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
+      const shimComplete = isSkipped('shim') || localData.shim.every(v => v !== null && v !== undefined);
       if (!shimComplete) {
         errors.push(t('part1.errors.validate.step6.shimInvalid'));
       }
@@ -1054,6 +1425,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
   };
 
   const answeredCount = countAnswered();
+  const skippedCount = countSkipped();
   const canProceedResult = canProceed();
   // Total distinct answerable items: 11 core + 4 comorbidities + 7 IPSS + 5 SHIM = 27
   const totalQuestions = 27;
@@ -1106,6 +1478,7 @@ const Part1Form = ({ formData, setFormData, onNext, onBack, currentStep: part1St
         <div className="v2-form-nav-inner">
           <div className="v2-form-nav-status">
             <span><strong>{answeredCount} of {totalQuestions}</strong> answered</span>
+            {skippedCount > 0 && <span>{skippedCount} skipped</span>}
             {remainingOnStep > 0 && <span>{remainingOnStep} remaining on this step</span>}
           </div>
           <div className="v2-form-nav-btns">
