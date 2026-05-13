@@ -3,6 +3,10 @@ import * as functions from 'firebase-functions';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
 
+// REDCap sync trigger (Firestore onWrite → REDCap API)
+// submitToRedcap: callable function for local-storage users to push directly
+export { syncToRedcap, submitToRedcap } from './redcapSync';
+
 // Type definitions for better type safety
 interface AdminLoginData {
   email: string;
@@ -203,7 +207,7 @@ export const upsertConsent = functions.https.onCall(async (data: { consentToCont
 // ============================================
 // CLOUD FUNCTION: Create Session
 // ============================================
-export const createSession = functions.https.onCall(async (data: { step1: unknown; step2?: unknown; result?: unknown }, context: functions.https.CallableContext) => {
+export const createSession = functions.https.onCall(async (data: { step1: unknown; step2?: unknown; result?: unknown; pathwayMode?: string }, context: functions.https.CallableContext) => {
   // Rate limiting
   enforceRateLimit(context);
   if (!context.auth) {
@@ -240,6 +244,7 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
   const sessionData = {
     userId,
     status: 'STEP1_COMPLETE',
+    pathwayMode: data.pathwayMode || null,
     step1: stripUndefined(step1Data),
     result: data.result || null,
     expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
@@ -280,7 +285,7 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
 // ============================================
 // CLOUD FUNCTION: Update Session (Step 2)
 // ============================================
-export const updateSession = functions.https.onCall(async (data: { sessionId: string; step2: unknown; result?: { riskCat: string; score: number } }, context: functions.https.CallableContext) => {
+export const updateSession = functions.https.onCall(async (data: { sessionId: string; step2: unknown; result?: { riskCat: string; score: number }; pathwayMode?: string }, context: functions.https.CallableContext) => {
   // Rate limiting
   enforceRateLimit(context);
   if (!context.auth) {
@@ -325,6 +330,10 @@ export const updateSession = functions.https.onCall(async (data: { sessionId: st
   if (result) {
     updateData.finalCategory = result.riskCat;
     updateData.finalScore = result.score;
+  }
+
+  if (data.pathwayMode) {
+    updateData.pathwayMode = data.pathwayMode;
   }
 
   try {

@@ -11,6 +11,8 @@ import RiskGauge from './RiskGauge';
 import ResultsLoading from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
+import { functions } from '../config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
@@ -497,12 +499,35 @@ const Part1Results = ({
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
+  researchConsent = false,
   onShowModelDocs = null,
 }) => {
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const breakdownRef = useRef(null);
+  const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
+  const [researchSubmitError, setResearchSubmitError] = useState(null);
+
+  const handleSubmitToResearch = async () => {
+    if (!functions) return;
+    setResearchSubmitState('pending');
+    setResearchSubmitError(null);
+    try {
+      const fn = httpsCallable(functions, 'submitToRedcap');
+      await fn({
+        researchConsent: true,
+        step1: formData,
+        result,
+        pathwayMode: formData?.pathwayMode || 'pre_psa',
+        sessionId: sessionId || undefined,
+      });
+      setResearchSubmitState('success');
+    } catch (err) {
+      setResearchSubmitState('error');
+      setResearchSubmitError(err?.message || 'Submission failed. Please try again.');
+    }
+  };
 
   useEffect(() => {
     if (!result) return;
@@ -652,7 +677,7 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Research Participation ID ── */}
+      {/* ── Research Participation ID (from main) ── */}
       {sessionId && sessionId !== 'Local' && (
         <ResearchIdCard sessionId={sessionId} />
       )}
@@ -661,6 +686,42 @@ const Part1Results = ({
       {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
         <GuardrailBanner key={alert.code} alert={alert} />
       ))}
+
+      {/* ── Research consent / REDCap status ── */}
+      {storageMode === 'cloud' && (
+        /* Cloud user — auto-synced if consented */
+        <div className={`results-research-badge ${researchConsent ? 'results-research-badge--consented' : 'results-research-badge--private'}`}>
+          {researchConsent
+            ? <><CheckCircle2Icon size={14} /><span>Your data is included in the ePSA research study</span></>
+            : <><CloudIcon size={14} /><span>Your data is stored privately — not shared for research</span></>}
+        </div>
+      )}
+      {storageMode === 'local' && researchConsent && (
+        /* Local user — must push manually */
+        <div className="results-research-submit-row">
+          {researchSubmitState === 'success' ? (
+            <div className="results-research-badge results-research-badge--consented">
+              <CheckCircle2Icon size={14} />
+              <span>Thank you! Your data has been submitted to the research study.</span>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn-research-submit"
+                onClick={handleSubmitToResearch}
+                disabled={researchSubmitState === 'pending'}
+              >
+                <FlaskConicalIcon size={15} />
+                {researchSubmitState === 'pending' ? 'Submitting…' : 'Submit to Research Study'}
+              </button>
+              {researchSubmitState === 'error' && (
+                <span className="results-research-error">{researchSubmitError}</span>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="PSA testing recommendation">

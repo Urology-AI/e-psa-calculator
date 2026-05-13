@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { functions } from '../config/firebase';
+import { httpsCallable } from 'firebase/functions';
 import './Part2Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -139,17 +141,43 @@ const Part2Results = ({
   postData, sessionId = null, userEmail = null, userPhone = null,
   onSaveToCloud = null, cloudAvailable = false,
   saveToCloudPending = false, saveToCloudError = null,
+  researchConsent = false,
   onShowModelDocs = null, onContinueToMRI = null,
 }) => {
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
+  const [researchSubmitError, setResearchSubmitError] = useState(null);
 
   useEffect(() => {
     if (!result) return;
     const loadingTimer = setTimeout(() => setIsLoading(false), 900);
     return () => clearTimeout(loadingTimer);
   }, [result]);
+
+  const handleSubmitToResearch = async () => {
+    if (!functions) return;
+    setResearchSubmitState('pending');
+    setResearchSubmitError(null);
+    try {
+      const fn = httpsCallable(functions, 'submitToRedcap');
+      await fn({
+        researchConsent: true,
+        step1: preData,
+        result: preResult,
+        step2: postData,
+        finalCategory: result?.riskCat,
+        finalScore: result?.totalPoints,
+        pathwayMode: postData?.pathwayMode || preData?.pathwayMode || 'post_psa',
+        sessionId: sessionId || undefined,
+      });
+      setResearchSubmitState('success');
+    } catch (err) {
+      setResearchSubmitState('error');
+      setResearchSubmitError(err?.message || 'Submission failed. Please try again.');
+    }
+  };
 
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {});
@@ -317,6 +345,74 @@ const Part2Results = ({
               <strong>Cloud save unavailable.</strong> {saveToCloudError}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Research consent / REDCap status ── */}
+      {storageMode === 'cloud' && (
+        /* Cloud user — auto-synced if consented */
+        <div className={`p2r-research-badge ${researchConsent ? 'p2r-research-badge--consented' : 'p2r-research-badge--private'}`}>
+          {researchConsent
+            ? <><CheckCircle2Icon size={14} /><span>Your data is included in the ePSA research study</span></>
+            : <><CloudIcon size={14} /><span>Your data is stored privately — not shared for research</span></>}
+        </div>
+      )}
+      {storageMode === 'local' && researchConsent && (
+        /* Local user — must push manually */
+        <div className="p2r-research-submit-row">
+          {researchSubmitState === 'success' ? (
+            <div className="p2r-research-badge p2r-research-badge--consented">
+              <CheckCircle2Icon size={14} />
+              <span>Thank you! Your data has been submitted to the research study.</span>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="p2r-btn-research-submit"
+                onClick={handleSubmitToResearch}
+                disabled={researchSubmitState === 'pending'}
+              >
+                <FlaskConicalIcon size={15} />
+                {researchSubmitState === 'pending' ? 'Submitting…' : 'Submit to Research Study'}
+              </button>
+              {researchSubmitState === 'error' && (
+                <span className="p2r-research-error">{researchSubmitError}</span>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Clinical Notices (consolidated) ── */}
+      {(lowPsaWarning || psadFlag || discordanceFlag) && (
+        <div className="p2r-notices" role="note" aria-label="Clinical notices">
+          <div className="p2r-notices-title">
+            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
+            <span>Clinical Notices</span>
+          </div>
+          <ul className="p2r-notices-list">
+            {lowPsaWarning && (
+              <NoticeItem label="Low PSA Risk">
+                {lowPsaWarningText}
+              </NoticeItem>
+            )}
+            {psadFlag && (
+              <NoticeItem label="PSA Density Elevated">
+                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+                <ModalInfoIcon
+                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
+                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
+                  sources={fieldReferences.part2.psadKadeer.sources}
+                />
+              </NoticeItem>
+            )}
+            {discordanceFlag && (
+              <NoticeItem label="Risk Discordance">
+                {discordanceFlag.text}
+              </NoticeItem>
+            )}
+          </ul>
         </div>
       )}
 
