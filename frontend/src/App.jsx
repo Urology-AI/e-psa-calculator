@@ -9,11 +9,10 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
-import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup.jsx';
 import TermsOfServicePopup from './components/TermsOfServicePopup.jsx';
 import { useTranslation } from 'react-i18next';
@@ -76,7 +75,6 @@ function App() {
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
-  const [showHipaaPopup, setShowHipaaPopup] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
@@ -1554,13 +1552,6 @@ function App() {
                 </button>
                 <button
                   className="btn-model-docs btn-hipaa"
-                  onClick={() => setShowHipaaPopup(true)}
-                >
-                  <ShieldCheckIcon size={16} />
-                  <span>{t('app.footer.hipaa')}</span>
-                </button>
-                <button
-                  className="btn-model-docs"
                   onClick={() => setShowPrivacyPolicy(true)}
                 >
                   <ShieldCheckIcon size={16} />
@@ -1570,7 +1561,7 @@ function App() {
                   className="btn-model-docs"
                   onClick={() => setShowTermsOfService(true)}
                 >
-                  <BookIcon size={16} />
+                  <FileTextIcon size={16} />
                   <span>{t('app.footer.termsOfService')}</span>
                 </button>
                 <button
@@ -1950,9 +1941,6 @@ function App() {
           config={calculatorConfig}
           onClose={() => setShowModelDocs(false)}
         />
-      )}
-      {showHipaaPopup && (
-        <HipaaCompliancePopup onClose={() => setShowHipaaPopup(false)} />
       )}
       {showPrivacyPolicy && (
         <PrivacyPolicyPopup onClose={() => setShowPrivacyPolicy(false)} />
