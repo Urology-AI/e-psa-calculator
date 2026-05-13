@@ -14,7 +14,7 @@ import { adminFunctions, adminDb } from '../config/adminFirebase';
 
 const call = (name, payload) => httpsCallable(adminFunctions, name)(payload).then((r) => r.data);
 
-// ── Sessions ───────────────────────────────────────────────────────────────
+// ── Sinai sessions ─────────────────────────────────────────────────────────
 
 export const listSinaiSessions = (params) =>
   call('adminListSinaiSessions', params || {});
@@ -30,6 +30,17 @@ export const deleteSinaiSession = (sessionId, reason) =>
 
 export const markCodeImported = (code, redcapRecordId, notes) =>
   call('markCodeImported', { code, redcapRecordId, notes });
+
+// ── Public-cohort sessions (sessions/* + users/{uid}, researchConsent=true) ──
+
+export const listPublicConsentedSessions = (params) =>
+  call('adminListPublicConsentedSessions', params || {});
+
+export const getPublicSession = (sessionId) =>
+  call('adminGetPublicSession', { sessionId });
+
+export const resyncPublicSession = (sessionId) =>
+  call('adminResyncPublicSession', { sessionId });
 
 // ── Clinic codes ───────────────────────────────────────────────────────────
 
