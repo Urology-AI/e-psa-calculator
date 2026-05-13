@@ -19,6 +19,13 @@ const HipaaCompliancePopup = ({ onClose }) => {
           </section>
 
           <section className="docs-section">
+            <h3>{t('hipaa.baa.title')}</h3>
+            <div className="info-box info">
+              <strong>{t('hipaa.baa.label')}</strong> {t('hipaa.baa.text')}
+            </div>
+          </section>
+
+          <section className="docs-section">
             <h3>{t('hipaa.sessionOnly.title')}</h3>
             <ul className="limitations-list">
               <li>
@@ -31,6 +38,13 @@ const HipaaCompliancePopup = ({ onClose }) => {
                 <strong>{t('hipaa.sessionOnly.saveKeyLabel')}</strong> {t('hipaa.sessionOnly.saveKeyText')}
               </li>
             </ul>
+          </section>
+
+          <section className="docs-section">
+            <h3>{t('hipaa.emailPhoneAuth.title')}</h3>
+            <p>
+              <strong>{t('hipaa.emailPhoneAuth.label')}</strong> {t('hipaa.emailPhoneAuth.text')}
+            </p>
           </section>
 
           <section className="docs-section">

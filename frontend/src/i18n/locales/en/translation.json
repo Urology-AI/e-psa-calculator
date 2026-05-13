@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
       "modelDocs": "Model Documentation",
-      "hipaa": "HIPAA Compliant"
+      "hipaa": "Data Privacy",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
     },
     "loadingResults": {
       "title": "Loading your results...",
@@ -209,20 +211,30 @@
     }
   },
   "hipaa": {
-    "title": "HIPAA Compliance",
+    "title": "Data Privacy & HIPAA Status",
     "closeButton": "Close",
     "privacy": {
       "title": "Privacy & Data Protection",
-      "text": "The ePSA tool is designed to protect your health information in line with HIPAA considerations. We do not collect, store, or link any personally identifiable information (PII) or protected health information (PHI) such as name, email, or phone number."
+      "text": "ePSA is an educational research tool. The privacy posture of your data depends on which storage option you choose. Read each section below to understand what is and is not collected in your chosen path."
+    },
+    "baa": {
+      "title": "HIPAA / BAA Status",
+      "label": "Important:",
+      "text": "This tool runs on Google Firebase. Cloud Firestore and Firebase Authentication are HIPAA-eligible services only under an executed Google Cloud Business Associate Agreement (BAA). The BAA status for this deployment is being finalized as part of Mount Sinai's review. Until the BAA is confirmed in writing, do not enter information you would consider Protected Health Information (PHI) in a clinical setting. ePSA is not a medical device and is not FDA-cleared."
     },
     "sessionOnly": {
-      "title": "Anonymous Session Key Only",
-      "noEmailPhoneLabel": "No email or phone:",
-      "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number.",
+      "title": "Anonymous Session Key (no contact info)",
+      "noEmailPhoneLabel": "Anonymous key path:",
+      "noEmailPhoneText": "If you choose the anonymous session key option, cloud storage uses a short random key only (e.g. A1B2C3D4). On that path we do not collect your email address or phone number.",
       "noIdentityLabel": "No identity linking:",
-      "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
+      "noIdentityText": "On the anonymous-key path, your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
       "saveKeyLabel": "Save your key:",
-      "saveKeyText": "If you lose your session key, we cannot recover your data. We have no way to associate the data with you."
+      "saveKeyText": "If you lose your session key, we cannot recover your data. We have no way to associate the data with you on that path."
+    },
+    "emailPhoneAuth": {
+      "title": "Email or Phone Sign-In (contact info IS collected)",
+      "label": "If you sign in with email or phone:",
+      "text": "If you choose the email or phone sign-in option, Firebase Authentication does collect and store your email address or phone number. That identifier is stored alongside your session and assessment data in your Firestore user document. Choose the anonymous session key instead if you do not want a contact identifier linked to your data."
     },
     "importCloud": {
       "title": "Data Import & Cloud",
@@ -233,11 +245,93 @@
     },
     "choices": {
       "title": "Your Choices",
-      "text": "You can use the tool with data stored only on this device (\"This device only\") or save to the cloud using an anonymous session key. No personal contact information is required for cloud storage."
+      "text": "You can use the tool with data stored only on this device (\"This device only\"), with an anonymous session key in the cloud (no contact info), or with email/phone sign-in (contact info collected). Choose the option that matches your privacy preference."
     },
     "disclaimer": {
       "label": "Disclaimer:",
-      "text": "This summary describes how the ePSA application handles data for privacy purposes. It is not legal advice. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
+      "text": "This summary describes how the ePSA application handles data. It is not legal advice and is not a substitute for a formal Privacy Policy or Notice of Privacy Practices. For questions about HIPAA or your health information, consult your healthcare provider or legal counsel."
+    }
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for legal review:",
+      "text": "This Privacy Policy is a working draft scaffolded for Mount Sinai legal review. The text below describes the application's current behavior in good faith but has not yet been reviewed or approved by counsel. Do not rely on this document as a final legal notice."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with effective date upon legal sign-off."
+    },
+    "whoWeAre": {
+      "title": "Who We Are",
+      "text": "ePSA is an educational research tool developed at the Icahn School of Medicine at Mount Sinai (Department of Urology), Principal Investigator Ashutosh K. Tewari, MD. The underlying cohort data was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050."
+    },
+    "dataCollected": {
+      "title": "What We Collect",
+      "intro": "Depending on the storage option you select, ePSA may collect:",
+      "assessmentLabel": "Assessment inputs and results:",
+      "assessmentText": "Your responses to the risk-assessment questions (age, BMI, PSA, IPSS, SHIM, family history, ethnicity, prior biopsy / MRI findings, etc.) and the model outputs derived from them.",
+      "authLabel": "Contact identifiers (only if you sign in with email or phone):",
+      "authText": "If you choose email or phone sign-in, Firebase Authentication collects and stores your email address or phone number. If you choose the anonymous session-key option or local-only storage, no contact identifier is collected.",
+      "technicalLabel": "Technical data:",
+      "technicalText": "Standard server logs (IP address, browser type, timestamps) generated by Firebase Hosting and Cloud Firestore. Used for security and abuse prevention only."
+    },
+    "howWeUse": {
+      "title": "How We Use Your Data",
+      "text": "Assessment data is used to compute and display your risk estimates and to allow you to retrieve them across sessions. De-identified aggregate data may be used for ongoing model validation and academic research consistent with the IRB protocol. We do not sell your data and do not use it for advertising."
+    },
+    "storageAndSharing": {
+      "title": "Storage, Sharing & Vendors",
+      "text": "Data is stored in Google Cloud Firestore (US region) under the project's Firebase configuration. Google is a vendor; HIPAA-eligible Firebase services require an executed Business Associate Agreement (BAA), the status of which is being finalized. We do not share your data with third parties for marketing purposes."
+    },
+    "yourRights": {
+      "title": "Your Rights",
+      "text": "You can request access to, correction of, or deletion of your data at any time. You may also withdraw from the educational/research use of ePSA without penalty. Contact the study team using the address below."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For privacy questions, data requests, or to withdraw, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai)."
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "closeButton": "Close",
+    "placeholder": {
+      "label": "Draft for legal review:",
+      "text": "These Terms of Service are a working draft scaffolded for Mount Sinai legal review. The text below describes the intended use of the tool in good faith but has not yet been reviewed or approved by counsel. Do not rely on this document as a final legal agreement."
+    },
+    "lastUpdated": {
+      "title": "Last Updated",
+      "text": "Draft — placeholder. To be replaced with effective date upon legal sign-off."
+    },
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "text": "By using the ePSA tool you confirm that you have read, understood, and agree to these terms. If you do not agree, do not use the tool."
+    },
+    "educationalUse": {
+      "title": "Educational and Research Use Only",
+      "text": "ePSA is an educational risk-assessment and research tool. It is not a medical device, has not been FDA-cleared, and is intended to support — not replace — discussion with a qualified healthcare provider."
+    },
+    "noMedicalAdvice": {
+      "title": "No Medical Advice",
+      "text": "The information presented by ePSA does not constitute medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay seeking it because of something you read here."
+    },
+    "accountResponsibility": {
+      "title": "Account & Data Responsibility",
+      "text": "If you create an account (email or phone) or use an anonymous session key, you are responsible for keeping your credentials and session key secure. If you lose your anonymous session key, we cannot recover the associated data."
+    },
+    "disclaimer": {
+      "title": "Disclaimer of Warranties & Limitation of Liability",
+      "text": "ePSA is provided \"as is\" without warranties of any kind. The models are internally validated only and have not been validated in external cohorts. To the maximum extent permitted by law, Mount Sinai and its researchers disclaim liability for any decisions made in reliance on the tool."
+    },
+    "changes": {
+      "title": "Changes to These Terms",
+      "text": "We may update these terms from time to time. The most recent version will always be accessible from the tool's footer. Continued use after changes constitutes acceptance of the revised terms."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For questions about these terms, contact the ePSA study team at aditya.dixit@mssm.edu (Aditya Dixit, ePSA research lead, Department of Urology, Icahn School of Medicine at Mount Sinai)."
     }
   },
   "storage": {
