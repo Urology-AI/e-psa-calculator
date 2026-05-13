@@ -17,13 +17,14 @@ import {
   FlaskConical, FileText, ListChecks, ClipboardList, Settings,
   RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Clock,
   Download, Upload, Trash2, ShieldOff, X, Plus, Loader2, Copy,
-  ToggleLeft, ToggleRight, Search, Building,
+  ToggleLeft, ToggleRight, Search, Building, Globe, Cloud, RotateCw, Link2,
 } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit as fsLimit } from 'firebase/firestore';
 import { adminDb } from '../../config/adminFirebase';
 import {
   listSinaiSessions, getSinaiSession, submitSessionToRedcap,
   deleteSinaiSession, markCodeImported,
+  listPublicConsentedSessions, getPublicSession, resyncPublicSession,
   generateClinicCodes, revokeClinicCode,
   listClinicCodeAuditLog, toggleSinaiRedcapEnabled, readSinaiConfig,
   formatCode, buildCsvFromRecord, downloadFile,
@@ -101,62 +102,123 @@ const SinaiResearch = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Sessions tab
+// Sessions tab — unified view of Sinai + Public-consented research sessions
 // ─────────────────────────────────────────────────────────────────────────
 
+const PUBLIC_SYNC_LABELS = {
+  synced:   { label: 'In REDCap',  color: 'green', Icon: CheckCircle2 },
+  unsynced: { label: 'Awaiting',   color: 'amber', Icon: Clock },
+  error:    { label: 'REDCap err', color: 'red',   Icon: AlertCircle },
+};
+
 const SessionsTab = () => {
-  const [sessions, setSessions] = useState([]);
+  const [sinaiSessions, setSinaiSessions] = useState([]);
+  const [publicSessions, setPublicSessions] = useState([]);
+  const [cohortFilter, setCohortFilter] = useState('all'); // all | sinai | public
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [nextCursor, setNextCursor] = useState(null);
-  const [selected, setSelected] = useState(null); // session for the detail modal
-  const [actionMsg, setActionMsg] = useState(null); // banner for action results
+  const [selected, setSelected] = useState(null);
+  const [actionMsg, setActionMsg] = useState(null);
 
-  const load = useCallback(async (reset = true) => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await listSinaiSessions({
-        status: statusFilter,
-        limit: 50,
-        ...(reset ? {} : nextCursor ? { startAfterMillis: nextCursor } : {}),
-      });
-      setSessions(reset ? res.sessions : [...sessions, ...res.sessions]);
-      setNextCursor(res.nextStartAfterMillis);
-    } catch (err) {
-      setError(err?.message || 'Failed to load sessions.');
-    } finally {
-      setLoading(false);
+    const tasks = [];
+    if (cohortFilter !== 'public') {
+      tasks.push(
+        listSinaiSessions({ status: statusFilter === 'all' ? 'all' : statusFilter, limit: 100 })
+          .then((res) => setSinaiSessions(res.sessions || []))
+          .catch((err) => setError((prev) => prev || err?.message || 'Failed to load Sinai sessions.'))
+      );
+    } else {
+      setSinaiSessions([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, nextCursor]);
+    if (cohortFilter !== 'sinai') {
+      const syncStatus =
+        statusFilter === 'submitted_redcap' ? 'synced'
+        : statusFilter === 'pending' || statusFilter === 'imported_manually' ? 'unsynced'
+        : statusFilter === 'redcap_error' ? 'error'
+        : 'all';
+      tasks.push(
+        listPublicConsentedSessions({ syncStatus, limit: 100 })
+          .then((res) => setPublicSessions(res.sessions || []))
+          .catch((err) => setError((prev) => prev || err?.message || 'Failed to load public sessions.'))
+      );
+    } else {
+      setPublicSessions([]);
+    }
+    await Promise.allSettled(tasks);
+    setLoading(false);
+  }, [cohortFilter, statusFilter]);
 
-  useEffect(() => { load(true); /* eslint-disable-next-line */ }, [statusFilter]);
+  useEffect(() => { load(); }, [load]);
 
-  const filtered = useMemo(() => {
+  // Merge + sort the two lists into a unified, badged display
+  const unified = useMemo(() => {
+    const sinaiRows = sinaiSessions.map((s) => ({
+      cohort: 'sinai',
+      key: `sinai:${s.sessionId}`,
+      sessionId: s.sessionId,
+      sortMillis: s.createdAtMillis,
+      raw: s,
+    }));
+    const publicRows = publicSessions.map((s) => ({
+      cohort: 'public',
+      key: `public:${s.sessionId}`,
+      sessionId: s.sessionId,
+      sortMillis: s.createdAtMillis,
+      raw: s,
+    }));
+    const all = [...sinaiRows, ...publicRows].sort((a, b) => (b.sortMillis || 0) - (a.sortMillis || 0));
+
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return sessions;
-    return sessions.filter(
-      (s) =>
-        s.sessionId.toLowerCase().includes(q) ||
-        s.clinicCode.toLowerCase().includes(q) ||
-        (s.redcapRecordId || '').toLowerCase().includes(q)
-    );
-  }, [searchTerm, sessions]);
+    if (!q) return all;
+    return all.filter((row) => {
+      const r = row.raw;
+      return (
+        row.sessionId.toLowerCase().includes(q) ||
+        (r.clinicCode || '').toLowerCase().includes(q) ||
+        (r.userIdPrefix || '').toLowerCase().includes(q) ||
+        (r.redcapRecordId || '').toLowerCase().includes(q)
+      );
+    });
+  }, [sinaiSessions, publicSessions, searchTerm]);
 
   return (
     <>
       {actionMsg && (
         <div className={`sr-banner sr-banner--${actionMsg.kind}`}>
-          {actionMsg.kind === 'error'
-            ? <AlertCircle size={16} />
-            : <CheckCircle2 size={16} />}
+          {actionMsg.kind === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
           <span>{actionMsg.text}</span>
           <button onClick={() => setActionMsg(null)} aria-label="Dismiss"><X size={14} /></button>
         </div>
       )}
+
+      {/* Cohort filter chips */}
+      <div className="sr-cohort-bar">
+        {[
+          { id: 'all',    label: 'All cohorts',           Icon: ListChecks },
+          { id: 'sinai',  label: 'Mount Sinai',           Icon: Building },
+          { id: 'public', label: 'Public · Consented',    Icon: Globe },
+        ].map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`sr-cohort-chip ${cohortFilter === id ? `sr-cohort-chip--active sr-cohort-chip--${id}` : ''}`}
+            onClick={() => setCohortFilter(id)}
+          >
+            <Icon size={14} />
+            <span>{label}</span>
+            <span className="sr-cohort-chip-count">
+              {id === 'all'    ? unified.length
+                : id === 'sinai'  ? sinaiSessions.length
+                : publicSessions.length}
+            </span>
+          </button>
+        ))}
+      </div>
 
       <div className="sr-toolbar">
         <div className="sr-toolbar-left">
@@ -164,7 +226,7 @@ const SessionsTab = () => {
             <Search size={14} />
             <input
               type="text"
-              placeholder="Search by session ID, clinic code, or REDCap record"
+              placeholder="Search by session ID, clinic code, user prefix, or REDCap record"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -181,7 +243,7 @@ const SessionsTab = () => {
             <option value="redcap_error">REDCap error</option>
           </select>
         </div>
-        <button className="sr-btn-ghost" onClick={() => load(true)} disabled={loading}>
+        <button className="sr-btn-ghost" onClick={load} disabled={loading}>
           <RefreshCw size={14} className={loading ? 'sr-spin' : ''} />
           <span>Refresh</span>
         </button>
@@ -193,10 +255,10 @@ const SessionsTab = () => {
         <table className="sr-table">
           <thead>
             <tr>
+              <th>Cohort</th>
               <th>Status</th>
-              <th>Clinic code</th>
+              <th>Source</th>
               <th>Created</th>
-              <th>Expires</th>
               <th>Pathway</th>
               <th>Risk</th>
               <th>REDCap ID</th>
@@ -204,39 +266,71 @@ const SessionsTab = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && !loading && (
+            {unified.length === 0 && !loading && (
               <tr><td colSpan={8} className="sr-empty">No sessions match these filters.</td></tr>
             )}
-            {filtered.map((s) => {
-              const cfg = STATUS_LABELS[s.status] || STATUS_LABELS.pending;
-              const Icon = cfg.Icon;
-              const daysToExpiry =
-                s.expiresAtMillis ? Math.max(0, Math.ceil((s.expiresAtMillis - Date.now()) / 86400000)) : null;
+            {unified.map((row) => {
+              const r = row.raw;
+              if (row.cohort === 'sinai') {
+                const cfg = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
+                return (
+                  <tr key={row.key}>
+                    <td><CohortBadge cohort="sinai" /></td>
+                    <td>
+                      <span className={`sr-status sr-status--${cfg.color}`}>
+                        <cfg.Icon size={12} /> {cfg.label}
+                      </span>
+                    </td>
+                    <td>
+                      <code className="sr-code">{formatCode(r.clinicCode)}</code>
+                    </td>
+                    <td>{fmtShort(r.createdAtMillis)}</td>
+                    <td className="sr-mono">{r.pathwayMode}</td>
+                    <td>
+                      {r.finalCategory ? <span>{r.finalCategory}</span>
+                        : r.finalScore !== undefined ? <span>score {r.finalScore}</span>
+                        : '—'}
+                    </td>
+                    <td className="sr-mono">{r.redcapRecordId || '—'}</td>
+                    <td>
+                      <button className="sr-btn-row" onClick={() => setSelected({ cohort: 'sinai', raw: r })}>View</button>
+                    </td>
+                  </tr>
+                );
+              }
+              // public row
+              const syncKey =
+                r.redcapSyncError ? 'error'
+                : r.redcapSynced ? 'synced'
+                : 'unsynced';
+              const cfg = PUBLIC_SYNC_LABELS[syncKey];
               return (
-                <tr key={s.sessionId}>
+                <tr key={row.key}>
+                  <td><CohortBadge cohort="public" linked={!!r.linkedToSinai} /></td>
                   <td>
                     <span className={`sr-status sr-status--${cfg.color}`}>
-                      <Icon size={12} />
-                      {cfg.label}
+                      <cfg.Icon size={12} /> {cfg.label}
                     </span>
                   </td>
-                  <td><code className="sr-code">{formatCode(s.clinicCode)}</code></td>
-                  <td>{fmtShort(s.createdAtMillis)}</td>
-                  <td>
-                    {daysToExpiry === null ? '—'
-                      : daysToExpiry === 0 ? <span className="sr-expiry-soon">today</span>
-                      : daysToExpiry <= 3 ? <span className="sr-expiry-soon">{daysToExpiry}d</span>
-                      : `${daysToExpiry}d`}
+                  <td className="sr-small">
+                    <code className="sr-code-soft">uid:{r.userIdPrefix}…</code>
+                    {r.linkedToSinai && (
+                      <div style={{ marginTop: 3, fontSize: 11, color: '#64748b' }}>
+                        <Link2 size={10} style={{ verticalAlign: 'middle' }} />
+                        {' '}linked → <code className="sr-code">{formatCode(r.linkedToSinai.clinicCode)}</code>
+                      </div>
+                    )}
                   </td>
-                  <td className="sr-mono">{s.pathwayMode}</td>
+                  <td>{fmtShort(r.createdAtMillis)}</td>
+                  <td className="sr-mono">{r.pathwayMode || r.status}</td>
                   <td>
-                    {s.finalCategory ? <span>{s.finalCategory}</span>
-                      : s.finalScore !== undefined ? <span>score {s.finalScore}</span>
+                    {r.finalCategory ? <span>{r.finalCategory}</span>
+                      : r.finalScore !== null ? <span>score {r.finalScore}</span>
                       : '—'}
                   </td>
-                  <td className="sr-mono">{s.redcapRecordId || '—'}</td>
+                  <td className="sr-mono">{r.redcapSynced ? row.sessionId.slice(0, 8) + '…' : '—'}</td>
                   <td>
-                    <button className="sr-btn-row" onClick={() => setSelected(s)}>View</button>
+                    <button className="sr-btn-row" onClick={() => setSelected({ cohort: 'public', raw: r })}>View</button>
                   </td>
                 </tr>
               );
@@ -247,24 +341,55 @@ const SessionsTab = () => {
 
       <div className="sr-table-footer">
         <span className="sr-table-meta">
-          Showing {filtered.length} of {sessions.length} loaded
-          {nextCursor ? ' · more available' : ''}
+          {unified.length} session{unified.length === 1 ? '' : 's'} shown
+          {' · '}
+          <span style={{ color: '#94a3b8' }}>
+            {sinaiSessions.length} Sinai · {publicSessions.length} public
+          </span>
         </span>
-        {nextCursor && (
-          <button className="sr-btn-ghost" onClick={() => load(false)} disabled={loading}>
-            Load more
-          </button>
-        )}
       </div>
 
-      {selected && (
+      {selected?.cohort === 'sinai' && (
         <SessionDetailModal
-          summary={selected}
+          summary={selected.raw}
           onClose={() => setSelected(null)}
-          onAction={(msg) => { setActionMsg(msg); setSelected(null); load(true); }}
+          onAction={(msg) => { setActionMsg(msg); setSelected(null); load(); }}
+        />
+      )}
+      {selected?.cohort === 'public' && (
+        <PublicSessionModal
+          summary={selected.raw}
+          onClose={() => setSelected(null)}
+          onAction={(msg) => { setActionMsg(msg); setSelected(null); load(); }}
         />
       )}
     </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cohort badge
+// ─────────────────────────────────────────────────────────────────────────
+
+const CohortBadge = ({ cohort, linked = false }) => {
+  if (cohort === 'sinai') {
+    return (
+      <span className="sr-cohort-badge sr-cohort-badge--sinai" title="Mount Sinai cohort · IRB STUDY-14-00050">
+        <Building size={11} /> <span>Mount Sinai</span>
+      </span>
+    );
+  }
+  if (linked) {
+    return (
+      <span className="sr-cohort-badge sr-cohort-badge--linked" title="Started public, later linked to a Mount Sinai clinic code">
+        <Link2 size={11} /> <span>Linked → Sinai</span>
+      </span>
+    );
+  }
+  return (
+    <span className="sr-cohort-badge sr-cohort-badge--public" title="Public cohort · researchConsent given">
+      <Globe size={11} /> <span>Public · Consented</span>
+    </span>
   );
 };
 
@@ -585,6 +710,180 @@ const flatten = (obj, prefix) => {
     else out[prefix + k] = v;
   }
   return out;
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Public session detail modal
+// ─────────────────────────────────────────────────────────────────────────
+
+const PublicSessionModal = ({ summary, onClose, onAction }) => {
+  const [doc, setDoc] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const full = await getPublicSession(summary.sessionId);
+        if (!cancelled) setDoc(full);
+      } catch (err) {
+        if (!cancelled) setError(err?.message || 'Failed to load session.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [summary.sessionId]);
+
+  const handleResync = async () => {
+    setBusy('resync'); setError(null);
+    try {
+      await resyncPublicSession(summary.sessionId);
+      onAction({ kind: 'success', text: 'Resync requested — the syncToRedcap trigger will re-run shortly.' });
+    } catch (err) {
+      setError(err?.message || 'Failed to request resync.');
+      setBusy(null);
+    }
+  };
+
+  const handleDownloadJson = () => {
+    if (!doc) return;
+    downloadFile(
+      `public_${summary.userIdPrefix}_${summary.sessionId.slice(0, 8)}.json`,
+      JSON.stringify(doc, null, 2),
+      'application/json'
+    );
+  };
+
+  const handleDownloadCsv = () => {
+    if (!doc) return;
+    const session = doc.session || {};
+    const flat = {
+      sessionId: doc._id,
+      cohort: 'public_consented',
+      userIdPrefix: doc.userIdPrefix,
+      researchConsent: doc.researchConsent,
+      researchTimestamp: doc.researchTimestampMillis ? new Date(doc.researchTimestampMillis).toISOString() : '',
+      consentBasis: doc.consentBasis || '',
+      status: session.status || '',
+      pathwayMode: session.pathwayMode || '',
+      createdAt: session.createdAt ? new Date(session.createdAt).toISOString() : '',
+      redcapSynced: session.redcapSynced === true,
+      redcapSyncedAt: session.redcapSyncedAt ? new Date(session.redcapSyncedAt).toISOString() : '',
+      ...flatten(session.step1 || {}, 'step1_'),
+      ...flatten(session.step2 || {}, 'step2_'),
+      ...flatten(session.result || {}, 'result_'),
+      finalCategory: session.finalCategory || '',
+      finalScore: session.finalScore ?? '',
+    };
+    downloadFile(
+      `public_${summary.userIdPrefix}_${summary.sessionId.slice(0, 8)}.csv`,
+      buildCsvFromRecord(flat)
+    );
+  };
+
+  const session = doc?.session || {};
+  const syncKey =
+    session.redcapSyncError ? 'error'
+    : session.redcapSynced ? 'synced'
+    : 'unsynced';
+  const cfg = PUBLIC_SYNC_LABELS[syncKey];
+  const canResync = !session.redcapSynced;
+
+  return (
+    <div className="sr-modal-root" role="dialog" aria-modal="true">
+      <div className="sr-modal-backdrop" onClick={onClose} />
+      <div className="sr-modal-panel sr-modal-panel--wide">
+        <header className="sr-modal-header">
+          <div>
+            <CohortBadge cohort="public" linked={!!summary.linkedToSinai} />
+            <h3 style={{ marginTop: 8 }}>Public-cohort session</h3>
+            <p className="sr-modal-sub">
+              <code className="sr-code-soft">uid:{summary.userIdPrefix}…</code>
+              <span style={{ marginLeft: 8, color: '#94a3b8', fontSize: 12 }}>
+                {summary.sessionId}
+              </span>
+            </p>
+          </div>
+          <button type="button" className="sr-modal-close" onClick={onClose} aria-label="Close">
+            <X size={16} />
+          </button>
+        </header>
+
+        {error && (
+          <div className="sr-banner sr-banner--error" style={{ margin: '0 18px 12px' }}>
+            <AlertCircle size={16} /><span>{error}</span>
+          </div>
+        )}
+
+        {loading && (
+          <div className="sr-modal-body sr-loading">
+            <Loader2 size={20} className="sr-spin" /> Loading session…
+          </div>
+        )}
+
+        {doc && !loading && (
+          <>
+            <div className="sr-modal-body">
+              <div className="sr-detail-grid">
+                <DetailField label="Cohort" value="Public · Consented" />
+                <DetailField label="REDCap sync status" value={cfg.label} />
+                <DetailField label="Pathway" value={session.pathwayMode} mono />
+                <DetailField label="Session status" value={session.status} mono />
+                <DetailField label="Created" value={fmtDate(session.createdAt)} />
+                <DetailField label="REDCap synced at" value={fmtDate(session.redcapSyncedAt)} />
+                <DetailField label="Research consent given" value={doc.researchConsent ? 'Yes' : 'No'} />
+                <DetailField label="Consent timestamp" value={fmtDate(doc.researchTimestampMillis)} />
+                <DetailField label="Consent basis" value={doc.consentBasis || '—'} mono />
+                <DetailField label="User ID" value={`${doc.userId.slice(0, 24)}…`} mono />
+                {summary.linkedToSinai && (
+                  <DetailField
+                    label="Linked to Sinai code"
+                    value={`${formatCode(summary.linkedToSinai.clinicCode)} at ${fmtDate(summary.linkedToSinai.linkedAtMillis)}`}
+                    span
+                  />
+                )}
+                {session.redcapSyncError && (
+                  <DetailField label="Last REDCap error" value={session.redcapSyncError} span error />
+                )}
+              </div>
+
+              <DetailSection title="Step 1 — risk factors" data={session.step1} />
+              <DetailSection title="Step 1 result" data={session.result} />
+              {session.step2 && <DetailSection title="Step 2 — PSA / MRI" data={session.step2} />}
+              {(session.finalCategory || session.finalScore !== undefined) && (
+                <DetailSection
+                  title="Step 2 result"
+                  data={{ finalCategory: session.finalCategory, finalScore: session.finalScore }}
+                />
+              )}
+            </div>
+
+            <footer className="sr-modal-footer">
+              <div className="sr-modal-footer-left">
+                <button className="sr-btn-ghost" onClick={handleDownloadJson}>
+                  <Download size={14} /> JSON
+                </button>
+                <button className="sr-btn-ghost" onClick={handleDownloadCsv}>
+                  <Download size={14} /> REDCap CSV
+                </button>
+              </div>
+              <div className="sr-modal-footer-right">
+                {canResync && (
+                  <button className="sr-btn-primary" onClick={handleResync} disabled={busy != null}>
+                    {busy === 'resync' ? <Loader2 size={14} className="sr-spin" /> : <RotateCw size={14} />}
+                    <span>Re-trigger REDCap sync</span>
+                  </button>
+                )}
+              </div>
+            </footer>
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
 // ─────────────────────────────────────────────────────────────────────────

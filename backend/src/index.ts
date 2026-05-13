@@ -27,6 +27,10 @@ export {
   adminGenerateClinicCodes,
   adminRevokeClinicCode,
   adminListClinicCodeAuditLog,
+  // Public-cohort viewers (sessions/* + users/{uid}, gated on researchConsent)
+  adminListPublicConsentedSessions,
+  adminGetPublicSession,
+  adminResyncPublicSession,
 } from './sinaiAdmin';
 
 // Type definitions for better type safety

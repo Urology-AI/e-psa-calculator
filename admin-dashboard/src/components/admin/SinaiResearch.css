@@ -55,6 +55,53 @@
   color: #2563eb; border-bottom-color: #2563eb; font-weight: 600;
 }
 
+/* ─── Cohort filter chips (top of Sessions tab) ─── */
+.sr-cohort-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.sr-cohort-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 13px; font-weight: 500; color: #475569;
+  cursor: pointer; transition: border-color 120ms, background 120ms;
+}
+.sr-cohort-chip:hover { border-color: #cbd5e1; }
+.sr-cohort-chip--active { font-weight: 600; color: #0f172a; }
+.sr-cohort-chip--active.sr-cohort-chip--all    { border-color: #475569; background: #f1f5f9; }
+.sr-cohort-chip--active.sr-cohort-chip--sinai  { border-color: #2563eb; background: #eff6ff; color: #1e3a8a; }
+.sr-cohort-chip--active.sr-cohort-chip--public { border-color: #0d9488; background: #f0fdfa; color: #134e4a; }
+.sr-cohort-chip-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; padding: 1px 6px;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700; color: inherit;
+}
+
+/* ─── Cohort badge (in table rows + modals) ─── */
+.sr-cohort-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.sr-cohort-badge--sinai  { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.sr-cohort-badge--public { background: #f0fdfa; color: #115e59; border-color: #5eead4; }
+.sr-cohort-badge--linked { background: #faf5ff; color: #6b21a8; border-color: #d8b4fe; }
+
+/* Softer code style for user-id prefixes */
+.sr-code-soft {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  background: #f1f5f9; color: #475569;
+  padding: 2px 6px; border-radius: 4px;
+  font-size: 11px; font-weight: 500;
+}
+
 /* ─── Toolbar / search / filters ─── */
 .sr-toolbar {
   display: flex; justify-content: space-between; align-items: center;
