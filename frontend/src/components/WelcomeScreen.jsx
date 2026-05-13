@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, AlertCircleIcon, ExternalLinkIcon } from 'lucide-react';
+import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, AlertCircleIcon, ExternalLinkIcon, BuildingIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ShareQrCode from './ShareQrCode';
 import './ShareQrCode.css';
@@ -127,7 +127,7 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, onBeginSinai, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
   const { t, i18n } = useTranslation();
@@ -295,6 +295,17 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
             <FileTextIcon size={14} />
             <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
           </button>
+          {onBeginSinai && (
+            <button
+              type="button"
+              className="ws-btn-text"
+              onClick={onBeginSinai}
+              title="Mount Sinai patients with a clinic-issued code"
+            >
+              <BuildingIcon size={14} />
+              <span>Mount Sinai patient?</span>
+            </button>
+          )}
         </div>
         <ShareQrCode
           className="ws-qr ws-qr-right"
