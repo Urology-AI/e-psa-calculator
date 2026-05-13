@@ -1096,6 +1096,7 @@
     "bmiPlaceholder": "e.g., 25.49",
     "bmiHint": "Validation range in model: BMI 15-60",
     "familyHistoryLabel": "Family history",
+    "familyHistoryHint": "If you leave this on “None” your score is calculated as if no first-degree relative had prostate cancer. Note: “Unknown” is also scored as no family history by the current model — if you know any relative was affected, pick 1 or 2+ instead so your score reflects it.",
     "family": {
       "none": "None",
       "one": "1 relative",
