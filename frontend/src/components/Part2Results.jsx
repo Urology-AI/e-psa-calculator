@@ -143,6 +143,8 @@ const Part2Results = ({
   saveToCloudPending = false, saveToCloudError = null,
   researchConsent = false,
   onShowModelDocs = null, onContinueToMRI = null,
+  flowMode = 'public',
+  onSubmitToSinai = null,
 }) => {
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
@@ -663,6 +665,41 @@ const Part2Results = ({
 
       {/* ── Action buttons ── */}
       <div className="results-actions">
+        {flowMode === 'sinai' && onSubmitToSinai && (
+          <div
+            className="results-actions-row"
+            style={{
+              padding: '14px 16px',
+              marginBottom: '12px',
+              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+              border: '1px solid #93c5fd',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+              <strong style={{ display: 'block', color: '#1e3a8a', fontSize: '14px' }}>
+                Mount Sinai Research Study
+              </strong>
+              <span style={{ color: '#1e40af', fontSize: '13px' }}>
+                Submit your responses to complete your participation in study STUDY-14-00050.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="btn-results btn-results--solid"
+              style={{ background: '#2563eb', borderColor: '#2563eb' }}
+              onClick={onSubmitToSinai}
+            >
+              <FlaskConicalIcon size={16} />
+              <span>Submit to Mount Sinai</span>
+            </button>
+          </div>
+        )}
         <div className="results-actions-row results-actions-row--primary">
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>Edit Answers</span></button>
           <button className="btn-results btn-results--danger-outline" onClick={onStartOver}><RefreshCwIcon size={16} /><span>Start Over</span></button>
