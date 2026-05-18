@@ -51,16 +51,6 @@ const safeLS = {
   },
 };
 
-// Simple inline back button component for testing
-const TestBackButton = ({ onBack, show }) => {
-  if (!show) return null;
-  return (
-    <button onClick={onBack} style={{margin: '10px', padding: '8px 16px'}}>
-      ← Back
-    </button>
-  );
-};
-
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
   { id: 2, label: 'MRI', title: 'MRI Results (Optional)', description: 'Share your PIRADS score if available' },
@@ -130,9 +120,8 @@ function App() {
     }
   }, []);
   
-  // Calculator configuration and A/B testing
+  // Calculator configuration
   const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
-  const [modelVariant, setModelVariant] = useState('control');
 
   useEffect(() => {
     (async () => {
@@ -190,7 +179,6 @@ function App() {
   const [postResult, setPostResult] = useState(null);
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
-  const [isCalculatingPart1, setIsCalculatingPart1] = useState(false);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -769,6 +757,14 @@ function App() {
   };
 
   const handleSessionUnlink = async () => {
+    // Sign out of Firebase so the onAuthStateChanged listener doesn't restore state
+    try {
+      if (auth) await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out during session unlink:', error);
+    }
+    // Clear consent cache so user must re-consent on next visit
+    safeLS.remove(CONSENT_CACHE_KEY);
     // Clear all session data and return to welcome
     setUser(null);
     setUserPhone(null);
@@ -778,7 +774,6 @@ function App() {
     setConsentData(null);
     setSessionId(null);
     setAuthStep('welcome');
-    setShowProfile(false);
     
     // Clear form data
     setPreData({
@@ -1187,7 +1182,6 @@ function App() {
     });
     setPreResult(null);
     setPostResult(null);
-    setAsResult(null);
 
     // Clear session ID from state but keep user logged in
     setSessionId(null);
@@ -1288,13 +1282,7 @@ function App() {
         return;
       }
 
-      // Show the transition overlay first, then reveal the result after a brief delay.
-      // The delay lets the user "land" on the result screen with the gauge animation.
-      setIsCalculatingPart1(true);
-      setTimeout(() => {
-        setPreResult(result);
-        setIsCalculatingPart1(false);
-      }, 1400);
+      setPreResult(result);
 
       // Track only in cloud mode
       if (shouldTrackAnalytics) {
@@ -1698,36 +1686,7 @@ function App() {
       case 3:
         return (
           <div className="pre-results-step">
-            {isCalculatingPart1 ? (
-              <div className="part1-transition-screen">
-                <div className="part1-transition-gauge" aria-hidden="true">
-                  <svg viewBox="0 0 80 80" width="80" height="80">
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="#e2eaf2" strokeWidth="6" />
-                    <circle
-                      cx="40" cy="40" r="32" fill="none"
-                      stroke="#2563eb" strokeWidth="6" strokeLinecap="round"
-                      strokeDasharray="50 200"
-                      transform="rotate(-90 40 40)"
-                    >
-                      <animateTransform
-                        attributeName="transform"
-                        type="rotate"
-                        from="-90 40 40"
-                        to="270 40 40"
-                        dur="1.1s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  </svg>
-                </div>
-                <p style={{ marginTop: '20px', fontSize: '1rem', fontWeight: 600, color: '#1e3a5f' }}>
-                  Calculating your risk profile…
-                </p>
-                <p style={{ marginTop: '6px', fontSize: '0.8125rem', color: '#607286' }}>
-                  Combining your answers with AUA/NCCN/EAU/ERSPC guideline criteria.
-                </p>
-              </div>
-            ) : preResult ? (
+            {preResult ? (
               <Part1Results
                 result={preResult}
                 formData={{ ...preData, pathwayMode: pathwayMode || preResult?.pathwayMode || 'pre_psa' }}

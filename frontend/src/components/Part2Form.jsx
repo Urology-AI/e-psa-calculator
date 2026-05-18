@@ -27,19 +27,20 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
   });
 
   useEffect(() => {
-    // Sync local data to parent
     setFormData(localData);
-  }, [localData, setFormData]);
+  }, [localData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateField = (field, value) => {
     // Validate PSA input
     if (field === 'psa') {
-      const psaNum = parseFloat(value);
       if (value === '' || value === null || value === undefined) {
         setLocalData(prev => ({ ...prev, [field]: '' }));
         return;
       }
-      if (!isNaN(psaNum) && psaNum >= 0.1 && psaNum <= 100) {
+      // Store the value even if out of range so the inline error message renders;
+      // canProceed() blocks advancing until the value is valid
+      const psaNum = parseFloat(value);
+      if (!isNaN(psaNum) && psaNum >= 0) {
         setLocalData(prev => ({ ...prev, [field]: value }));
       }
       return;
@@ -66,12 +67,13 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     if (currentStep === 1) {
       if (!localData.knowPsa) return false;
       const psaNum = parseFloat(localData.psa);
-      if (isNaN(psaNum) || psaNum <= 0 || psaNum > 100) return false;
+      if (isNaN(psaNum) || psaNum < 0.1 || psaNum > 100) return false;
       return true;
     }
     if (currentStep === 2) {
       // PI-RADS is optional — can always proceed once PSA is confirmed
-      return localData.knowPsa && parseFloat(localData.psa) > 0;
+      const p = parseFloat(localData.psa);
+      return localData.knowPsa && p >= 0.1 && p <= 100;
     }
     return true;
   };
@@ -143,7 +145,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                   }
                 }}
               />
-              {localData.psa && (parseFloat(localData.psa) <= 0 || parseFloat(localData.psa) > 100) && (
+              {localData.psa && (parseFloat(localData.psa) < 0.1 || parseFloat(localData.psa) > 100) && (
                 <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '4px' }}>
                   {t('part2.psa.psaInvalid')}
                 </div>
