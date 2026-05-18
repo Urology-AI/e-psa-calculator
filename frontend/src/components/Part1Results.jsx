@@ -546,8 +546,8 @@ const Part1Results = ({
   if (isLoading) return (
     <div className="results-container">
       <ResultsLoading
-        label="ePSA \u00B7 Part 1"
-        message="Should you discuss PSA testing\u003F"
+        label="ePSA · Part 1"
+        message="Should you discuss PSA testing?"
         detail="Running the ePSA risk model and checking AUA/NCCN screening criteria for your profile."
       />
     </div>
