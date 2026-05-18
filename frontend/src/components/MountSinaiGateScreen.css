@@ -30,7 +30,7 @@
   background: none;
   border: none;
   color: #475569;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   padding: 4px 6px;
@@ -45,14 +45,14 @@
 }
 .sinai-gate-header h2 {
   margin: 8px 0 4px;
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #0f172a;
 }
 .sinai-gate-subtitle {
   margin: 0;
   color: #64748b;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .sinai-gate-icon {
@@ -85,7 +85,7 @@
 .sinai-gate-info strong {
   display: block;
   color: #0c4a6e;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   margin-bottom: 4px;
   letter-spacing: 0.02em;
@@ -94,7 +94,7 @@
 .sinai-gate-info p {
   margin: 0;
   color: #075985;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 .sinai-gate-info em { font-style: normal; font-weight: 600; }
@@ -102,7 +102,7 @@
 .sinai-gate-form { display: flex; flex-direction: column; }
 
 .sinai-gate-label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #334155;
   margin-bottom: 6px;
@@ -113,7 +113,7 @@
 .sinai-gate-input {
   width: 100%;
   padding: 12px 14px;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   font-family: 'SF Mono', Menlo, Consolas, monospace;
   letter-spacing: 0.08em;
@@ -146,7 +146,7 @@
   border: 1px solid #fecaca;
   border-radius: 10px;
   color: #991b1b;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 .sinai-gate-error svg { flex-shrink: 0; margin-top: 1px; }
@@ -154,7 +154,7 @@
 .sinai-gate-submit {
   margin-top: 16px;
   padding: 12px 16px;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #fff;
   background: #2563eb;
@@ -175,7 +175,7 @@
 
 .sinai-gate-help {
   margin: 14px 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #64748b;
   text-align: center;
   line-height: 1.5;
@@ -205,7 +205,7 @@
   margin-bottom: 20px;
 }
 .sinai-consent-code-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #64748b;
   letter-spacing: 0.08em;
@@ -213,7 +213,7 @@
 }
 .sinai-consent-code-value {
   font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: 0.06em;
@@ -229,7 +229,7 @@
 }
 .sinai-consent-section-header h3 {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -238,7 +238,7 @@
 .sinai-consent-section p {
   margin: 0;
   color: #475569;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 
@@ -255,19 +255,19 @@
 .sinai-consent-callout strong {
   display: block;
   color: #92400e;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 4px;
 }
-.sinai-consent-callout p { color: #78350f; font-size: 13px; }
+.sinai-consent-callout p { color: #78350f; font-size: 0.8125rem; }
 
 .sinai-consent-rights {
   margin: 0;
   padding-left: 18px;
   color: #475569;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 .sinai-consent-rights li { margin-bottom: 4px; }
@@ -282,7 +282,7 @@
   border-radius: 10px;
   margin: 8px 0 0;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: #334155;
 }
@@ -323,11 +323,11 @@
 .sinai-results-status-icon { flex-shrink: 0; }
 .sinai-results-status strong {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 2px;
 }
-.sinai-results-status p { margin: 0; font-size: 13px; line-height: 1.5; }
+.sinai-results-status p { margin: 0; font-size: 0.8125rem; line-height: 1.5; }
 
 .sinai-results-record-id {
   display: inline-flex;
@@ -338,7 +338,7 @@
   background: rgba(20, 83, 45, 0.08);
   border-radius: 8px;
   font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #14532d;
 }
@@ -353,7 +353,7 @@
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -365,7 +365,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: #475569;
 }
@@ -384,7 +384,7 @@
   color: #0f172a;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -396,7 +396,7 @@
 }
 .sinai-results-action--primary:hover { background: #1d4ed8; }
 
-/* ─── Dark mode ─── */
+/* ─── Dark mode (OS preference) ─── */
 @media (prefers-color-scheme: dark) {
   .sinai-gate-container,
   .sinai-consent-container,
@@ -489,3 +489,93 @@
   }
   .sinai-results-action:hover { background: #475569; }
 }
+
+/* ─── Dark mode (app theme toggle) ─── */
+.theme-dark .sinai-gate-container,
+.theme-dark .sinai-consent-container,
+.theme-dark .sinai-results-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+.theme-dark .sinai-gate-card,
+.theme-dark .sinai-consent-card,
+.theme-dark .sinai-results-card {
+  background: #1e293b;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.theme-dark .sinai-gate-back { color: #94a3b8; }
+.theme-dark .sinai-gate-back:hover { background: #334155; color: #f1f5f9; }
+.theme-dark .sinai-gate-header h2 { color: #f1f5f9; }
+.theme-dark .sinai-gate-subtitle { color: #94a3b8; }
+.theme-dark .sinai-gate-info {
+  background: rgba(2, 132, 199, 0.12);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+.theme-dark .sinai-gate-info strong { color: #7dd3fc; }
+.theme-dark .sinai-gate-info p { color: #bae6fd; }
+.theme-dark .sinai-gate-label { color: #cbd5e1; }
+.theme-dark .sinai-gate-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+.theme-dark .sinai-gate-input:focus { background: #0f172a; }
+.theme-dark .sinai-gate-input--error { background: rgba(127, 29, 29, 0.3); }
+.theme-dark .sinai-gate-error {
+  background: rgba(127, 29, 29, 0.3);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #fca5a5;
+}
+.theme-dark .sinai-gate-help { color: #94a3b8; }
+.theme-dark .sinai-gate-link { color: #93c5fd; }
+.theme-dark .sinai-consent-code {
+  background: #0f172a;
+  border-color: #475569;
+}
+.theme-dark .sinai-consent-code-label { color: #94a3b8; }
+.theme-dark .sinai-consent-code-value { color: #f1f5f9; }
+.theme-dark .sinai-consent-section-header,
+.theme-dark .sinai-consent-section-header h3 { color: #cbd5e1; }
+.theme-dark .sinai-consent-section p { color: #cbd5e1; }
+.theme-dark .sinai-consent-rights { color: #cbd5e1; }
+.theme-dark .sinai-consent-callout {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.4);
+}
+.theme-dark .sinai-consent-callout strong { color: #fcd34d; }
+.theme-dark .sinai-consent-callout p { color: #fde68a; }
+.theme-dark .sinai-consent-checkbox {
+  background: #0f172a;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+.theme-dark .sinai-results-status--success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+.theme-dark .sinai-results-status--offline {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #fde68a;
+}
+.theme-dark .sinai-results-status--error {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #fca5a5;
+}
+.theme-dark .sinai-results-record-id {
+  background: rgba(134, 239, 172, 0.12);
+  color: #86efac;
+}
+.theme-dark .sinai-results-instructions {
+  background: #0f172a;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+.theme-dark .sinai-results-instructions strong { color: #f1f5f9; }
+.theme-dark .sinai-results-action {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+.theme-dark .sinai-results-action:hover { background: #475569; }

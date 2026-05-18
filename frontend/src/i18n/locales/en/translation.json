@@ -196,7 +196,7 @@
   "auth": {
     "createSessionHeading": "Create an anonymous session to save to cloud",
     "subtitle": "You will get a session key. Save it to load your data later. No email or phone collected.",
-    "sessionPreviewLabel": "You&apos;ll get a session key like:",
+    "sessionPreviewLabel": "You'll get a session key like:",
     "sessionExample": "A1B2C3D4",
     "sessionNote": "Save this key to load your assessment from cloud later.",
     "buttonCreating": "Creating...",
@@ -227,7 +227,7 @@
       "noEmailPhoneLabel": "No email or phone collected:",
       "noEmailPhoneText": "Cloud storage uses an anonymous session key only. You receive a short random key (e.g. A1B2C3D4) to load your data later. We do not collect or store your email address or phone number, and the user record we create explicitly carries email and phone as null.",
       "noIdentityLabel": "No identity linking:",
-      "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session&apos;s data.",
+      "noIdentityText": "Your assessment data is not linked to any identifier that could reveal who you are. Only someone with your session key can access that session's data.",
       "saveKeyLabel": "Save your key:",
       "saveKeyText": "If you lose your session key, we cannot recover your data. We have no way to associate the data with you."
     },

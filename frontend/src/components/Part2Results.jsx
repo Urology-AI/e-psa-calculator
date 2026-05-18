@@ -78,6 +78,17 @@ const GuardrailBanner = ({ alert }) => {
   );
 };
 
+/* ─── Notice Item ─── */
+const NoticeItem = ({ label, children }) => (
+  <li style={{ marginBottom: '6px', fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>
+    <strong style={{ color: '#92400e' }}>{label}: </strong>
+    {children}
+  </li>
+);
+
+/* ─── Modal Info Icon (alias for InfoIcon) ─── */
+const ModalInfoIcon = InfoIcon;
+
 /* ─── Guideline Support Badge ─── */
 const GUIDELINE_LABELS = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
 const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
@@ -214,7 +225,8 @@ const Part2Results = ({
     mriRecommended, mriRecommendMessage,
     pathwayMode = 'post_psa', empiricalProbabilityText,
     epsaTierKey, guardrailAlerts = [],
-    discordanceFlag, lowPsaWarning,
+    discordanceFlag, lowPsaWarning, lowPsaWarningText,
+    psadFlag,
   } = result;
 
   const getRiskColor = (rc) => {

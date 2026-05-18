@@ -1257,7 +1257,7 @@
 
 .theme-dark .btn-results--outline {
   background: transparent;
-  color: var(--brand-600);
+  color: var(--brand-500);
   border-color: var(--line-100);
 }
 
@@ -1266,7 +1266,7 @@
 }
 
 .theme-dark .btn-results--solid {
-  background: var(--brand-800);
+  background: #2563eb;
 }
 
 .theme-dark .btn-results--danger-outline {
