@@ -894,6 +894,7 @@
 /* ── Dark mode: section labels ── */
 .theme-dark .v2-essential-label { border-bottom-color: var(--line-200); }
 .theme-dark .v2-inputs-label { border-bottom-color: var(--line-200); }
+.theme-dark .v2-timeline-what { color: var(--ink-800); }
 
 /* ── Alert banner (biopsy / urology referral) ── */
 .v2-alert-banner {
