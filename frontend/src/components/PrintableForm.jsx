@@ -425,7 +425,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">12.</span> {t('part1.fields.comorbidities.title')}
+              <span className="field-number">12.</span> {t('part1.fields.comorbidities.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>
             </label>
           </div>
         </div>
