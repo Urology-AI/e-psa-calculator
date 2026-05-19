@@ -20,19 +20,20 @@ import {
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
 } from 'lucide-react';
 
-/* ─── Guideline classification for impact table rows ───
- * AUA/NCCN/ERUS base PSA screening on age, race, family history, and
- * germline mutations only. Everything else is model-only (not part of
- * any official screening criterion).
+/* ─── Evidence tier classification for impact table rows ───
+ * AUA/SUO 2026 tier: Age, Race/ancestry, Family history, BMI, IPSS
+ * Research-based tier: all other factors
  */
-const GUIDELINE_FACTORS = new Set(['Age', 'Black ancestry', 'Family history', 'Genetic mutation']);
+const AUA_SUO_FACTORS = new Set([
+  'Age', 'Black ancestry', 'Family history', 'BMI', 'IPSS total',
+]);
 
 const FactorSourceBadge = ({ itemName }) => {
-  const isGuideline = GUIDELINE_FACTORS.has(itemName);
-  const label = isGuideline ? 'AUA/NCCN' : 'Model-only';
-  const title = isGuideline
-    ? 'Recognised AUA/NCCN/ERUS screening criterion'
-    : 'Used by ePSA model only — not part of AUA/NCCN/ERUS screening criteria';
+  const isAua = AUA_SUO_FACTORS.has(itemName);
+  const label = isAua ? 'AUA/SUO 2026' : 'Research-based';
+  const title = isAua
+    ? 'Factor included in AUA/SUO 2026 and NCCN 2026 Early Detection Guidelines'
+    : 'Associated with prostate cancer risk in published research — not part of current AUA/NCCN screening guidelines';
   return (
     <span
       title={title}
@@ -48,9 +49,9 @@ const FactorSourceBadge = ({ itemName }) => {
         borderRadius: '10px',
         verticalAlign: 'middle',
         whiteSpace: 'nowrap',
-        background: isGuideline ? '#dbeafe' : '#fef3c7',
-        color: isGuideline ? '#1e40af' : '#92400e',
-        border: `1px solid ${isGuideline ? '#93c5fd' : '#fcd34d'}`,
+        background: isAua ? '#dbeafe' : '#f3f4f6',
+        color: isAua ? '#1e40af' : '#6b7280',
+        border: `1px solid ${isAua ? '#93c5fd' : '#d1d5db'}`,
       }}
     >
       {label}
@@ -604,7 +605,6 @@ const Part1Results = ({
     { label: 'Age', value: age, unit: 'yrs' },
     { label: 'BMI', value: bmi, unit: '' },
     { label: 'IPSS Score', value: `${ipssTotal}/35`, unit: '', note: Number(ipssTotal) >= 20 ? 'Severe range in v2 contributes 0 points' : null },
-    { label: 'SHIM Score', value: `${shimTotal}/25`, unit: '', note: 'Higher = better function (opposite of IPSS)' },
   ];
 
   const topFactors = [...itemImpacts]
@@ -759,10 +759,6 @@ const Part1Results = ({
               <div className="v2-tier-info">
                 <div className="v2-tier-label">PSA Testing Priority</div>
                 <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
-                <div className="v2-tier-score">
-                  Score <strong>{impactTotalDisplay}</strong>
-                  {Number.isFinite(impactMaxScore) && <span style={{ color: 'var(--ink-500)' }}> / {impactMaxScore}</span>}
-                </div>
                 {Number.isFinite(empiricalRate) && empiricalRate > 0 && (
                   <div
                     className="v2-tier-likelihood"
@@ -816,24 +812,6 @@ const Part1Results = ({
               </div>
             </div>
 
-            {/* "What drove this score" cards */}
-            {topFactors.length > 0 && (
-              <div className="v2-why">
-                <div className="v2-why-head">
-                  <span className="v2-why-head-title">What drove this score</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-600)', fontWeight: 600, cursor: 'pointer' }} onClick={() => breakdownRef.current?.scrollIntoView({ behavior: 'smooth' })}>See full breakdown ›</span>
-                </div>
-                <div className="v2-why-items">
-                  {topFactors.slice(0, 3).map(f => (
-                    <div key={f.item} className="v2-why-item">
-                      <div className="v2-why-item-label">{f.item}</div>
-                      <div className="v2-why-item-val">{f.value || '—'}</div>
-                      <div className="v2-why-item-pts" style={{ color: tierAccentColor }}>+{f.points}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -966,6 +944,53 @@ const Part1Results = ({
         />
       )}
 
+      {/* ── Add PSA CTA ── */}
+      {onContinueToPostPSA && (
+        <div
+          style={{
+            margin: '16px 0',
+            padding: '16px 20px',
+            background: '#f0f9ff',
+            border: '1.5px solid #bae6fd',
+            borderRadius: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+          role="complementary"
+          aria-label="Add PSA result"
+        >
+          <div>
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0c4a6e' }}>
+              Know your PSA? Add it for a more complete picture.
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#075985' }}>
+              Combining your PSA result with this baseline gives you a full ePSA assessment — including whether an MRI is recommended.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onContinueToPostPSA}
+            style={{
+              alignSelf: 'flex-start',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 18px',
+              background: '#0369a1',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '7px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Add PSA result <ArrowRightIcon size={15} />
+          </button>
+        </div>
+      )}
+
       {/* ── Essential reading label ── */}
       <div className="v2-essential-label">
         <span className="v2-essential-badge">ESSENTIAL</span>
@@ -1043,7 +1068,7 @@ const Part1Results = ({
             <CollapsibleSection title="What Drove Your Recommendation" defaultOpen={true}>
               <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
-                Each row is tagged <FactorSourceBadge itemName="Age" /> if it is a recognised AUA/NCCN/ERUS screening criterion, or <FactorSourceBadge itemName="BMI" /> if it is used by the ePSA model but is not part of any official screening criterion.
+                Each row is tagged <FactorSourceBadge itemName="Age" /> if it is part of AUA/SUO 2026 and NCCN 2026 Early Detection Guidelines, or <FactorSourceBadge itemName="Exercise" /> if it is supported by published research but not part of current screening guidelines.
               </p>
               <div className="impact-table-wrap">
                 <table className="impact-table" aria-label="Item impact breakdown table">

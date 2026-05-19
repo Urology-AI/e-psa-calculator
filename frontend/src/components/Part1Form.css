@@ -1,5 +1,103 @@
 /* ─── Part 1 Form ─── */
 
+/* ─── Section A / B headers ─── */
+.part1-section-header {
+  margin: 1.5rem 0 1rem;
+  padding: 1rem 1.125rem;
+  border-radius: 10px;
+}
+
+.part1-section-header--a {
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+}
+
+.part1-section-header--b {
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+}
+
+.part1-section-header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.part1-section-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1e40af;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.part1-section-letter--b {
+  background: #6b7280;
+}
+
+.part1-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-900, #111827);
+  line-height: 1.3;
+}
+
+.part1-section-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #4b5563;
+  line-height: 1.5;
+  padding-left: 36px;
+}
+
+.part1-section-subtitle--b {
+  color: #6b7280;
+}
+
+/* ─── Section divider ─── */
+.part1-section-divider {
+  margin: 2rem 0;
+  border: none;
+  border-top: 2px solid #e5e7eb;
+}
+
+/* ─── Responsive: section headers ─── */
+@media (max-width: 480px) {
+  .part1-section-subtitle {
+    padding-left: 0;
+  }
+  .part1-section-header-top {
+    flex-wrap: wrap;
+  }
+}
+
+/* ─── Dark mode: section headers ─── */
+.theme-dark .part1-section-header--a {
+  background: rgba(30, 64, 175, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.theme-dark .part1-section-header--b {
+  background: var(--surface-subtle, rgba(255,255,255,0.04));
+  border-color: var(--line-100, rgba(255,255,255,0.1));
+}
+.theme-dark .part1-section-subtitle {
+  color: var(--ink-500, #9ca3af);
+}
+.theme-dark .part1-section-subtitle--b {
+  color: var(--ink-400, #9ca3af);
+}
+.theme-dark .part1-section-divider {
+  border-top-color: var(--line-100, rgba(255,255,255,0.1));
+}
+
 .part1-form-container {
   max-width: 51.25rem;
   margin: 0 auto;
