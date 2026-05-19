@@ -1868,3 +1868,56 @@
 }
 
 .theme-dark .screening-guideline-callout__body ul { color: var(--ink-700, #9ca3af); }
+
+/* ── PSA CTA Banner ── */
+.psa-cta-banner {
+  margin: 16px 0;
+  padding: 16px 20px;
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.psa-cta-banner__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.psa-cta-banner__desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #075985;
+}
+
+.psa-cta-banner__btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: #0369a1;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.psa-cta-banner__btn:hover { background: #0284c7; }
+
+/* Dark mode */
+.theme-dark .psa-cta-banner {
+  background: rgba(3, 105, 161, 0.12);
+  border-color: rgba(125, 211, 252, 0.25);
+}
+
+.theme-dark .psa-cta-banner__title { color: #bae6fd; }
+.theme-dark .psa-cta-banner__desc  { color: #7dd3fc; }
+.theme-dark .psa-cta-banner__btn   { background: #0369a1; }
+.theme-dark .psa-cta-banner__btn:hover { background: #0284c7; }

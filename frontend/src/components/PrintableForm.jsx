@@ -23,10 +23,6 @@ const PrintableForm = ({ onBack, formData }) => {
       const v = getRadio(`ipss-${i}`);
       return v === '' ? null : parseInt(v, 10);
     });
-    const shim = [0, 1, 2, 3, 4].map((i) => {
-      const v = getRadio(`shim-${i}`);
-      return v === '' ? null : parseInt(v, 10);
-    });
     const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
     const formDataOut = {
       age: getInput('input[name="age"]'),
@@ -55,7 +51,7 @@ const PrintableForm = ({ onBack, formData }) => {
       coronaryArteryDisease: num(getRadio('coronaryArteryDisease')),
       diabetes: num(getRadio('diabetes')),
       ipss,
-      shim,
+      shim: [0, 0, 0, 0, 0],
     };
     return formDataOut;
   };
@@ -122,7 +118,6 @@ const PrintableForm = ({ onBack, formData }) => {
   };
 
   const ipssTotal = getFieldValue('ipssTotal', getArrayTotal('ipss'));
-  const shimTotal = getFieldValue('shimTotal', getArrayTotal('shim'));
 
   const handlePrint = async () => {
     if (!formRef.current) return;
@@ -430,7 +425,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">12.</span> {t('part1.fields.comorbidities.title')}
+              <span className="field-number">12.</span> {t('part1.fields.comorbidities.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>
             </label>
           </div>
         </div>
@@ -563,96 +558,13 @@ const PrintableForm = ({ onBack, formData }) => {
         </div>
 
         <div className="section-divider">
-          <span className="section-label">{t('printableForm.sectionShim')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span></span>
-        </div>
-        <p className="score-help-text">{t('printableForm.shimScaleReminder')}</p>
-
-        <div className="form-row-compact">
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.q1')}
-              <div className="scale-compact">
-                <label><input type="radio" name="shim-0" value="1" defaultChecked={isChecked('shim.0', 1)} />1</label>
-                <label><input type="radio" name="shim-0" value="2" defaultChecked={isChecked('shim.0', 2)} />2</label>
-                <label><input type="radio" name="shim-0" value="3" defaultChecked={isChecked('shim.0', 3)} />3</label>
-                <label><input type="radio" name="shim-0" value="4" defaultChecked={isChecked('shim.0', 4)} />4</label>
-                <label><input type="radio" name="shim-0" value="5" defaultChecked={isChecked('shim.0', 5)} />5</label>
-              </div>
-            </label>
-          </div>
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.q2')}
-              <div className="scale-compact">
-                <label><input type="radio" name="shim-1" value="0" defaultChecked={isChecked('shim.1', 0)} />0</label>
-                <label><input type="radio" name="shim-1" value="1" defaultChecked={isChecked('shim.1', 1)} />1</label>
-                <label><input type="radio" name="shim-1" value="2" defaultChecked={isChecked('shim.1', 2)} />2</label>
-                <label><input type="radio" name="shim-1" value="3" defaultChecked={isChecked('shim.1', 3)} />3</label>
-                <label><input type="radio" name="shim-1" value="4" defaultChecked={isChecked('shim.1', 4)} />4</label>
-                <label><input type="radio" name="shim-1" value="5" defaultChecked={isChecked('shim.1', 5)} />5</label>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div className="form-row-compact">
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.q3')}
-              <div className="scale-compact">
-                <label><input type="radio" name="shim-2" value="0" defaultChecked={isChecked('shim.2', 0)} />0</label>
-                <label><input type="radio" name="shim-2" value="1" defaultChecked={isChecked('shim.2', 1)} />1</label>
-                <label><input type="radio" name="shim-2" value="2" defaultChecked={isChecked('shim.2', 2)} />2</label>
-                <label><input type="radio" name="shim-2" value="3" defaultChecked={isChecked('shim.2', 3)} />3</label>
-                <label><input type="radio" name="shim-2" value="4" defaultChecked={isChecked('shim.2', 4)} />4</label>
-                <label><input type="radio" name="shim-2" value="5" defaultChecked={isChecked('shim.2', 5)} />5</label>
-              </div>
-            </label>
-          </div>
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.q4')}
-              <div className="scale-compact">
-                <label><input type="radio" name="shim-3" value="0" defaultChecked={isChecked('shim.3', 0)} />0</label>
-                <label><input type="radio" name="shim-3" value="1" defaultChecked={isChecked('shim.3', 1)} />1</label>
-                <label><input type="radio" name="shim-3" value="2" defaultChecked={isChecked('shim.3', 2)} />2</label>
-                <label><input type="radio" name="shim-3" value="3" defaultChecked={isChecked('shim.3', 3)} />3</label>
-                <label><input type="radio" name="shim-3" value="4" defaultChecked={isChecked('shim.3', 4)} />4</label>
-                <label><input type="radio" name="shim-3" value="5" defaultChecked={isChecked('shim.3', 5)} />5</label>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div className="form-row-compact">
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.q5')}
-              <div className="scale-compact">
-                <label><input type="radio" name="shim-4" value="0" defaultChecked={isChecked('shim.4', 0)} />0</label>
-                <label><input type="radio" name="shim-4" value="1" defaultChecked={isChecked('shim.4', 1)} />1</label>
-                <label><input type="radio" name="shim-4" value="2" defaultChecked={isChecked('shim.4', 2)} />2</label>
-                <label><input type="radio" name="shim-4" value="3" defaultChecked={isChecked('shim.4', 3)} />3</label>
-                <label><input type="radio" name="shim-4" value="4" defaultChecked={isChecked('shim.4', 4)} />4</label>
-                <label><input type="radio" name="shim-4" value="5" defaultChecked={isChecked('shim.4', 5)} />5</label>
-              </div>
-            </label>
-          </div>
-          <div className="form-field-compact">
-            <label className="field-label-compact">
-              {t('part1.shim.totalLabel')}: <input type="text" className="field-input-tiny" placeholder={t('printableForm.blank3')} defaultValue={shimTotal} /> / 25
-            </label>
-          </div>
-        </div>
-
-        <div className="section-divider">
           <span className="section-label">{t('printableForm.sectionPart2')}</span>
         </div>
 
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">15.</span> {t('part2.psa.q2')}:
+              <span className="field-number">14.</span> {t('part2.psa.q2')}:
               <input type="text" className="field-input-small" placeholder={t('printableForm.blank4')} defaultValue={getFieldValue('psa', '')} />
             </label>
           </div>
@@ -679,7 +591,7 @@ const PrintableForm = ({ onBack, formData }) => {
         <div className="form-row">
           <div className="form-field-inline">
             <label className="field-label-inline">
-              <span className="field-number">16.</span> {t('part2.mri.q2')}:
+              <span className="field-number">15.</span> {t('part2.mri.q2')}:
               <label className="checkbox-inline"><input type="radio" name="pirads" value="na" defaultChecked={!getFieldValue('knowPirads', false)} /> {t('printableForm.notApplicable')}</label>
               <label className="checkbox-inline"><input type="radio" name="pirads" value="1" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '1')} /> 1</label>
               <label className="checkbox-inline"><input type="radio" name="pirads" value="2" defaultChecked={getFieldValue('knowPirads', false) && isChecked('pirads', '2')} /> 2</label>
