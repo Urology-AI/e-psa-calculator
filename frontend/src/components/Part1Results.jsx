@@ -759,34 +759,6 @@ const Part1Results = ({
               <div className="v2-tier-info">
                 <div className="v2-tier-label">PSA Testing Priority</div>
                 <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
-                {Number.isFinite(empiricalRate) && empiricalRate > 0 && (
-                  <div
-                    className="v2-tier-likelihood"
-                    style={{
-                      marginTop: '8px',
-                      padding: '8px 10px',
-                      background: 'rgba(255,255,255,0.55)',
-                      border: `1px solid ${tierAccentColor}33`,
-                      borderRadius: '6px',
-                      fontSize: '0.8125rem',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <div style={{ color: 'var(--ink-600)', fontWeight: 600, marginBottom: '2px' }}>
-                      {t('part1.abnormalPsaLikelihood')}
-                    </div>
-                    <div>
-                      <strong style={{ color: tierAccentColor, fontSize: '1.05rem' }}>
-                        ~{Math.round(empiricalRate * 100)}%
-                      </strong>
-                      {Number.isFinite(empiricalRateCiLo) && Number.isFinite(empiricalRateCiHi) && (
-                        <span style={{ color: 'var(--ink-500)', fontSize: '0.75rem', marginLeft: '6px' }}>
-                          (95% CI {Math.round(empiricalRateCiLo * 100)}–{Math.round(empiricalRateCiHi * 100)}%{empiricalRateN != null ? `; n=${empiricalRateN}` : ''})
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
                 {(() => {
                   // Show "Based on X of 27 inputs you answered" so users see the prediction
