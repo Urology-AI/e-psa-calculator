@@ -1265,15 +1265,10 @@ function App() {
   };
 
   const handlePart1Next = async () => {
-    if (part1Step < 6) {
-      setPart1Step(part1Step + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Autosave partial progress to cloud at each step
-      saveProgressStep(preData, part1Step + 1).catch(console.error);
-    } else if (part1Step === 6) {
+    {
       // Calculate Part 1 results using DYNAMIC calculator
-      // Pass pathwayMode into formData so the engine can return it
-      const result = calculateDynamicEPsa({ ...preData, pathwayMode: pathwayMode || 'pre_psa' }, calculatorConfig);
+      // SHIM is hardcoded to zeros — removed from the form per design change
+      const result = calculateDynamicEPsa({ ...preData, shim: [0, 0, 0, 0, 0], pathwayMode: pathwayMode || 'pre_psa' }, calculatorConfig);
 
       if (!result) {
         console.error('Calculation failed - missing required fields');
