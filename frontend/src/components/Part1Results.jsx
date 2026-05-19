@@ -908,55 +908,25 @@ const Part1Results = ({
         ))}
       </div>
 
-      {/* ── Next Steps ── */}
-      {(onContinueToPostPSA || onContinueToPostBiopsy) && (
-        <NextStepsSection
-          onContinueToPSA={onContinueToPostPSA}
-          onContinueToBiopsy={onContinueToPostBiopsy}
-        />
-      )}
-
       {/* ── Add PSA CTA ── */}
       {onContinueToPostPSA && (
         <div
-          style={{
-            margin: '16px 0',
-            padding: '16px 20px',
-            background: '#f0f9ff',
-            border: '1.5px solid #bae6fd',
-            borderRadius: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-          }}
+          className="psa-cta-banner"
           role="complementary"
           aria-label="Add PSA result"
         >
           <div>
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0c4a6e' }}>
+            <p className="psa-cta-banner__title">
               Know your PSA? Add it for a more complete picture.
             </p>
-            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#075985' }}>
+            <p className="psa-cta-banner__desc">
               Combining your PSA result with this baseline gives you a full ePSA assessment — including whether an MRI is recommended.
             </p>
           </div>
           <button
             type="button"
             onClick={onContinueToPostPSA}
-            style={{
-              alignSelf: 'flex-start',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 18px',
-              background: '#0369a1',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '7px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="psa-cta-banner__btn"
           >
             Add PSA result <ArrowRightIcon size={15} />
           </button>
