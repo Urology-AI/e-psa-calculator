@@ -564,70 +564,11 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
-      {/* Height */}
-      <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">4</div>
-          <div className="question-text">{t('part1.step2.heightQuestion')}</div>
-          <InfoIcon {...fieldReferences.heightWeight} />
-          {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext i18nKey="part1.step2.heightHelper" />
-          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
-            <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
-              {t('part1.step2.heightUnit.imperial')}
-            </button>
-            <button className={`option-btn ${localData.heightUnit === 'metric' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'metric')}>
-              {t('part1.step2.heightUnit.metric')}
-            </button>
-          </div>
-          {localData.heightUnit === 'imperial' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialFeetPlaceholder')} value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
-              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialInchesPlaceholder')} value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
-            </div>
-          ) : (
-            <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
-          )}
-        </div>
-      </div>
-
-      {/* Weight */}
-      <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">5</div>
-          <div className="question-text">{t('part1.step2.weightQuestion')}</div>
-          <InfoIcon {...fieldReferences.heightWeight} />
-          {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext i18nKey="part1.step2.weightHelper" />
-          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
-            <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
-              {t('part1.step2.weightUnit.lbs')}
-            </button>
-            <button className={`option-btn ${localData.weightUnit === 'kg' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'kg')}>
-              {t('part1.step2.weightUnit.kg')}
-            </button>
-          </div>
-          {localData.weightUnit === 'kg' ? (
-            <input type="number" className="input-field" placeholder={t('part1.step2.weightMetricPlaceholder')} value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
-          ) : (
-            <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
-          )}
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
-            {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
-            {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-          </div>
-        </div>
-      </div>
-
       {/* IPSS */}
       <div className="part1-step">
         <div className="question-card" style={{ borderColor: ipssComplete ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px', marginBottom: '8px', paddingBottom: '0.75rem' }}>
           <div className="question-header">
-            <div className="question-number">6</div>
+            <div className="question-number">4</div>
             <div className="question-text" style={{ flex: 1 }}>{t('part1.steps.ipss.sectionTitle')} <GuidelineBadge /></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <InfoIcon {...fieldReferences.ipss} />
@@ -730,6 +671,67 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         <p className="part1-section-subtitle part1-section-subtitle--b">
           These factors are associated with prostate cancer risk in published research but are not part of current AUA/NCCN screening guidelines. They add context to your result.
         </p>
+      </div>
+
+      {/* Height */}
+      <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">5</div>
+          <div className="question-text">{t('part1.step2.heightQuestion')}</div>
+          <NonGuidelineBadge />
+          <InfoIcon {...fieldReferences.heightWeight} />
+          {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.heightHelper" />
+          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
+            <button className={`option-btn ${localData.heightUnit === 'imperial' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'imperial')}>
+              {t('part1.step2.heightUnit.imperial')}
+            </button>
+            <button className={`option-btn ${localData.heightUnit === 'metric' ? 'selected' : ''}`} onClick={() => updateField('heightUnit', 'metric')}>
+              {t('part1.step2.heightUnit.metric')}
+            </button>
+          </div>
+          {localData.heightUnit === 'imperial' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialFeetPlaceholder')} value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
+              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialInchesPlaceholder')} value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
+            </div>
+          ) : (
+            <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
+          )}
+        </div>
+      </div>
+
+      {/* Weight */}
+      <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">6</div>
+          <div className="question-text">{t('part1.step2.weightQuestion')}</div>
+          <NonGuidelineBadge />
+          <InfoIcon {...fieldReferences.heightWeight} />
+          {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+        </div>
+        <div className="question-body">
+          <QuestionSubtext i18nKey="part1.step2.weightHelper" />
+          <div className="option-grid c2" style={{ marginBottom: '12px' }}>
+            <button className={`option-btn ${localData.weightUnit === 'lbs' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'lbs')}>
+              {t('part1.step2.weightUnit.lbs')}
+            </button>
+            <button className={`option-btn ${localData.weightUnit === 'kg' ? 'selected' : ''}`} onClick={() => updateField('weightUnit', 'kg')}>
+              {t('part1.step2.weightUnit.kg')}
+            </button>
+          </div>
+          {localData.weightUnit === 'kg' ? (
+            <input type="number" className="input-field" placeholder={t('part1.step2.weightMetricPlaceholder')} value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
+          ) : (
+            <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
+          )}
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
+            {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
+            {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          </div>
+        </div>
       </div>
 
       {/* Exercise */}

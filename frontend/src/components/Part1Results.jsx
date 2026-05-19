@@ -21,11 +21,11 @@ import {
 } from 'lucide-react';
 
 /* ─── Evidence tier classification for impact table rows ───
- * AUA/SUO 2026 tier: Age, Race/ancestry, Family history, BMI, IPSS
- * Research-based tier: all other factors
+ * AUA/SUO 2026 tier: Age, Race/ancestry, Family history (germline mutations handled via Family history row)
+ * Research-based tier: all other factors including BMI, IPSS, lifestyle
  */
 const AUA_SUO_FACTORS = new Set([
-  'Age', 'Black ancestry', 'Family history', 'BMI', 'IPSS total',
+  'Age', 'Black ancestry', 'Family history',
 ]);
 
 const FactorSourceBadge = ({ itemName }) => {
