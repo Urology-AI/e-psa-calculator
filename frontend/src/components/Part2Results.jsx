@@ -7,7 +7,7 @@ import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
-import ResultsLoading from './ResultsLoading';
+import ResultsLoading, { LOADING_SEEN_KEY_P2 } from './ResultsLoading';
 import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -237,6 +237,7 @@ const Part2Results = ({
         label="ePSA · Part 2"
         message="Reviewing guidelines for your PSA…"
         detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+        storageKey={LOADING_SEEN_KEY_P2}
       />
     </div>
   );
