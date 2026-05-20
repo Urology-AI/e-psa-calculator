@@ -166,6 +166,18 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
     <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
       {showGuidelines && <GuidelinesModal onClose={handleCloseGuidelines} />}
 
+      {/* ── Brand accent bar ── */}
+      <div className="ws-accent-bar" aria-hidden="true" />
+
+      {/* ── Trust strip ── */}
+      <div className="ws-trust-strip" aria-label="Institutional affiliation and guideline compliance">
+        <span className="ws-trust-sinai">Icahn School of Medicine at Mount Sinai</span>
+        <span className="ws-trust-sep" aria-hidden="true">·</span>
+        <span className="ws-trust-badge">AUA/SUO 2026</span>
+        <span className="ws-trust-badge">NCCN v1.2024</span>
+        <span className="ws-trust-badge">EAU 2024</span>
+      </div>
+
       {/* ── Hero ── */}
       <section className="ws-hero">
         <div className="ws-hero-layout">
@@ -200,29 +212,19 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               <p className="ws-cta-note">
                 {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
               </p>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
+              <div className="ws-utility-links">
                 {onViewOverview && (
-                  <button
-                    type="button"
-                    className="ws-demo-link"
-                    onClick={onViewOverview}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  >
-                    <InfoIcon size={13} />
+                  <button type="button" className="ws-demo-link" onClick={onViewOverview}>
+                    <InfoIcon size={13} aria-hidden="true" />
                     <span>What is ePSA?</span>
                   </button>
                 )}
-                <button
-                  type="button"
-                  className="ws-demo-link"
-                  onClick={() => setShowGuidelines(true)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                >
-                  <BookOpenIcon size={13} />
+                <button type="button" className="ws-demo-link" onClick={() => setShowGuidelines(true)}>
+                  <BookOpenIcon size={13} aria-hidden="true" />
                   <span>View screening guidelines</span>
                 </button>
                 <a href="/demo" className="ws-demo-link">
-                  <PlayIcon size={13} />
+                  <PlayIcon size={13} aria-hidden="true" />
                   <span>Watch demo</span>
                 </a>
               </div>
@@ -317,17 +319,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
         />
       </div>
 
-      {/* ── Footer strip ── */}
-      <footer className="ws-footer">
-        <span className="ws-footer-inst">
-          {t('welcome.footerInstitution')}
-        </span>
-        <span className="ws-footer-sep" aria-hidden="true">·</span>
-        <span className="ws-footer-guidelines">{t('welcome.footerGuidelines')}</span>
-        <p className="ws-footer-disclaimer">
-          {t('welcome.footerDisclaimer')}
-        </p>
-      </footer>
 
     </div>
   );
