@@ -527,6 +527,7 @@ const Part1Results = ({
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const breakdownRef = useRef(null);
+  const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   // Hook must be before early returns — animates the impact total in the score breakdown
@@ -554,10 +555,16 @@ const Part1Results = ({
 
   useEffect(() => {
     if (!result) return;
-    // Loading screen dismisses itself via onComplete after all 7 steps finish.
-    // This resets if result changes (e.g. recalculate).
     setIsLoading(true);
   }, [result]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const t = setTimeout(() => {
+      recommendRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   const handleExportCsv = () => {
     const rows = buildPart1CsvRows(formData, result, {});
@@ -749,7 +756,7 @@ const Part1Results = ({
       )}
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
-      <div className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">
+      <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">
         <div className="v2-res-eyebrow">
           <span>ePSA Screening Recommendation · Part 1 Baseline</span>
           <span>Assessed today</span>
