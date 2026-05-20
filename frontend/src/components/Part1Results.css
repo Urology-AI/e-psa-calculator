@@ -1784,20 +1784,27 @@
 .theme-dark .guideline-deviation-banner__factors-label { color: #fbbf24; }
 .theme-dark .guideline-deviation-banner__factors-list  { color: #d1d5db; }
 
-/* ─── Slow-revealing risk dial ──────────────────────────────────────
-   Needle sweep is handled via React state + CSS transition in RiskGauge.jsx.
-   The SVG and caption fade in via CSS for a composed reveal. */
+/* ─── Risk dial animations ─── */
 @keyframes risk-dial-arc-fade {
   0%   { opacity: 0; }
   100% { opacity: 1; }
 }
+
 .risk-gauge-svg {
   animation: risk-dial-arc-fade 0.6s ease-out both;
 }
+
 .risk-gauge-caption {
   animation: risk-dial-arc-fade 0.6s ease-out both;
   animation-delay: 0.8s;
 }
+
+/* Hub ripple: scales out and fades after needle settles */
+@keyframes risk-gauge-ripple {
+  0%   { transform: scale(1);   opacity: 0.85; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .risk-gauge-svg,
   .risk-gauge-caption { animation: none !important; }

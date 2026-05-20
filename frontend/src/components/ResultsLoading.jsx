@@ -1,37 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './ResultsLoading.css';
 
+const LOADING_STEPS = [
+  {
+    label: 'Analyzing risk factors',
+    detail: 'Reading your responses and weighting each clinical factor…',
+  },
+  {
+    label: 'Applying guideline criteria',
+    detail: 'Comparing your profile against AUA/SUO 2026 and NCCN 2024 standards…',
+  },
+  {
+    label: 'Generating your result',
+    detail: 'Preparing your personalized PSA testing recommendation…',
+  },
+];
+
 /* ─── Shared Results Loading Screen ───
- * Used by both Part 1 and Part 2 results pages to show a brief
- * "calculating your risk" animation before the result renders.
+ * Used by both Part 1 and Part 2 results pages.
  *
  * Props:
- *   label    — optional small label text above the spinner
+ *   label    — small eyebrow label (default "ePSA")
  *   message  — main heading shown to the patient
- *   detail   — sub-text shown under the heading
  */
 const ResultsLoading = ({
   label = 'ePSA',
-  message = 'Reviewing your profile\u2026',
-  detail = 'Running guideline checks. This takes just a moment.',
+  message = 'Reviewing your profile…',
 }) => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setStep(s => (s < LOADING_STEPS.length - 1 ? s + 1 : s)),
+      1300,
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  const current = LOADING_STEPS[step];
+
   return (
     <div className="results-loading" role="status" aria-live="polite">
       <div className="results-loading-card">
+
         <div className="results-loading-eyebrow">{label}</div>
+
         <div className="results-loading-spinner" aria-hidden="true">
-          <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" className="results-loading-spinner-svg">
-            <circle cx="28" cy="28" r="22" fill="none" stroke="#e2eaf2" strokeWidth="5" />
-            <circle cx="28" cy="28" r="22" fill="none" stroke="#1e3a5f" strokeWidth="5"
-              strokeLinecap="round" strokeDasharray="138" strokeDashoffset="100"
-              className="results-loading-spinner-arc" />
-          </svg>
+          <div className="results-loading-ring" />
         </div>
+
         <div className="results-loading-message">{message}</div>
-        <div className="results-loading-detail">{detail}</div>
-        <div className="results-loading-dots" aria-hidden="true">
-          <span></span><span></span><span></span>
+
+        <div className="results-loading-steps" aria-hidden="true">
+          {LOADING_STEPS.map((_, i) => (
+            <span
+              key={i}
+              className={`rl-dot ${
+                i < step  ? 'rl-dot--done'    :
+                i === step ? 'rl-dot--active'  :
+                             'rl-dot--pending'
+              }`}
+            />
+          ))}
         </div>
+
+        <div className="results-loading-step-text" key={step}>
+          <span className="results-loading-step-count">{step + 1}&thinsp;/&thinsp;{LOADING_STEPS.length}</span>
+          {' '}{current.label}
+        </div>
+
+        <div className="results-loading-detail" key={`d-${step}`}>
+          {current.detail}
+        </div>
+
       </div>
     </div>
   );
