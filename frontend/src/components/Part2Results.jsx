@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -180,6 +180,7 @@ const Part2Results = ({
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   // Hook must be before early returns — animates the PSA value on reveal
@@ -191,6 +192,14 @@ const Part2Results = ({
     if (!result) return;
     setIsLoading(true);
   }, [result]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const t = setTimeout(() => {
+      recommendRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   const handleSubmitToResearch = async () => {
     if (!functions) return;
@@ -489,7 +498,7 @@ const Part2Results = ({
       }
 
       {/* ── Risk Summary Card ── */}
-      <div className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
+      <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
           <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
           <span>Assessed today</span>
