@@ -8,7 +8,7 @@ import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
-import ResultsLoading from './ResultsLoading';
+import ResultsLoading, { LOADING_SEEN_KEY_P1 } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
 import { functions } from '../config/firebase';
@@ -572,6 +572,7 @@ const Part1Results = ({
         label="ePSA · Part 1"
         message="Should you discuss PSA testing?"
         detail="Running the ePSA risk model and checking AUA/NCCN screening criteria for your profile."
+        storageKey={LOADING_SEEN_KEY_P1}
       />
     </div>
   );
