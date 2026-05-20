@@ -404,8 +404,6 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     return t('part2.flow.note');
   })();
 
-  const topFactors = (preResult.itemImpacts || []).filter(f => f.points > 0).sort((a, b) => b.points - a.points).slice(0, 4);
-
   return (
     <div className="part2-form-container">
       <div className="flow-header">
@@ -432,16 +430,6 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
             <span className="v2-p1-summary-tier" style={{ background: 'var(--surface-subtle)', color: 'var(--ink-700)' }}>
               {preResult.risk || preResult.epsaTierLabel}
             </span>
-            {topFactors.length > 0 && (
-              <div className="v2-p1-summary-rows">
-                {topFactors.map(f => (
-                  <div key={f.item} className="v2-p1-summary-row">
-                    <span className="v2-p1-summary-row-label">{f.item}</span>
-                    <span className="v2-p1-summary-row-val">+{f.points}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
