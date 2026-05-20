@@ -1927,4 +1927,51 @@
 .theme-dark .psa-cta-banner__title { color: #bae6fd; }
 .theme-dark .psa-cta-banner__desc  { color: #7dd3fc; }
 .theme-dark .psa-cta-banner__btn   { background: #0369a1; }
+
+/* ── Staggered section reveal ─────────────────────────────────────────────── */
+.res-reveal {
+  animation: res-slide-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes res-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Risk tier title spring-pop ── */
+.res-tier-pop {
+  display: inline-block;
+  animation: res-tier-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.55s;
+}
+
+@keyframes res-tier-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Score count-up highlight ── */
+.impact-total-badge--counting {
+  transition: color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .res-reveal,
+  .res-tier-pop {
+    animation: none !important;
+  }
+}
 .theme-dark .psa-cta-banner__btn:hover { background: #0284c7; }
