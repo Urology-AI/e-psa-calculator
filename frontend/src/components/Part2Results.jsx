@@ -189,8 +189,7 @@ const Part2Results = ({
 
   useEffect(() => {
     if (!result) return;
-    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(loadingTimer);
+    setIsLoading(true);
   }, [result]);
 
   const handleSubmitToResearch = async () => {
@@ -237,6 +236,7 @@ const Part2Results = ({
         label="ePSA · Part 2"
         message="Reviewing guidelines for your PSA…"
         detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+        onComplete={() => setIsLoading(false)}
       />
     </div>
   );

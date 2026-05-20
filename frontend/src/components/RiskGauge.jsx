@@ -81,8 +81,11 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {
 
         {/* Needle shadow + needle */}
         <g
-          transform={`rotate(${svgRotate}, ${cx}, ${cy})`}
-          style={{ transition: 'transform 1.1s cubic-bezier(0.34, 1.3, 0.64, 1)' }}
+          style={{
+            transform: `rotate(${svgRotate}deg)`,
+            transformOrigin: `${cx}px ${cy}px`,
+            transition: 'transform 1.1s cubic-bezier(0.34, 1.3, 0.64, 1)',
+          }}
         >
           <line x1={cx} y1={cy + 2} x2={cx} y2={cy - needleLen + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
           <line x1={cx} y1={cy}     x2={cx} y2={cy - needleLen}       stroke="#1e3a5f"          strokeWidth="3" strokeLinecap="round" />

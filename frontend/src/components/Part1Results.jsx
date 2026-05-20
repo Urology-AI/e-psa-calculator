@@ -554,8 +554,9 @@ const Part1Results = ({
 
   useEffect(() => {
     if (!result) return;
-    const loadingTimer = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(loadingTimer);
+    // Loading screen dismisses itself via onComplete after all 7 steps finish.
+    // This resets if result changes (e.g. recalculate).
+    setIsLoading(true);
   }, [result]);
 
   const handleExportCsv = () => {
@@ -572,6 +573,7 @@ const Part1Results = ({
         label="ePSA · Part 1"
         message="Should you discuss PSA testing?"
         detail="Running the ePSA risk model and checking AUA/NCCN screening criteria for your profile."
+        onComplete={() => setIsLoading(false)}
       />
     </div>
   );

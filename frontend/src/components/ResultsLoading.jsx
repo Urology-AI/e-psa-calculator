@@ -50,12 +50,14 @@ const LOADING_STEPS = [
  * Used by both Part 1 and Part 2 results pages.
  *
  * Props:
- *   label    — small eyebrow label (default "ePSA")
- *   message  — main heading shown to the patient
+ *   label      — small eyebrow label (default "ePSA")
+ *   message    — main heading shown to the patient
+ *   onComplete — called after all steps finish animating
  */
 const ResultsLoading = ({
   label = 'ePSA',
   message = 'Analyzing your prostate health profile…',
+  onComplete,
 }) => {
   const [step, setStep] = useState(0);
 
@@ -67,6 +69,11 @@ const ResultsLoading = ({
       elapsed += LOADING_STEPS[i].duration;
       const nextStep = i + 1;
       timeouts.push(setTimeout(() => setStep(nextStep), elapsed));
+    }
+
+    // Fire onComplete after all steps have advanced (add a short settle delay)
+    if (onComplete) {
+      timeouts.push(setTimeout(onComplete, elapsed + 600));
     }
 
     return () => timeouts.forEach(clearTimeout);
