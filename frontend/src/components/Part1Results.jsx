@@ -20,6 +20,26 @@ import {
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
 } from 'lucide-react';
 
+/* ─── Count-up animation hook ─── */
+const useCountUp = (target, duration = 1100, delayMs = 700) => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const n = Number(target) || 0;
+    if (n <= 0) return;
+    const startTs = performance.now() + delayMs;
+    let raf;
+    const tick = (now) => {
+      if (now < startTs) { raf = requestAnimationFrame(tick); return; }
+      const t = Math.min((now - startTs) / duration, 1);
+      setValue(Math.round((1 - Math.pow(1 - t, 3)) * n));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, delayMs]);
+  return value;
+};
+
 /* ─── Evidence tier classification for impact table rows ───
  * AUA/SUO 2026 tier: Age, Race/ancestry, Family history (germline mutations handled via Family history row)
  * Research-based tier: all other factors including BMI, IPSS, lifestyle
@@ -509,6 +529,8 @@ const Part1Results = ({
   const breakdownRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
+  // Hook must be before early returns — animates the impact total in the score breakdown
+  const animImpactScore = useCountUp(Number(result?.calculationDetails?.rawScore) || 0);
 
   const handleSubmitToResearch = async () => {
     if (!functions) return;
@@ -724,7 +746,7 @@ const Part1Results = ({
       )}
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
-      <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="PSA testing recommendation">
+      <div className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">
         <div className="v2-res-eyebrow">
           <span>ePSA Screening Recommendation · Part 1 Baseline</span>
           <span>Assessed today</span>
@@ -758,7 +780,7 @@ const Part1Results = ({
               <RiskGauge score={gaugeScore} tierKey={epsaTierKey} tierLabel={epsaTierLabel} />
               <div className="v2-tier-info">
                 <div className="v2-tier-label">PSA Testing Priority</div>
-                <h2 className="v2-tier-title" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
+                <h2 className="v2-tier-title res-tier-pop" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
                 {(() => {
                   // Show "Based on X of 27 inputs you answered" so users see the prediction
@@ -826,7 +848,7 @@ const Part1Results = ({
           ? 'Per AUA/NCCN guidelines, screening decisions above age 75 should be individualized. Shared Decision Making is recommended — consult your GP or urologist to determine whether continued screening is appropriate for you.'
           : psaRecommendMessage;
         return (
-          <div className={`v2-psa-hero v2-psa-hero--${variant}`}>
+          <div className={`v2-psa-hero v2-psa-hero--${variant} res-reveal`} style={{ '--delay': '200ms' }}>
             <div className="v2-psa-hero-top">
               <div className="v2-psa-hero-icon">{heroIcon}</div>
               <div className="v2-psa-hero-body">
@@ -862,7 +884,7 @@ const Part1Results = ({
       })()}
 
       {/* ── What happens next — 4-step timeline ── */}
-      <div className="v2-timeline">
+      <div className="v2-timeline res-reveal" style={{ '--delay': '320ms' }}>
         <div className="v2-timeline-head">
           <span className="v2-timeline-title">What happens next</span>
         </div>
@@ -898,7 +920,7 @@ const Part1Results = ({
 
 
       {/* ── Clinical metrics ── */}
-      <div className="metrics-grid" role="list" aria-label="Clinical summary metrics">
+      <div className="metrics-grid res-reveal" style={{ '--delay': '400ms' }} role="list" aria-label="Clinical summary metrics">
         {metrics.map((m) => (
           <div className="metric-card" key={m.label} role="listitem">
             <div className="metric-value">{m.value}{m.unit && <span className="metric-unit">{m.unit}</span>}</div>
@@ -911,7 +933,8 @@ const Part1Results = ({
       {/* ── Add PSA CTA ── */}
       {onContinueToPostPSA && (
         <div
-          className="psa-cta-banner"
+          className="psa-cta-banner res-reveal"
+          style={{ '--delay': '460ms' }}
           role="complementary"
           aria-label="Add PSA result"
         >
@@ -934,13 +957,13 @@ const Part1Results = ({
       )}
 
       {/* ── Essential reading label ── */}
-      <div className="v2-essential-label">
+      <div className="v2-essential-label res-reveal" style={{ '--delay': '500ms' }}>
         <span className="v2-essential-badge">ESSENTIAL</span>
         <span className="v2-essential-text">Understanding your result</span>
       </div>
 
       {/* ── Expandable sections ── */}
-      <div className="detail-sections">
+      <div className="detail-sections res-reveal" style={{ '--delay': '560ms' }}>
         <CollapsibleSection title="About Your Result" defaultOpen={true}>
           {belowMinAge ? (
             <>
@@ -982,11 +1005,8 @@ const Part1Results = ({
           )}
         </CollapsibleSection>
 
+
         {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (() => {
-          // Map score-breakdown item names back to Part1Form skippedFields keys so we
-          // can flag rows the user explicitly skipped. The engine uses neutral defaults
-          // for skipped fields, so without this annotation a skipped factor looks
-          // identical to a "No / Never / 0" answer.
           const SKIP_ITEM_MAP = {
             'IPSS total': 'ipss',
             'Exercise': 'exercise',
@@ -1041,7 +1061,7 @@ const Part1Results = ({
                   <tfoot>
                     <tr>
                       <td colSpan={3}>Total score contribution</td>
-                      <td><span className="impact-total-badge">{impactTotalDisplay}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
+                      <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -1171,7 +1191,7 @@ const Part1Results = ({
       </div>
 
       {/* ── Action buttons ── */}
-      <div className="results-actions">
+      <div className="results-actions res-reveal" style={{ '--delay': '640ms' }}>
         <div className="results-actions-row results-actions-row--primary">
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>Edit Answers</span></button>
           <button className="btn-results btn-results--danger-outline" onClick={onStartOver}><RefreshCwIcon size={16} /><span>Start Over</span></button>
