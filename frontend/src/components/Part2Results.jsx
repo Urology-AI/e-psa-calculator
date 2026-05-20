@@ -19,6 +19,26 @@ import {
   MapPinIcon, PillIcon, ScanEyeIcon,
 } from 'lucide-react';
 
+/* ─── Count-up hook for PSA value animation ─── */
+const useCountUpFloat = (target, decimals = 1, duration = 950, delayMs = 800) => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const n = parseFloat(target) || 0;
+    if (n <= 0) return;
+    const startTs = performance.now() + delayMs;
+    let raf;
+    const tick = (now) => {
+      if (now < startTs) { raf = requestAnimationFrame(tick); return; }
+      const t = Math.min((now - startTs) / duration, 1);
+      setValue(parseFloat(((1 - Math.pow(1 - t, 3)) * n).toFixed(decimals)));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, delayMs]);
+  return value;
+};
+
 /* ─── Collapsible ─── */
 const CollapsibleSection = ({ title, children, defaultOpen = false, className = '' }) => {
   const [open, setOpen] = useState(defaultOpen);
@@ -162,6 +182,10 @@ const Part2Results = ({
   const [isLoading, setIsLoading] = useState(true);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
+  // Hook must be before early returns — animates the PSA value on reveal
+  const rawPsaForAnim = parseFloat(result?.psaValue) || 0;
+  const psaDecimals = String(result?.psaValue || '').includes('.') ? String(result?.psaValue || '').split('.')[1].length : 1;
+  const animPsaValue = useCountUpFloat(rawPsaForAnim, Math.min(psaDecimals, 2));
 
   useEffect(() => {
     if (!result) return;
@@ -464,7 +488,7 @@ const Part2Results = ({
       }
 
       {/* ── Risk Summary Card ── */}
-      <div className={`risk-summary-card ${riskBgClass}`} role="region" aria-label="Risk assessment result">
+      <div className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
           <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
           <span>Assessed today</span>
@@ -474,7 +498,7 @@ const Part2Results = ({
           <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
           <div className="v2-tier-info">
             <div className="v2-tier-label">Combined Risk Tier</div>
-            <h2 className="v2-tier-title" style={{ color: riskColor }}>{cleanRiskCat}</h2>
+            <h2 className="v2-tier-title res-tier-pop" style={{ color: riskColor }}>{cleanRiskCat}</h2>
             <RiskLevelBar riskClass={riskClass} />
           </div>
         </div>
@@ -484,7 +508,7 @@ const Part2Results = ({
           <div className="p2r-key-input">
             <div className="p2r-key-input-label">PSA Result</div>
             <div className="p2r-key-input-value" style={{ color: psaTierCtx.color }}>
-              {psaAdjustedFlag ? psaAdjusted : psaValue}
+              {psaAdjustedFlag ? psaAdjusted : animPsaValue}
               <span className="p2r-key-input-unit"> ng/mL</span>
             </div>
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
@@ -521,7 +545,7 @@ const Part2Results = ({
 
       {/* ── MRI Recommendation (post_psa only) ── */}
       {pathwayMode === 'post_psa' && (
-        <div className={`v2-psa-hero v2-psa-hero--${mriRecommended ? 'amber' : 'blue'}`}>
+        <div className={`v2-psa-hero v2-psa-hero--${mriRecommended ? 'amber' : 'blue'} res-reveal`} style={{ '--delay': '200ms' }}>
           <div className="v2-psa-hero-top">
             <div className="v2-psa-hero-icon"><ScanEyeIcon size={20} /></div>
             <div className="v2-psa-hero-body">
@@ -546,7 +570,7 @@ const Part2Results = ({
       )}
 
       {/* ── Main Recommendation Hero ── */}
-      <div className={`v2-psa-hero v2-psa-hero--${heroVariant}`}>
+      <div className={`v2-psa-hero v2-psa-hero--${heroVariant} res-reveal`} style={{ '--delay': '340ms' }}>
         <div className="v2-psa-hero-top">
           <div className="v2-psa-hero-icon">{heroIcon}</div>
           <div className="v2-psa-hero-body">
@@ -577,7 +601,7 @@ const Part2Results = ({
       </div>
 
       {/* ── Timeline ── */}
-      <div className="v2-timeline">
+      <div className="v2-timeline res-reveal" style={{ '--delay': '460ms' }}>
         <div className="v2-timeline-head"><span className="v2-timeline-title">What happens next</span></div>
         <div className="v2-timeline-track">
           <div className="v2-timeline-step v2-timeline-step--current">
@@ -608,13 +632,13 @@ const Part2Results = ({
       </div>
 
       {/* ── ESSENTIAL label ── */}
-      <div className="v2-essential-label">
+      <div className="v2-essential-label res-reveal" style={{ '--delay': '540ms' }}>
         <span className="v2-essential-badge">ESSENTIAL</span>
         <span className="v2-essential-text">Understanding your result</span>
       </div>
 
       {/* ── Expandable Sections ── */}
-      <div className="detail-sections">
+      <div className="detail-sections res-reveal" style={{ '--delay': '580ms' }}>
 
         <CollapsibleSection title="Understanding Your Result" defaultOpen>
           <p>{tierExplanation}</p>
@@ -676,7 +700,7 @@ const Part2Results = ({
       </div>
 
       {/* ── Action buttons ── */}
-      <div className="results-actions">
+      <div className="results-actions res-reveal" style={{ '--delay': '660ms' }}>
         {flowMode === 'sinai' && onSubmitToSinai && (
           <div
             className="results-actions-row"
