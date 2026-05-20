@@ -1556,36 +1556,33 @@ function App() {
               urlEmail={urlEmail}
             />
             <footer className="app-footer">
-              <div className="footer-content">
-                <p className="footer-text">{t('app.footer.text')}</p>
-                <button 
-                  className="btn-model-docs" 
-                  onClick={() => setShowModelDocs(true)}
-                >
-                  <BookIcon size={16} />
+              <div className="footer-meta">
+                <span>ePSA v1.0.0</span>
+                <span className="footer-sep" aria-hidden="true">·</span>
+                <span>AUA/SUO 2026 · NCCN v1.2024 · EAU 2024</span>
+                <span className="footer-sep" aria-hidden="true">·</span>
+                <span>Educational use only — not a medical device or diagnosis</span>
+              </div>
+              <div className="footer-links">
+                <button className="btn-footer-link" onClick={() => setShowModelDocs(true)}>
+                  <BookIcon size={13} aria-hidden="true" />
                   <span>{t('app.footer.modelDocs')}</span>
                 </button>
-                <button
-                  className="btn-model-docs btn-hipaa"
-                  onClick={() => setShowPrivacyPolicy(true)}
-                >
-                  <ShieldCheckIcon size={16} />
+                <button className="btn-footer-link" onClick={() => setShowPrivacyPolicy(true)}>
+                  <ShieldCheckIcon size={13} aria-hidden="true" />
                   <span>{t('app.footer.privacyPolicy')}</span>
                 </button>
-                <button
-                  className="btn-model-docs"
-                  onClick={() => setShowTermsOfService(true)}
-                >
-                  <FileTextIcon size={16} />
+                <button className="btn-footer-link" onClick={() => setShowTermsOfService(true)}>
+                  <FileTextIcon size={13} aria-hidden="true" />
                   <span>{t('app.footer.termsOfService')}</span>
                 </button>
-                <button
-                  className="btn-model-docs"
-                  onClick={() => setShowCredits(true)}
-                >
-                  <UsersIcon size={16} />
+                <button className="btn-footer-link" onClick={() => setShowCredits(true)}>
+                  <UsersIcon size={13} aria-hidden="true" />
                   <span>Credits</span>
                 </button>
+              </div>
+              <div className="footer-inst">
+                Icahn School of Medicine at Mount Sinai · Urology Department · Developed by Ashutosh K. Tewari, MD
               </div>
             </footer>
           </>

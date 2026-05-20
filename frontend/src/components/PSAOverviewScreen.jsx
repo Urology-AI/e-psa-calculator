@@ -3,7 +3,7 @@ import './PSAOverviewScreen.css';
 import {
   FlaskConicalIcon, ShieldCheckIcon,
   ArrowLeftIcon, ArrowRightIcon, ChevronRightIcon, ExternalLinkIcon,
-  AlertTriangleIcon, HeartPulseIcon, BookOpenIcon,
+  HeartPulseIcon, BookOpenIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,9 +19,23 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
 
   const steps = [
     {
+      key: 'intro',
+      icon: <FlaskConicalIcon size={28} />,
+      eyebrow: 'Step 1 of 5 — Before you start',
+      title: 'What is PSA, and why does this matter?',
+      body: t(
+        'psaOverview.steps.intro.body',
+        'Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.'
+      ),
+      nudge: t(
+        'psaOverview.steps.intro.nudge',
+        'If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don\'t wait on this tool.'
+      ),
+    },
+    {
       key: 'what',
       icon: <FlaskConicalIcon size={28} />,
-      eyebrow: t('psaOverview.steps.what.eyebrow', 'Step 1 of 4'),
+      eyebrow: 'Step 2 of 5',
       title: t('psaOverview.steps.what.title', 'What is PSA?'),
       body: t(
         'psaOverview.steps.what.body',
@@ -33,20 +47,19 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           value: t('psaOverview.steps.what.fact1Value', 'ng/mL (blood test)'),
         },
         {
-          label: t('psaOverview.steps.what.fact2Label', 'Typical ranges by age'),
-          value: t('psaOverview.steps.what.fact2Value', '~2.5 (40\u201349) \u00B7 ~3.5 (50\u201359) \u00B7 ~4.5 (60\u201369)'),
-        },
-        {
           label: t('psaOverview.steps.what.fact3Label', 'Elevated PSA does not always mean cancer'),
           value: t('psaOverview.steps.what.fact3Value', 'BPH, prostatitis, recent ejaculation, or cycling can raise PSA'),
         },
       ],
-      source: 'American Cancer Society; NCCN Prostate Cancer Early Detection v1.2024',
+      sourceLinks: [
+        { text: 'American Cancer Society', url: 'https://www.cancer.org/cancer/types/prostate-cancer/about/key-statistics.html' },
+        { text: 'NCCN Prostate Cancer Early Detection v1.2024', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1460' },
+      ],
     },
     {
       key: 'why',
       icon: <HeartPulseIcon size={28} />,
-      eyebrow: t('psaOverview.steps.why.eyebrow', 'Step 2 of 4'),
+      eyebrow: 'Step 3 of 5',
       title: t('psaOverview.steps.why.title', 'Why does PSA testing matter?'),
       body: t(
         'psaOverview.steps.why.body',
@@ -57,12 +70,15 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
         { value: '>99%', label: t('psaOverview.steps.why.stat2', '5-year survival when found at a localized stage') },
         { value: '~20%', label: t('psaOverview.steps.why.stat3', 'reduction in prostate cancer death with screening (ERSPC 16-yr)') },
       ],
-      source: 'Lifetime risk & 5-year survival: American Cancer Society Facts & Figures 2024. Mortality reduction: ERSPC 16-year results, Hugosson et al., Eur Urol 2019.',
+      sourceLinks: [
+        { text: 'Lifetime risk & 5-year survival: American Cancer Society Facts & Figures 2024', url: 'https://www.cancer.org/research/cancer-facts-statistics/all-cancer-facts-figures/2024-cancer-facts-figures.html' },
+        { text: 'Mortality reduction: ERSPC 16-yr results, Hugosson et al., Eur Urol 2019', url: 'https://pubmed.ncbi.nlm.nih.gov/30824296/' },
+      ],
     },
     {
       key: 'guidelines',
       icon: <BookOpenIcon size={28} />,
-      eyebrow: t('psaOverview.steps.guidelines.eyebrow', 'Step 3 of 4'),
+      eyebrow: 'Step 4 of 5',
       title: t('psaOverview.steps.guidelines.title', 'What do the major guidelines say?'),
       body: t(
         'psaOverview.steps.guidelines.body',
@@ -99,7 +115,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
     {
       key: 'epsa',
       icon: <ShieldCheckIcon size={28} />,
-      eyebrow: t('psaOverview.steps.epsa.eyebrow', 'Step 4 of 4'),
+      eyebrow: 'Step 5 of 5',
       title: t('psaOverview.steps.epsa.title', 'How does ePSA help?'),
       body: t(
         'psaOverview.steps.epsa.body',
@@ -191,6 +207,10 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
             </ul>
           )}
 
+          {step.nudge && (
+            <p className="psa-overview-nudge" role="note">{step.nudge}</p>
+          )}
+
           {/* Step 2: stat boxes */}
           {step.stats && (
             <div className="psa-overview-stats">
@@ -233,22 +253,29 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
             </div>
           )}
 
-          {step.source && (
+          {(step.source || step.sourceLinks) && (
             <div className="psa-overview-source">
-              <span className="psa-overview-source-label">{t('psaOverview.sourceLabel', 'Source')}:</span> {step.source}
+              <span className="psa-overview-source-label">{t('psaOverview.sourceLabel', 'Source')}:</span>{' '}
+              {step.sourceLinks
+                ? step.sourceLinks.map((s, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <span className="psa-overview-source-sep"> · </span>}
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="psa-overview-source-link">
+                        {s.text} <ExternalLinkIcon size={10} aria-hidden="true" />
+                      </a>
+                    </React.Fragment>
+                  ))
+                : step.source}
             </div>
           )}
         </div>
 
-        <div className="psa-overview-disclaimer" role="note">
-          <AlertTriangleIcon size={14} aria-hidden="true" />
-          <span>
-            {t(
-              'psaOverview.disclaimer',
-              'Educational tool only. Not a diagnosis. Always discuss screening decisions with a qualified clinician.'
-            )}
-          </span>
-        </div>
+        <p className="psa-overview-disclaimer" role="note">
+          {t(
+            'psaOverview.disclaimer',
+            'Educational tool only. Not a diagnosis. Always discuss screening decisions with a qualified clinician.'
+          )}
+        </p>
 
         <div className="psa-overview-actions">
           <button

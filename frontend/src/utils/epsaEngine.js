@@ -57,6 +57,37 @@ const COMBINED_TIER_CALIBRATION = {
 };
 
 // ---------------------------------------------------------------------------
+// AUA_PSA_THRESHOLDS — canonical PSA thresholds from AUA/SUO 2023 (amended 2026)
+// Source: AUA/SUO Early Detection of Prostate Cancer Guideline 2023, amended 2026
+// These are the authoritative values used by AUAFlowchart.jsx and the engine.
+// Do NOT change without updating both this block and the flowchart component.
+// ---------------------------------------------------------------------------
+export const AUA_PSA_THRESHOLDS = {
+  age45_49: {
+    threshold:     2.5,
+    action_below:  'resume_at_50',         // PSA < 2.5 → no immediate follow-up, re-enter at 50
+    action_above:  'biannual',             // PSA ≥ 2.5 → every 2 years
+    grade:         'Conditional — Grade B',
+    source:        'AUA/SUO 2026 Statement 4',
+  },
+  age50_69: {
+    threshold:     3.5,
+    action_below:  'biannual_sdm',         // PSA < 3.5 → every 2–4 years (SDM may extend)
+    action_above:  'urology_referral',     // PSA ≥ 3.5 → confirmatory PSA, then urology
+    grade:         'Strong — Grade A',
+    source:        'AUA/SUO 2026 Statement 6',
+  },
+  age70plus: {
+    threshold:           6.5,
+    lifeExpectancyYears: 10,               // LE < 10y → discontinue regardless of PSA
+    action_below:        'discontinue_or_lengthen', // PSA < 6.5 + LE ≥ 10y → SDM
+    action_above:        'urology_referral',        // PSA ≥ 6.5 + LE ≥ 10y → urology
+    grade:               'SDM — individualized',
+    source:              'AUA/SUO 2026 Statement 8',
+  },
+};
+
+// ---------------------------------------------------------------------------
 // VALIDATION ACCURACY SUMMARY — for display in UI if needed
 // ---------------------------------------------------------------------------
 export const MODEL_ACCURACY = {
@@ -538,9 +569,15 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
   // (Statement 4, Conditional Recommendation, Evidence Level: Grade B)
-  // This always overrides 'score_threshold' at this age because the guideline
-  // recommendation already supports PSA — the model is NOT deviating from AUA/NCCN.
-  if (ageNum >= 45 && ageNum < 50 && psaRecommendReason !== 'high_risk_early_screening') {
+  // Guard: only fire when the model is not CONFIDENTLY against PSA (recommendPSA !== false).
+  // When recommendPSA === null (CI straddles threshold) or true (model agrees),
+  // we apply the guideline baseline-offer reason, replacing 'score_threshold' so the
+  // deviation banner does not fire for an age/guideline-backed recommendation.
+  // When the model is confident (recommendPSA === false, tight CI below threshold),
+  // the conditional Grade B guideline defers to the model finding.
+  if (ageNum >= 45 && ageNum < 50 &&
+      recommendPSA !== false &&
+      psaRecommendReason !== 'high_risk_early_screening') {
     recommendPSA = true;
     psaRecommendReason = 'baseline_psa_45_50';
   }
@@ -670,11 +707,40 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     tierScoreRange = part1.riskCutoffs.higher.label;
   }
 
+  // Reason-keyed action text — each key maps to the specific clinical context
+  // so the UI can display an accurate, guideline-attributed call-to-action.
+  const PSA_ACTION_MESSAGES = {
+    score_threshold:
+      'ePSA model threshold met — discuss PSA testing with your physician.\n' +
+      'This is an ePSA model finding; guideline screening eligibility depends on your age and risk profile.',
+    baseline_psa_45_50:
+      'AUA/NCCN recommend offering a baseline PSA at ages 45–49.\n' +
+      'Discuss whether baseline testing is appropriate with your physician (AUA/SUO 2026 Statement 4 — Conditional, Grade B).',
+    age_guideline_50_69:
+      'AUA/NCCN recommend PSA screening every 2–4 years for ages 50–69.\n' +
+      'Strong guideline recommendation — discuss timing and interval with your physician (AUA/SUO 2026 Statement 6 — Grade A).',
+    high_risk_early_screening:
+      'Due to your high-risk profile, AUA/NCCN recommend discussing PSA screening from age 40–45.\n' +
+      'Discuss PSA testing with your physician (AUA/SUO 2026 Statement 5 — Strong, Grade B).',
+    family_history_override:
+      'Due to your family history of prostate cancer, AUA/NCCN recommend discussing PSA screening from age 40–45.\n' +
+      'Discuss PSA testing with your physician (AUA/SUO 2026 Statement 5 — Strong, Grade B).',
+    older_shared_decision:
+      'Shared Decision-Making (SDM) is recommended for PSA screening at ages 70–74.\n' +
+      'Discuss your overall health, life expectancy, and personal preferences with your physician (AUA/SUO 2026 Statement 8).',
+    symptomatic_out_of_guideline:
+      'Your urinary symptoms (IPSS ≥ 8) suggest urological evaluation is warranted.\n' +
+      'This is a symptom-based referral signal, not a routine PSA screening recommendation — discuss with your physician.',
+    low_risk_followup:
+      'Low ePSA score with no high-risk factors — routine primary care applies.\n' +
+      'Re-assess in 1–2 years per AUA/SUO 2026 guidance (no screening recommendation at this time).',
+  };
+
   let risk, color, action, scoreRange;
   if (recommendPSA === true) {
     risk = 'PSA_RECOMMENDED'; color = '#D4AF37';
     scoreRange = `>= ${(recommendThreshold * 100).toFixed(0)}%`;
-    action = 'PSA blood testing recommended.\nDiscuss PSA testing with your doctor.';
+    action = PSA_ACTION_MESSAGES[psaRecommendReason] ?? 'Discuss PSA testing with your physician.';
   } else if (recommendPSA === false) {
     risk = 'PSA_NOT_RECOMMENDED'; color = '#27AE60';
     scoreRange = `< ${(recommendThreshold * 100).toFixed(0)}%`;
