@@ -1692,3 +1692,92 @@
 .theme-dark .guideline-matrix-card { background: #1f2937; border-color: #374151; }
 .theme-dark .guideline-matrix-card--supports { background: rgba(22, 101, 52, 0.2); border-color: rgba(134, 239, 172, 0.4); }
 .theme-dark .guideline-matrix-card--supports .guideline-matrix-card-status { color: #86efac; }
+
+/* ─── Active Surveillance Banner ─── */
+.as-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid;
+}
+.as-banner--strong {
+  background: var(--ms-navy-10, #e8e8f3);
+  border-color: var(--ms-navy, #212070);
+}
+.as-banner--possible {
+  background: var(--ms-cyan-10, #e8f7fd);
+  border-color: var(--ms-cyan, #06abeb);
+}
+.as-banner--mention {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+.as-banner-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ms-navy, #212070);
+  margin-bottom: 0.25rem;
+}
+.as-banner--possible .as-banner-eyebrow { color: #0a7abf; }
+.as-banner--mention  .as-banner-eyebrow { color: #166534; }
+.as-banner-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0d1545;
+  margin: 0 0 0.375rem;
+}
+.as-banner--mention .as-banner-title { color: #14532d; }
+.as-banner-sub {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: #374151;
+  margin: 0;
+}
+.as-banner-cta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+.as-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  background: var(--ms-navy, #212070);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.as-banner-btn:hover { background: #171a5e; }
+.as-banner--possible .as-banner-btn { background: var(--ms-cyan, #06abeb); color: #fff; }
+.as-banner--possible .as-banner-btn:hover { background: #0598d3; }
+.as-banner--mention  .as-banner-btn { background: #16a34a; }
+.as-banner--mention  .as-banner-btn:hover { background: #15803d; }
+.as-banner-source {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+@media (max-width: 600px) {
+  .as-banner { flex-direction: column; }
+  .as-banner-cta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+.theme-dark .as-banner--strong { background: rgba(33,32,112,0.25); border-color: #4a48b0; }
+.theme-dark .as-banner--possible { background: rgba(6,171,235,0.12); border-color: #06abeb; }
+.theme-dark .as-banner--mention { background: rgba(22,163,74,0.15); border-color: #4ade80; }
+.theme-dark .as-banner-title { color: #e2e8f0; }
+.theme-dark .as-banner-sub { color: #94a3b8; }
+.theme-dark .as-banner-eyebrow { color: #a5b4fc; }
+.theme-dark .as-banner--possible .as-banner-eyebrow { color: #38bdf8; }
+.theme-dark .as-banner--mention  .as-banner-eyebrow { color: #4ade80; }

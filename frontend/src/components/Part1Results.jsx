@@ -8,6 +8,7 @@ import { fieldReferences } from '../utils/fieldReferences';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
+import AUAScreeningFlowchart from './AUAFlowchart';
 import ResultsLoading, { LOADING_SEEN_KEY_P1 } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
@@ -827,71 +828,6 @@ const Part1Results = ({
         return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
       })()}
 
-      {/* ── PSA Recommendation Hero ── */}
-      {(() => {
-        const isRed = psaRecommendReason === 'high_risk_early_screening' || psaRecommendReason === 'family_history_override';
-        const isAmber = psaRecommendReason === 'score_threshold';
-        const isSymptomatic = psaRecommendReason === 'symptomatic_out_of_guideline';
-        const isOlderSharedDecision = psaRecommendReason === 'older_shared_decision';
-        const isLowRiskFollowup = psaRecommendReason === 'low_risk_followup';
-        const isGreen = !isSymptomatic && (belowMinAge || aboveMaxScreeningAge || recommendPSA === false || isLowRiskFollowup);
-        const isAgeGuideline = psaRecommendReason === 'age_guideline_50_69';
-        const variant = isRed ? 'red'
-          : (isAmber || isAgeGuideline) ? 'amber'
-          : isSymptomatic ? 'amber'
-          : isOlderSharedDecision ? 'blue'
-          : isGreen ? 'green'
-          : 'blue';
-        const heroIcon = isRed || isAmber || isAgeGuideline || isSymptomatic ? <AlertTriangleIcon size={20} /> : isGreen ? <CheckCircle2Icon size={20} /> : <FlaskConicalIcon size={20} />;
-        const heroTitle = isRed ? 'PSA Test Strongly Recommended'
-          : (isAmber || isAgeGuideline) ? 'PSA Test Recommended'
-          : isSymptomatic ? 'Urological Evaluation Recommended'
-          : isOlderSharedDecision ? 'Shared Decision-Making Recommended'
-          : isLowRiskFollowup ? 'Routine Primary Care — Re-evaluate in 1–2 Years'
-          : belowMinAge ? 'PSA Test Not Required'
-          : aboveMaxScreeningAge ? 'Screening Requires Life Expectancy Assessment'
-          : isGreen ? 'PSA Test Not Currently Indicated'
-          : 'PSA Test May Be Appropriate';
-        const displayMessage = belowMinAge
-          ? 'Per AUA/NCCN guidelines, routine PSA screening is not indicated before age 40. Shared Decision Making is recommended — consult your GP or urologist if you have high-risk factors (Black ancestry, family history, genetic mutations).'
-          : aboveMaxScreeningAge
-          ? 'Per AUA/NCCN guidelines, screening decisions above age 75 should be individualized. Shared Decision Making is recommended — consult your GP or urologist to determine whether continued screening is appropriate for you.'
-          : psaRecommendMessage;
-        return (
-          <div className={`v2-psa-hero v2-psa-hero--${variant} res-reveal`} style={{ '--delay': '200ms' }}>
-            <div className="v2-psa-hero-top">
-              <div className="v2-psa-hero-icon">{heroIcon}</div>
-              <div className="v2-psa-hero-body">
-                <h3 className="v2-psa-hero-title">{heroTitle}</h3>
-                <p className="v2-psa-hero-desc">{displayMessage}</p>
-                {psaGuidelineSupport && (
-                  <div style={{ marginTop: '8px' }}>
-                    <GuidelineSupportBadge support={psaGuidelineSupport} count={psaGuidelineSupportCount} />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="v2-psa-hero-ctas">
-              <a
-                href="https://www.mountsinai.org/care/cancer/services/prostate/mobile-screening"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-results btn-results--solid v2-psa-hero-btn-solid"
-              >
-                {recommendPSA ? 'Book PSA screening →' : 'Learn about PSA →'}
-              </a>
-              <a
-                href="https://www.mountsinai.org/care/urology/team"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-results btn-results--outline v2-psa-hero-btn-outline"
-              >
-                Meet the urology team ↗
-              </a>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* ── What happens next — 4-step timeline ── */}
       <div className="v2-timeline res-reveal" style={{ '--delay': '320ms' }}>
@@ -918,8 +854,8 @@ const Part1Results = ({
         </div>
       </div>
 
-      {/* ── High-risk notice (compact, only when not already covered by PSA banner reason) ── */}
-      {isHighRiskFlagged && psaRecommendReason !== 'high_risk_early_screening' && psaRecommendReason !== 'family_history_override' && (
+      {/* ── High-risk notice ── */}
+      {isHighRiskFlagged && (
         <div className="high-risk-notice" role="note">
           <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
           <p>
@@ -974,112 +910,6 @@ const Part1Results = ({
 
       {/* ── Expandable sections ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '560ms' }}>
-        <CollapsibleSection title="About Your Result" defaultOpen={true}>
-          {belowMinAge ? (
-            <>
-              <p>ePSA is not validated below age 40. No score or risk tier has been calculated.</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, routine PSA screening is not indicated before age 40. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist. See <em>Screening Guidelines</em> below for full guidance.</p>
-            </>
-          ) : aboveMaxScreeningAge ? (
-            <>
-              <p>ePSA is not validated above age 75. No score or risk tier has been calculated.</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, screening above age 75 should be individualized. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist to determine whether continued screening is appropriate. See <em>Screening Guidelines</em> below for full guidance.</p>
-            </>
-          ) : (
-            <>
-              {topFactors.length > 0 ? (
-                <p>
-                  Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.
-                  {' '}The factors that contributed most to your score were:{' '}
-                  {topFactors.map((f, i) => (
-                    <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
-                  ))}
-                </p>
-              ) : (
-                <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.</p>
-              )}
-              <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-              {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
-                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>
-                  {t('part1Results.empiricalProbabilityText', {
-                    n: empiricalRateN,
-                    events: empiricalRateEvents ?? '—',
-                    rate: Math.round(empiricalRate * 100),
-                    ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
-                    ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
-                  })}
-                </p>
-              )}
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>{t('part1Results.educationalEstimateNote')}</p>
-            </>
-          )}
-        </CollapsibleSection>
-
-
-        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (() => {
-          const SKIP_ITEM_MAP = {
-            'IPSS total': 'ipss',
-            'Exercise': 'exercise',
-            'Smoking': 'smoking',
-            'Diet pattern': 'dietPattern',
-            'Family history': 'familyHistory',
-            'Genetic mutation': 'brcaStatus',
-            'Inflammation history': 'inflammationHistory',
-            '9/11 / Chemical exposure': 'chemicalExposure',
-            'SHIM total': 'shim',
-            'Comorbidity burden': 'comorbidityScore',
-          };
-          const skippedSet = new Set(Array.isArray(formData?.skippedFields) ? formData.skippedFields : []);
-          const isImpactSkipped = (itemName) => {
-            const key = SKIP_ITEM_MAP[itemName];
-            return key ? skippedSet.has(key) : false;
-          };
-
-          return (
-          <div ref={breakdownRef}>
-            <CollapsibleSection title="What Drove Your Recommendation" defaultOpen={true}>
-              <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
-              <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
-                Each row is tagged <FactorSourceBadge itemName="Age" /> if it is part of AUA/SUO 2026 and NCCN 2026 Early Detection Guidelines, or <FactorSourceBadge itemName="Exercise" /> if it is supported by published research but not part of current screening guidelines.
-              </p>
-              <div className="impact-table-wrap">
-                <table className="impact-table" aria-label="Item impact breakdown table">
-                  <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
-                  <tbody>
-                    {itemImpacts.map((impact) => {
-                      const skipped = isImpactSkipped(impact.item);
-                      return (
-                        <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
-                          <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
-                          <td>
-                            {skipped ? (
-                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
-                                Skipped — neutral default used
-                              </span>
-                            ) : impact.value}
-                          </td>
-                          <td>
-                            <div className="impact-bar-track" aria-hidden="true">
-                              <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                            </div>
-                          </td>
-                          <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={3}>Total score contribution</td>
-                      <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </CollapsibleSection>
-          </div>
-          );
-        })()}
 
         {screeningGuidelineAutoOpen && (
           <div role="note" className="screening-guideline-callout">
@@ -1096,7 +926,7 @@ const Part1Results = ({
         <CollapsibleSection
           id="screening-guidelines"
           title="Screening Guidelines (AUA / NCCN) — for your age"
-          defaultOpen={screeningGuidelineAutoOpen}
+          defaultOpen={true}
           highlight={screeningGuidelineAutoOpen}
         >
           {(() => {
@@ -1162,15 +992,21 @@ const Part1Results = ({
 
             return (
               <>
-                <p>Below are the AUA/NCCN guidelines that <strong>apply to your age and risk profile</strong>. ePSA aligns with these — and when ePSA disagrees with the guideline, the guideline wins.</p>
-                {ageBullets.length > 0 ? (
-                  <ul style={{ margin: '8px 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
-                    {ageBullets}
-                  </ul>
-                ) : (
-                  <p style={{ fontSize: '13px', color: '#6b7280' }}>Age unavailable — please refer to the full AUA/NCCN guidance below.</p>
+                <AUAScreeningFlowchart
+                  age={ageNum}
+                  psaValue={null}
+                  isHighRisk={isHighRisk}
+                  part="part1"
+                />
+                {ageBullets.length > 0 && (
+                  <div style={{ marginTop: '0.875rem' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Guideline detail for your age</p>
+                    <ul style={{ margin: '0 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
+                      {ageBullets}
+                    </ul>
+                  </div>
                 )}
-                <p>For men at average risk, normal PSA ranges by age: ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
+                <p>Normal PSA ranges by age (average-risk men): ~2.5 ng/mL (40–49), ~3.5 (50–59), ~4.5 (60–69), ~6.5 (70–79).</p>
                 <p style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', marginTop: '10px' }}>
                   <a href="https://www.auanet.org/guidelines-and-quality/guidelines/early-detection-of-prostate-cancer-guidelines" target="_blank" rel="noopener noreferrer" style={{ color: '#1f6ea3', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <ExternalLinkIcon size={11} aria-hidden="true" /> AUA / SUO source
@@ -1179,11 +1015,116 @@ const Part1Results = ({
                     <ExternalLinkIcon size={11} aria-hidden="true" /> NCCN source
                   </a>
                 </p>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>Disclaimer: ePSA was built using Mount Sinai's own patient data, and its risk levels and screening advice line up with AUA/NCCN guidelines. It's for learning only — not a replacement for a doctor.</em></p>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>ePSA was built using Mount Sinai's own patient data and aligns with AUA/NCCN guidelines. When ePSA and the guideline disagree, the guideline wins. For educational use only — not a replacement for your doctor.</em></p>
               </>
             );
           })()}
         </CollapsibleSection>
+
+        <CollapsibleSection title="About Your Result" defaultOpen={true}>
+          {belowMinAge ? (
+            <>
+              <p>ePSA is not validated below age 40. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, routine PSA screening is not indicated before age 40. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist. See <em>Screening Guidelines</em> above for full guidance.</p>
+            </>
+          ) : aboveMaxScreeningAge ? (
+            <>
+              <p>ePSA is not validated above age 75. No score or risk tier has been calculated.</p>
+              <p style={{ marginTop: '8px', color: '#374151' }}>Per AUA/NCCN guidelines, screening above age 75 should be individualized. <span className="sdm-highlight">Shared Decision Making is recommended</span> — consult your GP or urologist to determine whether continued screening is appropriate. See <em>Screening Guidelines</em> above for full guidance.</p>
+            </>
+          ) : (
+            <>
+              {topFactors.length > 0 ? (
+                <p>
+                  Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.
+                  {' '}The factors that contributed most to your score were:{' '}
+                  {topFactors.map((f, i) => (
+                    <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
+                  ))}
+                </p>
+              ) : (
+                <p>Your score of <strong>{impactTotalDisplay}/{impactMaxScore}</strong> places you in the <strong>{epsaTierLabel || activeTier}</strong> category.</p>
+              )}
+              <p>{getTierDescription(epsaTierKey, activeTier)}</p>
+              {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
+                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>
+                  {t('part1Results.empiricalProbabilityText', {
+                    n: empiricalRateN,
+                    events: empiricalRateEvents ?? '—',
+                    rate: Math.round(empiricalRate * 100),
+                    ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
+                    ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
+                  })}
+                </p>
+              )}
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>{t('part1Results.educationalEstimateNote')}</p>
+            </>
+          )}
+        </CollapsibleSection>
+
+        {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (() => {
+          const SKIP_ITEM_MAP = {
+            'IPSS total': 'ipss',
+            'Exercise': 'exercise',
+            'Smoking': 'smoking',
+            'Diet pattern': 'dietPattern',
+            'Family history': 'familyHistory',
+            'Genetic mutation': 'brcaStatus',
+            'Inflammation history': 'inflammationHistory',
+            '9/11 / Chemical exposure': 'chemicalExposure',
+            'SHIM total': 'shim',
+            'Comorbidity burden': 'comorbidityScore',
+          };
+          const skippedSet = new Set(Array.isArray(formData?.skippedFields) ? formData.skippedFields : []);
+          const isImpactSkipped = (itemName) => {
+            const key = SKIP_ITEM_MAP[itemName];
+            return key ? skippedSet.has(key) : false;
+          };
+          return (
+          <div ref={breakdownRef}>
+            <CollapsibleSection title="What Drove Your Score" defaultOpen={true}>
+              <p>Each risk factor below contributed points toward your score. The total determines your risk tier. Skipped items use a neutral default and are flagged below.</p>
+              <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
+                Each row is tagged <FactorSourceBadge itemName="Age" /> if it is part of AUA/SUO 2026 and NCCN 2026 Early Detection Guidelines, or <FactorSourceBadge itemName="Exercise" /> if it is supported by published research but not part of current screening guidelines.
+              </p>
+              <div className="impact-table-wrap">
+                <table className="impact-table" aria-label="Item impact breakdown table">
+                  <thead><tr><th>Item</th><th>Input</th><th>Impact</th><th>Points</th></tr></thead>
+                  <tbody>
+                    {itemImpacts.map((impact) => {
+                      const skipped = isImpactSkipped(impact.item);
+                      return (
+                        <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
+                          <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
+                          <td>
+                            {skipped ? (
+                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
+                                Skipped — neutral default used
+                              </span>
+                            ) : impact.value}
+                          </td>
+                          <td>
+                            <div className="impact-bar-track" aria-hidden="true">
+                              <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
+                            </div>
+                          </td>
+                          <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3}>Total score contribution</td>
+                      <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </CollapsibleSection>
+          </div>
+          );
+        })()}
 
         {onShowModelDocs && (
           <div className="model-docs-btn-row">

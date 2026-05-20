@@ -7,6 +7,7 @@ import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
+import AUAScreeningFlowchart from './AUAFlowchart';
 import ResultsLoading, { LOADING_SEEN_KEY_P2 } from './ResultsLoading';
 import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
@@ -355,6 +356,18 @@ const Part2Results = ({
     ? t('part2Results.tiers.contextNote.discordanceProfile')
     : null;
 
+  /* ── Active Surveillance eligibility ── */
+  const gggNum = postData?.ggg ? Number(postData.ggg) : null;
+  // GG4/5: engine guardrail already rules out AS — never show AS banner
+  const asGuardrailFired = gggNum != null && gggNum >= 4;
+  const asStrongIndication = !asGuardrailFired && gggNum === 1;
+  const asPossibleIndication = !asGuardrailFired && gggNum === 2 &&
+    (epsaTierKey === 'low' || epsaTierKey === 'intermediate-low');
+  // Pre-biopsy: very low combined risk on MRI pathway — mention AS as possible outcome
+  const asPreBiopsyMention = !gggNum && !biopsyRecommended &&
+    epsaTierKey === 'low' && pathwayMode === 'post_mri';
+  const showASBanner = asStrongIndication || asPossibleIndication || asPreBiopsyMention;
+
   /* Plain-language tier description for "Understanding Your Result" */
   const tierExplanation = (() => {
     if (epsaTierKey === 'high') return t('part2Results.tiers.explanation.high');
@@ -610,6 +623,48 @@ const Part2Results = ({
         </div>
       </div>
 
+      {/* ── Active Surveillance Banner ── */}
+      {showASBanner && (
+        <div className={`as-banner as-banner--${asStrongIndication ? 'strong' : asPossibleIndication ? 'possible' : 'mention'} res-reveal`} style={{ '--delay': '400ms' }}>
+          <div className="as-banner-body">
+            <div className="as-banner-eyebrow">
+              {asStrongIndication
+                ? 'AUA/NCCN Guideline — Active Surveillance Strongly Recommended'
+                : asPossibleIndication
+                ? 'AUA/NCCN Guideline — Active Surveillance May Be Appropriate'
+                : 'Possible Outcome — Active Surveillance'}
+            </div>
+            <h4 className="as-banner-title">
+              {asStrongIndication
+                ? 'Your biopsy result (Grade Group 1) supports active surveillance as the preferred management option.'
+                : asPossibleIndication
+                ? 'Your biopsy result (Grade Group 2) with a low combined-risk profile may support active surveillance — confirm with your urologist.'
+                : 'Given your low MRI-based risk profile, active surveillance may be discussed as an outcome if a biopsy is performed.'}
+            </h4>
+            <p className="as-banner-sub">
+              Active surveillance means regular monitoring (PSA, MRI, biopsy) without immediate treatment. It is the guideline-preferred approach for low-risk localised prostate cancer (AUA/NCCN 2024).
+            </p>
+          </div>
+          <div className="as-banner-cta">
+            <a
+              href="https://as.millionstrongmen.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="as-banner-btn"
+            >
+              Learn about Active Surveillance <ExternalLinkIcon size={13} aria-hidden="true" />
+            </a>
+            <span className="as-banner-source">as.millionstrongmen.com · AUA/NCCN 2024</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Non-critical guardrail alerts (warning / info) ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts
+        .filter(a => a.level !== 'critical')
+        .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
+      }
+
       {/* ── Timeline ── */}
       <div className="v2-timeline res-reveal" style={{ '--delay': '460ms' }}>
         <div className="v2-timeline-head"><span className="v2-timeline-title">What happens next</span></div>
@@ -649,6 +704,23 @@ const Part2Results = ({
 
       {/* ── Expandable Sections ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '580ms' }}>
+
+        <CollapsibleSection title="Screening Guidelines (AUA / NCCN) — for your age & PSA" defaultOpen>
+          {(() => {
+            const ageForChart = preResult?.age ?? preData?.age;
+            const isBlack = preData?.race === 'black';
+            const hasFamilyHx = Number(preData?.familyHistory) > 0;
+            const hasBrca = preData?.brcaStatus === 'yes';
+            return (
+              <AUAScreeningFlowchart
+                age={ageForChart}
+                psaValue={psaValue}
+                isHighRisk={isBlack || hasFamilyHx || hasBrca}
+                part="part2"
+              />
+            );
+          })()}
+        </CollapsibleSection>
 
         <CollapsibleSection title="Understanding Your Result" defaultOpen>
           <p>{tierExplanation}</p>
