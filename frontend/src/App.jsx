@@ -25,6 +25,7 @@ import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 import Part2Form from './components/Part2Form.jsx';
 import Part2Results from './components/Part2Results.jsx';
+import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
@@ -1190,7 +1191,11 @@ function App() {
     if (user) {
       safeLS.remove(`sessionId_${user.uid}`);
     }
-    
+
+    // Reset loading animations so they play again on next run
+    safeLS.remove(LOADING_SEEN_KEY_P1);
+    safeLS.remove(LOADING_SEEN_KEY_P2);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
