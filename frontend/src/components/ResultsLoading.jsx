@@ -54,18 +54,32 @@ const LOADING_STEPS = [
  *   message    — main heading shown to the patient
  *   onComplete — called after all steps finish animating
  */
+export const LOADING_SEEN_KEY_P1 = 'epsa_loading_seen_p1';
+export const LOADING_SEEN_KEY_P2 = 'epsa_loading_seen_p2';
+
 const ResultsLoading = ({
   label = 'ePSA',
   message = 'Analyzing your prostate health profile…',
   onComplete,
+  storageKey = 'epsa_loading_seen',
 }) => {
-  const [step, setStep] = useState(0);
+  const isFirstVisit = !localStorage.getItem(storageKey);
+  const lastStep = LOADING_STEPS.length - 1;
+  const [step, setStep] = useState(isFirstVisit ? 0 : lastStep);
 
   useEffect(() => {
+    if (!isFirstVisit) {
+      // Already seen — dismiss immediately after a brief settle
+      if (onComplete) setTimeout(onComplete, 400);
+      return;
+    }
+
+    localStorage.setItem(storageKey, '1');
+
     const timeouts = [];
     let elapsed = 0;
 
-    for (let i = 0; i < LOADING_STEPS.length - 1; i++) {
+    for (let i = 0; i < lastStep; i++) {
       elapsed += LOADING_STEPS[i].duration;
       const nextStep = i + 1;
       timeouts.push(setTimeout(() => setStep(nextStep), elapsed));
