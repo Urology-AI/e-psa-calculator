@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Prostata Özgü Farkındalık | Doğrulanmamış Eğitsel Bir Risk Aracı",
       "modelDocs": "Model Belgeleri",
-      "hipaa": "HIPAA Uyumlu"
+      "hipaa": "HIPAA Uyumlu",
+      "privacyPolicy": "Gizlilik Politikası",
+      "termsOfService": "Kullanım Koşulları"
     },
     "loadingResults": {
       "title": "Sonuçlarınız yükleniyor...",
@@ -184,7 +186,12 @@
     "dataUseTitle": "Veri kullanım bildirimi:",
     "dataUseBody": "Bulut oturum verileri 30 güne kadar saklanır ve kimliği gizlenmiş veriler modelin gelecekteki sürümlerini iyileştirmek ve doğrulamak için anonim olarak kullanılabilir. Yerel mod cihazınızda kalır ve kontrolünüz altındadır; veriler cihazınızdan çıkarılır veya üçüncü taraf bir cihaz aracılığıyla toplanırsa paylaşılabilir. Cihazınızdan veya üçüncü taraf cihazlardan taşınan verilerden sorumlu olmadığımız için lütfen veri toplayıcıyla teyit edin. Bulut oturumları için güvenli aktarım ve uyumluluk odaklı koruma önlemleri kullanırız.",
     "continueButton": "Devam",
-    "errorNoSelection": "Devam etmek için lütfen bir seçenek seçin"
+    "errorNoSelection": "Devam etmek için lütfen bir seçenek seçin",
+    "rightToWithdrawTitle": "Haklarınız",
+    "rightToWithdrawBody": "Katılım gönüllülük esasına dayanır. Aracı kullanmayı istediğiniz zaman bırakabilirsiniz. Bulut depolama kullandıysanız, kaydedilen oturumunuzu sonuçlar ekranından silebilirsiniz — bu işlem geri alınamaz.",
+    "notMedicalDevice": "ePSA, FDA onaylı bir tıbbi cihaz değildir ve bir klinisyen tarafından yapılan değerlendirmenin yerine geçmez.",
+    "researcherContactTitle": "Sorular veya verilerinizi geri çekmek için",
+    "researcherContactBody": "Çalışma ekibiyle iletişime geçin: Aditya Dixit · aditya.dixit@mssm.edu · Üroloji Bölümü, Icahn School of Medicine at Mount Sinai."
   },
   "auth": {
     "createSessionHeading": "Buluta kaydetmek için anonim bir oturum oluşturun",
@@ -210,6 +217,11 @@
       "title": "Gizlilik ve Veri Koruma",
       "text": "ePSA aracı, sağlık bilgilerinizi HIPAA hususları doğrultusunda korumak üzere tasarlanmıştır. Ad, e-posta veya telefon numarası gibi kişisel olarak tanımlanabilir bilgileri (PII) veya korunan sağlık bilgilerini (PHI) toplamaz, saklamaz veya birbirine bağlamayız."
     },
+    "baa": {
+      "title": "HIPAA / BAA Durumu",
+      "label": "Önemli:",
+      "text": "Bu araç, depolama için Google Cloud Firestore ve anonim oturum anahtarı için Firebase Authentication kullanan Google Firebase üzerinde çalışır. Firebase, yalnızca imzalanmış bir Google Cloud İş Ortağı Sözleşmesi (BAA) kapsamında HIPAA'ya uygundur. Bu dağıtım için BAA durumu, Mount Sinai'nin incelemesinin bir parçası olarak sonuçlandırılmaktadır. BAA yazılı olarak onaylanana kadar, klinik ortamda Korunan Sağlık Bilgisi (PHI) olarak değerlendireceğiniz bilgileri girmeyin. ePSA bir tıbbi cihaz değildir ve FDA onaylı değildir."
+    },
     "sessionOnly": {
       "title": "Yalnızca Anonim Oturum Anahtarı",
       "noEmailPhoneLabel": "E-posta veya telefon yok:",
@@ -233,6 +245,128 @@
     "disclaimer": {
       "label": "Sorumluluk reddi:",
       "text": "Bu özet, ePSA uygulamasının gizlilik amacıyla verileri nasıl işlediğini açıklar. Hukuki tavsiye değildir. HIPAA veya sağlık bilgilerinizle ilgili sorular için sağlık uzmanınıza veya hukuk müşavirinize danışın."
+    }
+  },
+  "privacyPolicy": {
+    "title": "ePSA Gizlilik Politikası",
+    "closeButton": "Kapat",
+    "placeholder": {
+      "label": "Mount Sinai hukuk müşaviri incelemesi için taslak:",
+      "text": "Bu Gizlilik Politikası, Mount Sinai Genel Hukuk Müşavirliği tarafından incelenmek üzere hazırlanmış çalışma taslağıdır. Uygulamanın mevcut veri işleme süreçlerini iyi niyetle açıklamakta olup henüz incelenmemiş veya onaylanmamıştır. Bu belgeye nihai bir hukuki bildirim olarak güvenmeyin. mountsinai.org/privacy adresindeki kurumsal Mount Sinai Gizlilik Politikası paralel olarak geçerli olmaya devam eder."
+    },
+    "lastUpdated": {
+      "title": "Son Güncelleme",
+      "text": "Taslak — yer tutucu. Hukuk müşaviri onayı alındıktan sonra yürürlük tarihiyle değiştirilecektir."
+    },
+    "whoWeAre": {
+      "title": "ePSA Hakkında",
+      "text": "ePSA (Prostata Özgü Farkındalık), Icahn School of Medicine at Mount Sinai Üroloji Bölümü'ne ait ve bu bölüm tarafından işletilen eğitsel ve araştırma amaçlı bir araçtır (\"MOUNT SINAI\", \"biz\", \"bize\" veya \"bizim\"). Baş Araştırmacı Ashutosh K. Tewari, MD'dir. ePSA risk modellerinin dayandığı kohort verileri, Mount Sinai GU Klinik IRB protokolü STUDY-14-00050 kapsamında toplanmıştır. ePSA bir tıbbi cihaz değildir, FDA onaylı değildir ve yüz yüze tıbbi değerlendirmenin yerini tutmaz."
+    },
+    "institutional": {
+      "title": "Mount Sinai Gizlilik Politikası ile İlişki",
+      "text": "ePSA bir Mount Sinai uygulamasıdır. Kurumsal Mount Sinai Gizlilik Politikası (mountsinai.org/privacy adresinde mevcuttur) referans yoluyla bu Gizlilik Politikasına dahil edilmiş olup ePSA kullanımınız için geçerli olmaya devam eder. Bu belge, ePSA aracına özgü hükümlerle söz konusu politikayı tamamlamaktadır. Bu belge ile ePSA'ya özgü veri akışları bakımından kurumsal politika arasında doğrudan bir çelişki olması durumunda, daha koruyucu olan hüküm geçerli olacaktır."
+    },
+    "dataCollected": {
+      "title": "Topladığımız Bilgiler",
+      "intro": "ePSA kullanırken seçtiğiniz depolama seçeneğine bağlı olarak aşağıdaki bilgi kategorilerini toplayabiliriz:",
+      "assessmentLabel": "Değerlendirme girdileri ve sonuçları:",
+      "assessmentText": "Risk değerlendirme sorularına verdiğiniz yanıtlar (yaş, BMI, PSA değeri, IPSS ve SHIM belirti skorları, aile öyküsü, kendi bildirdiğiniz soy, önceki biyopsi ve MRI bulguları ile diğer klinik girdiler dahil) ve bunlardan türetilen model çıktıları.",
+      "authLabel": "İletişim tanımlayıcıları:",
+      "authText": "ePSA, kullanıcılardan e-posta adresi, telefon numarası veya diğer iletişim tanımlayıcılarını TOPLAMAZ. ePSA'ya giriş yalnızca anonim oturum anahtarı ile yapılır ve oluşturduğumuz kullanıcı kaydı açıkça e-posta ve telefonu boş (null) olarak saklar. Mevcut üretim derlemesinde e-posta veya telefon tabanlı giriş yolu bulunmamaktadır.",
+      "technicalLabel": "Teknik ve kullanım verileri:",
+      "technicalText": "Güvenlik, kötüye kullanım önleme ve güvenilirlik amacıyla Firebase Hosting ve Cloud Firestore tarafından oluşturulan standart sunucu kayıtları (IP adresi, tarayıcı türü, istek zaman damgaları). ePSA'da şu anda reklam takipçileri veya üçüncü taraf analitik SDK'ları dağıtmıyoruz."
+    },
+    "howWeUse": {
+      "title": "Bilgileri Nasıl Kullanırız",
+      "text": "Yukarıda açıklanan bilgileri; risk tahminlerinizi hesaplamak ve görüntülemek, oturumlar arasında önceki bir değerlendirmeyi almanıza izin vermek, ePSA aracını işletmek, güvenliğini sağlamak ve geliştirmek; IRB protokolü STUDY-14-00050 ile tutarlı biçimde kimliksizleştirilmiş ve toplu formda devam eden model doğrulaması ve akademik araştırmaları desteklemek amacıyla kullanırız. Verilerinizi satmıyor ve ticari reklamlar için kullanmıyoruz."
+    },
+    "storageAndSharing": {
+      "title": "Depolama, Tedarikçiler ve HIPAA Durumu",
+      "text": "ePSA verileri, Mount Sinai'nin Firebase proje yapılandırması kapsamında Google Cloud Firestore'da (Amerika Birleşik Devletleri bölgesi) saklanır. Firebase ve Cloud Firestore, Mount Sinai'nin tedarikçileridir. Firebase Authentication, Cloud Firestore ve ilgili Firebase hizmetleri yalnızca imzalanmış bir Google Cloud İş Ortağı Sözleşmesi (BAA) kapsamında HIPAA'ya uygundur; bu ePSA dağıtımını kapsayan BAA'nın yürütülmesi Mount Sinai'nin incelemesinin bir parçası olarak sonuçlandırılmaktadır. BAA yazılı olarak onaylanana kadar klinik ortamda Korunan Sağlık Bilgisi olarak değerlendireceğiniz bilgileri girmemelisiniz. ePSA verilerinizi pazarlama veya reklam amacıyla üçüncü taraflarla paylaşmıyoruz."
+    },
+    "cookiesAndTracking": {
+      "title": "Çerezler ve İzleme",
+      "text": "ePSA, anonim oturumunuzu etkin tutmak (Firebase Authentication) ve oturum içi tercihlerinizi hatırlamak (yazı boyutu ve dil gibi) için gerekli minimum düzeyde çerez ve benzer yerel depolama kullanır. ePSA reklam çerezi kullanmaz ve araştırma yapılandırmasında kimliğe bağlı verileri şu anda Google Analytics'e iletmemektedir. İleride analitik etkinleştirilirse, yalnızca düzey etiketiyle kimliksizleştirilecek veya açık onay gerektiriyor olacaktır; bu Gizlilik Politikası buna göre güncellenecektir."
+    },
+    "hipaaNotice": {
+      "title": "Mount Sinai'nin HIPAA Bildirimi ile İlişki",
+      "text": "Mount Sinai, tedavi, ödeme ve sağlık bakım operasyonları faaliyetlerini kapsayan ayrı bir HIPAA Gizlilik Uygulamaları Bildirimi (NPP) tutmaktadır. ePSA eğitsel ve araştırma amaçlı bir araçtır ve mevcut haliyle Mount Sinai'nin HIPAA kapsamındaki tedavi iş akışının bir parçası değildir. Bu nedenle ePSA'ya girilen veriler bu Gizlilik Politikası ve temel çalışmayı yöneten IRB protokolü kapsamında işlenir; kurumsal NPP kapsamında değil. Mount Sinai'deki klinik bakımınıza özgü HIPAA soruları için kurumsal NPP'ye başvurun."
+    },
+    "yourRights": {
+      "title": "Haklarınız",
+      "text": "ePSA verilerinize erişim, düzeltme veya silme talebinde bulunabilirsiniz; ePSA'nın eğitsel ve araştırma kullanımından ceza almaksızın ve Mount Sinai'deki klinik bakımınıza erişiminizi etkilemeksizin çekilebilirsiniz. İkamet ettiğiniz yere bağlı olarak eyalet veya uluslararası hukuk kapsamında (Mount Sinai'nin kurumsal Gizlilik Politikasında \"Kişisel Veri Hakları\" başlığı altında açıklananlar dahil) ek haklara da sahip olabilirsiniz."
+    },
+    "childrens": {
+      "title": "Çocukların Gizliliği",
+      "text": "ePSA yalnızca yetişkin kullanımı içindir ve 18 yaşın altındaki bireylere yönelik değildir. Çocuklardan bilerek bilgi toplamıyoruz. Bir çocuğun ePSA'ya bilgi sağladığına inanıyorsanız, verilerin silinebilmesi için çalışma ekibiyle iletişime geçin."
+    },
+    "changes": {
+      "title": "Bu Politikadaki Değişiklikler",
+      "text": "Bu Gizlilik Politikasını zaman zaman güncelleyebiliriz. En güncel sürüme ePSA alt bilgisinden erişilebilir. Güncellemeden sonra ePSA'yı kullanmaya devam etmek, revize edilmiş politikayı kabul ettiğiniz anlamına gelir."
+    },
+    "contact": {
+      "title": "İletişim",
+      "text": "ePSA'ya özgü gizlilik soruları, veri erişimi veya silme talepleri ya da ePSA'nın araştırma ve eğitim kullanımından çekilmek için ePSA çalışma ekibiyle aditya.dixit@mssm.edu adresinden iletişime geçin (Aditya Dixit, ePSA araştırma sorumlusu, Üroloji Bölümü, Icahn School of Medicine at Mount Sinai). Kurumsal Mount Sinai gizlilik konuları için mountsinai.org/privacy adresindeki Mount Sinai Gizlilik Politikasında açıklandığı şekilde Compliance.info@mountsinai.org ile iletişime geçin."
+    }
+  },
+  "terms": {
+    "title": "ePSA Kullanım Koşulları",
+    "closeButton": "Kapat",
+    "placeholder": {
+      "label": "Mount Sinai hukuk müşaviri incelemesi için taslak:",
+      "text": "Bu Kullanım Koşulları, Mount Sinai Genel Hukuk Müşavirliği tarafından incelenmek üzere hazırlanmış çalışma taslağıdır. ePSA'nın amaçlanan kullanımını iyi niyetle açıklamakta olup henüz incelenmemiş veya onaylanmamıştır. Bu belgeye nihai bir hukuki sözleşme olarak güvenmeyin. Kurumsal Mount Sinai Kullanım Koşulları paralel olarak geçerli olmaya devam eder."
+    },
+    "lastUpdated": {
+      "title": "Son Güncelleme",
+      "text": "Taslak — yer tutucu. Hukuk müşaviri onayı alındıktan sonra yürürlük tarihiyle değiştirilecektir."
+    },
+    "acceptance": {
+      "title": "Koşulların Kabulü",
+      "text": "ePSA'YA ERİŞEREK VEYA KULLANARAK BU KOŞULLARA, ePSA GİZLİLİK POLİTİKASINA VE KURUMSAL MOUNT SINAİ KULLANIM KOŞULLARINA UYMAYI KABUL EDERSİNİZ. KABUL ETMİYORSANIZ ePSA'YA ERİŞMEYİN VEYA KULLANMAYIN. En az 18 yaşında olduğunuzu ve bu Koşulları imzalamak için yasal ehliyete sahip olduğunuzu beyan edersiniz."
+    },
+    "institutional": {
+      "title": "Mount Sinai Kullanım Koşulları ile İlişki",
+      "text": "ePSA, Icahn School of Medicine at Mount Sinai Üroloji Bölümü'ne ait ve bu bölüm tarafından işletilmektedir (\"MOUNT SINAI\"). Kurumsal Mount Sinai Kullanım Koşulları referans yoluyla bu Koşullara dahil edilmiş olup ePSA kullanımınız için geçerli olmaya devam eder. Bu Koşullar, söz konusu belgeyi araştırma ve eğitim aracı olarak ePSA'ya özgü hükümlerle tamamlamaktadır. Bu Koşullar ile kurumsal Koşullar arasında ePSA'ya özgü işlevsellik bakımından doğrudan bir çelişki olması durumunda, daha kısıtlayıcı olan hüküm geçerli olacaktır."
+    },
+    "educationalUse": {
+      "title": "Yalnızca Eğitim ve Araştırma Amaçlı Kullanım",
+      "text": "ePSA, IRB protokolü STUDY-14-00050 kapsamında Mount Sinai Üroloji tarafından geliştirilen eğitsel risk değerlendirme ve araştırma aracıdır. ePSA bir TIBBİ CİHAZ DEĞİLDİR, Amerika Birleşik Devletleri Gıda ve İlaç İdaresi tarafından onaylanmamış veya onaylı değildir ve nitelikli bir sağlık hizmeti sağlayıcısıyla yapılan görüşmeyi desteklemeye yöneliktir; yerine geçmez. Risk modelleri yalnızca dahili olarak, model belgelerinde açıklanan Mount Sinai kohortuna karşı doğrulanmıştır; bugüne kadar harici bir doğrulama kohortu kullanılmamıştır."
+    },
+    "noMedicalAdvice": {
+      "title": "ePSA Aracı Tıbbi Tavsiye Vermez",
+      "text": "ePSA'daki bilgi ve içerik — metin, sayısal skorlar, risk yüzdeleri, grafikler ve her türlü basılı veya dışa aktarılan çıktı dahil — yalnızca bilgilendirme ve araştırma amaçlıdır; profesyonel tıbbi tavsiye, tanı veya tedavinin yerine geçmez. Tıbbi bakımınızla ilgili sorularınız için her zaman doktorunuza veya diğer nitelikli sağlık hizmeti sağlayıcınıza başvurun; ePSA'da veya aracılığıyla okuduğunuz bir şey nedeniyle profesyonel tıbbi tavsiyeyi asla görmezden gelmeyin veya geciktirmeyin. ePSA'da yer alan herhangi bir bilgiye dayanmak tamamen sizin sorumluluğunuzdadır."
+    },
+    "accountResponsibility": {
+      "title": "Oturum Anahtarları ve Veri Sorumluluğu",
+      "text": "ePSA'ya giriş yalnızca anonim oturum anahtarı ile yapılır. Oturum anahtarınızı güvende tutmaktan siz sorumlusunuz — anahtara sahip olan herkes ilişkili değerlendirme verilerine erişebilir. Oturum anahtarınızı kaybederseniz, ilişkili değerlendirme verileri kurtarılamaz; çünkü onu geri yüklememizi sağlayacak herhangi bir iletişim bilgisi toplamıyoruz. ePSA'yı başka bir kullanıcının erişimine müdahale edecek, güvenlik kontrollerini devre dışı bırakmaya çalışacak veya yürürlükteki mevzuatı ihlal edecek şekilde kullanamazsınız."
+    },
+    "intellectualProperty": {
+      "title": "Fikri Mülkiyet",
+      "text": "ePSA, temel modelleri, kaynak kodu, belgeleri, kullanıcı arayüzü ve içeriği Mount Sinai ve içerik sağlayıcılarının fikri mülkiyetidir. Yalnızca kişisel, ticari olmayan eğitim amaçlı kullanım için kişisel, münhasır olmayan, devredilemez, geri alınabilir ve sınırlı bir ePSA kullanma hakkı verilmektedir. Mount Sinai'nin önceden yazılı onayı olmaksızın ePSA'yı kopyalayamaz, yeniden dağıtamaz, tersine mühendislik yapamaz veya türev eserler oluşturamazsınız."
+    },
+    "noWarranty": {
+      "title": "Garanti Yok",
+      "text": "ePSA, HERHANGİ BİR GÜVENCESİZ, SATILABİLİRLİK, BELİRLİ BİR AMACA UYGUNLUK, İHLAL ETMEME, DOĞRULUK VEYA KLİNİK KARAR VERMEYE UYGUNLUK GÜVENCESİ DAHIL OLMAK ÜZERE, AÇIK VEYA ZIMNİ HERHANGİ BİR GARANTİ OLMAKSIZIN \"OLDUĞU GİBİ\" VE \"MEVCUT OLDUĞU GİBİ\" SUNULMAKTADIR. MOUNT SINAI TÜM BU GARANTİLERİ REDDEDER. MOUNT SINAI, ePSA'NIN KESİNTİSİZ VEYA HATASIZ ÇALIŞACAĞINI, HATALARIN DÜZELTİLECEĞİNİ VEYA RİSK MODELLERİNİN ÇIKTILARININ KİŞİSEL KOŞULLARINIZ İÇİN DOĞRU YA DA UYGUN OLACAĞINI GARANTİ ETMEZ."
+    },
+    "limitationOfLiability": {
+      "title": "Sorumluluk Sınırlaması",
+      "text": "YASANIN İZİN VERDİĞİ AZAMI ÖLÇÜDE, HİÇBİR KOŞULDA MOUNT SINAI VEYA MÜTEVELLİLERİ, GÖREVLİLERİ, AKADEMİSYENLERİ, ÇALIŞANLARI, TEMSİLCİLERİ, ARAŞTIRMACILARI VEYA YÜKLENİCİLERİ; ePSA ÇIKTILARINDAN ETKİLENEN BİR KLİNİK KARARLA İLGİLİ ZARARLAR DAHİL OLMAK ÜZERE, ePSA'YI KULLANMANIZdan VEYA KULLANAMAMANIZDAN KAYNAKLANAN YA DA BUNUNLA BAĞLANTILI HERHANGİ BİR DOĞRUDAN, DOLAYLI, ARIZİ, ÖZEL, CEZAİ VEYA SONUÇ DOĞURUCU ZARARDAN SORUMLU TUTULAMAZ. ePSA'DAN DUYDUĞUNUZ MEMNUNİYETSİZLİĞİN TEK VE MÜNHASIR ÇÖZÜM YOLU KULLANMAYI BIRAKMAKTIR."
+    },
+    "indemnity": {
+      "title": "Tazminat",
+      "text": "Bu Koşulları ihlal etmenizden, ePSA'yı kötüye kullanmanızdan veya ePSA çıktılarına yukarıda açıklanan eğitim ve araştırma amacıyla bağdaşmayan bir şekilde dayanmanızdan kaynaklanan her türlü talep, istem, kayıp veya yükümlülükten Mount Sinai'yi ve mütevellilik kurulunu, görevlilerini, akademisyenlerini, çalışanlarını, temsilcilerini, araştırmacılarını ve yüklenicilerini zararsız kılmayı ve tazmin etmeyi kabul edersiniz."
+    },
+    "changes": {
+      "title": "Bu Koşullardaki Değişiklikler",
+      "text": "Mount Sinai bu Koşulları ayrı bir bildirim olmaksızın zaman zaman revize edebilir. En güncel sürüme ePSA alt bilgisinden erişilebilir. Bir revizyondan sonra ePSA'yı kullanmaya devam etmek, revize edilmiş Koşulların kabulü anlamına gelir."
+    },
+    "governingLaw": {
+      "title": "Uygulanacak Hukuk",
+      "text": "Bu Koşullar, kurumsal Mount Sinai Kullanım Koşulları ile tutarlı biçimde, kanunlar ihtilafı ilkeleri gözetilmeksizin New York Eyaleti mevzuatına göre yönetilir ve yorumlanır."
+    },
+    "contact": {
+      "title": "İletişim",
+      "text": "Bu Koşullar veya ePSA aracı hakkındaki sorularınız için ePSA çalışma ekibiyle aditya.dixit@mssm.edu adresinden iletişime geçin (Aditya Dixit, ePSA araştırma sorumlusu, Üroloji Bölümü, Icahn School of Medicine at Mount Sinai)."
     }
   },
   "info": {
@@ -768,6 +902,82 @@
       "piradsExplanationProvided": "MRI ve PI-RADS skorlaması, klinik olarak anlamlı prostat kanserinin (GG2+) saptanmasını artırmak için ilk biyopsiden önce kullanılabilir. 3 veya daha yüksek bir PI-RADS skoru, daha ileri değerlendirme gerektiren şüpheli bir lezyonu gösterir. Bu araç, multiparametrik MRI bulgularının radyolog tarafından yorumlanmasının yerine geçmez.",
       "piradsExplanationNotProvided": "PI-RADS dahil edilmemişse, 2. Bölüm kategorisi yalnızca başlangıç tahminine ve PSA bilgisine dayanır. Bir hekim, tam klinik bağlamınıza göre MRI önerebilir (veya önermeyebilir).",
       "pointsExplanation": "2. Bölüm risk düzeyiniz; 1. Bölüm risk profilinizi PSA düzeyinizle ve mümkün olduğunda MRI PI-RADS skorunuzla birleştiren eğitsel bir tahmin olarak özetlenir. Ortaya çıkan kategori, hekiminizle ortak karar vermeyi desteklemek içindir — klinik yargının yerine geçmek için değil."
+    },
+    "tiers": {
+      "riskBar": {
+        "low": "Düşük",
+        "intermediateLow": "Orta-Düşük",
+        "intermediateHigh": "Orta-Yüksek",
+        "high": "Yüksek"
+      },
+      "psaContext": {
+        "low": {
+          "label": "Düşük aralık",
+          "detail": "Güven verici. Rutin taramaya devam edin."
+        },
+        "intermediateLow": {
+          "label": "Düşük–orta aralık",
+          "detail": "İzleme gerektirir. Aralık için doktorunuza sorun."
+        },
+        "intermediateHigh": {
+          "label": "Yüksek",
+          "detail": "Bir üroloji uzmanı tarafından değerlendirme gerektirir."
+        },
+        "high": {
+          "label": "Belirgin şekilde yüksek",
+          "detail": "Acil üroloji yönlendirmesi önerilir."
+        }
+      },
+      "pirads": {
+        "0": {
+          "label": "Raporlanabilir lezyon yok",
+          "detail": "MRI önemli bir lezyon saptamadı."
+        },
+        "1": {
+          "label": "Son derece düşük olasılıklı"
+        },
+        "2": {
+          "label": "Düşük olasılıklı"
+        },
+        "3": {
+          "label": "Belirsiz"
+        },
+        "4": {
+          "label": "Muhtemelen şüpheli"
+        },
+        "5": {
+          "label": "Oldukça şüpheli"
+        }
+      },
+      "gauge": {
+        "low": "Düşük",
+        "moderate": "Orta",
+        "high": "Yüksek"
+      },
+      "hero": {
+        "biopsy": "Üroloğunuzla biyopsiyi görüşmeyi düşünün",
+        "urologistReview": "Üroloji değerlendirmesi düşünün",
+        "nextSteps": "Önerilen sonraki adımlar"
+      },
+      "endpointNote": "Risk nasıl tanımlanır: Model 1–2, herhangi bir yüksek dereceli prostat kanseri (GG2+) olasılığını tahmin eder. Model 3 (MRI yolu), daha yüksek dereceli kanser (GG3+) olasılığını tahmin eder. Bu eşikler önemlidir — hangi durumun sizin için en uygun olduğunu üroloğunuzla görüşün.",
+      "recommendation": {
+        "veryHigh": "Birleşik riskiniz çok yüksek. AUA ve NCCN kılavuzları acil üroloji yönlendirmesi ve biyopsinin ciddi değerlendirilmesini önermektedir. Ek evreleme görüntülemesi de görüşülebilir. Bu, hekiminizle yapmanız gereken acil bir görüşmedir.",
+        "high": "Birleşik riskiniz yüksek. AUA ve NCCN kılavuzları bir üroloji uzmanına acil yönlendirme önermektedir. Bir üroloji uzmanı biyopsinin uygun olup olmadığını görüşecektir — bu otomatik bir karar değil, bir görüşmedir.",
+        "intermediateHigh": "Birleşik riskiniz daha ileri değerlendirme gerektirmektedir. AUA ve NCCN kılavuzları bir üroloji uzmanıyla görüşmeyi önermektedir. Biyopsiden önce MRI, daha fazla bilgi edinmek için önerilen bir sonraki adım olarak sıklıkla tavsiye edilmektedir.",
+        "intermediateLow": "Birleşik riskiniz düşük-orta düzeydedir. AUA ve NCCN kılavuzları sürekli izlemeyi önermektedir. PSA'nızı ne sıklıkla tekrarlamanız gerektiği konusunda doktorunuzla görüşün — genellikle her 1–2 yılda bir.",
+        "low": "Birleşik riskiniz düşük. AUA ve NCCN kılavuzları bu düzeyde güven vericidir. Rutin PSA taramasına devam edin — genellikle 2–4 yılda bir tekrar test uygundur."
+      },
+      "contextNote": {
+        "lowPsa": "Not: Düşük bir PSA'ya rağmen, arka plan risk faktörleriniz (ırk, aile öyküsü veya genetik mutasyon) AUA/NCCN kılavuzlarına göre daha yakın izlem gerektirir.",
+        "discordancePsaHigher": "Not: PSA düzeyiniz, birleşik düzeyinizin tek başına önerdiğinden daha yüksek bir aralıktadır. PSA sonucunuz bağımsız bir sinyaldir — genel profilinizden bağımsız olarak hekiminizle görüşün.",
+        "discordanceProfile": "Not: 1. Bölüm risk profiliniz, birleşik düzeyinizi tek başına PSA'nın önereceğinden daha yüksek bir seviyeye çıkarmaktadır. Her iki faktör de genel riskiniz için önemlidir."
+      },
+      "explanation": {
+        "high": "Yüksek birleşik risk düzeyi, PSA düzeyinizin — 1. Bölüm risk profilinizle birlikte — ürologların genellikle biyopsiyi tartıştığı aralığa düştüğü anlamına gelir. Bu, kanseriniz olduğu anlamına gelmez; daha fazla araştırma gerektiği anlamına gelir.",
+        "intermediateHigh": "Orta-yüksek birleşik risk düzeyi, PSA düzeyinizin ve risk profilinizin bir üroloji konsültasyonunun uygun olduğunu önerdiği anlamına gelir. Daha net bir tablo elde etmek için biyopsi kararından önce sıklıkla MRI önerilmektedir.",
+        "intermediateLow": "Orta-düşük birleşik risk düzeyi, PSA'nızın hafifçe yüksek olduğu veya arka plan risk faktörlerinizin mevcut olduğu, ancak acil bir endişe kaynağı olmadığı anlamına gelir. Doktorunuzla sürekli izleme doğru yaklaşımdır.",
+        "low": "Düşük birleşik risk düzeyi, PSA düzeyinizin ve risk profilinizin güven verici olduğu anlamına gelir. Şu anda ek teste gerek yoktur — doktorunuzun önerdiği şekilde rutin taramaya devam edin."
+      }
     }
   },
   "printableForm": {
@@ -783,6 +993,8 @@
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "ePSA Anketi",
     "tagline": "Prostata Özgü Farkındalık | Doğrulanmamış Eğitsel Bir Risk Aracı",
+    "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Üroloji Bölümü",
+    "headerDisclaimer": "Yalnızca eğitim amaçlıdır — FDA onaylı tıbbi cihaz değildir. Mount Sinai ePSA kohortunda dahili olarak doğrulanmıştır; henüz harici doğrulama yapılmamıştır.",
     "phoneLabel": "Telefon Numarası:",
     "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "Hakkınızda",
@@ -841,8 +1053,17 @@
   },
   "quickEntry": {
     "title": "Hızlı Giriş",
-    "subtitle": "Yaş/Irk + SHIM/IPSS toplamları -> anında sonuç",
+    "subtitle": "Yalnızca Yaş ve Irk zorunludur — diğer her şeyin ayarlayabileceğiniz makul bir varsayılanı vardır.",
     "exit": "Çıkış",
+    "requiredLegend": "Zorunlu",
+    "scoreModifiers": "Skor değiştiricileri",
+    "advanced": "Yaşam tarzı ve öykü",
+    "advancedHint": "İnce ayar yapmak için açın — değiştirmezseniz gösterilen varsayılanlar uygulanır.",
+    "usingDefault": "Varsayılan",
+    "resetDefaults": "Varsayılanlara sıfırla",
+    "requiredMark": "*",
+    "iDontKnow": "IPSS'imi bilmiyorum",
+    "iDontKnowHide": "Bunun yerine IPSS sayısını kullan",
     "ageLabel": "Yaş (18-120)",
     "agePlaceholder": "ör. 55",
     "raceLabel": "Irk / Etnik Köken",
@@ -859,6 +1080,7 @@
     "bmiPlaceholder": "ör. 25.49",
     "bmiHint": "Modelde doğrulama aralığı: BMI 15-60",
     "familyHistoryLabel": "Aile öyküsü",
+    "familyHistoryHint": "Bunu \"Hiç\" olarak bırakırsanız, skorunuz birinci derece akrabanın prostat kanseri geçirmediği varsayımıyla hesaplanır. Not: \"Bilinmiyor\" da mevcut model tarafından aile öyküsü yok olarak puanlanır — herhangi bir akrabanın etkilendiğini biliyorsanız, skorunuzun bunu yansıtması için bunun yerine 1 veya 2+ seçin.",
     "family": {
       "none": "Hiç",
       "one": "1 akraba",
