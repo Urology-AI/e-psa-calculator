@@ -140,7 +140,7 @@
   cursor: pointer;
   padding: 0;
 }
-.qe-reset-link:hover { color: #145582; }
+.qe-reset-link:hover { color: var(--ms-navy); }
 
 .qe-link {
   background: none;
@@ -154,7 +154,7 @@
   align-self: flex-start;
   text-align: left;
 }
-.qe-link:hover { color: #145582; }
+.qe-link:hover { color: var(--ms-navy); }
 
 .qe-label-row {
   display: inline-flex;
@@ -198,8 +198,8 @@
 }
 .qe-chip:hover { background: #f4f9ff; border-color: #b6cfe4; }
 .qe-chip--selected {
-  background: linear-gradient(135deg, #145582 0%, #1c6ea4 100%);
-  border-color: #145582;
+  background: linear-gradient(135deg, var(--ms-navy) 0%, var(--brand-600) 100%);
+  border-color: var(--ms-navy);
   color: #fff;
 }
 .qe-chip:focus-visible {
@@ -285,7 +285,7 @@
   border-radius: 0.75rem;
   cursor: pointer;
   border: 0.0625rem solid #185985;
-  background: linear-gradient(135deg, #145582 0%, #1c6ea4 100%);
+  background: linear-gradient(135deg, var(--ms-navy) 0%, var(--brand-600) 100%);
   color: #fff;
   font-weight: 900;
   font-size: 0.875rem;
@@ -464,7 +464,7 @@
 }
 .theme-dark .qe-chip--selected {
   color: #fff !important;
-  border-color: #145582 !important;
+  border-color: var(--ms-navy) !important;
 }
 .theme-dark .qe-details-summary::after,
 .theme-dark .qe-details-hint {

@@ -32,7 +32,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #00578B;
+  color: var(--ms-navy);
   font-weight: 600;
 }
 
@@ -53,8 +53,8 @@
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
   background: transparent;
-  color: #00578B;
-  border: 0.0625rem solid #00578B;
+  color: var(--ms-navy);
+  border: 0.0625rem solid var(--ms-navy);
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -63,7 +63,7 @@
 }
 
 .link-session-btn:hover {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
 }
 
@@ -219,7 +219,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #00578B;
+  border-color: var(--ms-navy);
 }
 
 .error-message {
@@ -253,9 +253,9 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.625rem 1rem;
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
-  border: 0.125rem solid #00578B;
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -265,7 +265,7 @@
 
 .save-btn:hover:not(:disabled) {
   background: transparent;
-  color: #00578B;
+  color: var(--ms-navy);
 }
 
 .save-btn:disabled {
