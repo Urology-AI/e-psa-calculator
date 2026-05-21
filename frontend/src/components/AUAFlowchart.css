@@ -6,7 +6,7 @@
   width: 100%;
 }
 
-/* Title row */
+/* Title */
 .aua-fc__title {
   text-align: center;
   font-size: 0.6875rem;
@@ -17,53 +17,66 @@
   margin-bottom: 0.5rem;
 }
 
-/* SDM top box */
+/* SDM top node */
 .aua-fc__sdm {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   background: #1e3a5f;
   color: #fff;
   border-radius: 0.5rem;
   padding: 0.625rem 1rem;
-  text-align: center;
+  text-align: left;
+}
+.aua-fc__sdm-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+}
+.aua-fc__sdm-main {
   font-weight: 600;
   font-size: 0.8125rem;
-  line-height: 1.4;
-  position: relative;
+  line-height: 1.35;
 }
 .aua-fc__sdm-sub {
   font-size: 0.6875rem;
   font-weight: 400;
-  opacity: 0.75;
+  opacity: 0.72;
   margin-top: 0.125rem;
 }
 
-/* Connector from SDM to columns */
+/* ── Connector row: three drop-lines from SDM to column headers ── */
 .aua-fc__connector-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-around;
-  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   height: 1.25rem;
+  padding: 0 0.5rem;
   position: relative;
 }
+/* Horizontal span line above columns */
 .aua-fc__connector-row::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 3rem);
-  border-top: 2px solid #cbd5e1;
+  left: calc(1/6 * 100%);
+  right: calc(1/6 * 100%);
+  height: 2px;
+  background: #cbd5e1;
 }
-.aua-fc__connector-row::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+/* Individual drop-lines per column */
+.aua-fc__connector-line {
+  justify-self: center;
   width: 2px;
   height: 100%;
   background: #cbd5e1;
-  display: none; /* vertical center line only on mobile */
+  transition: background 0.2s, width 0.2s;
+  position: relative;
+  z-index: 1;
+}
+.aua-fc__connector-line--active {
+  background: #1e3a5f;
+  width: 3px;
 }
 
 /* Age column grid */
@@ -78,18 +91,21 @@
 .aua-fc__col {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  position: relative;
+  gap: 0.3rem;
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  transition: background 0.2s;
 }
-.aua-fc__col::before {
-  content: '';
-  position: absolute;
-  top: -1.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 1.25rem;
-  background: #cbd5e1;
+.aua-fc__col--active {
+  background: rgba(29, 58, 95, 0.03);
+  outline: 1.5px solid rgba(29, 58, 95, 0.15);
+  outline-offset: 1px;
+}
+
+/* When any column is active, dim the other columns' content */
+.aua-fc__columns--has-active .aua-fc__col:not(.aua-fc__col--active) .aua-fc__threshold,
+.aua-fc__columns--has-active .aua-fc__col:not(.aua-fc__col--active) .aua-fc__outcome {
+  opacity: 0.35;
 }
 
 /* Age header box */
@@ -105,14 +121,12 @@
   transition: border-color 0.2s, background 0.2s;
 }
 .aua-fc__age-header--active {
-  border-color: var(--ms-navy);
+  border-color: #1e3a5f;
   background: #eff6ff;
-  color: #1d3a5f;
-  box-shadow: 0 0 0 3px rgba(29,110,163,0.13);
+  color: #1e3a5f;
+  box-shadow: 0 0 0 3px rgba(29, 58, 95, 0.10);
 }
-.aua-fc__age-header--inactive {
-  opacity: 0.45;
-}
+.aua-fc__age-header--inactive { opacity: 0.45; }
 .aua-fc__age-note {
   font-size: 0.625rem;
   font-weight: 500;
@@ -125,37 +139,38 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  position: relative;
-}
-.aua-fc__branches::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 0.5rem;
-  background: #cbd5e1;
-  margin-top: -0.5rem;
 }
 
-/* Branch threshold label */
+/* Threshold label */
 .aua-fc__threshold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   text-align: center;
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #64748b;
-  padding: 0.125rem 0;
+  padding: 0.1875rem 0.375rem;
   background: #f1f5f9;
   border-radius: 0.25rem;
+  border: 1px solid transparent;
 }
 .aua-fc__threshold--active {
-  color: #1d3a5f;
+  color: #1e3a5f;
   background: #dbeafe;
+  border-color: #93c5fd;
+  font-weight: 700;
+}
+.aua-fc__threshold-arrow {
+  display: flex;
+  align-items: center;
+  color: #1e3a5f;
+  flex-shrink: 0;
 }
 
-/* Outcome box */
+/* Outcome node */
 .aua-fc__outcome {
   border: 1.5px solid #e2e8f0;
   border-radius: 0.375rem;
@@ -165,50 +180,37 @@
   font-size: 0.75rem;
   line-height: 1.35;
   color: #374151;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, opacity 0.2s;
+  position: relative;
 }
-.aua-fc__outcome--resume {
-  border-color: #93c5fd;
-  background: #eff6ff;
-  color: #1e40af;
-}
-.aua-fc__outcome--biannual {
-  border-color: #6ee7b7;
-  background: #f0fdf4;
-  color: #166534;
-}
-.aua-fc__outcome--extend {
-  border-color: #a5f3fc;
-  background: #ecfeff;
-  color: #164e63;
-}
-.aua-fc__outcome--urology {
-  border-color: #fca5a5;
-  background: #fef2f2;
-  color: #991b1b;
-}
-.aua-fc__outcome--discontinue {
-  border-color: #d1d5db;
-  background: #f9fafb;
-  color: #374151;
-}
-.aua-fc__outcome--sdm {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
-  color: #5b21b6;
-}
+
+/* Variant colours */
+.aua-fc__outcome--resume     { border-color: #93c5fd;  background: #eff6ff;  color: #1e40af; }
+.aua-fc__outcome--biannual   { border-color: #6ee7b7;  background: #f0fdf4;  color: #166534; }
+.aua-fc__outcome--urology    { border-color: #fca5a5;  background: #fef2f2;  color: #991b1b; }
+.aua-fc__outcome--discontinue{ border-color: #d1d5db;  background: #f9fafb;  color: #374151; }
+.aua-fc__outcome--sdm        { border-color: #c4b5fd;  background: #f5f3ff;  color: #5b21b6; }
+
+/* Active state — left accent bar + elevation */
 .aua-fc__outcome--active {
-  border-width: 2px;
+  border-width: 1.5px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
-.aua-fc__outcome--inactive {
-  opacity: 0.35;
-}
+.aua-fc__outcome--resume.aua-fc__outcome--active      { border-left: 4px solid #2563eb; }
+.aua-fc__outcome--biannual.aua-fc__outcome--active    { border-left: 4px solid #16a34a; }
+.aua-fc__outcome--urology.aua-fc__outcome--active     { border-left: 4px solid #dc2626; }
+.aua-fc__outcome--discontinue.aua-fc__outcome--active { border-left: 4px solid #4b5563; }
+.aua-fc__outcome--sdm.aua-fc__outcome--active         { border-left: 4px solid #7c3aed; }
+
+.aua-fc__outcome--inactive { opacity: 0.35; }
+
+/* Icon inside outcome */
 .aua-fc__outcome-icon {
-  font-size: 0.9rem;
-  display: block;
-  margin-bottom: 0.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.1875rem;
 }
 .aua-fc__outcome-label {
   font-weight: 700;
@@ -222,9 +224,24 @@
   font-size: 0.625rem;
   opacity: 0.8;
   line-height: 1.4;
+  display: block;
 }
 
-/* SDM Required callout for 70+ when no LE data */
+/* "Your path" badge on active outcome */
+.aua-fc__outcome-path-badge {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  background: rgba(0,0,0,0.07);
+  border-radius: 3px;
+  color: inherit;
+}
+
+/* SDM required callout (70+, no PSA) */
 .aua-fc__sdm-callout {
   background: #f5f3ff;
   border: 1.5px solid #c4b5fd;
@@ -237,22 +254,7 @@
   font-weight: 500;
 }
 
-/* High-risk footnote */
-.aua-fc__footnote {
-  margin-top: 0.625rem;
-  padding: 0.5rem 0.75rem;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  border-radius: 0.375rem;
-  font-size: 0.6875rem;
-  color: #78350f;
-  line-height: 1.5;
-}
-.aua-fc__footnote strong {
-  color: #92400e;
-}
-
-/* Active patient position callout */
+/* Patient position callout */
 .aua-fc__position-callout {
   margin-top: 0.625rem;
   padding: 0.5rem 0.75rem;
@@ -264,6 +266,36 @@
   line-height: 1.5;
 }
 .aua-fc__position-callout strong { color: #1e3a8a; }
+.aua-fc__position-callout--referral {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+  margin-top: 0.5rem;
+}
+.aua-fc__position-callout--referral strong { color: #7f1d1d; }
+
+/* High-risk footnote */
+.aua-fc__footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4375rem;
+  margin-top: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  color: #78350f;
+  line-height: 1.5;
+}
+.aua-fc__footnote-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-top: 0.0625rem;
+  color: #92400e;
+}
+.aua-fc__footnote strong { color: #92400e; }
 
 /* Source line */
 .aua-fc__source {
@@ -273,56 +305,46 @@
   text-align: right;
 }
 
-/* Mobile */
+/* ── Mobile ── */
 @media (max-width: 600px) {
   .aua-fc__columns {
     grid-template-columns: 1fr;
     gap: 0.875rem;
   }
-  .aua-fc__col::before {
-    display: none;
-  }
+  .aua-fc__connector-row { display: none; }
   .aua-fc__col {
     border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
     padding: 0.625rem;
     background: #fafafa;
   }
   .aua-fc__col--active {
     border-color: #93c5fd;
     background: #f0f7ff;
+    outline: none;
   }
-  .aua-fc__connector-row {
-    display: none;
+  .aua-fc__columns--has-active .aua-fc__col:not(.aua-fc__col--active) .aua-fc__threshold,
+  .aua-fc__columns--has-active .aua-fc__col:not(.aua-fc__col--active) .aua-fc__outcome {
+    opacity: 0.4;
   }
 }
 
-/* Dark mode */
-.theme-dark .aua-fc__sdm {
-  background: #1e3a5f;
-}
-.theme-dark .aua-fc__age-header {
-  background: #1e293b;
-  color: #e2e8f0;
-  border-color: #334155;
-}
-.theme-dark .aua-fc__age-header--active {
-  background: #1e3a5f;
-  border-color: #60a5fa;
-  color: #bfdbfe;
-}
-.theme-dark .aua-fc__outcome {
-  background: #1e293b;
-  border-color: #334155;
-  color: #e2e8f0;
-}
-.theme-dark .aua-fc__outcome--biannual { background: #14532d; border-color: #166534; color: #bbf7d0; }
-.theme-dark .aua-fc__outcome--resume   { background: #1e3a5f; border-color: var(--ms-cyan); color: #bfdbfe; }
-.theme-dark .aua-fc__outcome--urology  { background: #450a0a; border-color: #dc2626; color: #fca5a5; }
-.theme-dark .aua-fc__outcome--sdm      { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
-.theme-dark .aua-fc__outcome--discontinue { background: #1e293b; border-color: #475569; color: #94a3b8; }
-.theme-dark .aua-fc__footnote { background: #2d1b02; border-color: #92400e; color: #fcd34d; }
-.theme-dark .aua-fc__position-callout { background: #1e3a5f; border-color: var(--ms-cyan); color: #bfdbfe; }
-.theme-dark .aua-fc__threshold { background: #1e293b; color: #94a3b8; }
-.theme-dark .aua-fc__threshold--active { background: #1e3a5f; color: #bfdbfe; }
-.theme-dark .aua-fc__sdm-callout { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
+/* ── Dark mode ── */
+.theme-dark .aua-fc__sdm              { background: #1e3a5f; }
+.theme-dark .aua-fc__age-header       { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+.theme-dark .aua-fc__age-header--active { background: #1e3a5f; border-color: #60a5fa; color: #bfdbfe; }
+.theme-dark .aua-fc__threshold        { background: #1e293b; color: #94a3b8; border-color: transparent; }
+.theme-dark .aua-fc__threshold--active{ background: #1e3a5f; color: #bfdbfe; border-color: #3b82f6; }
+.theme-dark .aua-fc__outcome          { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+.theme-dark .aua-fc__outcome--biannual   { background: #14532d; border-color: #166534; color: #bbf7d0; }
+.theme-dark .aua-fc__outcome--resume     { background: #1e3a5f; border-color: var(--ms-cyan, #06abeb); color: #bfdbfe; }
+.theme-dark .aua-fc__outcome--urology    { background: #450a0a; border-color: #dc2626; color: #fca5a5; }
+.theme-dark .aua-fc__outcome--sdm        { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
+.theme-dark .aua-fc__outcome--discontinue{ background: #1e293b; border-color: #475569; color: #94a3b8; }
+.theme-dark .aua-fc__footnote           { background: #2d1b02; border-color: #92400e; color: #fcd34d; }
+.theme-dark .aua-fc__footnote-icon      { color: #fbbf24; }
+.theme-dark .aua-fc__position-callout   { background: #1e3a5f; border-color: var(--ms-cyan, #06abeb); color: #bfdbfe; }
+.theme-dark .aua-fc__position-callout--referral { background: #450a0a; border-color: #dc2626; color: #fca5a5; }
+.theme-dark .aua-fc__sdm-callout        { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
+.theme-dark .aua-fc__col--active        { background: rgba(29,58,95,0.18); outline-color: rgba(96,165,250,0.3); }
+.theme-dark .aua-fc__connector-line--active { background: #60a5fa; }
+.theme-dark .aua-fc__connector-row::before  { background: #334155; }
