@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Sensibilisation spécifique à la prostate | Un outil éducatif de risque non validé",
       "modelDocs": "Documentation du modèle",
-      "hipaa": "Conforme HIPAA"
+      "hipaa": "Conforme HIPAA",
+      "privacyPolicy": "Politique de confidentialité",
+      "termsOfService": "Conditions d'utilisation"
     },
     "loadingResults": {
       "title": "Chargement de vos résultats...",
@@ -184,7 +186,12 @@
     "dataUseTitle": "Avis d'utilisation des données :",
     "dataUseBody": "Les données de session cloud sont stockées jusqu'à 30 jours et les données dépersonnalisées peuvent être utilisées de façon anonyme pour améliorer et valider les futures versions du modèle. Le mode local reste sur votre appareil et reste sous votre contrôle ; si les données sont transférées hors de votre appareil ou collectées via un appareil tiers, elles peuvent être partagées. Veuillez confirmer avec le collecteur de données, car nous ne sommes pas responsables des données transférées de votre appareil ou d'autres appareils tiers. Pour les sessions cloud, nous utilisons des transferts sécurisés et des mesures de conformité.",
     "continueButton": "Continuer",
-    "errorNoSelection": "Veuillez sélectionner une option pour continuer"
+    "errorNoSelection": "Veuillez sélectionner une option pour continuer",
+    "rightToWithdrawTitle": "Vos droits",
+    "rightToWithdrawBody": "La participation est volontaire. Vous pouvez cesser d'utiliser l'outil à tout moment. Si vous avez utilisé le stockage cloud, vous pouvez supprimer votre session enregistrée depuis l'écran des résultats — cette action est irréversible.",
+    "notMedicalDevice": "ePSA n'est pas un dispositif médical autorisé par la FDA et ne remplace pas l'évaluation par un clinicien.",
+    "researcherContactTitle": "Questions ou retrait de vos données",
+    "researcherContactBody": "Contactez l'équipe de l'étude : Aditya Dixit · aditya.dixit@mssm.edu · Département d'urologie, École de médecine Icahn du Mont Sinaï."
   },
   "auth": {
     "createSessionHeading": "Créer une session anonyme pour sauvegarder dans le cloud",
@@ -210,6 +217,11 @@
       "title": "Confidentialité et protection des données",
       "text": "L'outil ePSA est conçu pour protéger vos informations de santé conformément aux considérations HIPAA. Nous ne collectons, stockons ni lions aucune information personnellement identifiable (PII) ou information de santé protégée (PHI) telle que le nom, l'e-mail ou le numéro de téléphone."
     },
+    "baa": {
+      "title": "Statut HIPAA / BAA",
+      "label": "Important :",
+      "text": "Cet outil fonctionne sur Google Firebase (Cloud Firestore pour le stockage et Firebase Authentication pour la clé de session anonyme). Firebase est éligible HIPAA uniquement dans le cadre d'un accord de partenariat commercial (BAA) Google Cloud exécuté. Le statut BAA pour ce déploiement est en cours de finalisation dans le cadre de l'examen du Mont Sinaï. Jusqu'à ce que le BAA soit confirmé par écrit, ne saisissez pas d'informations que vous considéreriez comme des informations de santé protégées (PHI) dans un cadre clinique. ePSA n'est pas un dispositif médical et n'est pas autorisé par la FDA."
+    },
     "sessionOnly": {
       "title": "Clé de session anonyme uniquement",
       "noEmailPhoneLabel": "Pas d'e-mail ni de téléphone :",
@@ -233,6 +245,128 @@
     "disclaimer": {
       "label": "Avertissement :",
       "text": "Ce résumé décrit comment l'application ePSA gère les données à des fins de confidentialité. Il ne constitue pas un avis juridique. Pour des questions sur HIPAA ou vos informations de santé, consultez votre prestataire de soins de santé ou un conseiller juridique."
+    }
+  },
+  "privacyPolicy": {
+    "title": "Politique de confidentialité ePSA",
+    "closeButton": "Fermer",
+    "placeholder": {
+      "label": "Projet à soumettre à l'examen du conseil juridique du Mont Sinaï :",
+      "text": "Cette politique de confidentialité est un projet de travail préparé pour examen par le Bureau du Conseil général du Mont Sinaï. Elle décrit le traitement actuel des données de l'application de bonne foi mais n'a pas encore été examinée ou approuvée. Ne vous fiez pas à ce document comme avis juridique définitif. La politique de confidentialité institutionnelle du Mont Sinai à mountsinai.org/privacy continue de s'appliquer en parallèle."
+    },
+    "lastUpdated": {
+      "title": "Dernière mise à jour",
+      "text": "Projet — provisoire. À remplacer par une date d'entrée en vigueur après validation par le conseil juridique."
+    },
+    "whoWeAre": {
+      "title": "À propos d'ePSA",
+      "text": "ePSA (Prostate-Specific Awareness) est un outil éducatif et de recherche détenu et exploité par le Département d'urologie de l'École de médecine Icahn du Mont Sinaï (« MOUNT SINAI », « nous » ou « notre »). Le chercheur principal est Ashutosh K. Tewari, MD. Les données de cohorte sous-jacentes aux modèles de risque ePSA ont été collectées dans le cadre du protocole IRB de la clinique GU du Mont Sinaï STUDY-14-00050. ePSA n'est pas un dispositif médical, n'est pas autorisé par la FDA et ne remplace pas une évaluation médicale en personne."
+    },
+    "institutional": {
+      "title": "Relation avec la politique de confidentialité du Mont Sinaï",
+      "text": "ePSA est une application du Mont Sinaï. La politique de confidentialité institutionnelle du Mont Sinaï (disponible à mountsinai.org/privacy) est intégrée à cette politique de confidentialité par référence et continue de s'appliquer à votre utilisation d'ePSA. Ce document complète cette politique par des dispositions spécifiques à l'outil ePSA. En cas de conflit direct entre ce document et la politique institutionnelle concernant les flux de données spécifiques à ePSA, la disposition la plus protectrice prévaut."
+    },
+    "dataCollected": {
+      "title": "Informations que nous collectons",
+      "intro": "En fonction de l'option de stockage que vous sélectionnez lors de l'utilisation d'ePSA, nous pouvons collecter les catégories d'informations suivantes :",
+      "assessmentLabel": "Entrées et résultats d'évaluation :",
+      "assessmentText": "Vos réponses aux questions d'évaluation des risques (incluant l'âge, l'IMC, la valeur PSA, les scores de symptômes IPSS et SHIM, les antécédents familiaux, l'ascendance auto-déclarée, les résultats de biopsie et d'IRM antérieurs, et d'autres données cliniques) et les résultats du modèle qui en découlent.",
+      "authLabel": "Identifiants de contact :",
+      "authText": "ePSA ne collecte PAS d'adresse e-mail, de numéro de téléphone ou d'autre identifiant de contact des utilisateurs. La connexion à ePSA utilise uniquement une clé de session anonyme, et le compte utilisateur que nous créons stocke explicitement l'e-mail et le téléphone comme nuls. Il n'existe pas de chemin de connexion par e-mail ou par téléphone dans la version de production actuelle.",
+      "technicalLabel": "Données techniques et d'utilisation :",
+      "technicalText": "Journaux de serveur standard (adresse IP, type de navigateur, horodatages des requêtes) générés par Firebase Hosting et Cloud Firestore à des fins de sécurité, de prévention des abus et de fiabilité. Nous ne déployons pas actuellement de traceurs publicitaires ni de SDK d'analyse tiers sur ePSA."
+    },
+    "howWeUse": {
+      "title": "Comment nous utilisons les informations",
+      "text": "Nous utilisons les informations décrites ci-dessus pour calculer et afficher vos estimations de risque ; pour vous permettre de récupérer une évaluation antérieure d'une session à l'autre ; pour exploiter, sécuriser et améliorer l'outil ePSA ; et, sous forme dépersonnalisée et agrégée conforme au protocole IRB STUDY-14-00050, pour soutenir la validation continue du modèle et la recherche académique. Nous ne vendons pas vos données et ne les utilisons pas à des fins de publicité commerciale."
+    },
+    "storageAndSharing": {
+      "title": "Stockage, fournisseurs et statut HIPAA",
+      "text": "Les données ePSA sont stockées dans Google Cloud Firestore (région États-Unis) sous la configuration du projet Firebase du Mont Sinaï. Firebase et Cloud Firestore sont des fournisseurs du Mont Sinaï. Firebase Authentication, Cloud Firestore et les services Firebase associés sont éligibles HIPAA uniquement dans le cadre d'un accord de partenariat commercial (BAA) Google Cloud exécuté ; l'exécution du BAA couvrant ce déploiement ePSA est en cours de finalisation dans le cadre de l'examen du Mont Sinaï. Jusqu'à ce que ce BAA soit confirmé par écrit, vous ne devriez pas saisir d'informations que vous considéreriez comme des informations de santé protégées dans un cadre clinique. Nous ne partageons pas vos données ePSA avec des tiers à des fins de marketing ou de publicité."
+    },
+    "cookiesAndTracking": {
+      "title": "Cookies et suivi",
+      "text": "ePSA utilise un ensemble minimal de cookies et de stockage local similaire requis pour maintenir votre session anonyme active (Firebase Authentication) et mémoriser vos préférences de session (comme la taille du texte et la langue). ePSA n'utilise pas de cookies publicitaires et ne transmet actuellement pas de données identifiables à Google Analytics dans sa configuration de recherche. Si des analyses sont activées à l'avenir, elles seront soit dépersonnalisées jusqu'au niveau d'un label de tier uniquement, soit soumises à un consentement explicite, et cette politique de confidentialité sera mise à jour en conséquence."
+    },
+    "hipaaNotice": {
+      "title": "Relation avec l'avis HIPAA du Mont Sinaï",
+      "text": "Le Mont Sinaï maintient un avis de pratiques de confidentialité (NPP) distinct en vertu de l'HIPAA couvrant ses activités de traitement, de paiement et d'opérations de soins de santé. ePSA est un outil éducatif et de recherche et ne fait pas, dans sa forme actuelle, partie du flux de travail de traitement couvert par l'HIPAA du Mont Sinaï. Les données saisies dans ePSA sont donc traitées conformément à cette politique de confidentialité et au protocole IRB régissant l'étude sous-jacente, et non en vertu du NPP institutionnel. Pour les questions HIPAA spécifiques à vos soins cliniques au Mont Sinaï, consultez le NPP institutionnel."
+    },
+    "yourRights": {
+      "title": "Vos droits",
+      "text": "Vous pouvez demander l'accès, la correction ou la suppression de vos données ePSA à tout moment, et vous pouvez vous retirer de l'utilisation éducative et de recherche d'ePSA sans pénalité et sans affecter votre accès aux soins cliniques au Mont Sinaï. Selon votre lieu de résidence, vous pouvez également avoir des droits supplémentaires en vertu du droit étatique ou international (y compris les droits décrits dans la politique de confidentialité institutionnelle du Mont Sinaï sous « Droits sur les données personnelles »)."
+    },
+    "childrens": {
+      "title": "Confidentialité des enfants",
+      "text": "ePSA est destiné uniquement aux adultes et n'est pas destiné aux personnes de moins de 18 ans. Nous ne collectons pas sciemment d'informations auprès des enfants. Si vous pensez qu'un enfant a fourni des informations à ePSA, veuillez contacter l'équipe de l'étude afin que les données puissent être supprimées."
+    },
+    "changes": {
+      "title": "Modifications de cette politique",
+      "text": "Nous pouvons mettre à jour cette politique de confidentialité de temps en temps. La version la plus récente sera accessible depuis le pied de page d'ePSA. L'utilisation continue d'ePSA après une mise à jour constitue une reconnaissance de la politique révisée."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "Pour les questions de confidentialité spécifiques à ePSA, les demandes d'accès ou de suppression de données, ou pour vous retirer de l'utilisation de recherche et éducative d'ePSA, contactez l'équipe de l'étude ePSA à aditya.dixit@mssm.edu (Aditya Dixit, responsable de la recherche ePSA, Département d'urologie, École de médecine Icahn du Mont Sinaï). Pour les questions de confidentialité institutionnelles du Mont Sinaï, contactez Compliance.info@mountsinai.org comme décrit dans la politique de confidentialité du Mont Sinaï à mountsinai.org/privacy."
+    }
+  },
+  "terms": {
+    "title": "Conditions d'utilisation ePSA",
+    "closeButton": "Fermer",
+    "placeholder": {
+      "label": "Projet à soumettre à l'examen du conseil juridique du Mont Sinaï :",
+      "text": "Ces conditions d'utilisation sont un projet de travail préparé pour examen par le Bureau du Conseil général du Mont Sinaï. Elles décrivent l'utilisation prévue d'ePSA de bonne foi mais n'ont pas encore été examinées ou approuvées. Ne vous fiez pas à ce document comme accord juridique définitif. Les conditions générales d'utilisation institutionnelles du Mont Sinaï continuent de s'appliquer en parallèle."
+    },
+    "lastUpdated": {
+      "title": "Dernière mise à jour",
+      "text": "Projet — provisoire. À remplacer par une date d'entrée en vigueur après validation par le conseil juridique."
+    },
+    "acceptance": {
+      "title": "Acceptation des conditions",
+      "text": "EN ACCÉDANT OU EN UTILISANT ePSA, VOUS ACCEPTEZ D'ÊTRE LIÉ PAR CES CONDITIONS, PAR LA POLITIQUE DE CONFIDENTIALITÉ ePSA ET PAR LES CONDITIONS GÉNÉRALES D'UTILISATION INSTITUTIONNELLES DU MONT SINAÏ. SI VOUS N'ÊTES PAS D'ACCORD, N'ACCÉDEZ PAS À ePSA ET NE L'UTILISEZ PAS. Vous déclarez avoir au moins 18 ans et avoir la capacité juridique de conclure ces conditions."
+    },
+    "institutional": {
+      "title": "Relation avec les conditions générales d'utilisation du Mont Sinaï",
+      "text": "ePSA est détenu et exploité par le Département d'urologie de l'École de médecine Icahn du Mont Sinaï (« MOUNT SINAI »). Les conditions générales d'utilisation institutionnelles du Mont Sinaï sont intégrées à ces conditions par référence et continuent de s'appliquer à votre utilisation d'ePSA. Ces conditions complètent ce document par des dispositions spécifiques à ePSA en tant qu'outil de recherche et d'éducation. En cas de conflit direct entre ces conditions et les conditions institutionnelles concernant les fonctionnalités spécifiques à ePSA, la disposition la plus restrictive prévaut."
+    },
+    "educationalUse": {
+      "title": "Utilisation éducative et de recherche uniquement",
+      "text": "ePSA est un outil d'évaluation des risques éducatif et de recherche développé par la chirurgie urologique du Mont Sinaï dans le cadre du protocole IRB STUDY-14-00050. ePSA n'est PAS un dispositif médical, n'a PAS été autorisé ou approuvé par la Food and Drug Administration des États-Unis, et est destiné à soutenir — et non à remplacer — la discussion avec un professionnel de santé qualifié. Les modèles de risque sont validés en interne uniquement, par rapport à la cohorte du Mont Sinaï décrite dans la documentation du modèle ; aucune cohorte de validation externe n'a été utilisée à ce jour."
+    },
+    "noMedicalAdvice": {
+      "title": "L'outil ePSA ne fournit pas de conseils médicaux",
+      "text": "Les informations et le contenu d'ePSA — y compris les textes, les scores numériques, les pourcentages de risque, les graphiques et tout résultat imprimé ou exporté — sont uniquement à des fins d'information et de recherche et ne remplacent pas les conseils médicaux professionnels, le diagnostic ou le traitement. Consultez toujours l'avis de votre médecin ou d'un autre professionnel de santé qualifié pour toute question concernant vos soins médicaux, et ne négligez jamais les conseils médicaux professionnels ni ne tardez à les demander en raison de quelque chose que vous avez lu sur ou via ePSA. Toute confiance accordée aux informations figurant dans ePSA est uniquement à vos propres risques."
+    },
+    "accountResponsibility": {
+      "title": "Clés de session et responsabilité des données",
+      "text": "La connexion à ePSA utilise uniquement une clé de session anonyme. Vous êtes responsable de la sécurité de votre clé de session — toute personne possédant la clé peut accéder aux données d'évaluation associées. Si vous perdez votre clé de session, les données d'évaluation associées ne peuvent pas être récupérées, car nous ne collectons aucune information de contact qui nous permettrait de les restaurer. Vous ne pouvez pas utiliser ePSA d'une manière qui interfère avec l'accès d'un autre utilisateur, tente de contourner les contrôles de sécurité ou viole la loi applicable."
+    },
+    "intellectualProperty": {
+      "title": "Propriété intellectuelle",
+      "text": "ePSA, ses modèles sous-jacents, son code source, sa documentation, son interface utilisateur et son contenu sont la propriété intellectuelle du Mont Sinaï et de ses fournisseurs de contenu. Vous bénéficiez d'un droit personnel, non exclusif, non transférable, révocable et limité d'utiliser ePSA à des fins éducatives personnelles et non commerciales uniquement. Vous ne pouvez pas copier, redistribuer, décompiler, désassembler ou créer des œuvres dérivées d'ePSA sans le consentement écrit préalable du Mont Sinaï."
+    },
+    "noWarranty": {
+      "title": "Absence de garantie",
+      "text": "ePSA EST FOURNI « EN L'ÉTAT » ET « TEL QUE DISPONIBLE » SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS SANS LIMITATION TOUTE GARANTIE IMPLICITE DE QUALITÉ MARCHANDE, D'ADÉQUATION À UN USAGE PARTICULIER, DE NON-CONTREFAÇON, D'EXACTITUDE OU D'APTITUDE À LA PRISE DE DÉCISION CLINIQUE. LE MONT SINAÏ DÉCLINE TOUTES CES GARANTIES. LE MONT SINAÏ NE GARANTIT PAS QU'ePSA SERA ININTERROMPU OU EXEMPT D'ERREURS, QUE LES DÉFAUTS SERONT CORRIGÉS, OU QUE LES RÉSULTATS DES MODÈLES DE RISQUE SERONT EXACTS OU ADAPTÉS À VOS CIRCONSTANCES INDIVIDUELLES."
+    },
+    "limitationOfLiability": {
+      "title": "Limitation de responsabilité",
+      "text": "DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, EN AUCUN CAS LE MONT SINAÏ OU L'UN DE SES ADMINISTRATEURS, DIRIGEANTS, FACULTÉS, EMPLOYÉS, AGENTS, CHERCHEURS OU CONTRACTANTS NE SERA RESPONSABLE ENVERS VOUS OU TOUTE AUTRE PARTIE DE TOUT DOMMAGE DIRECT, INDIRECT, ACCESSOIRE, SPÉCIAL, PUNITIF OU CONSÉCUTIF DÉCOULANT DE OU LIÉ À VOTRE UTILISATION DE, OU INCAPACITÉ À UTILISER, ePSA, Y COMPRIS TOUT DOMMAGE LIÉ À UNE DÉCISION CLINIQUE INFLUENCÉE PAR LES RÉSULTATS D'ePSA. VOTRE SEUL ET UNIQUE RECOURS EN CAS D'INSATISFACTION AVEC ePSA EST DE CESSER DE L'UTILISER."
+    },
+    "indemnity": {
+      "title": "Indemnisation",
+      "text": "Vous acceptez d'indemniser et de dégager de toute responsabilité le Mont Sinaï et ses administrateurs, dirigeants, facultés, employés, agents, chercheurs et contractants de toute réclamation, demande, perte ou responsabilité découlant de votre violation de ces conditions, de votre mauvaise utilisation d'ePSA, ou de votre confiance dans les résultats d'ePSA d'une manière incompatible avec l'objectif éducatif et de recherche décrit ci-dessus."
+    },
+    "changes": {
+      "title": "Modifications de ces conditions",
+      "text": "Le Mont Sinaï peut réviser ces conditions de temps en temps sans préavis séparé. La version la plus récente sera accessible depuis le pied de page d'ePSA. L'utilisation continue d'ePSA après une révision constitue l'acceptation des conditions révisées."
+    },
+    "governingLaw": {
+      "title": "Loi applicable",
+      "text": "Ces conditions sont régies et interprétées conformément aux lois de l'État de New York, sans égard aux principes de conflit de lois, conformément aux conditions générales d'utilisation institutionnelles du Mont Sinaï."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "Pour les questions sur ces conditions ou sur l'outil ePSA, contactez l'équipe de l'étude ePSA à aditya.dixit@mssm.edu (Aditya Dixit, responsable de la recherche ePSA, Département d'urologie, École de médecine Icahn du Mont Sinaï)."
     }
   },
   "info": {
@@ -768,6 +902,82 @@
       "piradsExplanationProvided": "L'IRM et le score PI-RADS peuvent être utilisés avant la biopsie initiale pour augmenter la détection du cancer de la prostate cliniquement significatif (GG2+). Un score PI-RADS de 3 ou plus indique une lésion suspecte nécessitant une évaluation approfondie. Cet outil ne remplace pas l'interprétation par un radiologue des résultats IRM multiparamétriques.",
       "piradsExplanationNotProvided": "Si le PI-RADS n'est pas inclus, la catégorie de la Partie 2 est basée uniquement sur l'estimation de base et les informations PSA. Un clinicien peut recommander une IRM (ou non) selon votre contexte clinique complet.",
       "pointsExplanation": "Votre niveau de risque de la Partie 2 est résumé comme une estimation éducative qui combine votre profil de risque de la Partie 1 avec votre niveau PSA et, si disponible, votre score IRM PI-RADS. La catégorie résultante est destinée à soutenir la prise de décision partagée avec votre clinicien — non à remplacer le jugement clinique."
+    },
+    "tiers": {
+      "riskBar": {
+        "low": "Faible",
+        "intermediateLow": "Int-Faible",
+        "intermediateHigh": "Int-Élevé",
+        "high": "Élevé"
+      },
+      "psaContext": {
+        "low": {
+          "label": "Plage faible",
+          "detail": "Rassurant. Continuez le dépistage de routine."
+        },
+        "intermediateLow": {
+          "label": "Plage faible à intermédiaire",
+          "detail": "Justifie un suivi. Demandez à votre médecin l'intervalle approprié."
+        },
+        "intermediateHigh": {
+          "label": "Élevé",
+          "detail": "Justifie une évaluation par un urologue."
+        },
+        "high": {
+          "label": "Significativement élevé",
+          "detail": "Référence urologique rapide recommandée."
+        }
+      },
+      "pirads": {
+        "0": {
+          "label": "Aucune lésion reportable",
+          "detail": "L'IRM n'a trouvé aucune lésion significative."
+        },
+        "1": {
+          "label": "Très peu probable"
+        },
+        "2": {
+          "label": "Peu probable"
+        },
+        "3": {
+          "label": "Incertain"
+        },
+        "4": {
+          "label": "Probablement suspect"
+        },
+        "5": {
+          "label": "Hautement suspect"
+        }
+      },
+      "gauge": {
+        "low": "Faible",
+        "moderate": "Intermédiaire",
+        "high": "Élevé"
+      },
+      "hero": {
+        "biopsy": "Envisagez de discuter d'une biopsie avec votre urologue",
+        "urologistReview": "Envisagez une consultation urologique",
+        "nextSteps": "Prochaines étapes suggérées"
+      },
+      "endpointNote": "Comment le risque est défini : les modèles 1 à 2 estiment la probabilité de tout cancer de la prostate de grade élevé (GG2+). Le modèle 3 (voie IRM) estime la probabilité d'un cancer de grade plus élevé (GG3+). Ces seuils sont importants — discutez avec votre urologue lequel correspond le mieux à votre situation.",
+      "recommendation": {
+        "veryHigh": "Votre risque combiné est très élevé. Les recommandations AUA et NCCN préconisent une référence rapide à un urologue et une considération sérieuse d'une biopsie. Une imagerie de stadification supplémentaire peut également être envisagée. Il s'agit d'une conversation urgente à avoir avec votre médecin.",
+        "high": "Votre risque combiné est élevé. Les recommandations AUA et NCCN préconisent une référence rapide à un urologue. Un urologue discutera de l'opportunité d'une biopsie — c'est une conversation, pas une décision automatique.",
+        "intermediateHigh": "Votre risque combiné justifie une évaluation approfondie. Les recommandations AUA et NCCN préconisent de consulter un urologue. Une IRM avant biopsie est souvent l'étape suivante recommandée pour obtenir plus d'informations.",
+        "intermediateLow": "Votre risque combiné est faible à intermédiaire. Les recommandations AUA et NCCN préconisent une surveillance continue. Parlez à votre médecin de la fréquence à laquelle répéter votre PSA — généralement tous les 1 à 2 ans.",
+        "low": "Votre risque combiné est faible. Les recommandations AUA et NCCN sont rassurantes à ce niveau. Continuez le dépistage PSA de routine — un test répété dans 2 à 4 ans est généralement approprié."
+      },
+      "contextNote": {
+        "lowPsa": "Remarque : Même avec un PSA faible, vos facteurs de risque de fond (race, antécédents familiaux ou mutation génétique) justifient une surveillance plus rapprochée conformément aux recommandations AUA/NCCN.",
+        "discordancePsaHigher": "Remarque : Votre niveau PSA se situe dans une plage plus élevée que votre tier combiné seul ne le suggère. Votre résultat PSA est un signal indépendant — discutez-en avec votre médecin indépendamment de votre profil global.",
+        "discordanceProfile": "Remarque : Votre profil de risque de la Partie 1 élève votre tier combiné au-delà de ce que le PSA seul suggérerait. Les deux facteurs comptent pour votre risque global."
+      },
+      "explanation": {
+        "high": "Un tier de risque combiné élevé signifie que votre niveau PSA — combiné à votre profil de risque de la Partie 1 — se situe dans la plage où les urologues discutent généralement d'une biopsie. Cela ne signifie pas que vous avez un cancer ; cela signifie qu'une investigation plus approfondie est justifiée.",
+        "intermediateHigh": "Un tier de risque combiné intermédiaire-élevé signifie que votre niveau PSA et votre profil de risque suggèrent qu'une consultation urologique est appropriée. Une IRM est souvent recommandée avant toute décision de biopsie pour avoir une image plus claire.",
+        "intermediateLow": "Un tier de risque combiné intermédiaire-faible signifie que votre PSA est légèrement élevé ou que des facteurs de risque de fond sont présents, mais qu'il n'y a pas de raison immédiate de s'inquiéter. Une surveillance continue avec votre médecin est la bonne approche.",
+        "low": "Un tier de risque combiné faible signifie que votre niveau PSA et votre profil de risque sont rassurants. Aucun test supplémentaire n'est nécessaire pour l'instant — continuez le dépistage de routine comme recommandé par votre médecin."
+      }
     }
   },
   "printableForm": {
@@ -783,6 +993,8 @@
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "Questionnaire ePSA",
     "tagline": "Sensibilisation spécifique à la prostate | Un outil éducatif de risque non validé",
+    "headerAttribution": "Ashutosh K. Tewari, MD · École de médecine Icahn du Mont Sinaï · Département d'urologie",
+    "headerDisclaimer": "Utilisation éducative uniquement — n'est pas un dispositif médical autorisé par la FDA. Validé en interne sur la cohorte ePSA du Mont Sinaï ; aucune validation externe à ce jour.",
     "phoneLabel": "Numéro de téléphone :",
     "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "À propos de vous",
@@ -841,8 +1053,17 @@
   },
   "quickEntry": {
     "title": "Saisie rapide",
-    "subtitle": "Âge/Race + totaux SHIM/IPSS -> résultat instantané",
+    "subtitle": "Seuls l'âge et la race sont obligatoires — tout le reste a une valeur par défaut sensée que vous pouvez ajuster.",
     "exit": "Quitter",
+    "requiredLegend": "Obligatoire",
+    "scoreModifiers": "Modificateurs de score",
+    "advanced": "Mode de vie et antécédents",
+    "advancedHint": "Ouvrir pour affiner — les valeurs par défaut affichées s'appliquent si vous ne les modifiez pas.",
+    "usingDefault": "Défaut",
+    "resetDefaults": "Réinitialiser les valeurs par défaut",
+    "requiredMark": "*",
+    "iDontKnow": "Je ne connais pas mon IPSS",
+    "iDontKnowHide": "Utiliser le total IPSS à la place",
     "ageLabel": "Âge (18-120)",
     "agePlaceholder": "ex. 55",
     "raceLabel": "Race / Ethnicité",
@@ -859,6 +1080,7 @@
     "bmiPlaceholder": "ex. 25.49",
     "bmiHint": "Plage de validation dans le modèle : IMC 15-60",
     "familyHistoryLabel": "Antécédents familiaux",
+    "familyHistoryHint": "Si vous laissez ce champ sur « Aucun », votre score est calculé comme si aucun parent du premier degré n'avait eu de cancer de la prostate. Remarque : « Inconnu » est également compté comme l'absence d'antécédents familiaux dans le modèle actuel — si vous savez qu'un parent a été atteint, choisissez 1 ou 2+ afin que votre score le reflète.",
     "family": {
       "none": "Aucun",
       "one": "1 parent",

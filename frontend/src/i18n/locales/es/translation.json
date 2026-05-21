@@ -24,7 +24,9 @@
     "footer": {
       "text": "ePSA Conciencia sobre el cáncer de próstata | Una herramienta educativa de riesgo no validada",
       "modelDocs": "Documentación del modelo",
-      "hipaa": "Cumple con HIPAA"
+      "hipaa": "Privacidad de datos",
+      "privacyPolicy": "Política de privacidad",
+      "termsOfService": "Términos de servicio"
     },
     "loadingResults": {
       "title": "Cargando sus resultados...",
@@ -70,6 +72,12 @@
     "heroBadge": "Herramienta educativa de apoyo clínico",
     "heroTitle": "Conozca su riesgo de base antes de su próxima consulta de urología",
     "heroDescription": "Complete un breve cuestionario basado en evidencia para generar una estimación personalizada de ePSA para comentarla con su médico.",
+    "psaIntro": {
+      "kicker": "Antes de comenzar",
+      "heading": "¿Qué es el PSA y por qué importa?",
+      "body": "El antígeno prostático específico (PSA) es una proteína que produce la próstata y que se mide con un simple análisis de sangre. Niveles más altos pueden ser una pista —aunque no una prueba— de cáncer de próstata u otras afecciones prostáticas. ePSA tiene en cuenta su edad, antecedentes familiares, ascendencia y síntomas para estimar qué tan relevante es una prueba de PSA para usted en este momento, de modo que la conversación con su médico parta de un contexto claro.",
+      "seeDoctorNudge": "Si ya tiene síntomas urinarios o antecedentes familiares conocidos de cáncer de próstata, hable con su médico — no espere a usar esta herramienta."
+    },
     "featureGuidedQuestions": "27 preguntas guiadas",
     "featureTime": "~5 minutos",
     "featurePrivate": "Privado por diseño",
@@ -95,14 +103,8 @@
       "step3Body": "Reciba un nivel de riesgo de ePSA con orientación imprimible para su conversación con el clínico."
     },
     "footerInstitution": "Icahn School of Medicine at Mount Sinai · Departamento de Urología",
-    "footerGuidelines": "Basado en la guía de: AUA · NCCN · EAU · SUO",
-    "footerDisclaimer": "Esta herramienta es solo para fines educativos y no es un diagnóstico. No ha sido validada clínicamente para la toma de decisiones de forma independiente y debe usarse junto con la orientación de un profesional de la salud con licencia.",
-    "psaIntro": {
-      "kicker": "Antes de comenzar",
-      "heading": "¿Qué es el PSA y por qué importa?",
-      "body": "El antígeno prostático específico (PSA) es una proteína que produce la próstata y que se mide con un simple análisis de sangre. Niveles más altos pueden ser una pista —aunque no una prueba— de cáncer de próstata u otras afecciones prostáticas. ePSA tiene en cuenta su edad, antecedentes familiares, ascendencia y síntomas para estimar qué tan relevante es una prueba de PSA para usted en este momento, de modo que la conversación con su médico parta de un contexto claro.",
-      "seeDoctorNudge": "Si ya tiene síntomas urinarios o antecedentes familiares conocidos de cáncer de próstata, hable con su médico — no espere a usar esta herramienta."
-    }
+    "footerGuidelines": "Basado en datos de pacientes de Mount Sinai · Recomendaciones según las guías AUA / NCCN",
+    "footerDisclaimer": "ePSA está construido sobre datos propios de pacientes de Mount Sinai, pero sus recomendaciones de detección se alinean con las guías AUA/NCCN. Esta herramienta es solo para fines educativos y no es un diagnóstico. Consulte siempre a su médico de cabecera o urólogo antes de tomar cualquier decisión de salud."
   },
   "welcome2": {
     "stage2Title": "Etapa 2: Evaluación del riesgo",
@@ -184,7 +186,12 @@
     "dataUseTitle": "Aviso de uso de datos:",
     "dataUseBody": "Los datos de sesiones en la nube se almacenan hasta por 30 días y los datos desidentificados pueden usarse de forma anónima para mejorar y validar futuras versiones del modelo. En modo local, los datos permanecen en su dispositivo y bajo su control; si los datos se mueven fuera de su dispositivo o se recopilan mediante un dispositivo de terceros, podrían compartirse. Confírmelo con quien recopila los datos, ya que no somos responsables de los datos movidos desde su dispositivo u otros dispositivos de terceros. Para sesiones en la nube, usamos transferencia segura y salvaguardas orientadas al cumplimiento.",
     "continueButton": "Continuar",
-    "errorNoSelection": "Por favor seleccione una opción para continuar"
+    "errorNoSelection": "Por favor seleccione una opción para continuar",
+    "rightToWithdrawTitle": "Sus derechos",
+    "rightToWithdrawBody": "La participación es voluntaria. Puede dejar de usar la herramienta en cualquier momento. Si usó almacenamiento en la nube, puede eliminar su sesión guardada desde la pantalla de resultados — esta acción es irreversible.",
+    "notMedicalDevice": "ePSA no es un dispositivo médico aprobado por la FDA y no sustituye la evaluación por parte de un profesional de la salud.",
+    "researcherContactTitle": "Preguntas o retiro de sus datos",
+    "researcherContactBody": "Comuníquese con el equipo del estudio: Aditya Dixit · aditya.dixit@mssm.edu · Departamento de Urología, Icahn School of Medicine at Mount Sinai."
   },
   "auth": {
     "createSessionHeading": "Crear una sesión anónima para guardar en la nube",
@@ -204,11 +211,16 @@
     }
   },
   "hipaa": {
-    "title": "Cumplimiento HIPAA",
+    "title": "Privacidad de datos y estado HIPAA",
     "closeButton": "Cerrar",
     "privacy": {
       "title": "Privacidad y protección de datos",
-      "text": "La herramienta ePSA está diseñada para proteger su información de salud de acuerdo con las consideraciones de HIPAA. No recopilamos, almacenamos ni vinculamos ninguna información de identificación personal (PII) o información de salud protegida (PHI), como nombre, correo electrónico o número de teléfono."
+      "text": "ePSA es una herramienta de investigación educativa. El inicio de sesión en ePSA utiliza únicamente una clave de sesión anónima — no recopilamos dirección de correo electrónico, número de teléfono u otro identificador de contacto. Esta página describe qué recopilamos y qué no, y dónde se almacenan sus datos."
+    },
+    "baa": {
+      "title": "Estado HIPAA / BAA",
+      "label": "Importante:",
+      "text": "Esta herramienta funciona sobre Google Firebase (Cloud Firestore para almacenamiento y Firebase Authentication para la clave de sesión anónima). Firebase solo es elegible para HIPAA bajo un Acuerdo de Socio Comercial (BAA) de Google Cloud ejecutado. El estado del BAA para este despliegue está siendo finalizado como parte de la revisión de Mount Sinai. Hasta que el BAA sea confirmado por escrito, no ingrese información que usted consideraría Información de Salud Protegida (PHI) en un entorno clínico. ePSA no es un dispositivo médico y no ha sido aprobado por la FDA."
     },
     "sessionOnly": {
       "title": "Sólo clave de sesión anónima",
@@ -227,16 +239,566 @@
       "loadCloudText": "Para continuar una sesión anterior, debe ingresar su clave de sesión. No utilizamos información de archivos importados para buscar o adjuntar sesiones existentes."
     },
     "choices": {
-      "title": "Tus opciones",
-      "text": "Puede usar la herramienta con datos almacenados solo en este dispositivo (\"Solo este dispositivo\") o guardarlos en la nube usando una clave de sesión anónima. No se requiere información de contacto personal para el almacenamiento en la nube."
+      "title": "Sus opciones",
+      "text": "Puede usar ePSA con datos almacenados solo en este dispositivo (\"Solo este dispositivo\") o guardarlos en la nube usando una clave de sesión anónima. No se requiere información de contacto en ninguna de las dos opciones."
     },
     "disclaimer": {
       "label": "Descargo de responsabilidad:",
-      "text": "Este resumen describe cómo la aplicación ePSA maneja los datos con fines de privacidad. No es asesoramiento legal. Si tiene preguntas sobre HIPAA o su información de salud, consulte a su proveedor de atención médica o asesor legal."
+      "text": "Este resumen describe cómo la aplicación ePSA gestiona los datos. No es asesoramiento legal y no sustituye una Política de Privacidad formal ni un Aviso de Prácticas de Privacidad. Si tiene preguntas sobre HIPAA o su información de salud, consulte a su proveedor de atención médica o asesor legal."
+    }
+  },
+  "privacyPolicy": {
+    "title": "Política de privacidad de ePSA",
+    "closeButton": "Cerrar",
+    "placeholder": {
+      "label": "Borrador para revisión del asesor jurídico de Mount Sinai:",
+      "text": "Esta Política de privacidad es un borrador de trabajo preparado para la revisión por parte de la Oficina del Asesor Jurídico General de Mount Sinai. Describe el manejo actual de datos de la aplicación de buena fe, pero aún no ha sido revisada ni aprobada. No confíe en este documento como aviso legal definitivo. La Política de privacidad institucional de Mount Sinai en mountsinai.org/privacy continúa aplicándose en paralelo."
+    },
+    "lastUpdated": {
+      "title": "Última actualización",
+      "text": "Borrador — marcador de posición. Se reemplazará con una fecha de entrada en vigor tras la aprobación del asesor jurídico."
+    },
+    "whoWeAre": {
+      "title": "Sobre ePSA",
+      "text": "ePSA (Prostate-Specific Awareness) es una herramienta educativa y de investigación propiedad del Departamento de Urología de la Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\", \"nosotros\" o \"nuestro\"). El Investigador Principal es Ashutosh K. Tewari, MD. Los datos de cohorte que sustentan los modelos de riesgo de ePSA se recopilaron bajo el protocolo IRB de Mount Sinai GU Clinical STUDY-14-00050. ePSA no es un dispositivo médico, no ha sido aprobado por la FDA y no sustituye la evaluación médica presencial."
+    },
+    "institutional": {
+      "title": "Relación con la Política de privacidad de Mount Sinai",
+      "text": "ePSA es una aplicación de Mount Sinai. La Política de privacidad institucional de Mount Sinai (disponible en mountsinai.org/privacy) se incorpora a esta Política de privacidad por referencia y continúa aplicándose a su uso de ePSA. Este documento complementa dicha política con disposiciones específicas para la herramienta ePSA. En caso de conflicto directo entre este documento y la política institucional con respecto a los flujos de datos específicos de ePSA, prevalecerá la disposición más protectora."
+    },
+    "dataCollected": {
+      "title": "Información que recopilamos",
+      "intro": "Dependiendo de la opción de almacenamiento que seleccione al usar ePSA, podemos recopilar las siguientes categorías de información:",
+      "assessmentLabel": "Respuestas e resultados de la evaluación:",
+      "assessmentText": "Sus respuestas a las preguntas de evaluación de riesgo (incluyendo edad, IMC, valor de PSA, puntuaciones de síntomas IPSS y SHIM, historia familiar, ascendencia autoreportada, hallazgos previos de biopsia y RM, y otras entradas clínicas) y los resultados del modelo derivados de ellas.",
+      "authLabel": "Identificadores de contacto:",
+      "authText": "ePSA NO recopila dirección de correo electrónico, número de teléfono u otro identificador de contacto de los usuarios. El inicio de sesión en ePSA utiliza únicamente una clave de sesión anónima, y el registro de usuario que creamos almacena explícitamente el correo electrónico y el teléfono como nulos. No existe una ruta de inicio de sesión basada en correo electrónico o teléfono en la compilación de producción actual.",
+      "technicalLabel": "Datos técnicos y de uso:",
+      "technicalText": "Registros estándar del servidor (dirección IP, tipo de navegador, marcas de tiempo de solicitudes) generados por Firebase Hosting y Cloud Firestore para seguridad, prevención de abuso y confiabilidad. Actualmente no implementamos rastreadores de publicidad ni SDK de análisis de terceros en ePSA."
+    },
+    "howWeUse": {
+      "title": "Cómo usamos la información",
+      "text": "Usamos la información descrita anteriormente para calcular y mostrar sus estimaciones de riesgo; para permitirle recuperar una evaluación anterior entre sesiones; para operar, proteger y mejorar la herramienta ePSA; y, en forma desidentificada y agregada conforme al protocolo IRB STUDY-14-00050, para apoyar la validación continua del modelo y la investigación académica. No vendemos sus datos ni los usamos para publicidad comercial."
+    },
+    "storageAndSharing": {
+      "title": "Almacenamiento, proveedores y estado HIPAA",
+      "text": "Los datos de ePSA se almacenan en Google Cloud Firestore (región de Estados Unidos) bajo la configuración del proyecto Firebase de Mount Sinai. Firebase y Cloud Firestore son proveedores de Mount Sinai. Firebase Authentication, Cloud Firestore y los servicios relacionados de Firebase solo son elegibles para HIPAA bajo un Acuerdo de Socio Comercial (BAA) de Google Cloud ejecutado; la ejecución del BAA que cubre este despliegue de ePSA está siendo finalizada como parte de la revisión de Mount Sinai. Hasta que ese BAA sea confirmado por escrito, no debe ingresar información que consideraría Información de Salud Protegida en un entorno clínico. No compartimos sus datos de ePSA con terceros con fines de marketing o publicidad."
+    },
+    "cookiesAndTracking": {
+      "title": "Cookies y seguimiento",
+      "text": "ePSA utiliza un conjunto mínimo de cookies y almacenamiento local similar, necesarios para mantener activa su sesión anónima (Firebase Authentication) y para recordar sus preferencias de sesión (como escala de texto e idioma). ePSA no utiliza cookies de publicidad y actualmente no transmite datos identificables a Google Analytics en su configuración de investigación. Si en el futuro se habilitan análisis, serán desidentificados a un nivel de etiqueta únicamente o requerirán consentimiento explícito, y esta Política de privacidad se actualizará en consecuencia."
+    },
+    "hipaaNotice": {
+      "title": "Relación con el Aviso HIPAA de Mount Sinai",
+      "text": "Mount Sinai mantiene un Aviso de Prácticas de Privacidad (NPP) separado bajo HIPAA que cubre sus actividades de tratamiento, pago y operaciones de atención médica. ePSA es una herramienta educativa y de investigación y no forma parte, en su forma actual, del flujo de trabajo de tratamiento cubierto por HIPAA de Mount Sinai. Los datos ingresados en ePSA se gestionan, por tanto, bajo esta Política de privacidad y el protocolo IRB que rige el estudio subyacente, no bajo el NPP institucional. Para preguntas sobre HIPAA específicas a su atención clínica en Mount Sinai, consulte el NPP institucional."
+    },
+    "yourRights": {
+      "title": "Sus derechos",
+      "text": "Puede solicitar acceso, corrección o eliminación de sus datos de ePSA en cualquier momento, y puede retirarse del uso educativo e investigativo de ePSA sin penalización y sin afectar su acceso a la atención clínica en Mount Sinai. Dependiendo de su lugar de residencia, también puede tener derechos adicionales bajo la legislación estatal o internacional (incluidos los derechos descritos en la Política de privacidad institucional de Mount Sinai en \"Derechos sobre datos personales\")."
+    },
+    "childrens": {
+      "title": "Privacidad de menores",
+      "text": "ePSA está destinado exclusivamente a adultos y no está dirigido a personas menores de 18 años. No recopilamos a sabiendas información de menores. Si cree que un menor ha proporcionado información a ePSA, comuníquese con el equipo del estudio para que los datos puedan eliminarse."
+    },
+    "changes": {
+      "title": "Cambios en esta política",
+      "text": "Podemos actualizar esta Política de privacidad periódicamente. La versión más reciente estará accesible desde el pie de página de ePSA. El uso continuado de ePSA después de una actualización constituye el reconocimiento de la política revisada."
+    },
+    "contact": {
+      "title": "Contacto",
+      "text": "Para preguntas de privacidad específicas de ePSA, solicitudes de acceso o eliminación de datos, o para retirarse del uso educativo e investigativo de ePSA, comuníquese con el equipo del estudio en aditya.dixit@mssm.edu (Aditya Dixit, responsable de investigación de ePSA, Departamento de Urología, Icahn School of Medicine at Mount Sinai). Para asuntos de privacidad institucional de Mount Sinai, comuníquese con Compliance.info@mountsinai.org según se describe en la Política de privacidad de Mount Sinai en mountsinai.org/privacy."
+    }
+  },
+  "terms": {
+    "title": "Términos de servicio de ePSA",
+    "closeButton": "Cerrar",
+    "placeholder": {
+      "label": "Borrador para revisión del asesor jurídico de Mount Sinai:",
+      "text": "Estos Términos de servicio son un borrador de trabajo preparado para la revisión por parte de la Oficina del Asesor Jurídico General de Mount Sinai. Describen el uso previsto de ePSA de buena fe, pero aún no han sido revisados ni aprobados. No confíe en este documento como acuerdo legal definitivo. Los Términos y condiciones de uso institucionales de Mount Sinai continúan aplicándose en paralelo."
+    },
+    "lastUpdated": {
+      "title": "Última actualización",
+      "text": "Borrador — marcador de posición. Se reemplazará con una fecha de entrada en vigor tras la aprobación del asesor jurídico."
+    },
+    "acceptance": {
+      "title": "Aceptación de los términos",
+      "text": "AL ACCEDER O USAR ePSA, USTED ACEPTA QUEDAR VINCULADO POR ESTOS TÉRMINOS, POR LA POLÍTICA DE PRIVACIDAD DE ePSA Y POR LOS TÉRMINOS Y CONDICIONES DE USO INSTITUCIONALES DE MOUNT SINAI. SI NO ESTÁ DE ACUERDO, NO ACCEDA NI USE ePSA. Usted declara tener al menos 18 años de edad y capacidad legal para aceptar estos Términos."
+    },
+    "institutional": {
+      "title": "Relación con los Términos y condiciones de uso de Mount Sinai",
+      "text": "ePSA es propiedad del Departamento de Urología de la Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\") y es operado por él. Los Términos y condiciones de uso institucionales de Mount Sinai se incorporan a estos Términos por referencia y continúan aplicándose a su uso de ePSA. Estos Términos complementan dicho documento con disposiciones específicas para ePSA como herramienta de investigación y educación. En caso de conflicto directo entre estos Términos y los institucionales con respecto a la funcionalidad específica de ePSA, prevalecerá la disposición más restrictiva."
+    },
+    "educationalUse": {
+      "title": "Uso exclusivamente educativo e investigativo",
+      "text": "ePSA es una herramienta educativa de evaluación de riesgos e investigación desarrollada por Mount Sinai Urology en relación con el protocolo IRB STUDY-14-00050. ePSA NO es un dispositivo médico, NO ha sido autorizado ni aprobado por la Administración de Alimentos y Medicamentos de EE. UU., y está destinado a complementar — no reemplazar — la discusión con un profesional de la salud calificado. Los modelos de riesgo han sido validados internamente únicamente, contra la cohorte de Mount Sinai descrita en la documentación del modelo; hasta la fecha no se ha utilizado ninguna cohorte de validación externa."
+    },
+    "noMedicalAdvice": {
+      "title": "La herramienta ePSA no proporciona asesoramiento médico",
+      "text": "La información y el contenido de ePSA — incluyendo texto, puntuaciones numéricas, porcentajes de riesgo, gráficos y cualquier salida impresa o exportada — son únicamente para fines informativos e investigativos y no sustituyen el asesoramiento médico profesional, el diagnóstico o el tratamiento. Consulte siempre a su médico u otro proveedor de salud calificado ante cualquier pregunta sobre su atención médica, y nunca ignore el asesoramiento médico profesional ni demore en buscarlo a causa de algo que haya leído en ePSA o a través de él. La confianza en cualquier información que aparezca en ePSA es exclusivamente bajo su propio riesgo."
+    },
+    "accountResponsibility": {
+      "title": "Claves de sesión y responsabilidad sobre los datos",
+      "text": "El inicio de sesión en ePSA utiliza únicamente una clave de sesión anónima. Usted es responsable de mantener su clave de sesión segura — cualquier persona con la clave puede acceder a los datos de evaluación asociados. Si pierde su clave de sesión, los datos de evaluación asociados no podrán recuperarse, ya que no recopilamos ninguna información de contacto que nos permita restablecerlos. No puede usar ePSA de manera que interfiera con el acceso de otro usuario, intente eludir los controles de seguridad o viole la legislación aplicable."
+    },
+    "intellectualProperty": {
+      "title": "Propiedad intelectual",
+      "text": "ePSA, sus modelos subyacentes, código fuente, documentación, interfaz de usuario y contenido son propiedad intelectual de Mount Sinai y sus proveedores de contenido. Se le otorga un derecho personal, no exclusivo, intransferible, revocable y limitado para usar ePSA únicamente con fines educativos personales y no comerciales. No puede copiar, redistribuir, descompilar, realizar ingeniería inversa ni crear obras derivadas de ePSA sin el consentimiento previo por escrito de Mount Sinai."
+    },
+    "noWarranty": {
+      "title": "Sin garantía",
+      "text": "ePSA SE PROPORCIONA \"TAL CUAL\" Y \"SEGÚN DISPONIBILIDAD\" SIN GARANTÍAS DE NINGÚN TIPO, EXPRESAS O IMPLÍCITAS, INCLUIDA, SIN LIMITACIÓN, CUALQUIER GARANTÍA IMPLÍCITA DE COMERCIABILIDAD, IDONEIDAD PARA UN FIN PARTICULAR, NO INFRACCIÓN, EXACTITUD O IDONEIDAD PARA LA TOMA DE DECISIONES CLÍNICAS. MOUNT SINAI RENUNCIA A TODAS DICHAS GARANTÍAS. MOUNT SINAI NO GARANTIZA QUE ePSA SEA ININTERRUMPIDO O LIBRE DE ERRORES, QUE LOS DEFECTOS SERÁN CORREGIDOS, O QUE LOS RESULTADOS DE LOS MODELOS DE RIESGO SERÁN PRECISOS O APROPIADOS PARA SUS CIRCUNSTANCIAS INDIVIDUALES."
+    },
+    "limitationOfLiability": {
+      "title": "Limitación de responsabilidad",
+      "text": "EN LA MÁXIMA MEDIDA PERMITIDA POR LA LEY, EN NINGÚN CASO MOUNT SINAI NI NINGUNO DE SUS FIDEICOMISARIOS, DIRECTIVOS, PROFESORES, EMPLEADOS, AGENTES, INVESTIGADORES O CONTRATISTAS SERÁ RESPONSABLE ANTE USTED O CUALQUIER OTRA PARTE POR DAÑOS DIRECTOS, INDIRECTOS, INCIDENTALES, ESPECIALES, PUNITIVOS O CONSECUENTES QUE SURJAN DE O EN CONEXIÓN CON SU USO, O INCAPACIDAD DE USO, DE ePSA, INCLUIDOS LOS DAÑOS RELACIONADOS CON UNA DECISIÓN CLÍNICA INFLUENCIADA POR LOS RESULTADOS DE ePSA. SU ÚNICO Y EXCLUSIVO RECURSO POR INSATISFACCIÓN CON ePSA ES DEJAR DE USARLO."
+    },
+    "indemnity": {
+      "title": "Indemnización",
+      "text": "Usted acepta indemnizar y eximir de responsabilidad a Mount Sinai y a sus fideicomisarios, directivos, profesores, empleados, agentes, investigadores y contratistas de cualquier reclamación, demanda, pérdida o responsabilidad derivada de su incumplimiento de estos Términos, su uso indebido de ePSA o su dependencia de los resultados de ePSA de manera incompatible con el propósito educativo e investigativo descrito anteriormente."
+    },
+    "changes": {
+      "title": "Cambios en estos términos",
+      "text": "Mount Sinai puede revisar estos Términos periódicamente sin aviso previo por separado. La versión más reciente estará accesible desde el pie de página de ePSA. El uso continuado de ePSA después de una revisión constituye la aceptación de los Términos revisados."
+    },
+    "governingLaw": {
+      "title": "Ley aplicable",
+      "text": "Estos Términos se rigen e interpretan de conformidad con las leyes del Estado de Nueva York, sin consideración a los principios de conflicto de leyes, de manera coherente con los Términos y condiciones de uso institucionales de Mount Sinai."
+    },
+    "contact": {
+      "title": "Contacto",
+      "text": "Para preguntas sobre estos Términos o sobre la herramienta ePSA, comuníquese con el equipo del estudio en aditya.dixit@mssm.edu (Aditya Dixit, responsable de investigación de ePSA, Departamento de Urología, Icahn School of Medicine at Mount Sinai)."
+    }
+  },
+  "info": {
+    "learnMore": "Más información sobre {{title}}",
+    "sources": "Fuentes:",
+    "guidelineBadge": "Factor de las guías AUA/NCCN",
+    "modelOnlyBadge": "Solo modelo ePSA — no está en AUA/NCCN",
+    "guidelineNote": "AUA y NCCN utilizan este factor en sus criterios oficiales de tamizaje con PSA. Sus guías aparecen primero en las fuentes a continuación.",
+    "modelOnlyNote": "Este factor lo utiliza el modelo ePSA, pero no forma parte de los criterios oficiales de tamizaje con PSA de AUA/NCCN. Se basa únicamente en evidencia de investigación."
+  },
+  "part1": {
+    "fields": {
+      "age": {
+        "title": "Edad",
+        "placeholder": "Edad (18+)",
+        "helper": "Su edad ayuda a calibrar la prioridad de detección porque el riesgo de cáncer de próstata aumenta con el tiempo.",
+        "description": "El riesgo aumenta con la edad, especialmente después de los 50 años. La edad promedio de diagnóstico es 66 años."
+      },
+      "race": {
+        "title": "Raza/Etnia",
+        "selectPlaceholder": "Seleccione raza/etnia",
+        "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
+        "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
+      },
+      "familyHistory": {
+        "title": "Historia familiar",
+        "helper": "Incluya familiares consanguíneos cercanos, como padre, hermano o hijo, que hayan tenido cáncer de próstata.",
+        "description": "Tener un padre o un hermano con cáncer de próstata duplica con creces el riesgo de un hombre. El riesgo es aún mayor si hay varios familiares afectados."
+      },
+      "inflammationHistory": {
+        "title": "Historia de la inflamación",
+        "description": "Las afecciones inflamatorias crónicas como la prostatitis, la colitis ulcerosa y la enfermedad de Crohn pueden aumentar el riesgo de cáncer de próstata a través de mecanismos de inflamación crónica."
+      },
+      "brcaStatus": {
+        "title": "Prueba genética de cáncer hereditario",
+        "helper": "¿Se ha hecho una prueba genética para detectar cambios hereditarios en genes relacionados con el cáncer de próstata (como BRCA1/2, HOXB13, ATM o síndrome de Lynch)? Seleccione Sí solo si una prueba confirmó que usted porta uno. Seleccione No si fue evaluado y no se encontró nada. Seleccione Desconocido si nunca ha sido evaluado.",
+        "description": "Algunos cambios genéticos hereditarios aumentan el riesgo de cáncer de próstata. BRCA2 está asociado con mayor riesgo y enfermedad más agresiva. HOXB13 (especialmente la variante G84E) se presenta en algunas familias y también aumenta el riesgo. Los genes ATM y del síndrome de Lynch también elevan el riesgo. Las guías de AUA, NCCN y EAU recomiendan iniciar el tamizaje con PSA antes y con mayor frecuencia si una prueba ha confirmado que usted porta uno de estos genes."
+      },
+      "heightWeight": {
+        "title": "Altura y peso (IMC)",
+        "description": "La obesidad se asocia con un mayor riesgo de cáncer de próstata agresivo. Una altura más alta puede ser un ligero factor de riesgo."
+      },
+      "exercise": {
+        "title": "Nivel de ejercicio",
+        "helper": "Piense en una semana típica y elija la opción que mejor refleje su actividad física planificada.",
+        "description": "La actividad física regular se asocia con un riesgo reducido de cáncer de próstata agresivo."
+      },
+      "smoking": {
+        "title": "Estado de fumar",
+        "helper": "Incluya cigarrillos u otro consumo regular de tabaco al elegir su estado actual o anterior.",
+        "description": "Fumar está relacionado con un mayor riesgo de cáncer de próstata agresivo y mayores tasas de mortalidad."
+      },
+      "chemicalExposure": {
+        "title": "Exposición del 11-S o a sustancias químicas",
+        "helper": "Seleccione Sí si estuvo en el sitio del World Trade Center después del 11-S, o si su trabajo, servicio militar o entorno lo expuso a sustancias químicas como pesticidas o productos químicos industriales. Seleccione Desconocido si no está seguro.",
+        "description": "Las personas que estuvieron en el sitio del 11-S, y quienes estuvieron expuestos a pesticidas o productos químicos industriales en el trabajo, presentan tasas más altas de varios cánceres. Nota: esto forma parte del modelo de ePSA — no es utilizado por las guías oficiales de tamizaje AUA/SUO."
+      },
+      "diet": {
+        "title": "Patrón de dieta",
+        "helper": "Elija el patrón que describa mejor sus hábitos alimentarios habituales.",
+        "description": "Las dietas ricas en carnes rojas y lácteos ricos en grasas pueden aumentar el riesgo. Las dietas basadas en plantas pueden tener un efecto protector."
+      },
+      "ipss": {
+        "title": "Síntomas urinarios (IPSS)",
+        "description": "Estas preguntas miden problemas urinarios como chorro débil, necesidad frecuente de orinar o levantarse de noche. Los síntomas intensos son comunes cuando la próstata está agrandada."
+      },
+      "shim": {
+        "title": "Salud sexual (SHIM)",
+        "description": "Estas preguntas evalúan problemas de erección. Los problemas de erección pueden ser a veces una señal temprana de otros problemas de salud prostática o vascular."
+      },
+      "comorbidities": {
+        "title": "Otras condiciones de salud (corazón, presión arterial, colesterol, diabetes)",
+        "description": "¿Le han diagnosticado presión arterial alta, colesterol alto, enfermedad cardíaca o diabetes? Le preguntaremos si tiene alguna — y si es así, si es una de estas o dos o más."
+      }
+    },
+    "steps": {
+      "aboutYou": {
+        "sectionTitle": "Acerca de ti",
+        "shortLabel": "Acerca de ti"
+      },
+      "familyGeneticRisk": {
+        "sectionTitle": "Riesgo familiar y genético",
+        "shortLabel": "Riesgo familiar y genético"
+      },
+      "bodyMetrics": {
+        "sectionTitle": "Métricas corporales",
+        "shortLabel": "Métricas corporales"
+      },
+      "lifestyle": {
+        "sectionTitle": "Estilo de vida",
+        "shortLabel": "Estilo de vida"
+      },
+      "additionalInfo": {
+        "sectionTitle": "información adicional",
+        "shortLabel": "Información adicional"
+      },
+      "ipss": {
+        "sectionTitle": "Síntomas urinarios (IPSS)",
+        "shortLabel": "IPSS"
+      },
+      "shim": {
+        "sectionTitle": "Salud Sexual (SHIM)",
+        "shortLabel": "CALCE",
+        "sectionTitleIief": "Salud sexual (IIEF-5)"
+      }
+    },
+    "race": {
+      "white": "Blanco / Caucásico",
+      "black": "Negro / Afroamericano",
+      "hispanic": "Hispano / Latino",
+      "asian": "Asiático/Isleño del Pacífico",
+      "other": "Otro / Mixto",
+      "mixed": "Mixto / Multirracial"
+    },
+    "nonGuideline": {
+      "badge": "FUERA DE GUÍAS",
+      "badgeTooltip": "AUA/NCCN/EAU/ERSPC no utilizan este factor para decidir el tamizaje con PSA. Solo lo emplea el modelo de riesgo ePSA.",
+      "note": "No forma parte de los criterios de tamizaje de AUA/NCCN/EAU/ERSPC; solo lo utiliza el modelo ePSA."
+    },
+    "guideline": {
+      "badge": "BASADO EN GUÍAS",
+      "badgeTooltip": "Este factor está directamente citado por las guías de tamizaje de cáncer de próstata de AUA, NCCN y EAU."
+    },
+    "chemicalExposureOptions": {
+      "question": "¿Ha tenido alguna de las siguientes exposiciones? (Seleccione todas las que correspondan)",
+      "agentOrange": "Agente Naranja (militar / era de Vietnam)",
+      "nineEleven": "World Trade Center / sitio del 11-S",
+      "otherChemical": "Otras sustancias químicas ocupacionales o ambientales (p. ej., pesticidas, solventes)",
+      "none": "Ninguna de las anteriores",
+      "unknown": "Desconocido / no estoy seguro",
+      "evidenceProven": "Evidencia epidemiológica sólida",
+      "evidenceUnspecified": "Posible asociación; menos establecida"
+    },
+    "ipssShort": {
+      "toggleShort": "Usar versión corta (una sola pregunta de severidad)",
+      "toggleFull": "Usar IPSS completo (7 preguntas)",
+      "skip": "Omitir — no tengo síntomas urinarios",
+      "singleQuestionLabel": "En general, ¿qué tan molestos son sus síntomas urinarios?",
+      "options": {
+        "none": "Ninguno",
+        "mild": "Leves",
+        "moderate": "Moderados",
+        "severe": "Severos"
+      }
+    },
+    "shimShort": {
+      "toggleShort": "Usar versión corta (una sola pregunta de severidad)",
+      "toggleFull": "Usar SHIM completo (5 preguntas)",
+      "skip": "Omitir — sin preocupaciones de erección",
+      "singleQuestionLabel": "En general, ¿cómo describiría su función eréctil en los últimos 6 meses?",
+      "options": {
+        "none": "Sin disfunción eréctil",
+        "mild": "ED leve",
+        "mildModerate": "ED leve–moderada",
+        "moderate": "ED moderada",
+        "severe": "ED severa"
+      }
+    },
+    "abnormalPsaLikelihood": "Probabilidad estimada de un PSA anormal / csPCa:",
+    "errors": {
+      "step0": {
+        "ageInline": "Por favor ingrese la edad (18-120)",
+        "raceInline": "Por favor seleccione su raza/etnia"
+      },
+      "stepErrorTitle": "Por favor complete lo siguiente antes de continuar:",
+      "selectOption": "Por favor seleccione una opción",
+      "validate": {
+        "step0": {
+          "ageInvalid": "Por favor ingresa una edad válida (18+)",
+          "raceInvalid": "Por favor seleccione su raza/etnia"
+        },
+        "step1": {
+          "familyHistoryInvalid": "Por favor responda la pregunta de historia familiar.",
+          "brcaInvalid": "Por favor responda la pregunta sobre mutación genética"
+        },
+        "step2": {
+          "heightInvalid": "Por favor ingresa una altura válida",
+          "weightInvalid": "Por favor ingrese un peso válido",
+          "bmiInvalid": "No se pudo calcular el IMC; verifique la altura y el peso"
+        },
+        "step3": {
+          "exerciseInvalid": "Por favor seleccione el nivel de ejercicio",
+          "smokingInvalid": "Por favor seleccione el estado de fumar",
+          "chemicalInvalid": "Por favor responda la pregunta sobre exposición química"
+        },
+        "step4": {
+          "dietInvalid": "Por favor seleccione su patrón de dieta",
+          "comorbidityInvalid": "Por favor responda las preguntas de comorbilidad."
+        },
+        "step5": {
+          "ipssInvalid": "Por favor responda las 7 preguntas del IPSS"
+        },
+        "step6": {
+          "shimInvalid": "Por favor responda las 5 preguntas de SHIM"
+        }
+      }
+    },
+    "options": {
+      "yes": "Sí",
+      "no": "No",
+      "unknown": "Desconocido"
+    },
+    "skip": {
+      "preferNotToSay": "Prefiero no decirlo / Omitir",
+      "skippedLabel": "Omitido — se usará un valor neutro por defecto en la estimación.",
+      "sectionPrompt": "¿No quiere responder esto ahora? Puede omitir esta sección.",
+      "sectionSkippedNote": "Esta sección está omitida. Se usará un valor neutro por defecto en la estimación.",
+      "skipSection": "Omitir esta sección",
+      "answerInstead": "Responder en su lugar"
+    },
+    "guidelineBadge": {
+      "guideline": "AUA/NCCN",
+      "modelOnly": "Solo ePSA"
+    },
+    "step1": {
+      "familyHistory": {
+        "title": "Historia familiar de cáncer de próstata"
+      },
+      "inflammationHistory": {
+        "title": "Historia previa de inflamación",
+        "prompt": "¿Alguna vez le han diagnosticado alguna afección inflamatoria?",
+        "example": "(ej. colitis ulcerosa, enfermedad de Crohn, prostatitis crónica)"
+      }
+    },
+    "step2": {
+      "heightQuestion": "Altura",
+      "weightQuestion": "Peso",
+      "heightHelper": "La altura se usa con el peso para estimar el IMC, uno de los factores incluidos en este perfil de detección.",
+      "weightHelper": "El peso se usa con la altura para calcular automáticamente el IMC; una estimación está bien si no conoce el peso exacto.",
+      "heightUnit": {
+        "imperial": "Pies/pulgadas",
+        "metric": "Centímetros"
+      },
+      "stepNote": {
+        "imperial": "Imperial",
+        "metric": "Métrico"
+      },
+      "heightImperialFeetPlaceholder": "Pies (3-8)",
+      "heightImperialInchesPlaceholder": "Pulgadas (0-11)",
+      "heightImperialFeetError": "Los pies deben tener entre 3 y 8",
+      "heightImperialInchesError": "Las pulgadas deben estar entre 0 y 11",
+      "heightMetricPlaceholder": "Altura en cm (100-250)",
+      "heightMetricError": "La altura debe estar entre 100 y 250 cm.",
+      "weightUnit": {
+        "lbs": "Libras (libras)",
+        "kg": "Kilogramos (kg)"
+      },
+      "weightMetricPlaceholder": "Peso en kg (25-250)",
+      "weightImperialPlaceholder": "Peso en libras (50-500)",
+      "weightImperialError": "El peso debe estar entre 50 y 500 libras.",
+      "weightMetricError": "El peso debe estar entre 25 y 250 kg.",
+      "bmiLabel": "IMC (calculado automáticamente)"
+    },
+    "step3": {
+      "exercise": {
+        "regular": "Regular (3+ días/semana)",
+        "some": "Algunos (1-2 días/semana)",
+        "none": "Ninguno"
+      },
+      "smoking": {
+        "current": "Actual",
+        "former": "Anterior",
+        "never": "Nunca"
+      },
+      "chemicalQuestion": "Exposición del 11 de septiembre o química (p.ej., sitio WTC, pesticidas, sustancias industriales)"
+    },
+    "step4": {
+      "diet": {
+        "western": "Occidental / Americano estándar",
+        "mediterranean": "mediterráneo",
+        "indian": "indio",
+        "dash": "estilo DASH",
+        "plantBased": "De origen vegetal (vegetariano/vegano)",
+        "pescatarian": "pescatariano",
+        "lowCarbKeto": "Bajo en carbohidratos/ceto",
+        "other": "Otro / Prefiero no decirlo"
+      },
+      "comorbidities": {
+        "prompt": "¿Le han diagnosticado alguno de los siguientes? (Hipertensión, Hiperlipidemia, Enfermedad Arterial Coronaria, Diabetes).",
+        "askAnyLabel": "¿Ha tenido alguna de estas condiciones?",
+        "howManyLabel": "¿Cuántas de estas condiciones tienes?",
+        "one": "Uno",
+        "twoOrMore": "Dos o más"
+      }
+    },
+    "form": {
+      "stepChip": "Paso {{current}} de {{total}}",
+      "flowNote": "Complete cada sección cuidadosamente para generar la estimación de prioridad de detección más útil.",
+      "answeredCounter": "{{answeredCount}}/{{totalQuestions}} respondió"
+    },
+    "nav": {
+      "back": "← Volver",
+      "next": "Siguiente →",
+      "calculate": "Calcular mi puntuación ✓",
+      "calculateIncomplete": "Complete todas las preguntas ({{answeredCount}}/{{totalQuestions}})",
+      "calculateTitleDisabled": "Por favor complete todos los campos requeridos",
+      "calculateTitleEnabled": "Haz clic para calcular tu puntuación"
+    },
+    "ipss": {
+      "note": "Durante el último mes, ¿con qué frecuencia ha tenido:",
+      "helper": "Responda según sus síntomas urinarios durante el último mes.",
+      "answeredCount": "({{answeredCount}}/{{total}} respondió)",
+      "totalLabel": "IPSS Total",
+      "q1": "Vaciado incompleto: ¿no vaciar completamente la vejiga?",
+      "q2": "Frecuencia: ¿volver a orinar en 2 horas?",
+      "q3": "Intermitencia: ¿detenerse y comenzar durante la micción?",
+      "q4": "Urgencia: ¿dificultad para posponer la micción?",
+      "q5": "Chorro débil: ¿chorro urinario débil?",
+      "q6": "Esforzarse: ¿empujar o esforzarse para empezar?",
+      "q7": "Nocturia: ¿levantarse por la noche para orinar?",
+      "label0": "De nada",
+      "label1": "< 1 de cada 5",
+      "label2": "< Mitad",
+      "label3": "~ La mitad",
+      "label4": "> Mitad",
+      "label5": "Siempre"
+    },
+    "shim": {
+      "note": "Durante los últimos 6 meses:",
+      "helper": "Responda según su función sexual durante los últimos 6 meses.",
+      "answeredCount": "({{answeredCount}}/{{total}} respondió)",
+      "totalLabel": "CUÑA Total",
+      "totalLabelIief": "Puntaje total IIEF-5",
+      "regionLabel": "Región de la guía",
+      "regionUs": "EE. UU. (SHIM · AUA / NCCN)",
+      "regionEau": "EAU / Reino Unido (IIEF-5)",
+      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, el formulario de 5 preguntas que utilizan AUA / NCCN.",
+      "regionNoteEau": "IIEF-5 es la versión abreviada del Índice Internacional de Función Eréctil utilizada en la práctica de EAU / Reino Unido. (SHIM e IIEF-5 son las mismas 5 preguntas y el mismo puntaje 0–25 — su médico también puede usar el IIEF-15 completo.)",
+      "severityHeading": "¿Qué significa este puntaje total?",
+      "severitySevere": "ED severa",
+      "severityModerate": "ED moderada",
+      "severityMildModerate": "ED leve a moderada",
+      "severityMild": "ED leve",
+      "severityNone": "Sin ED",
+      "q1": "¿Cómo califica su confianza en que podrá lograr y mantener una erección?",
+      "q1.opt1": "muy bajo",
+      "q1.opt2": "Bajo",
+      "q1.opt3": "Moderado",
+      "q1.opt4": "Alto",
+      "q1.opt5": "muy alto",
+      "q2": "Cuando tuvo erecciones con estimulación sexual, ¿con qué frecuencia fueron lo suficientemente duras para la penetración?",
+      "q2.opt0": "Sin actividad",
+      "q2.opt1": "Casi nunca",
+      "q2.opt2": "unas cuantas veces",
+      "q2.opt3": "A veces",
+      "q2.opt4": "La mayoría de las veces",
+      "q2.opt5": "Casi siempre",
+      "q3": "Durante las relaciones sexuales, ¿con qué frecuencia pudo mantener la erección después de la penetración?",
+      "q3.opt0": "No intenté",
+      "q3.opt1": "Casi nunca",
+      "q3.opt2": "unas cuantas veces",
+      "q3.opt3": "A veces",
+      "q3.opt4": "La mayoría de las veces",
+      "q3.opt5": "Casi siempre",
+      "q4": "Durante el coito, ¿qué tan difícil fue mantener la erección hasta el final?",
+      "q4.opt0": "No intenté",
+      "q4.opt1": "Extremadamente dificil",
+      "q4.opt2": "muy dificil",
+      "q4.opt3": "Difícil",
+      "q4.opt4": "Ligeramente dificil",
+      "q4.opt5": "No es dificil",
+      "q5": "Cuando intentó tener relaciones sexuales, ¿con qué frecuencia le resultó satisfactorio?",
+      "q5.opt0": "No intenté",
+      "q5.opt1": "Casi nunca",
+      "q5.opt2": "unas cuantas veces",
+      "q5.opt3": "A veces",
+      "q5.opt4": "La mayoría de las veces",
+      "q5.opt5": "Casi siempre"
+    }
+  },
+  "part2": {
+    "form": {
+      "errorPreResult": "Complete la Parte 1 (Prioridad de detección) antes de continuar con la Evaluación de riesgos."
+    },
+    "piradsInfo": {
+      "title": "Acerca de PI-RADS y la estimación de riesgo de ePSA",
+      "description": "PI-RADS es una escala del 1 al 5 que los radiólogos usan para clasificar lesiones de próstata en la resonancia magnética. PI-RADS 4 indica que la RM sugiere que probablemente exista una lesión clínicamente significativa; PI-RADS 5 indica que es altamente sospechosa.\n\nImportante — qué significa el porcentaje de ePSA: cuando ePSA estima una probabilidad a partir del PI-RADS y el PSA, predice csPCa GG3+ — cáncer de próstata clínicamente significativo con Gleason ≥3, la enfermedad de mayor riesgo — no «cualquier cáncer de próstata». Como es un criterio más estricto, el número puede parecer más bajo que la cifra popular «PI-RADS 4 ≈ 60 % de cáncer» que pueda haber visto en otros sitios. Ambos números pueden ser ciertos a la vez — describen cosas distintas.\n\nComente siempre el significado de su puntuación PI-RADS con su urólogo."
+    },
+    "flow": {
+      "stepChip": "Paso {{current}} de 2",
+      "note": "Utilice la información de su PSA y MRI para perfeccionar los resultados de su evaluación de riesgos."
+    },
+    "steps": {
+      "psa": {
+        "sectionTitle": "Nivel de PSA"
+      },
+      "mri": {
+        "sectionTitle": "Resultados de resonancia magnética (opcional)"
+      }
+    },
+    "summary": {
+      "label": "Resultados de la Parte 1:",
+      "scoreLabel": "Puntaje",
+      "riskLabel": "Riesgo"
+    },
+    "nav": {
+      "next": "Siguiente →",
+      "calculate": "Calcular la evaluación de riesgos ✓"
+    },
+    "psa": {
+      "sectionTitle": "Nivel de PSA",
+      "q1": "¿Conoce su nivel de PSA?",
+      "q1OptNo": "No, no sé mi PSA",
+      "q1OptYes": "Sí, conozco mi nivel de PSA",
+      "q2": "Ingrese el nivel de PSA (ng/mL)",
+      "psaPlaceholder": "Nivel de PSA (0,1-100)",
+      "psaInvalidValidity": "El nivel de PSA debe estar entre 0,1 y 100 ng/ml.",
+      "psaInvalid": "El nivel de PSA debe estar entre 0,1 y 100 ng/ml.",
+      "psaNote": "El PSA (antígeno prostático específico) es un análisis de sangre que se utiliza para detectar el cáncer de próstata.",
+      "q3": "¿Está tomando algún medicamento hormonal que pueda afectar el PSA?",
+      "q3InfoTitle": "Medicamentos como finasterida (Propecia/Proscar), dutasterida (Avodart) u otros inhibidores de la 5-alfa reductasa pueden reducir los niveles de PSA en aproximadamente un 50%. Esto es importante para una evaluación de riesgos precisa.",
+      "q3OptNo": "No / No estoy seguro",
+      "q3OptYes": "Sí, estoy tomando terapia hormonal.",
+      "q4Label": "¿Qué medicamento? (opcional)",
+      "q4OptFinasteride": "Finasterida (Propecia/Proscar)",
+      "q4OptDutasteride": "Dutasterida (Avodart)",
+      "q4OptOther": "Otro / No estoy seguro",
+      "q4Note": "Nota: Estos medicamentos pueden reducir el PSA en aproximadamente un 50 %. Es posible que su médico necesite ajustar el valor de PSA para una interpretación precisa."
+    },
+    "mri": {
+      "sectionTitle": "Resultados de resonancia magnética (opcional)",
+      "q1": "¿Conoce su puntuación PIRADS de resonancia magnética?",
+      "q1OptNo": "No",
+      "q1OptYes": "Sí",
+      "q2": "Puntuación PIRADS en resonancia magnética",
+      "q2Note": "Las puntuaciones de PI-RADS (Sistema de datos e informes de imágenes de próstata) varían de 1 a 5, y las puntuaciones más altas indican una mayor sospecha de cáncer de próstata clínicamente significativo."
     }
   },
   "part1Results": {
     "noResults": "No hay resultados disponibles.",
+    "empiricalProbabilityText": "En nuestro estudio de validación (N={{n}}), {{events}} de {{n}} pacientes en este nivel de riesgo tenían cáncer de próstata clínicamente significativo ({{rate}}%; IC 95 % {{ciLo}}%–{{ciHi}}%).",
+    "educationalEstimateNote": "Esta es una estimación educativa — no diagnostica cáncer. Úsela como punto de partida para una conversación con su médico.",
     "sessionKeyLabel": "Clave de sesión",
     "savedToCloud": "Guardado en la nube",
     "saving": "Ahorro...",
@@ -267,12 +829,12 @@
       "HIGHER": "MÁS ALTO sugiere una probabilidad estimada más alta en relación con otros en los datos de referencia del modelo. Más alto no significa que haya cáncer. Puede ser útil revisar las opciones de detección con un médico."
     },
     "actionText": {
-      "LOWER": "Considere utilizar este resultado para respaldar una conversación de rutina con su proveedor de atención médica, especialmente si tiene preguntas sobre pruebas de detección, antecedentes familiares o síntomas.",
-      "MODERATE": "Considere discutir este resultado con su proveedor de atención médica. Juntos pueden decidir si las pruebas de detección (como la prueba de PSA) tienen sentido según su edad, preferencias y resultados anteriores.",
-      "HIGHER": "Considere priorizar una conversación con su proveedor de atención médica. Ellos pueden ayudar a interpretar esta estimación y decidir si una evaluación adicional (por ejemplo, prueba de PSA o seguimiento) es apropiada para usted.",
-      "default": "Considere discutir estos resultados con su proveedor de atención médica."
+      "LOWER": "Lleve este resultado a su próxima visita de rutina. Es un buen punto de partida si tiene preguntas sobre detección, antecedentes familiares o síntomas.",
+      "MODERATE": "Hable de esto con su médico. Juntos pueden decidir si una prueba de PSA tiene sentido según su edad, lo que le importa y los resultados anteriores.",
+      "HIGHER": "Procure hablar de esto con su médico pronto. Pueden ayudarle a explicar el resultado y decidir si una prueba de PSA u otro seguimiento es adecuado para usted.",
+      "default": "Comente estos resultados con su médico."
     },
-    "disclaimer": "ePSA es una herramienta de evaluación de riesgos educativos no validada. Los niveles de riesgo se basan en datos a nivel de población y umbrales de referencia de AUA, NCCN y EAU. En perfiles demográficos de alto riesgo, ePSA puede sugerir una evaluación más temprana de lo que recomiendan los umbrales de las pautas estándar. Esta herramienta no reemplaza el criterio del médico y no está destinada a la toma de decisiones clínicas sin la revisión del médico. — Ashutosh K. Tewari, MD, Escuela de Medicina Icahn en Mount Sinai",
+    "disclaimer": "ePSA es una herramienta educativa — no es una prueba médica ni un diagnóstico. Estima su riesgo utilizando sus respuestas, investigación poblacional y guías de detección de AUA, NCCN y EAU. Para hombres con factores de riesgo importantes, ePSA puede sugerir iniciar una conversación sobre detección antes de lo que indican las guías generales. Siempre consulte el resultado con un médico antes de decidir sobre pruebas o tratamiento. — Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai",
     "riskLevels": {
       "LOWER": "Menos señales de riesgo",
       "MODERATE": "Algunas banderas de riesgo",
@@ -280,7 +842,7 @@
     },
     "sectionRiskExplanationTitle": "Explicación del riesgo",
     "sectionHowCalculatedTitle": "Cómo se calcula esta puntuación",
-    "explanationHowScoreCalculated": "La puntuación ePSA es un resumen basado en puntos de sus respuestas. Cada factor de riesgo (por ejemplo, edad de 60 años o más, IMC ≥30, síntomas urinarios leves, poco o ningún ejercicio, tabaquismo actual o anterior, dieta rica en carnes rojas, raza negra, antecedentes familiares, mutación genética, inflamación, exposición al agente naranja/químicos o una puntuación SHIM baja) suma puntos. Luego, los puntos totales se normalizan a una escala de 0 a 100 %, y se muestra un rango de ±5 % en lugar de un solo número.",
+    "explanationHowScoreCalculated": "La puntuación ePSA suma puntos según sus respuestas. Cada factor de riesgo — como tener 60 años o más, IMC de 30 o más, síntomas urinarios, poco o nada de ejercicio, tabaquismo, dieta rica en carnes rojas, ascendencia negra, antecedentes familiares, mutación genética, inflamación, exposición al 11-S o a sustancias químicas, o problemas de erección — suma algunos puntos. El total se convierte a una escala de 0–100 % y se muestra un pequeño rango de ±5 % para reflejar la incertidumbre normal.",
     "sectionWhatTierMeansTitle": "Qué significa tu nivel",
     "sectionGuidelineContextTitle": "Contexto de la directriz (AUA/SUO 2026)",
     "labelRecommendationThreshold": "Umbral de recomendación",
@@ -297,9 +859,7 @@
     "btnPrintForm": "Imprimir formulario",
     "exportFailedAlert": "La exportación falló. Por favor inténtalo de nuevo.",
     "btnExportData": "Exportar datos",
-    "btnExportCsv": "Exportar CSV",
-    "empiricalProbabilityText": "En nuestro estudio de validación (N={{n}}), {{events}} de {{n}} pacientes en este nivel de riesgo tenían cáncer de próstata clínicamente significativo ({{rate}}%; IC 95 % {{ciLo}}%–{{ciHi}}%).",
-    "educationalEstimateNote": "Esta es una estimación educativa — no diagnostica cáncer. Úsela como punto de partida para una conversación con su médico."
+    "btnExportCsv": "Exportar CSV"
   },
   "part2Results": {
     "disclaimer": "ePSA es una herramienta de evaluación de riesgos educativos no validada. Los niveles de riesgo se basan en datos a nivel de población y umbrales de referencia de AUA, NCCN y EAU. En perfiles demográficos de alto riesgo, ePSA puede sugerir una evaluación más temprana de lo que recomiendan los umbrales de las pautas estándar. Esta herramienta no reemplaza el criterio del médico y no está destinada a la toma de decisiones clínicas sin la revisión del médico. — Ashutosh K. Tewari, MD, Escuela de Medicina Icahn en Mount Sinai",
@@ -342,6 +902,82 @@
       "piradsExplanationProvided": "Se pueden utilizar puntuaciones de resonancia magnética y PI-RADS antes de la biopsia inicial para aumentar la detección del cáncer de próstata clínicamente significativo (GG2+). Una puntuación PI-RADS de 3 o más indica una lesión sospechosa que justifica una evaluación adicional. Esta herramienta no reemplaza la interpretación que hace un radiólogo de los hallazgos de la resonancia magnética multiparamétrica.",
       "piradsExplanationNotProvided": "Si no se incluye PI-RADS, la categoría de la Parte 2 se basa únicamente en la estimación de referencia y la información del PSA. Un médico puede recomendar una resonancia magnética (o no) dependiendo de su contexto clínico completo.",
       "pointsExplanation": "Su nivel de riesgo de la Parte 2 se resume como una estimación educativa que combina su perfil de riesgo de la Parte 1 con su nivel de PSA y, cuando esté disponible, su puntuación MRI PI-RADS. La categoría resultante está destinada a respaldar la toma de decisiones compartida con su médico, no a reemplazar el juicio clínico."
+    },
+    "tiers": {
+      "riskBar": {
+        "low": "Bajo",
+        "intermediateLow": "Int-Bajo",
+        "intermediateHigh": "Int-Alto",
+        "high": "Alto"
+      },
+      "psaContext": {
+        "low": {
+          "label": "Rango bajo",
+          "detail": "Tranquilizador. Continúe con el cribado de rutina."
+        },
+        "intermediateLow": {
+          "label": "Rango bajo-intermedio",
+          "detail": "Requiere seguimiento. Consulte a su médico sobre el intervalo."
+        },
+        "intermediateHigh": {
+          "label": "Elevado",
+          "detail": "Requiere evaluación por un urólogo."
+        },
+        "high": {
+          "label": "Significativamente elevado",
+          "detail": "Se recomienda derivación urgente a urología."
+        }
+      },
+      "pirads": {
+        "0": {
+          "label": "Sin lesión reportable",
+          "detail": "La RM no encontró ninguna lesión significativa."
+        },
+        "1": {
+          "label": "Muy improbable"
+        },
+        "2": {
+          "label": "Improbable"
+        },
+        "3": {
+          "label": "Incierto"
+        },
+        "4": {
+          "label": "Probablemente sospechoso"
+        },
+        "5": {
+          "label": "Altamente sospechoso"
+        }
+      },
+      "gauge": {
+        "low": "Bajo",
+        "moderate": "Intermedio",
+        "high": "Alto"
+      },
+      "hero": {
+        "biopsy": "Considere comentar con su urólogo la posibilidad de una biopsia",
+        "urologistReview": "Considere una consulta urológica",
+        "nextSteps": "Próximos pasos sugeridos"
+      },
+      "endpointNote": "Cómo se define el riesgo: los modelos 1–2 estiman la probabilidad de cualquier cáncer de próstata de alto grado (GG2+). El modelo 3 (vía RM) estima la probabilidad de cáncer de mayor grado (GG3+). Estos umbrales son importantes — consulte con su urólogo cuál se adapta mejor a su situación.",
+      "recommendation": {
+        "veryHigh": "Su riesgo combinado es muy alto. Las guías de AUA y NCCN recomiendan derivación urgente a un urólogo y considerar seriamente una biopsia. También podría discutirse la realización de pruebas de estadificación adicionales. Esta es una conversación urgente que debe tener con su médico.",
+        "high": "Su riesgo combinado es alto. Las guías de AUA y NCCN recomiendan derivación rápida a un urólogo. Un urólogo discutirá si una biopsia es apropiada — esto es una conversación, no una decisión automática.",
+        "intermediateHigh": "Su riesgo combinado justifica una evaluación adicional. Las guías de AUA y NCCN recomiendan hablar con un urólogo. Una RM antes de la biopsia suele ser el siguiente paso recomendado para obtener más información.",
+        "intermediateLow": "Su riesgo combinado es bajo-intermedio. Las guías de AUA y NCCN recomiendan seguimiento continuo. Hable con su médico sobre con qué frecuencia repetir el PSA — típicamente cada 1–2 años.",
+        "low": "Su riesgo combinado es bajo. Las guías de AUA y NCCN son tranquilizadoras a este nivel. Continúe con el cribado de PSA de rutina — repetir la prueba en 2–4 años es generalmente lo apropiado."
+      },
+      "contextNote": {
+        "lowPsa": "Nota: Incluso con un PSA bajo, sus factores de riesgo de fondo (raza, antecedentes familiares o mutación genética) justifican un seguimiento más estrecho según las guías AUA/NCCN.",
+        "discordancePsaHigher": "Nota: Su nivel de PSA está en un rango más alto de lo que sugiere su nivel combinado por sí solo. Su resultado de PSA es una señal independiente — consulte con su médico independientemente de su perfil general.",
+        "discordanceProfile": "Nota: Su perfil de riesgo de la Parte 1 eleva su nivel combinado por encima de lo que el PSA solo sugeriría. Ambos factores son importantes para su riesgo general."
+      },
+      "explanation": {
+        "high": "Un nivel de riesgo combinado alto significa que su nivel de PSA — junto con su perfil de riesgo de la Parte 1 — se encuentra en el rango donde los urólogos generalmente discuten la biopsia. Esto no significa que tenga cáncer; significa que se justifica mayor investigación.",
+        "intermediateHigh": "Un nivel de riesgo combinado intermedio-alto significa que su nivel de PSA y perfil de riesgo sugieren que una consulta urológica es apropiada. A menudo se recomienda una RM antes de cualquier decisión de biopsia para obtener una imagen más clara.",
+        "intermediateLow": "Un nivel de riesgo combinado intermedio-bajo significa que su PSA está levemente elevado o sus factores de riesgo de fondo están presentes, pero no hay motivo inmediato de preocupación. El seguimiento continuo con su médico es el enfoque adecuado.",
+        "low": "Un nivel de riesgo combinado bajo significa que su nivel de PSA y perfil de riesgo son tranquilizadores. No se necesitan pruebas adicionales en este momento — continúe con el cribado de rutina según lo recomiende su médico."
+      }
     }
   },
   "printableForm": {
@@ -357,8 +993,10 @@
     "millionStrongMenTitle": "Millones de hombres fuertes - ePSA",
     "questionnaireTitle": "Cuestionario ePSA",
     "tagline": "Conciencia específica de la próstata | Una herramienta educativa sobre riesgos no validada",
+    "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Departamento de Urología",
+    "headerDisclaimer": "Solo para uso educativo — no es un dispositivo médico aprobado por la FDA. Validado internamente en la cohorte ePSA de Mount Sinai; sin validación externa aún.",
     "phoneLabel": "Número de teléfono:",
-    "phonePlaceholder": null,
+    "phonePlaceholder": "(___)-___-____",
     "sectionAboutYou": "Acerca de ti",
     "sectionFamilyGeneticRisk": "Riesgo familiar y genético",
     "sectionBodyMetrics": "Métricas corporales",
@@ -368,10 +1006,10 @@
     "sectionIpSs": "13. Síntomas urinarios (IPSS) - Calificación 0-5:",
     "sectionShim": "14. Salud Sexual (SHIM):",
     "sectionPart2": "Parte 2: Datos clínicos",
-    "blank2": null,
-    "blank3": null,
-    "blank4": "___",
-    "blankCm": "___ centímetros",
+    "blank2": "__",
+    "blank3": "___",
+    "blank4": "____",
+    "blankCm": "___ cm",
     "ft": "pie",
     "in": "en",
     "lbs": "libras",
@@ -415,8 +1053,17 @@
   },
   "quickEntry": {
     "title": "Entrada Rápida",
-    "subtitle": "Edad/Raza + totales SHIM/IPSS -> resultado instantáneo",
+    "subtitle": "Solo se requieren Edad y Raza — todo lo demás tiene un valor predeterminado razonable que puede ajustar.",
     "exit": "Salida",
+    "requiredLegend": "Obligatorio",
+    "scoreModifiers": "Modificadores de puntuación",
+    "advanced": "Estilo de vida e historial",
+    "advancedHint": "Abra para ajustar — los valores predeterminados mostrados se aplican si no los cambia.",
+    "usingDefault": "Predeterminado",
+    "resetDefaults": "Restablecer valores predeterminados",
+    "requiredMark": "*",
+    "iDontKnow": "No conozco mi IPSS",
+    "iDontKnowHide": "Usar número de IPSS en su lugar",
     "ageLabel": "Edad (18-120)",
     "agePlaceholder": "por ejemplo, 55",
     "raceLabel": "Raza / Etnia",
@@ -433,6 +1080,7 @@
     "bmiPlaceholder": "por ejemplo, 25,49",
     "bmiHint": "Rango de validación en modelo: IMC 15-60",
     "familyHistoryLabel": "Historia familiar",
+    "familyHistoryHint": "Si deja esto en «Ninguno», su puntuación se calcula como si ningún familiar de primer grado hubiera tenido cáncer de próstata. Nota: «Desconocido» también se puntúa como sin antecedentes familiares en el modelo actual — si sabe que algún familiar estuvo afectado, seleccione 1 o 2+ para que su puntuación lo refleje.",
     "family": {
       "none": "Ninguno",
       "one": "1 pariente",
@@ -443,6 +1091,18 @@
     "ipssPlaceholder": "por ejemplo, 4",
     "shimLabel": "CUÑA total (0-25)",
     "shimPlaceholder": "por ejemplo, 25",
+    "ipssQolLabel": "¿No conoce su IPSS? Elija cómo se sentiría si sus síntomas urinarios siguieran igual (IPSS-QoL)",
+    "ipssQolPlaceholder": "Omitir — usaré el total de IPSS de arriba",
+    "ipssQolHint": "Solo se usa si deja en blanco el total de IPSS de arriba. Una aproximación general a la molestia urinaria.",
+    "ipssQol": {
+      "delighted": "Encantado",
+      "pleased": "Contento",
+      "mostlySatisfied": "Mayormente satisfecho",
+      "mixed": "Mixto (más o menos igual de satisfecho e insatisfecho)",
+      "mostlyDissatisfied": "Mayormente insatisfecho",
+      "unhappy": "Infeliz",
+      "terrible": "Terrible"
+    },
     "defaultsTitle": "Valores predeterminados (opcional)",
     "editDefaults": "Editar valores predeterminados",
     "defaultsHint": "Uso: Fumar = Nunca, Dieta = Regular (occidental), Exposición a sustancias químicas = No, Mutación genética = No, Inflamación = No, Comorbilidades = Ninguna, Ejercicio = Regular.",
@@ -477,7 +1137,7 @@
     "brcaLabel": "mutación genética",
     "inflammationLabel": "Historial de inflamación",
     "chemicalExposureLabel": "Exposición química",
-    "defaultsAffectHint": "Los incumplimientos afectan la puntuación de riesgo (y la recomendación de PSA) junto con SHIM/IPSS.",
+    "defaultsAffectHint": "Los valores predeterminados afectan la puntuación de riesgo (y la recomendación de PSA) junto con SHIM/IPSS.",
     "fixToCalculate": "Corrija estos para calcular:",
     "headsUp": "Aviso:",
     "calculate": "Calcular resultado",
@@ -485,18 +1145,6 @@
       "ipssRange": "El total de IPSS debe estar entre 0 y 35",
       "shimRange": "El total de SHIM debe estar entre 0 y 25",
       "calculationFailed": "El cálculo falló. Por favor revise sus entradas."
-    },
-    "ipssQolLabel": "¿No conoce su IPSS? Elija cómo se sentiría si sus síntomas urinarios siguieran igual (IPSS-QoL)",
-    "ipssQolPlaceholder": "Omitir — usaré el total de IPSS de arriba",
-    "ipssQolHint": "Solo se usa si deja en blanco el total de IPSS de arriba. Una aproximación general a la molestia urinaria.",
-    "ipssQol": {
-      "delighted": "Encantado",
-      "pleased": "Contento",
-      "mostlySatisfied": "Mayormente satisfecho",
-      "mixed": "Mixto (más o menos igual de satisfecho e insatisfecho)",
-      "mostlyDissatisfied": "Mayormente insatisfecho",
-      "unhappy": "Infeliz",
-      "terrible": "Terrible"
     }
   },
   "welcomeGh": {
@@ -641,432 +1289,6 @@
       "description": "Descripción",
       "range": "Rango",
       "points": "Agujas"
-    }
-  },
-  "info": {
-    "learnMore": "Más información sobre {{title}}",
-    "sources": "Fuentes:",
-    "guidelineBadge": "Factor de las guías AUA/NCCN",
-    "modelOnlyBadge": "Solo modelo ePSA — no está en AUA/NCCN",
-    "guidelineNote": "AUA y NCCN utilizan este factor en sus criterios oficiales de tamizaje con PSA. Sus guías aparecen primero en las fuentes a continuación.",
-    "modelOnlyNote": "Este factor lo utiliza el modelo ePSA, pero no forma parte de los criterios oficiales de tamizaje con PSA de AUA/NCCN. Se basa únicamente en evidencia de investigación."
-  },
-  "part1": {
-    "fields": {
-      "age": {
-        "title": "Edad",
-        "placeholder": "Edad (18+)",
-        "helper": "Su edad ayuda a calibrar la prioridad de detección porque el riesgo de cáncer de próstata aumenta con el tiempo.",
-        "description": "El riesgo aumenta con la edad, especialmente después de los 50 años. La edad promedio de diagnóstico es 66 años."
-      },
-      "race": {
-        "title": "Raza/Etnia",
-        "selectPlaceholder": "Seleccione raza/etnia",
-        "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
-        "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
-      },
-      "familyHistory": {
-        "title": "Historia familiar",
-        "helper": "Incluya familiares consanguíneos cercanos, como padre, hermano o hijo, que hayan tenido cáncer de próstata.",
-        "description": "Tener un padre o un hermano con cáncer de próstata duplica con creces el riesgo de un hombre. El riesgo es aún mayor si hay varios familiares afectados."
-      },
-      "inflammationHistory": {
-        "title": "Historia de la inflamación",
-        "description": "Las afecciones inflamatorias crónicas como la prostatitis, la colitis ulcerosa y la enfermedad de Crohn pueden aumentar el riesgo de cáncer de próstata a través de mecanismos de inflamación crónica."
-      },
-      "brcaStatus": {
-        "title": "Mutación genética conocida",
-        "helper": "Seleccione Sí si le han dicho que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13.",
-        "description": "Seleccione Sí si le han informado que porta una mutación hereditaria relacionada con el cáncer de próstata, como BRCA2 o HOXB13. Las mutaciones BRCA2 se asocian con mayor riesgo de cáncer de próstata y pueden relacionarse con enfermedad más agresiva. HOXB13, especialmente la variante G84E en algunas familias, es un gen de susceptibilidad hereditaria al cáncer de próstata."
-      },
-      "heightWeight": {
-        "title": "Altura y peso (IMC)",
-        "description": "La obesidad se asocia con un mayor riesgo de cáncer de próstata agresivo. Una altura más alta puede ser un ligero factor de riesgo."
-      },
-      "exercise": {
-        "title": "Nivel de ejercicio",
-        "helper": "Piense en una semana típica y elija la opción que mejor refleje su actividad física planificada.",
-        "description": "La actividad física regular se asocia con un riesgo reducido de cáncer de próstata agresivo."
-      },
-      "smoking": {
-        "title": "Estado de fumar",
-        "helper": "Incluya cigarrillos u otro consumo regular de tabaco al elegir su estado actual o anterior.",
-        "description": "Fumar está relacionado con un mayor riesgo de cáncer de próstata agresivo y mayores tasas de mortalidad."
-      },
-      "chemicalExposure": {
-        "title": "Exposición química",
-        "helper": "Responda Sí si ha tenido una exposición ocupacional, militar o ambiental significativa.",
-        "description": "La exposición al Agente Naranja, pesticidas y ciertos químicos industriales puede aumentar el riesgo de cáncer de próstata."
-      },
-      "diet": {
-        "title": "Patrón de dieta",
-        "helper": "Elija el patrón que describa mejor sus hábitos alimentarios habituales.",
-        "description": "Las dietas ricas en carnes rojas y lácteos ricos en grasas pueden aumentar el riesgo. Las dietas basadas en plantas pueden tener un efecto protector."
-      },
-      "ipss": {
-        "title": "IPSS (síntomas urinarios)",
-        "description": "La puntuación internacional de síntomas de próstata mide los síntomas del tracto urinario inferior a menudo asociados con el agrandamiento de la próstata."
-      },
-      "shim": {
-        "title": "SHIM (Salud Sexual)",
-        "description": "El Inventario de Salud Sexual para Hombres (SHIM) evalúa la disfunción eréctil, que puede ser un indicador de problemas de salud de la próstata."
-      },
-      "comorbidities": {
-        "title": "Comorbilidades (HTA, DAN, CAD, Diabetes)",
-        "description": "Hipertensión (HTN), hiperlipidemia (HLD), enfermedad de las arterias coronarias (CAD) y diabetes. Dos preguntas: (1) ¿Ha tenido alguna? No/Sí. (2) En caso afirmativo: ¿Uno, dos o más?"
-      }
-    },
-    "steps": {
-      "aboutYou": {
-        "sectionTitle": "Acerca de ti",
-        "shortLabel": "Acerca de ti"
-      },
-      "familyGeneticRisk": {
-        "sectionTitle": "Riesgo familiar y genético",
-        "shortLabel": "Riesgo familiar y genético"
-      },
-      "bodyMetrics": {
-        "sectionTitle": "Métricas corporales",
-        "shortLabel": "Métricas corporales"
-      },
-      "lifestyle": {
-        "sectionTitle": "Estilo de vida",
-        "shortLabel": "Estilo de vida"
-      },
-      "additionalInfo": {
-        "sectionTitle": "información adicional",
-        "shortLabel": "Información adicional"
-      },
-      "ipss": {
-        "sectionTitle": "Síntomas urinarios (IPSS)",
-        "shortLabel": "IPSS"
-      },
-      "shim": {
-        "sectionTitle": "Salud Sexual (SHIM)",
-        "shortLabel": "CALCE",
-        "sectionTitleIief": "Salud sexual (IIEF-5)"
-      }
-    },
-    "race": {
-      "white": "Blanco / Caucásico",
-      "black": "Negro / Afroamericano",
-      "hispanic": "Hispano / Latino",
-      "asian": "Asiático/Isleño del Pacífico",
-      "other": "Otro / Mixto",
-      "mixed": "Mixto / Multirracial"
-    },
-    "errors": {
-      "step0": {
-        "ageInline": "Por favor ingrese la edad (18-120)",
-        "raceInline": "Por favor seleccione su raza/etnia"
-      },
-      "stepErrorTitle": "Por favor complete lo siguiente antes de continuar:",
-      "selectOption": "Por favor seleccione una opción",
-      "validate": {
-        "step0": {
-          "ageInvalid": "Por favor ingresa una edad válida (18+)",
-          "raceInvalid": "Por favor seleccione su raza/etnia"
-        },
-        "step1": {
-          "familyHistoryInvalid": "Por favor responda la pregunta de historia familiar.",
-          "brcaInvalid": "Por favor responda la pregunta sobre mutación genética"
-        },
-        "step2": {
-          "heightInvalid": "Por favor ingresa una altura válida",
-          "weightInvalid": "Por favor ingrese un peso válido",
-          "bmiInvalid": "No se pudo calcular el IMC; verifique la altura y el peso"
-        },
-        "step3": {
-          "exerciseInvalid": "Por favor seleccione el nivel de ejercicio",
-          "smokingInvalid": "Por favor seleccione el estado de fumar",
-          "chemicalInvalid": "Por favor responda la pregunta sobre exposición química"
-        },
-        "step4": {
-          "dietInvalid": "Por favor seleccione su patrón de dieta",
-          "comorbidityInvalid": "Por favor responda las preguntas de comorbilidad."
-        },
-        "step5": {
-          "ipssInvalid": "Por favor responda las 7 preguntas del IPSS"
-        },
-        "step6": {
-          "shimInvalid": "Por favor responda las 5 preguntas de SHIM"
-        }
-      }
-    },
-    "options": {
-      "yes": "Sí",
-      "no": "No",
-      "unknown": "Desconocido"
-    },
-    "step1": {
-      "familyHistory": {
-        "title": "Historia familiar de cáncer de próstata"
-      },
-      "inflammationHistory": {
-        "title": "Historia previa de inflamación",
-        "prompt": "¿Alguna vez le han diagnosticado alguna afección inflamatoria?",
-        "example": "(ej. colitis ulcerosa, enfermedad de Crohn, prostatitis crónica)"
-      }
-    },
-    "step2": {
-      "heightQuestion": "Altura",
-      "weightQuestion": "Peso",
-      "heightHelper": "La altura se usa con el peso para estimar el IMC, uno de los factores incluidos en este perfil de detección.",
-      "weightHelper": "El peso se usa con la altura para calcular automáticamente el IMC; una estimación está bien si no conoce el peso exacto.",
-      "heightUnit": {
-        "imperial": "Pies/pulgadas",
-        "metric": "Centímetros"
-      },
-      "stepNote": {
-        "imperial": "Imperial",
-        "metric": "Métrico"
-      },
-      "heightImperialFeetPlaceholder": "Pies (3-8)",
-      "heightImperialInchesPlaceholder": "Pulgadas (0-11)",
-      "heightImperialFeetError": "Los pies deben tener entre 3 y 8",
-      "heightImperialInchesError": "Las pulgadas deben estar entre 0 y 11",
-      "heightMetricPlaceholder": "Altura en cm (100-250)",
-      "heightMetricError": "La altura debe estar entre 100 y 250 cm.",
-      "weightUnit": {
-        "lbs": "Libras (libras)",
-        "kg": "Kilogramos (kg)"
-      },
-      "weightMetricPlaceholder": "Peso en kg (25-250)",
-      "weightImperialPlaceholder": "Peso en libras (50-500)",
-      "weightImperialError": "El peso debe estar entre 50 y 500 libras.",
-      "weightMetricError": "El peso debe estar entre 25 y 250 kg.",
-      "bmiLabel": "IMC (calculado automáticamente)"
-    },
-    "step3": {
-      "exercise": {
-        "regular": "Regular (3+ días/semana)",
-        "some": "Algunos (1-2 días/semana)",
-        "none": "Ninguno"
-      },
-      "smoking": {
-        "current": "Actual",
-        "former": "Anterior",
-        "never": "Nunca"
-      },
-      "chemicalQuestion": "Exposición del 11 de septiembre o química (p.ej., sitio WTC, pesticidas, sustancias industriales)"
-    },
-    "step4": {
-      "diet": {
-        "western": "Occidental / Americano estándar",
-        "mediterranean": "mediterráneo",
-        "indian": "indio",
-        "dash": "estilo DASH",
-        "plantBased": "De origen vegetal (vegetariano/vegano)",
-        "pescatarian": "pescatariano",
-        "lowCarbKeto": "Bajo en carbohidratos/ceto",
-        "other": "Otro / Prefiero no decirlo"
-      },
-      "comorbidities": {
-        "prompt": "¿Le han diagnosticado alguno de los siguientes? (Hipertensión, Hiperlipidemia, Enfermedad Arterial Coronaria, Diabetes).",
-        "askAnyLabel": "¿Ha tenido alguna de estas condiciones?",
-        "howManyLabel": "¿Cuántas de estas condiciones tienes?",
-        "one": "Uno",
-        "twoOrMore": "Dos o más"
-      }
-    },
-    "form": {
-      "stepChip": "Paso {{current}} de {{total}}",
-      "flowNote": "Complete cada sección cuidadosamente para generar la estimación de prioridad de detección más útil.",
-      "answeredCounter": "{{answeredCount}}/{{totalQuestions}} respondió"
-    },
-    "nav": {
-      "back": "← Volver",
-      "next": "Siguiente →",
-      "calculate": "Calcular mi puntuación ✓",
-      "calculateIncomplete": "Complete todas las preguntas ({{answeredCount}}/{{totalQuestions}})",
-      "calculateTitleDisabled": "Por favor complete todos los campos requeridos",
-      "calculateTitleEnabled": "Haz clic para calcular tu puntuación"
-    },
-    "ipss": {
-      "note": "Durante el último mes, ¿con qué frecuencia ha tenido:",
-      "helper": "Responda según sus síntomas urinarios durante el último mes.",
-      "answeredCount": "({{answeredCount}}/{{total}} respondió)",
-      "totalLabel": "IPSS Total",
-      "q1": "Vaciado incompleto: ¿no vaciar completamente la vejiga?",
-      "q2": "Frecuencia: ¿volver a orinar en 2 horas?",
-      "q3": "Intermitencia: ¿detenerse y comenzar durante la micción?",
-      "q4": "Urgencia: ¿dificultad para posponer la micción?",
-      "q5": "Chorro débil: ¿chorro urinario débil?",
-      "q6": "Esforzarse: ¿empujar o esforzarse para empezar?",
-      "q7": "Nocturia: ¿levantarse por la noche para orinar?",
-      "label0": "De nada",
-      "label1": "< 1 de cada 5",
-      "label2": "< Mitad",
-      "label3": "~ La mitad",
-      "label4": "> Mitad",
-      "label5": "Siempre"
-    },
-    "shim": {
-      "note": "Durante los últimos 6 meses:",
-      "helper": "Responda según su función sexual durante los últimos 6 meses.",
-      "answeredCount": "({{answeredCount}}/{{total}} respondió)",
-      "totalLabel": "CUÑA Total",
-      "q1": "¿Cómo califica su confianza en que podrá lograr y mantener una erección?",
-      "q1.opt1": "muy bajo",
-      "q1.opt2": "Bajo",
-      "q1.opt3": "Moderado",
-      "q1.opt4": "Alto",
-      "q1.opt5": "muy alto",
-      "q2": "Cuando tuvo erecciones con estimulación sexual, ¿con qué frecuencia fueron lo suficientemente duras para la penetración?",
-      "q2.opt0": "Sin actividad",
-      "q2.opt1": "Casi nunca",
-      "q2.opt2": "unas cuantas veces",
-      "q2.opt3": "A veces",
-      "q2.opt4": "La mayoría de las veces",
-      "q2.opt5": "Casi siempre",
-      "q3": "Durante las relaciones sexuales, ¿con qué frecuencia pudo mantener la erección después de la penetración?",
-      "q3.opt0": "No intenté",
-      "q3.opt1": "Casi nunca",
-      "q3.opt2": "unas cuantas veces",
-      "q3.opt3": "A veces",
-      "q3.opt4": "La mayoría de las veces",
-      "q3.opt5": "Casi siempre",
-      "q4": "Durante el coito, ¿qué tan difícil fue mantener la erección hasta el final?",
-      "q4.opt0": "No intenté",
-      "q4.opt1": "Extremadamente dificil",
-      "q4.opt2": "muy dificil",
-      "q4.opt3": "Difícil",
-      "q4.opt4": "Ligeramente dificil",
-      "q4.opt5": "No es dificil",
-      "q5": "Cuando intentó tener relaciones sexuales, ¿con qué frecuencia le resultó satisfactorio?",
-      "q5.opt0": "No intenté",
-      "q5.opt1": "Casi nunca",
-      "q5.opt2": "unas cuantas veces",
-      "q5.opt3": "A veces",
-      "q5.opt4": "La mayoría de las veces",
-      "q5.opt5": "Casi siempre",
-      "totalLabelIief": "Puntaje total IIEF-5",
-      "regionLabel": "Región de la guía",
-      "regionUs": "EE. UU. (SHIM · AUA / NCCN)",
-      "regionEau": "EAU / Reino Unido (IIEF-5)",
-      "regionNoteUs": "SHIM = Sexual Health Inventory for Men, el formulario de 5 preguntas que utilizan AUA / NCCN.",
-      "regionNoteEau": "IIEF-5 es la versión abreviada del Índice Internacional de Función Eréctil utilizada en la práctica de EAU / Reino Unido. (SHIM e IIEF-5 son las mismas 5 preguntas y el mismo puntaje 0–25 — su médico también puede usar el IIEF-15 completo.)",
-      "severityHeading": "¿Qué significa este puntaje total?",
-      "severitySevere": "ED severa",
-      "severityModerate": "ED moderada",
-      "severityMildModerate": "ED leve a moderada",
-      "severityMild": "ED leve",
-      "severityNone": "Sin ED"
-    },
-    "nonGuideline": {
-      "badge": "FUERA DE GUÍAS",
-      "badgeTooltip": "AUA/NCCN/EAU/ERSPC no utilizan este factor para decidir el tamizaje con PSA. Solo lo emplea el modelo de riesgo ePSA.",
-      "note": "No forma parte de los criterios de tamizaje de AUA/NCCN/EAU/ERSPC; solo lo utiliza el modelo ePSA."
-    },
-    "guideline": {
-      "badge": "BASADO EN GUÍAS",
-      "badgeTooltip": "Este factor está directamente citado por las guías de tamizaje de cáncer de próstata de AUA, NCCN y EAU."
-    },
-    "chemicalExposureOptions": {
-      "question": "¿Ha tenido alguna de las siguientes exposiciones? (Seleccione todas las que correspondan)",
-      "agentOrange": "Agente Naranja (militar / era de Vietnam)",
-      "nineEleven": "World Trade Center / sitio del 11-S",
-      "otherChemical": "Otras sustancias químicas ocupacionales o ambientales (p. ej., pesticidas, solventes)",
-      "none": "Ninguna de las anteriores",
-      "unknown": "Desconocido / no estoy seguro",
-      "evidenceProven": "Evidencia epidemiológica sólida",
-      "evidenceUnspecified": "Posible asociación; menos establecida"
-    },
-    "ipssShort": {
-      "toggleShort": "Usar versión corta (una sola pregunta de severidad)",
-      "toggleFull": "Usar IPSS completo (7 preguntas)",
-      "skip": "Omitir — no tengo síntomas urinarios",
-      "singleQuestionLabel": "En general, ¿qué tan molestos son sus síntomas urinarios?",
-      "options": {
-        "none": "Ninguno",
-        "mild": "Leves",
-        "moderate": "Moderados",
-        "severe": "Severos"
-      }
-    },
-    "shimShort": {
-      "toggleShort": "Usar versión corta (una sola pregunta de severidad)",
-      "toggleFull": "Usar SHIM completo (5 preguntas)",
-      "skip": "Omitir — sin preocupaciones de erección",
-      "singleQuestionLabel": "En general, ¿cómo describiría su función eréctil en los últimos 6 meses?",
-      "options": {
-        "none": "Sin disfunción eréctil",
-        "mild": "ED leve",
-        "mildModerate": "ED leve–moderada",
-        "moderate": "ED moderada",
-        "severe": "ED severa"
-      }
-    },
-    "abnormalPsaLikelihood": "Probabilidad estimada de un PSA anormal / csPCa:",
-    "skip": {
-      "preferNotToSay": "Prefiero no decirlo / Omitir",
-      "skippedLabel": "Omitido — se usará un valor neutro por defecto en la estimación.",
-      "sectionPrompt": "¿No quiere responder esto ahora? Puede omitir esta sección.",
-      "sectionSkippedNote": "Esta sección está omitida. Se usará un valor neutro por defecto en la estimación.",
-      "skipSection": "Omitir esta sección",
-      "answerInstead": "Responder en su lugar"
-    },
-    "guidelineBadge": {
-      "guideline": "AUA/NCCN",
-      "modelOnly": "Solo ePSA"
-    }
-  },
-  "part2": {
-    "form": {
-      "errorPreResult": "Complete la Parte 1 (Prioridad de detección) antes de continuar con la Evaluación de riesgos."
-    },
-    "flow": {
-      "stepChip": "Paso {{current}} de 2",
-      "note": "Utilice la información de su PSA y MRI para perfeccionar los resultados de su evaluación de riesgos."
-    },
-    "steps": {
-      "psa": {
-        "sectionTitle": "Nivel de PSA"
-      },
-      "mri": {
-        "sectionTitle": "Resultados de resonancia magnética (opcional)"
-      }
-    },
-    "summary": {
-      "label": "Resultados de la Parte 1:",
-      "scoreLabel": "Puntaje",
-      "riskLabel": "Riesgo"
-    },
-    "nav": {
-      "next": "Siguiente →",
-      "calculate": "Calcular la evaluación de riesgos ✓"
-    },
-    "psa": {
-      "sectionTitle": "Nivel de PSA",
-      "q1": "¿Conoce su nivel de PSA?",
-      "q1OptNo": "No, no sé mi PSA",
-      "q1OptYes": "Sí, conozco mi nivel de PSA",
-      "q2": "Ingrese el nivel de PSA (ng/mL)",
-      "psaPlaceholder": "Nivel de PSA (0,1-100)",
-      "psaInvalidValidity": "El nivel de PSA debe estar entre 0,1 y 100 ng/ml.",
-      "psaInvalid": "El nivel de PSA debe estar entre 0,1 y 100 ng/ml.",
-      "psaNote": "El PSA (antígeno prostático específico) es un análisis de sangre que se utiliza para detectar el cáncer de próstata.",
-      "q3": "¿Está tomando algún medicamento hormonal que pueda afectar el PSA?",
-      "q3InfoTitle": "Medicamentos como finasterida (Propecia/Proscar), dutasterida (Avodart) u otros inhibidores de la 5-alfa reductasa pueden reducir los niveles de PSA en aproximadamente un 50%. Esto es importante para una evaluación de riesgos precisa.",
-      "q3OptNo": "No / No estoy seguro",
-      "q3OptYes": "Sí, estoy tomando terapia hormonal.",
-      "q4Label": "¿Qué medicamento? (opcional)",
-      "q4OptFinasteride": "Finasterida (Propecia/Proscar)",
-      "q4OptDutasteride": "Dutasterida (Avodart)",
-      "q4OptOther": "Otro / No estoy seguro",
-      "q4Note": "Nota: Estos medicamentos pueden reducir el PSA en aproximadamente un 50 %. Es posible que su médico necesite ajustar el valor de PSA para una interpretación precisa."
-    },
-    "mri": {
-      "sectionTitle": "Resultados de resonancia magnética (opcional)",
-      "q1": "¿Conoce su puntuación PIRADS de resonancia magnética?",
-      "q1OptNo": "No",
-      "q1OptYes": "Sí",
-      "q2": "Puntuación PIRADS en resonancia magnética",
-      "q2Note": "Las puntuaciones de PI-RADS (Sistema de datos e informes de imágenes de próstata) varían de 1 a 5, y las puntuaciones más altas indican una mayor sospecha de cáncer de próstata clínicamente significativo."
-    },
-    "piradsInfo": {
-      "title": "Acerca de PI-RADS y la estimación de riesgo de ePSA",
-      "description": "PI-RADS es una escala del 1 al 5 que los radiólogos usan para clasificar lesiones de próstata en la resonancia magnética. PI-RADS 4 indica que la RM sugiere que probablemente exista una lesión clínicamente significativa; PI-RADS 5 indica que es altamente sospechosa.\n\nImportante — qué significa el porcentaje de ePSA: cuando ePSA estima una probabilidad a partir del PI-RADS y el PSA, predice csPCa GG3+ — cáncer de próstata clínicamente significativo con Gleason ≥3, la enfermedad de mayor riesgo — no «cualquier cáncer de próstata». Como es un criterio más estricto, el número puede parecer más bajo que la cifra popular «PI-RADS 4 ≈ 60 % de cáncer» que pueda haber visto en otros sitios. Ambos números pueden ser ciertos a la vez — describen cosas distintas.\n\nComente siempre el significado de su puntuación PI-RADS con su urólogo."
     }
   }
 }
