@@ -1,10 +1,12 @@
+/* ─── PSA Overview — Mount Sinai brand, per-step color identity ─── */
+
 .psa-overview-container {
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 2rem 1rem 3rem;
-  background: linear-gradient(180deg, var(--ms-gray-100) 0%, var(--ms-gray-100) 100%);
+  background: linear-gradient(180deg, var(--ms-cyan-10) 0%, var(--ms-gray-100) 25%, var(--ms-gray-100) 100%);
 }
 
 .psa-overview-card {
@@ -14,41 +16,42 @@
   border: 1px solid var(--ms-gray-200);
   border-radius: 1.25rem;
   padding: 1.75rem 1.75rem 1.25rem;
-  box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.06);
+  box-shadow: 0 0.75rem 2rem rgba(33, 32, 112, 0.09), 0 2px 8px rgba(33, 32, 112, 0.05);
   animation: psa-overview-fade-in 0.35s ease both;
+  /* border-top color set via inline style per step */
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
 }
 
 @keyframes psa-overview-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Progress dots */
+/* ─── Progress dots — each step gets its own color (set inline) ─── */
 .psa-overview-progress {
   display: flex;
   gap: 0.4375rem;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.625rem;
 }
 
 .psa-overview-progress-dot {
   width: 2.25rem;
   height: 0.3125rem;
   border-radius: 999px;
-  background: var(--ms-navy-20);
+  background: var(--ms-gray-200);
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.22s ease, width 0.22s ease, transform 0.15s ease;
 }
 
-.psa-overview-progress-dot:hover { transform: scaleY(1.4); }
-.psa-overview-progress-dot--done   { background: var(--ms-navy); }
-.psa-overview-progress-dot--active { background: var(--ms-navy); width: 2.75rem; }
+.psa-overview-progress-dot:hover { transform: scaleY(1.5); }
+.psa-overview-progress-dot--active { width: 3rem; }
+/* done + active colors set inline via STEP_META */
 
-/* Step head */
-.psa-overview-step { /* direction applied via --next / --prev */ }
-
+/* ─── Step animations ─── */
 @keyframes psa-slide-from-right {
   from { opacity: 0; transform: translateX(28px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -59,9 +62,6 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.psa-overview-step--next { animation: psa-slide-from-right 0.3s cubic-bezier(.25,.46,.45,.94) both; }
-.psa-overview-step--prev { animation: psa-slide-from-left  0.3s cubic-bezier(.25,.46,.45,.94) both; }
-
 @keyframes psa-item-in {
   from { opacity: 0; transform: translateY(7px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -69,14 +69,18 @@
 
 @keyframes psa-icon-bounce {
   0%   { transform: scale(0.6) rotate(-10deg); opacity: 0; }
-  65%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); }
+  65%  { transform: scale(1.12) rotate(3deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg); }
 }
+
+.psa-overview-step--next { animation: psa-slide-from-right 0.3s cubic-bezier(.25,.46,.45,.94) both; }
+.psa-overview-step--prev { animation: psa-slide-from-left  0.3s cubic-bezier(.25,.46,.45,.94) both; }
 
 .psa-overview-step-icon svg {
   animation: psa-icon-bounce 0.5s cubic-bezier(.34,1.56,.64,1) both 0.05s;
 }
 
+/* ─── Step head ─── */
 .psa-overview-step-head {
   display: flex;
   align-items: flex-start;
@@ -84,24 +88,25 @@
   margin-bottom: 0.875rem;
 }
 
+/* Icon box — gradient and color set inline per step */
 .psa-overview-step-icon {
   flex-shrink: 0;
   width: 3rem;
   height: 3rem;
   border-radius: 0.875rem;
-  background: linear-gradient(135deg, var(--ms-navy-10) 0%, var(--ms-navy-10) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 3px 10px rgba(33, 32, 112, 0.18);
 }
 
 .psa-overview-step-eyebrow {
   font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--ms-gray-600);
-  margin-bottom: 0.1875rem;
+  margin-bottom: 0.2rem;
+  /* color set inline per step */
 }
 
 .psa-overview-step-title {
@@ -110,16 +115,17 @@
   color: var(--ms-navy);
   margin: 0;
   line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .psa-overview-step-body {
   font-size: 0.9375rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--ms-gray-600);
   margin: 0 0 1.125rem;
 }
 
-/* Facts (step 1) */
+/* ─── Step 1: Fact chips ─── */
 .psa-overview-facts {
   list-style: none;
   padding: 0;
@@ -130,8 +136,9 @@
 }
 
 .psa-overview-facts li {
-  background: var(--ms-gray-100);
-  border: 1px solid var(--ms-gray-200);
+  background: var(--ms-cyan-10);
+  border: 1px solid var(--ms-cyan-20);
+  /* border-left set inline per step accent */
   border-radius: 0.625rem;
   padding: 0.625rem 0.875rem;
   display: flex;
@@ -140,9 +147,8 @@
   animation: psa-item-in 0.28s ease both;
 }
 
-.psa-overview-facts li:nth-child(1) { animation-delay: 0.12s; }
-.psa-overview-facts li:nth-child(2) { animation-delay: 0.2s; }
-.psa-overview-facts li:nth-child(3) { animation-delay: 0.28s; }
+.psa-overview-facts li:nth-child(1) { animation-delay: 0.1s; }
+.psa-overview-facts li:nth-child(2) { animation-delay: 0.18s; }
 
 .psa-overview-fact-label {
   font-size: 0.72rem;
@@ -158,7 +164,19 @@
   font-weight: 500;
 }
 
-/* Stat boxes (step 2) */
+/* ─── Step 1: Doctor nudge ─── */
+.psa-overview-nudge {
+  padding: 0.625rem 0.875rem;
+  background: #fff9f0;
+  border-left: 3px solid var(--warning-600);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ms-gray-600);
+  margin-bottom: 1rem;
+}
+
+/* ─── Step 2: Stat boxes ─── */
 .psa-overview-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -167,24 +185,26 @@
 }
 
 .psa-overview-stat {
-  background: linear-gradient(180deg, #ffffff 0%, var(--ms-gray-100) 100%);
+  background: #fff;
   border: 1px solid var(--ms-gray-200);
-  border-radius: 0.75rem;
-  padding: 0.875rem 0.75rem;
+  border-radius: 0.875rem;
+  padding: 1rem 0.75rem 0.875rem;
   text-align: center;
   animation: psa-item-in 0.3s ease both;
+  /* border-top set inline per STAT_ACCENTS */
 }
 
-.psa-overview-stat:nth-child(1) { animation-delay: 0.12s; }
-.psa-overview-stat:nth-child(2) { animation-delay: 0.22s; }
-.psa-overview-stat:nth-child(3) { animation-delay: 0.32s; }
+.psa-overview-stat:nth-child(1) { animation-delay: 0.1s; }
+.psa-overview-stat:nth-child(2) { animation-delay: 0.2s; }
+.psa-overview-stat:nth-child(3) { animation-delay: 0.3s; }
 
 .psa-overview-stat-value {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 800;
-  color: var(--ms-navy);
   line-height: 1.1;
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.02em;
+  /* color set inline per STAT_ACCENTS */
 }
 
 .psa-overview-stat-label {
@@ -197,7 +217,7 @@
   .psa-overview-stats { grid-template-columns: 1fr; }
 }
 
-/* Guideline cards (step 3) */
+/* ─── Step 3: Guideline cards ─── */
 .psa-overview-guidelines {
   display: flex;
   flex-direction: column;
@@ -206,9 +226,8 @@
 }
 
 .psa-overview-guideline-card {
-  background: var(--ms-gray-100);
   border: 1px solid var(--ms-gray-200);
-  border-left: 0.1875rem solid var(--ms-navy);
+  /* border-left + background set inline per GL_ACCENT/GL_BG */
   border-radius: 0.625rem;
   padding: 0.75rem 0.875rem;
   animation: psa-item-in 0.28s ease both;
@@ -218,11 +237,17 @@
 .psa-overview-guideline-card:nth-child(2) { animation-delay: 0.2s; }
 .psa-overview-guideline-card:nth-child(3) { animation-delay: 0.3s; }
 
-.psa-overview-guideline-name {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--ms-navy);
-  margin-bottom: 0.25rem;
+/* Org name pill (replaces plain text heading) */
+.psa-overview-guideline-pill {
+  display: inline-block;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.175rem 0.5rem;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+  /* background set inline per GL_ACCENT */
 }
 
 .psa-overview-guideline-summary {
@@ -234,17 +259,17 @@
 
 .psa-overview-guideline-link {
   font-size: 0.75rem;
-  color: var(--ms-cyan);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-weight: 600;
+  font-weight: 700;
+  /* color set inline per GL_ACCENT */
 }
 
 .psa-overview-guideline-link:hover { text-decoration: underline; }
 
-/* Benefits (step 4) */
+/* ─── Step 4: Benefits ─── */
 .psa-overview-benefits {
   display: flex;
   flex-direction: column;
@@ -256,85 +281,61 @@
   display: flex;
   align-items: flex-start;
   gap: 0.625rem;
-  background: var(--risk-lower-bg);
-  border: 1px solid var(--risk-lower-bg);
   border-radius: 0.625rem;
   padding: 0.625rem 0.875rem;
   animation: psa-item-in 0.28s ease both;
+  /* background + border-left set inline per BF_BG/BF_ACCENT */
 }
 
-.psa-overview-benefit:nth-child(1) { animation-delay: 0.12s; }
-.psa-overview-benefit:nth-child(2) { animation-delay: 0.22s; }
-.psa-overview-benefit:nth-child(3) { animation-delay: 0.32s; }
+.psa-overview-benefit:nth-child(1) { animation-delay: 0.1s; }
+.psa-overview-benefit:nth-child(2) { animation-delay: 0.2s; }
+.psa-overview-benefit:nth-child(3) { animation-delay: 0.3s; }
 
 .psa-overview-benefit-icon {
   flex-shrink: 0;
-  color: var(--risk-lower);
   margin-top: 0.125rem;
+  /* color set inline per BF_ACCENT */
 }
 
 .psa-overview-benefit-title {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--risk-lower);
   margin-bottom: 0.125rem;
+  /* color set inline per BF_ACCENT */
 }
 
 .psa-overview-benefit-body {
   font-size: 0.825rem;
-  color: var(--risk-lower);
+  color: var(--ms-gray-600);
   line-height: 1.45;
 }
 
-/* Doctor nudge callout */
-.psa-overview-nudge {
-  padding: 0.625rem 0.75rem;
-  background: #fff7ed;
-  border: 1px solid var(--gold-100);
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--warning-600);
-  margin-bottom: 0.5rem;
-}
-.theme-dark .psa-overview-nudge {
-  background: var(--surface-subtle);
-  border-color: var(--warning-600);
-  color: var(--gold-100);
-}
-
-/* Source line */
-.psa-overview-source {
-  font-size: 0.7rem;
-  color: var(--ms-gray-600);
-  font-style: italic;
-  padding-top: 0.625rem;
+/* ─── Sources ℹ button ─── */
+.psa-overview-source-row {
+  padding-top: 0.5rem;
   border-top: 1px dashed var(--ms-gray-200);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-.psa-overview-source-label {
-  font-weight: 700;
-  font-style: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.psa-overview-source-link {
-  color: var(--ms-navy);
-  font-style: normal;
-  text-decoration: underline;
-  text-decoration-color: rgba(29,110,163,0.4);
-  text-underline-offset: 2px;
+.psa-overview-source-btn {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 0.35rem;
+  background: none;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: opacity 0.14s;
+  /* color + border-color set inline per step accent */
 }
-.psa-overview-source-link:hover { color: var(--ms-navy); text-decoration-color: var(--ms-navy); }
-.psa-overview-source-sep { font-style: normal; }
-.theme-dark .psa-overview-source-link { color: var(--ms-cyan); text-decoration-color: rgba(96,165,250,0.4); }
-.theme-dark .psa-overview-source-link:hover { color: var(--ms-cyan-20); }
 
-/* Disclaimer */
+.psa-overview-source-btn:hover { opacity: 0.72; }
+
+/* ─── Disclaimer ─── */
 .psa-overview-disclaimer {
   font-size: 0.7rem;
   color: var(--ms-gray-400);
@@ -346,7 +347,7 @@
   line-height: 1.5;
 }
 
-/* Action buttons */
+/* ─── Nav buttons ─── */
 .psa-overview-actions {
   display: flex;
   gap: 0.625rem;
@@ -359,24 +360,22 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.625rem 1rem;
+  padding: 0.6875rem 1rem;
   font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
+  font-weight: 700;
+  border-radius: 0.625rem;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: opacity 0.14s, transform 0.1s;
 }
 
-.psa-overview-btn:hover { transform: translateY(-1px); }
+.psa-overview-btn:hover { opacity: 0.88; transform: translateY(-1px); }
 .psa-overview-btn:active { transform: translateY(0); }
 
 .psa-overview-btn--primary {
-  background: var(--ms-navy);
   color: #ffffff;
+  /* background set inline per step accent */
 }
-
-.psa-overview-btn--primary:hover { background: var(--surface-subtle); }
 
 .psa-overview-btn--outline {
   background: #ffffff;
@@ -391,82 +390,216 @@
   margin: 0.75rem auto 0;
   background: none;
   border: none;
-  color: var(--ms-gray-600);
+  color: var(--ms-gray-400);
   font-size: 0.78rem;
-  text-decoration: underline;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .psa-overview-skip:hover { color: var(--ms-navy); }
 
-/* Dark theme */
+/* ─── Sources Modal ─── */
+.psa-src-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 45, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: psa-modal-fade 180ms ease-out;
+}
+
+@keyframes psa-modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes psa-modal-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.psa-src-modal-panel {
+  background: var(--surface, #fff);
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 45, 0.18);
+  width: 100%;
+  max-width: 26rem;
+  overflow: hidden;
+  animation: psa-modal-rise 220ms cubic-bezier(.25,.46,.45,.94) both;
+}
+
+.psa-src-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.125rem 0.75rem;
+  /* border-bottom color set inline per step accent */
+}
+
+.psa-src-modal-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  /* color set inline per step accent */
+}
+
+.psa-src-modal-close {
+  background: var(--ms-gray-100);
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 999px;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ms-gray-600);
+  transition: background 120ms;
+}
+
+.psa-src-modal-close:hover {
+  background: var(--ms-gray-200);
+  color: var(--ms-navy);
+}
+
+.psa-src-modal-body {
+  padding: 0.75rem 1.125rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.psa-src-modal-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  font-size: 0.82rem;
+  color: var(--ms-navy);
+  text-decoration: none;
+  line-height: 1.45;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--ms-gray-200);
+  transition: color 0.13s;
+}
+
+.psa-src-modal-link:last-child { border-bottom: none; }
+.psa-src-modal-link:hover { color: var(--ms-cyan); }
+
+.psa-src-modal-link svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  opacity: 0.6;
+}
+
+.psa-src-modal-text {
+  font-size: 0.82rem;
+  color: var(--ms-gray-600);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ─── Dark mode ─── */
 .theme-dark .psa-overview-container {
-  background: var(--surface);
+  background: var(--app-bg);
 }
 
 .theme-dark .psa-overview-card {
   background: var(--surface);
   border-color: var(--line-200);
-  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.45);
 }
 
 .theme-dark .psa-overview-progress-dot { background: var(--line-200); }
-.theme-dark .psa-overview-progress-dot--done,
-.theme-dark .psa-overview-progress-dot--active { background: var(--ms-cyan); }
+/* done + active dot colors set inline — they work in dark mode too */
 
 .theme-dark .psa-overview-step-icon {
-  background: linear-gradient(135deg, var(--surface-subtle) 0%, var(--surface-subtle) 100%);
-  color: var(--ms-cyan-20) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
-.theme-dark .psa-overview-step-eyebrow { color: var(--ms-gray-400); }
 .theme-dark .psa-overview-step-title { color: var(--ink-800); }
 .theme-dark .psa-overview-step-body { color: var(--ink-700); }
 
-.theme-dark .psa-overview-facts li,
-.theme-dark .psa-overview-stat,
-.theme-dark .psa-overview-guideline-card {
+/* Facts — override light tint bg for dark mode */
+.theme-dark .psa-overview-facts li {
   background: var(--surface-subtle);
   border-color: var(--line-200);
 }
 
-.theme-dark .psa-overview-fact-label,
-.theme-dark .psa-overview-stat-label,
-.theme-dark .psa-overview-source { color: var(--ms-gray-400); }
+.theme-dark .psa-overview-fact-label { color: var(--ms-gray-400); }
+.theme-dark .psa-overview-fact-value { color: var(--ink-800); }
 
-.theme-dark .psa-overview-fact-value,
-.theme-dark .psa-overview-stat-value,
-.theme-dark .psa-overview-guideline-name { color: var(--ink-800); }
-
-.theme-dark .psa-overview-guideline-card { border-left-color: var(--ms-cyan); }
-.theme-dark .psa-overview-guideline-summary { color: var(--ink-700); }
-.theme-dark .psa-overview-guideline-link { color: var(--ms-cyan); }
-
-.theme-dark .psa-overview-benefit {
+.theme-dark .psa-overview-nudge {
   background: var(--surface-subtle);
-  border-color: var(--risk-lower);
+  color: var(--ink-700);
+  border-left-color: var(--warning-600);
 }
-.theme-dark .psa-overview-benefit-title { color: var(--risk-lower-bg); }
+
+/* Stats — override per-stat tinted bg */
+.theme-dark .psa-overview-stat {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+}
+
+.theme-dark .psa-overview-stat-label { color: var(--ms-gray-400); }
+/* stat value color is inline — visible on dark */
+
+/* Guideline cards */
+.theme-dark .psa-overview-guideline-card {
+  border-color: var(--line-200);
+  background: var(--surface-subtle) !important;
+}
+
+.theme-dark .psa-overview-guideline-summary { color: var(--ink-700); }
+
+/* Benefits */
+.theme-dark .psa-overview-benefit {
+  background: var(--surface-subtle) !important;
+}
+
 .theme-dark .psa-overview-benefit-body { color: var(--ms-gray-400); }
 
-.theme-dark .psa-overview-disclaimer {
-  color: var(--ms-gray-600);
-  border-color: var(--ms-gray-600);
-}
+.theme-dark .psa-overview-source-row { border-top-color: var(--line-200); }
 
-.theme-dark .psa-overview-btn--primary {
-  background: var(--ms-cyan);
-  color: #ffffff;
+.theme-dark .psa-overview-disclaimer {
+  color: var(--ink-400);
+  border-top-color: var(--line-200);
 }
-.theme-dark .psa-overview-btn--primary:hover { background: var(--ms-cyan); }
 
 .theme-dark .psa-overview-btn--outline {
   background: var(--surface-subtle);
   color: var(--ink-800);
   border-color: var(--line-200);
 }
-.theme-dark .psa-overview-btn--outline:hover { background: var(--surface-subtle); }
 
-.theme-dark .psa-overview-skip { color: var(--ms-gray-400); }
-.theme-dark .psa-overview-skip:hover { color: var(--ms-cyan-20); }
+.theme-dark .psa-overview-btn--outline:hover { background: var(--surface-muted); }
+
+.theme-dark .psa-overview-skip { color: var(--ink-400); }
+.theme-dark .psa-overview-skip:hover { color: var(--ms-cyan); }
+
+/* Sources modal dark mode */
+.theme-dark .psa-src-modal-panel {
+  background: var(--surface);
+  border-color: var(--line-200);
+}
+
+.theme-dark .psa-src-modal-close {
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
+  color: var(--ink-500);
+}
+
+.theme-dark .psa-src-modal-link {
+  color: var(--ink-800);
+  border-bottom-color: var(--line-200);
+}
+
+.theme-dark .psa-src-modal-link:hover { color: var(--ms-cyan); }
