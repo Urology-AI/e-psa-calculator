@@ -73,7 +73,7 @@
 .session-id-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   font-family: 'Courier New', monospace;
   letter-spacing: 0.125rem;
   margin-bottom: 1rem;
@@ -87,8 +87,8 @@
 
 .regenerate-btn {
   background: transparent;
-  color: #00578B;
-  border: 0.0625rem solid #00578B;
+  color: var(--ms-navy);
+  border: 0.0625rem solid var(--ms-navy);
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;
@@ -97,7 +97,7 @@
 }
 
 .regenerate-btn:hover:not(:disabled) {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
 }
 
@@ -125,9 +125,9 @@
 }
 
 .auth-submit-btn {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
-  border: 0.125rem solid #00578B;
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.625rem;
   padding: 1rem 1.5rem;
   font-size: 1rem;
@@ -139,7 +139,7 @@
 
 .auth-submit-btn:hover:not(:disabled) {
   background: transparent;
-  color: #00578B;
+  color: var(--ms-navy);
   transform: translateY(-0.0625rem);
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }

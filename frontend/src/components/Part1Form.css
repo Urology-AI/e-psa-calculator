@@ -300,7 +300,7 @@
 }
 
 .option-btn.selected {
-  border-color: #1a6898;
+  border-color: var(--ms-cyan);
   background: #e6f3fc;
   color: #0d3d62;
   box-shadow: 0 0 0 0.1875rem rgba(26, 104, 152, 0.12);

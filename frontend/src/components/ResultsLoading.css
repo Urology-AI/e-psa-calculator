@@ -89,7 +89,7 @@
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #2563eb;
+  color: var(--ms-cyan);
   margin-bottom: 1rem;
   transition: opacity 0.3s ease;
 }
@@ -114,7 +114,7 @@
 }
 
 .rl-dot--active {
-  background: #2563eb;
+  background: var(--ms-cyan);
   transform: scale(1.35);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
@@ -137,7 +137,7 @@
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #2563eb;
+  color: var(--ms-cyan);
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 999px;

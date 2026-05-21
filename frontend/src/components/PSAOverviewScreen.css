@@ -234,7 +234,7 @@
 
 .psa-overview-guideline-link {
   font-size: 0.75rem;
-  color: #2563eb;
+  color: var(--ms-cyan);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -320,7 +320,7 @@
   letter-spacing: 0.04em;
 }
 .psa-overview-source-link {
-  color: #1d6ea3;
+  color: var(--ms-navy);
   font-style: normal;
   text-decoration: underline;
   text-decoration-color: rgba(29,110,163,0.4);
@@ -456,7 +456,7 @@
 }
 
 .theme-dark .psa-overview-btn--primary {
-  background: #2563eb;
+  background: var(--ms-cyan);
   color: #ffffff;
 }
 .theme-dark .psa-overview-btn--primary:hover { background: #1d4ed8; }

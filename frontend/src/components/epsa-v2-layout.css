@@ -923,7 +923,7 @@
 /* ── AS Tool CTA card ── */
 .v2-as-tool-cta {
   background: #eff6ff;
-  border-left: 4px solid #2563eb;
+  border-left: 4px solid var(--ms-cyan);
   border-radius: 0.5rem;
   padding: 0.875rem 1rem;
   margin-top: 1rem;
@@ -945,7 +945,7 @@
 }
 .v2-as-tool-cta-btn {
   align-self: flex-start;
-  background: #2563eb;
+  background: var(--ms-cyan);
   color: #fff;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -954,9 +954,9 @@
   text-decoration: none;
   letter-spacing: 0.01em;
 }
-.theme-dark .v2-as-tool-cta { background: rgba(37,99,235,0.12); border-left-color: #2563eb; }
+.theme-dark .v2-as-tool-cta { background: rgba(37,99,235,0.12); border-left-color: var(--ms-cyan); }
 .theme-dark .v2-as-tool-cta-label { color: #93c5fd; }
-.theme-dark .v2-as-tool-cta-btn { background: #2563eb; color: #fff; }
+.theme-dark .v2-as-tool-cta-btn { background: var(--ms-cyan); color: #fff; }
 
 /* ── 5-ARI PSA Correction Notice ── */
 .v2-ari-notice {

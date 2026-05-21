@@ -1,6 +1,6 @@
 /* ─── ePSA Design System — Mount Sinai Brand ─── */
 :root {
-  /* ── Official Mount Sinai brand tokens ── */
+  /* ── Official Mount Sinai brand tokens (source of truth) ── */
   --ms-cyan:       #06ABEB;   /* Primary CTA, links, active state */
   --ms-cyan-10:    #E8F7FD;
   --ms-cyan-20:    #C2EAFA;
@@ -17,77 +17,77 @@
   --ms-gray-600:   #6E6E77;
   --ms-gray-800:   #2D2D35;
 
-  /* Mount Sinai Blue (primary brand) */
-  --brand-950: #001632;
-  --brand-900: #002060;
-  --brand-800: #002880;
-  --brand-700: #003087;
-  --brand-600: #005baa;
-  --brand-500: #009FDA;
-  --brand-400: #40b8ea;
-  --brand-100: #cceef8;
-  --brand-50:  #e6f6fc;
+  /* ── Brand scale — remapped to MS palette ── */
+  --brand-950: #00002D;   /* ms-black */
+  --brand-900: #212070;   /* ms-navy */
+  --brand-800: #212070;   /* ms-navy (dark gradients) */
+  --brand-700: #212070;   /* ms-navy — headings, nav */
+  --brand-600: #0590C7;   /* cyan-700: hover / secondary interactive */
+  --brand-500: #06ABEB;   /* ms-cyan — primary accent */
+  --brand-400: #C2EAFA;   /* ms-cyan-20 */
+  --brand-100: #E8F7FD;   /* ms-cyan-10 */
+  --brand-50:  #E8F7FD;   /* ms-cyan-10 */
 
-  /* Mount Sinai Magenta (secondary brand) */
-  --magenta-700: #9c0e5e;
-  --magenta-600: #c01070;
-  --magenta-500: #DA1884;
-  --magenta-400: #e84dab;
-  --magenta-100: #fce0f0;
-  --magenta-50:  #fff0f8;
+  /* ── Magenta scale — aligned to ms-magenta ── */
+  --magenta-700: #8B0050;
+  --magenta-600: #AD1070;
+  --magenta-500: #DC298D;   /* ms-magenta */
+  --magenta-400: #E84DAB;
+  --magenta-100: #FCE9F4;   /* ms-magenta-10 */
+  --magenta-50:  #FFF0F8;
 
-  /* Mount Sinai Navy (tertiary brand) */
-  --teal-700: #003087;
-  --teal-600: #005baa;
-  --teal-400: #009FDA;
-  --teal-50:  #e6f6fc;
+  /* ── Teal aliases → MS palette ── */
+  --teal-700: #212070;   /* ms-navy */
+  --teal-600: #0590C7;   /* cyan-700 */
+  --teal-400: #06ABEB;   /* ms-cyan */
+  --teal-50:  #E8F7FD;   /* ms-cyan-10 */
 
-  /* Risk colors */
-  --risk-lower:    #16a34a;
-  --risk-lower-bg: #f0fdf4;
-  --risk-moderate:    #d97706;
-  --risk-moderate-bg: #fffbeb;
-  --risk-higher:    #dc2626;
-  --risk-higher-bg: #fef2f2;
+  /* ── Risk tier colors — exact brand spec ── */
+  --risk-lower:       #1B7A4A;   /* ms-success: Low Risk */
+  --risk-lower-bg:    #E8F5EE;
+  --risk-moderate:    #C97B00;   /* ms-warning: Intermediate Risk */
+  --risk-moderate-bg: #FEF3E2;
+  --risk-higher:      #C0392B;   /* ms-danger: Elevated Risk */
+  --risk-higher-bg:   #FDECEA;
 
-  /* Semantic success / warning / error */
-  --success-600: #16a34a;
-  --success-50:  #f0fdf4;
-  --warning-600: #d97706;
-  --warning-50:  #fffbeb;
-  --error-600:   #dc2626;
-  --error-50:    #fef2f2;
+  /* ── Semantic success / warning / error — exact brand spec ── */
+  --success-600: #1B7A4A;
+  --success-50:  #E8F5EE;
+  --warning-600: #C97B00;
+  --warning-50:  #FEF3E2;
+  --error-600:   #C0392B;
+  --error-50:    #FDECEA;
 
-  /* Neutrals */
-  --ink-950: #0c1a24;
-  --ink-900: #142434;
-  --ink-800: #1e3347;
-  --ink-700: #34475a;
-  --ink-600: #4e5f71;
-  --ink-500: #607286;
-  --ink-400: #8a9fb3;
-  --ink-300: #b0c2d0;
-  --ink-200: #d3dfe9;
+  /* ── Neutrals — MS true-neutral palette ── */
+  --ink-950: #00002D;   /* ms-black */
+  --ink-900: #00002D;   /* ms-black — primary body text */
+  --ink-800: #2D2D35;   /* ms-gray-800 — strong secondary */
+  --ink-700: #2D2D35;   /* ms-gray-800 */
+  --ink-600: #6E6E77;   /* ms-gray-600 — muted */
+  --ink-500: #6E6E77;   /* ms-gray-600 */
+  --ink-400: #AFAFB5;   /* ms-gray-400 */
+  --ink-300: #E8E8EA;   /* ms-gray-200 */
+  --ink-200: #E8E8EA;   /* ms-gray-200 */
 
-  /* Surfaces */
+  /* ── Surfaces — MS-aligned ── */
   --surface:        #ffffff;
-  --surface-subtle: #f8fbff;
-  --surface-muted:  #f0f5fb;
-  --line-200: #d9e3ec;
-  --line-100: #e8eef4;
-  --line-50:  #f2f6fb;
+  --surface-subtle: #F5F5F7;   /* ms-gray-100 */
+  --surface-muted:  #EAEAEC;   /* between white and gray-100 */
+  --line-200: #E8E8EA;         /* ms-gray-200 */
+  --line-100: #E8E8EA;         /* ms-gray-200 */
+  --line-50:  #F5F5F7;         /* ms-gray-100 */
 
   /* Gold accent */
   --gold-600: #b45309;
   --gold-400: #d97706;
   --gold-100: #fef3c7;
 
-  /* Shadows */
-  --shadow-xs:   0 0.0625rem 0.1875rem rgba(0, 48, 135, 0.07);
-  --shadow-sm:   0 0.25rem 0.625rem rgba(0, 48, 135, 0.08);
-  --shadow-md:   0 0.5rem 1.5rem rgba(0, 48, 135, 0.10);
-  --shadow-soft: 0 0.75rem 1.875rem rgba(0, 48, 135, 0.08);
-  --shadow-lg:   0 1.25rem 3rem rgba(0, 48, 135, 0.12);
+  /* ── Shadows — navy-tinted ── */
+  --shadow-xs:   0 0.0625rem 0.1875rem rgba(33, 32, 112, 0.07);
+  --shadow-sm:   0 0.25rem 0.625rem rgba(33, 32, 112, 0.08);
+  --shadow-md:   0 0.5rem 1.5rem rgba(33, 32, 112, 0.10);
+  --shadow-soft: 0 0.75rem 1.875rem rgba(33, 32, 112, 0.08);
+  --shadow-lg:   0 1.25rem 3rem rgba(33, 32, 112, 0.12);
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -106,9 +106,9 @@
   --text-3xl:  1.875rem;
   --text-4xl:  2.25rem;
 
-  /* App background + surfaces */
-  --app-bg: linear-gradient(160deg, #f0f6fc 0%, #e8f2fa 40%, #f4f8fc 100%);
-  --header-logo-bg: linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
+  /* ── App background — clean MS gray-100 ── */
+  --app-bg: var(--ms-gray-100);
+  --header-logo-bg: linear-gradient(180deg, #ffffff 0%, #F5F5F7 100%);
 
   /* Readable type: user A−/A+ × gentle boost on tablet/phone (see html font-size below) */
   --epsa-user-text-scale: 1;
@@ -142,10 +142,10 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: Inter, 'SF Pro Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: Inter, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--ink-900);
+  color: var(--ms-black);
   background: var(--app-bg);
   min-height: 100vh;
   line-height: 1.6;
@@ -206,35 +206,43 @@ body {
 
 /* ─── Dark mode overrides ─── */
 .theme-dark {
-  --surface: #0b1220;
-  --surface-subtle: #0f1930;
-  --surface-muted: #0d162a;
+  /* Deep MS-navy dark surfaces */
+  --surface: #0a0d2e;
+  --surface-subtle: #11144a;
+  --surface-muted: #0d1040;
 
-  --line-200: #213043;
-  --line-100: #1b2a3b;
-  --line-50: #0f1c2d;
+  /* Navy-tinted dividers */
+  --line-200: #2a2d7a;
+  --line-100: #1e2165;
+  --line-50:  #161954;
 
-  --ink-950: #e5e7eb;
-  --ink-900: #e5e7eb;
-  --ink-800: #cbd5e1;
-  --ink-700: #9ca3af;
-  --ink-600: #6b7280;
-  --ink-500: #94a3b8;
-  --ink-400: #718096;
-  --ink-300: #64748b;
+  /* Text: light on dark */
+  --ink-950: #FFFFFF;
+  --ink-900: #FFFFFF;
+  --ink-800: #E8E8EA;   /* ms-gray-200 */
+  --ink-700: #AFAFB5;   /* ms-gray-400 */
+  --ink-600: #6E6E77;   /* ms-gray-600 */
+  --ink-500: #AFAFB5;   /* ms-gray-400 — readable on dark */
+  --ink-400: #6E6E77;   /* ms-gray-600 */
+  --ink-300: #2D2D35;   /* ms-gray-800 */
 
-  /* Remap brand blues to readable values on dark backgrounds */
-  --brand-800: #2563eb;
-  --brand-700: #3b82f6;
-  --brand-600: #60a5fa;
-  --brand-500: #93c5fd;
+  /* Brand scale → MS cyan on dark (readable, on-brand) */
+  --brand-950: #00002D;
+  --brand-900: #212070;
+  --brand-800: #06ABEB;   /* ms-cyan — CTA on dark */
+  --brand-700: #06ABEB;   /* ms-cyan — headings/interactive on dark */
+  --brand-600: #06ABEB;   /* ms-cyan */
+  --brand-500: #C2EAFA;   /* ms-cyan-20 — lighter on dark */
+  --brand-400: #E8F7FD;   /* ms-cyan-10 */
+  --brand-100: rgba(6, 171, 235, 0.18);
+  --brand-50:  rgba(6, 171, 235, 0.09);
 
-  --app-bg: linear-gradient(160deg, #050a13 0%, #081327 40%, #0b1220 100%);
-  --header-logo-bg: linear-gradient(180deg, #0f1930 0%, #0b1220 100%);
+  --app-bg: linear-gradient(160deg, #060823 0%, #0a0d2e 40%, #090c28 100%);
+  --header-logo-bg: linear-gradient(180deg, #11144a 0%, #0a0d2e 100%);
 }
 
 .theme-dark .stage-pre {
-  background: linear-gradient(135deg, #1f2a37 0%, #2d3748 100%);
+  background: rgba(180, 83, 9, 0.18);
   color: var(--gold-400);
   border: 0.0625rem solid rgba(245, 158, 11, 0.35);
 }
@@ -752,7 +760,7 @@ body {
 }
 
 .theme-dark .btn-model-docs:hover {
-  background: #2563eb;
+  background: var(--ms-cyan);
   color: #fff;
 }
 

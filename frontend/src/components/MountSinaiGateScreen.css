@@ -61,7 +61,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--ms-cyan) 0%, #1d4ed8 100%);
   color: #fff;
   border-radius: 14px;
   margin-bottom: 8px;
@@ -78,7 +78,7 @@
   margin-bottom: 20px;
 }
 .sinai-gate-info-icon {
-  color: #0284c7;
+  color: var(--brand-600);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -127,7 +127,7 @@
   box-sizing: border-box;
 }
 .sinai-gate-input:focus {
-  border-color: #2563eb;
+  border-color: var(--ms-cyan);
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
@@ -157,7 +157,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: #fff;
-  background: #2563eb;
+  background: var(--ms-cyan);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -183,7 +183,7 @@
 .sinai-gate-link {
   background: none;
   border: none;
-  color: #2563eb;
+  color: var(--ms-cyan);
   font-size: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -292,7 +292,7 @@
   height: 16px;
   flex-shrink: 0;
   cursor: pointer;
-  accent-color: #2563eb;
+  accent-color: var(--ms-cyan);
 }
 
 /* ─── Sinai results screen ─── */
@@ -349,7 +349,7 @@
   gap: 8px;
   padding: 10px 14px;
   margin-top: 12px;
-  background: #2563eb;
+  background: var(--ms-cyan);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -390,9 +390,9 @@
 }
 .sinai-results-action:hover { background: #e2e8f0; }
 .sinai-results-action--primary {
-  background: #2563eb;
+  background: var(--ms-cyan);
   color: #fff;
-  border-color: #2563eb;
+  border-color: var(--ms-cyan);
 }
 .sinai-results-action--primary:hover { background: #1d4ed8; }
 

@@ -24,8 +24,8 @@
 
 .back-btn {
   background: white;
-  color: #00578B;
-  border: 0.125rem solid #00578B;
+  color: var(--ms-navy);
+  border: 0.125rem solid var(--ms-navy);
   padding: 0.625rem 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -40,7 +40,7 @@
 }
 
 .back-btn:hover {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
   transform: translateY(-0.0625rem);
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
@@ -63,7 +63,7 @@
 }
 
 .import-section:hover {
-  border-color: #00578B;
+  border-color: var(--ms-navy);
   box-shadow: 0 0.25rem 0.75rem rgba(0, 87, 139, 0.1);
 }
 
@@ -95,7 +95,7 @@
 
 .file-drop-zone:hover,
 .file-drop-zone.active {
-  border-color: #00578B;
+  border-color: var(--ms-navy);
   background: #F0F8FF;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .drop-icon {
-  color: #00578B;
+  color: var(--ms-navy);
   opacity: 0.7;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .file-select-btn {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -149,7 +149,7 @@
 }
 
 .import-loading p {
-  color: #00578B;
+  color: var(--ms-navy);
   font-weight: 500;
   margin: 0.9375rem 0 0 0;
 }
@@ -158,7 +158,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 0.25rem solid #E8ECF0;
-  border-top: 0.25rem solid #00578B;
+  border-top: 0.25rem solid var(--ms-navy);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
@@ -238,13 +238,13 @@
 
 .session-input:focus {
   outline: none;
-  border-color: #00578B;
+  border-color: var(--ms-navy);
 }
 
 .session-login-btn {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
-  border: 0.125rem solid #00578B;
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.5rem;
   padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
@@ -255,7 +255,7 @@
 
 .session-login-btn:hover:not(:disabled) {
   background: transparent;
-  color: #00578B;
+  color: var(--ms-navy);
 }
 
 /* ─── Dark mode overrides ─── */
