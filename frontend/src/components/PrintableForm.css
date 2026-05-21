@@ -63,7 +63,7 @@
 }
 
 .btn-print {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
 }
 
@@ -152,7 +152,7 @@
   display: block;
   font-size: 0.5625rem;
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   margin-bottom: 0.25rem;
 }
 
@@ -169,8 +169,8 @@
 }
 
 .notes-input:focus {
-  outline: 0.125rem solid #00578B;
-  border-color: #00578B;
+  outline: 0.125rem solid var(--ms-navy);
+  border-color: var(--ms-navy);
 }
 
 .header-center {
@@ -194,7 +194,7 @@
 
 .printable-title {
   font-size: 0.5625rem;
-  color: #00578B;
+  color: var(--ms-navy);
   font-weight: 600;
   letter-spacing: 0.03125rem;
   margin-bottom: 0.125rem;
@@ -243,7 +243,7 @@
   display: block;
   font-size: 0.5625rem;
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   margin-bottom: 0.25rem;
 }
 
@@ -260,8 +260,8 @@
 }
 
 .phone-input:focus {
-  outline: 0.125rem solid #00578B;
-  border-color: #00578B;
+  outline: 0.125rem solid var(--ms-navy);
+  border-color: var(--ms-navy);
 }
 
 .printable-body {
@@ -324,7 +324,7 @@
 
 .field-number {
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   margin-right: 0.125rem;
   flex-shrink: 0;
 }
@@ -373,7 +373,7 @@
 .field-input-small:focus,
 .field-input-tiny:focus {
   outline: none;
-  border-bottom: 0.125rem solid #00578B;
+  border-bottom: 0.125rem solid var(--ms-navy);
 }
 
 .checkbox-inline {
@@ -391,7 +391,7 @@
   width: 0.625rem;
   height: 0.625rem;
   cursor: pointer;
-  accent-color: #00578B;
+  accent-color: var(--ms-navy);
   flex-shrink: 0;
 }
 
@@ -399,13 +399,13 @@
   margin: 0.375rem 0 0.25rem;
   padding: 0.1875rem 0.375rem;
   background: #E8F4F8;
-  border-left: 0.1875rem solid #00578B;
+  border-left: 0.1875rem solid var(--ms-navy);
 }
 
 .section-label {
   font-size: 0.5625rem;
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   text-transform: uppercase;
 }
 
@@ -429,7 +429,7 @@
   width: 0.75rem;
   height: 0.75rem;
   cursor: pointer;
-  accent-color: #00578B;
+  accent-color: var(--ms-navy);
 }
 
 .printable-footer {
@@ -539,7 +539,7 @@
   .notes-label {
     font-size: 0.5rem;
     font-weight: 700;
-    color: #00578B !important;
+    color: var(--ms-navy) !important;
   }
   
   .notes-input {
@@ -559,7 +559,7 @@
   .phone-label {
     font-size: 0.5rem;
     font-weight: 700;
-    color: #00578B !important;
+    color: var(--ms-navy) !important;
   }
   
   .phone-input {
@@ -580,7 +580,7 @@
   }
   
   .printable-title {
-    color: #00578B !important;
+    color: var(--ms-navy) !important;
   }
   
   .form-row {
@@ -602,11 +602,11 @@
     margin: 0.375rem 0 0.25rem;
     padding: 0.25rem 0.5rem;
     background: #E8F4F8 !important;
-    border-left: 0.1875rem solid #00578B !important;
+    border-left: 0.1875rem solid var(--ms-navy) !important;
   }
   
   .section-label {
-    color: #00578B !important;
+    color: var(--ms-navy) !important;
     font-weight: 700;
   }
   
@@ -617,7 +617,7 @@
   }
   
   .field-number {
-    color: #00578B !important;
+    color: var(--ms-navy) !important;
     font-weight: 700;
   }
   

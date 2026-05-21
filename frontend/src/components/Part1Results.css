@@ -42,18 +42,18 @@
   gap: 0.375rem;
   padding: 0.4375rem 0.75rem;
   background: #fff;
-  border: 0.0625rem solid #d0e0ee;
+  border: 0.0625rem solid var(--ms-gray-200);
   border-radius: 0.75rem;
   text-decoration: none;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #1d6ea3;
+  color: var(--ms-navy);
   transition: all 0.15s ease;
 }
 
 .results-mobile-unit-pill:hover {
-  background: #f0f7ff;
-  border-color: #1d6ea3;
+  background: var(--ms-cyan-10);
+  border-color: var(--ms-cyan);
 }
 
 /* ─── Cloud / Session row ─── */
@@ -63,8 +63,8 @@
   gap: 0.625rem;
   flex-wrap: wrap;
   padding: 0.625rem 0.875rem;
-  background: #f4f9ff;
-  border: 0.0625rem solid #d9e7f4;
+  background: var(--ms-cyan-10);
+  border: 0.0625rem solid var(--ms-gray-200);
   border-radius: 0.625rem;
 }
 
@@ -117,16 +117,16 @@
   padding: 0.5rem 1rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #0c4a6e;
-  background: #e0f2fe;
-  border: 0.0625rem solid #7dd3fc;
-  border-radius: 0.5rem;
+  color: var(--ms-navy);
+  background: var(--ms-cyan-10);
+  border: 0.0625rem solid var(--ms-cyan-20);
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
 .btn-research-submit:hover:not(:disabled) {
-  background: #bae6fd;
-  border-color: #38bdf8;
+  background: var(--ms-cyan-20);
+  border-color: var(--ms-cyan);
 }
 .btn-research-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 .results-research-error {
@@ -167,9 +167,9 @@
   gap: 0.4375rem;
   padding: 0.4375rem 0.875rem;
   background: #fff;
-  color: #1d6ea3;
-  border: 0.09375rem solid #1d6ea3;
-  border-radius: 0.5rem;
+  color: var(--ms-navy);
+  border: 0.09375rem solid var(--ms-navy);
+  border-radius: 6px;
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
@@ -177,7 +177,7 @@
 }
 
 .btn-move-cloud:hover:not(:disabled) {
-  background: #e8f4fc;
+  background: var(--ms-navy-10);
   transform: translateY(-0.0625rem);
 }
 
@@ -206,30 +206,28 @@
 }
 
 /*
- * 3-tier top-border system (Part 1):
+ * 3-tier top-border system (Part 1) — MS brand spec:
  *
- *   risk-card--lower    green  #16a34a  Low Risk
- *   risk-card--moderate blue   #2563eb  Intermediate Risk
- *   risk-card--elevated amber  #d97706  Elevated Risk
+ *   risk-card--lower    green  #1B7A4A  Low Risk
+ *   risk-card--moderate amber  #C97B00  Intermediate Risk
+ *   risk-card--elevated red    #C0392B  Elevated Risk
  *
- * risk-card--higher kept as a backward-compatible alias for elevated
- * (some config-driven paths still emit tierRisk=HIGHER).
- * Both map to amber — no visual difference between elevated and higher.
+ * risk-card--higher kept as a backward-compatible alias for elevated.
  */
 .risk-card--lower {
-  border-top: 0.25rem solid #16a34a;
+  border-top: 0.25rem solid var(--risk-lower);
 }
 
 .risk-card--moderate {
-  border-top: 0.25rem solid #2563eb;
+  border-top: 0.25rem solid var(--risk-moderate);
 }
 
 .risk-card--elevated {
-  border-top: 0.25rem solid #d97706;
+  border-top: 0.25rem solid var(--risk-higher);
 }
 
 .risk-card--higher {
-  border-top: 0.25rem solid #d97706;
+  border-top: 0.25rem solid var(--risk-higher);
 }
 
 /* alias → amber */
@@ -267,19 +265,19 @@
 }
 
 .risk-icon--lower {
-  color: #16a34a;
+  color: var(--risk-lower);
 }
 
 .risk-icon--moderate {
-  color: #2563eb;
+  color: var(--risk-moderate);
 }
 
 .risk-icon--elevated {
-  color: #d97706;
+  color: var(--risk-higher);
 }
 
 .risk-icon--higher {
-  color: #d97706;
+  color: var(--risk-higher);
 }
 
 /* alias → amber */
@@ -1004,13 +1002,13 @@
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.09);
 }
 
-.next-step-card--psa  { border-color: #bfdbfe; }
+.next-step-card--psa  { border-color: var(--ms-cyan-20); }
 .next-step-card--mri  { border-color: #bbf7d0; }
-.next-step-card--biopsy { border-color: #e9d5ff; }
+.next-step-card--biopsy { border-color: var(--ms-magenta-20); }
 
-.next-step-card--psa:hover    { border-color: #2563eb; background: #eff6ff; }
+.next-step-card--psa:hover    { border-color: var(--ms-cyan); background: var(--ms-cyan-10); }
 .next-step-card--mri:hover    { border-color: #16a34a; background: #f0fdf4; }
-.next-step-card--biopsy:hover { border-color: #DA1884; background: var(--magenta-50); }
+.next-step-card--biopsy:hover { border-color: var(--ms-magenta); background: var(--ms-magenta-10); }
 
 /* Icon badge */
 .nsc-icon-wrap {
@@ -1023,9 +1021,9 @@
   flex-shrink: 0;
 }
 
-.nsc-icon-wrap--psa    { background: #eff6ff; color: #2563eb; }
+.nsc-icon-wrap--psa    { background: var(--ms-cyan-10); color: var(--ms-cyan); }
 .nsc-icon-wrap--mri    { background: #f0fdf4; color: #16a34a; }
-.nsc-icon-wrap--biopsy { background: var(--magenta-50); color: #DA1884; }
+.nsc-icon-wrap--biopsy { background: var(--ms-magenta-10); color: var(--ms-magenta); }
 
 .nsc-body {
   display: flex;
@@ -1060,9 +1058,9 @@
   transform: translateX(0.1875rem);
 }
 
-.next-step-card--psa:hover    .nsc-arrow { color: #2563eb; }
+.next-step-card--psa:hover    .nsc-arrow { color: var(--ms-cyan); }
 .next-step-card--mri:hover    .nsc-arrow { color: #16a34a; }
-.next-step-card--biopsy:hover .nsc-arrow { color: #DA1884; }
+.next-step-card--biopsy:hover .nsc-arrow { color: var(--ms-magenta); }
 
 /* ─── Action Buttons ─── */
 .results-actions {
@@ -1101,26 +1099,26 @@
 }
 
 .btn-results--solid {
-  background: #1a6898;
+  background: var(--ms-cyan);
   color: #fff;
   border: none;
-  box-shadow: 0 0.125rem 0.375rem rgba(20, 85, 130, 0.2);
+  box-shadow: 0 0.125rem 0.375rem rgba(6, 171, 235, 0.25);
 }
 
 .btn-results--solid:hover {
-  background: #1e77ab;
-  box-shadow: 0 0.25rem 0.75rem rgba(20, 85, 130, 0.28);
+  background: var(--brand-600);
+  box-shadow: 0 0.25rem 0.75rem rgba(6, 171, 235, 0.35);
 }
 
 .btn-results--outline {
   background: #fff;
-  color: #1d5f8a;
-  border: 0.09375rem solid #c2d8ee;
+  color: var(--ms-navy);
+  border: 0.09375rem solid var(--ms-gray-200);
 }
 
 .btn-results--outline:hover {
-  border-color: #1d5f8a;
-  background: #f0f7ff;
+  border-color: var(--ms-cyan);
+  background: var(--ms-cyan-10);
 }
 
 .btn-results--danger-outline {
@@ -1266,7 +1264,7 @@
 }
 
 .theme-dark .btn-results--solid {
-  background: #2563eb;
+  background: var(--ms-cyan);
 }
 
 .theme-dark .btn-results--danger-outline {
@@ -1305,9 +1303,9 @@
 .theme-dark .next-step-card--mri    { border-color: rgba(22, 163, 74, 0.3); }
 .theme-dark .next-step-card--biopsy { border-color: rgba(124, 58, 237, 0.3); }
 
-.theme-dark .next-step-card--psa:hover    { background: rgba(37, 99, 235, 0.08); border-color: #2563eb; }
+.theme-dark .next-step-card--psa:hover    { background: rgba(6, 171, 235, 0.10); border-color: var(--ms-cyan); }
 .theme-dark .next-step-card--mri:hover    { background: rgba(22, 163, 74, 0.08); border-color: #16a34a; }
-.theme-dark .next-step-card--biopsy:hover { background: rgba(218, 24, 132, 0.08); border-color: #DA1884; }
+.theme-dark .next-step-card--biopsy:hover { background: rgba(220, 41, 141, 0.10); border-color: var(--ms-magenta); }
 
 .theme-dark .nsc-title { color: var(--ink-200); }
 .theme-dark .nsc-desc  { color: var(--ink-400); }
@@ -1667,7 +1665,7 @@
 
 .guideline-deviation-banner__pill--guideline {
   background: #e0f2fe;
-  color: #0369a1;
+  color: var(--ms-cyan);
 }
 
 .guideline-deviation-banner__pill--epsa {
@@ -1907,16 +1905,16 @@
   align-items: center;
   gap: 6px;
   padding: 9px 18px;
-  background: #0369a1;
+  background: var(--ms-cyan);
   color: #fff;
   border: none;
-  border-radius: 7px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.psa-cta-banner__btn:hover { background: #0284c7; }
+.psa-cta-banner__btn:hover { background: var(--brand-600); }
 
 /* Dark mode */
 .theme-dark .psa-cta-banner {
@@ -1926,7 +1924,7 @@
 
 .theme-dark .psa-cta-banner__title { color: #bae6fd; }
 .theme-dark .psa-cta-banner__desc  { color: #7dd3fc; }
-.theme-dark .psa-cta-banner__btn   { background: #0369a1; }
+.theme-dark .psa-cta-banner__btn   { background: var(--ms-cyan); }
 
 /* ── Staggered section reveal ─────────────────────────────────────────────── */
 .res-reveal {
@@ -1974,4 +1972,4 @@
     animation: none !important;
   }
 }
-.theme-dark .psa-cta-banner__btn:hover { background: #0284c7; }
+.theme-dark .psa-cta-banner__btn:hover { background: var(--brand-600); }

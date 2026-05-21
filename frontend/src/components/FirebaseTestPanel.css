@@ -40,9 +40,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
-  border: 0.125rem solid #00578B;
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -52,7 +52,7 @@
 
 .run-tests-btn:hover:not(:disabled) {
   background: transparent;
-  color: #00578B;
+  color: var(--ms-navy);
 }
 
 .run-tests-btn:disabled {
@@ -89,7 +89,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 0.25rem solid #E8ECF0;
-  border-top: 0.25rem solid #00578B;
+  border-top: 0.25rem solid var(--ms-navy);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -235,7 +235,7 @@
 }
 
 .test-info {
-  color: #00578B;
+  color: var(--ms-navy);
 }
 
 .test-message {

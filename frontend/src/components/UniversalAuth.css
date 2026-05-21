@@ -70,8 +70,8 @@
 
 .auth-method-btn.active {
   background: white;
-  color: #00578B;
-  border: 0.125rem solid #00578B;
+  color: var(--ms-navy);
+  border: 0.125rem solid var(--ms-navy);
 }
 
 .instruction-subtitle {
@@ -102,7 +102,7 @@
 .session-example {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #00578B;
+  color: var(--ms-navy);
   font-family: 'Courier New', monospace;
   letter-spacing: 0.125rem;
 }
@@ -127,7 +127,7 @@
 
 .contact-display {
   font-weight: 600;
-  color: #00578B;
+  color: var(--ms-navy);
   font-size: 1.125rem;
   margin-top: 0.5rem !important;
 }
@@ -164,7 +164,7 @@
 
 .auth-input:focus {
   outline: none;
-  border-color: #00578B;
+  border-color: var(--ms-navy);
   box-shadow: 0 0 0 0.1875rem rgba(0, 87, 139, 0.1);
 }
 
@@ -186,9 +186,9 @@
 }
 
 .auth-submit-btn {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
-  border: 0.125rem solid #00578B;
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.625rem;
   padding: 1rem 1.5rem;
   font-size: 1rem;
@@ -200,7 +200,7 @@
 
 .auth-submit-btn:hover:not(:disabled) {
   background: transparent;
-  color: #00578B;
+  color: var(--ms-navy);
   transform: translateY(-0.0625rem);
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }
@@ -213,8 +213,8 @@
 
 .auth-back-btn {
   background: transparent;
-  color: #00578B;
-  border: 0.125rem solid #00578B;
+  color: var(--ms-navy);
+  border: 0.125rem solid var(--ms-navy);
   border-radius: 0.625rem;
   padding: 0.75rem 1.25rem;
   font-size: 1rem;
@@ -224,7 +224,7 @@
 }
 
 .auth-back-btn:hover {
-  background: #00578B;
+  background: var(--ms-navy);
   color: white;
   transform: translateY(-0.0625rem);
 }
@@ -258,7 +258,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 0.25rem solid #E8ECF0;
-  border-top: 0.25rem solid #00578B;
+  border-top: 0.25rem solid var(--ms-navy);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
