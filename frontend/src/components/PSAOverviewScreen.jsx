@@ -19,23 +19,9 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
 
   const steps = [
     {
-      key: 'intro',
-      icon: <FlaskConicalIcon size={28} />,
-      eyebrow: 'Step 1 of 5 — Before you start',
-      title: 'What is PSA, and why does this matter?',
-      body: t(
-        'psaOverview.steps.intro.body',
-        'Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.'
-      ),
-      nudge: t(
-        'psaOverview.steps.intro.nudge',
-        'If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don\'t wait on this tool.'
-      ),
-    },
-    {
       key: 'what',
       icon: <FlaskConicalIcon size={28} />,
-      eyebrow: 'Step 2 of 5',
+      eyebrow: 'Step 1 of 4',
       title: t('psaOverview.steps.what.title', 'What is PSA?'),
       body: t(
         'psaOverview.steps.what.body',
@@ -51,6 +37,10 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           value: t('psaOverview.steps.what.fact3Value', 'BPH, prostatitis, recent ejaculation, or cycling can raise PSA'),
         },
       ],
+      nudge: t(
+        'psaOverview.steps.intro.nudge',
+        'If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don\'t wait on this tool.'
+      ),
       sourceLinks: [
         { text: 'American Cancer Society', url: 'https://www.cancer.org/cancer/types/prostate-cancer/about/key-statistics.html' },
         { text: 'NCCN Prostate Cancer Early Detection v1.2024', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1460' },
@@ -59,7 +49,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
     {
       key: 'why',
       icon: <HeartPulseIcon size={28} />,
-      eyebrow: 'Step 3 of 5',
+      eyebrow: 'Step 2 of 4',
       title: t('psaOverview.steps.why.title', 'Why does PSA testing matter?'),
       body: t(
         'psaOverview.steps.why.body',
@@ -78,7 +68,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
     {
       key: 'guidelines',
       icon: <BookOpenIcon size={28} />,
-      eyebrow: 'Step 4 of 5',
+      eyebrow: 'Step 3 of 4',
       title: t('psaOverview.steps.guidelines.title', 'What do the major guidelines say?'),
       body: t(
         'psaOverview.steps.guidelines.body',
@@ -115,7 +105,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
     {
       key: 'epsa',
       icon: <ShieldCheckIcon size={28} />,
-      eyebrow: 'Step 5 of 5',
+      eyebrow: 'Step 4 of 4',
       title: t('psaOverview.steps.epsa.title', 'How does ePSA help?'),
       body: t(
         'psaOverview.steps.epsa.body',
@@ -169,7 +159,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
   return (
     <div className="psa-overview-container" role="main">
       <div className="psa-overview-card">
-        <div className="psa-overview-progress" aria-label={`Step ${stepIndex + 1} of ${total}`}>
+        <div className="psa-overview-progress" aria-label={`Step ${stepIndex + 1} of 4`}>
           {steps.map((s, i) => (
             <button
               key={s.key}
