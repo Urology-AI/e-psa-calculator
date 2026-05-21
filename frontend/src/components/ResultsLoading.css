@@ -10,7 +10,7 @@
   width: 100%;
   max-width: 24rem;
   background: #ffffff;
-  border: 1px solid #e2eaf2;
+  border: 1px solid var(--ms-gray-200);
   border-radius: 1.25rem;
   padding: 2.25rem 2rem 2rem;
   box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.07);
@@ -29,7 +29,7 @@
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #6b7c93;
+  color: var(--ms-gray-600);
   margin-bottom: 1.25rem;
 }
 
@@ -46,8 +46,8 @@
   border-radius: 50%;
   background: conic-gradient(
     from -90deg,
-    #1e3a5f 0deg,
-    #3b82f6 170deg,
+    var(--ms-navy) 0deg,
+    var(--ms-cyan) 170deg,
     transparent 210deg 360deg
   );
   -webkit-mask: radial-gradient(farthest-side, transparent 72%, black 72%);
@@ -63,7 +63,7 @@
 .results-loading-message {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: #1a3d59;
+  color: var(--ms-navy);
   margin-bottom: 1.125rem;
   line-height: 1.4;
 }
@@ -72,7 +72,7 @@
 .rl-progress-bar {
   width: 100%;
   height: 5px;
-  background: #e2eaf2;
+  background: var(--ms-gray-200);
   border-radius: 999px;
   margin: 0 0 0.375rem;
   overflow: hidden;
@@ -80,7 +80,7 @@
 
 .rl-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #1e3a5f 0%, #3b82f6 100%);
+  background: linear-gradient(90deg, var(--ms-navy) 0%, var(--ms-cyan) 100%);
   border-radius: 999px;
   transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -110,7 +110,7 @@
 }
 
 .rl-dot--pending {
-  background: #e2eaf2;
+  background: var(--ms-gray-200);
 }
 
 .rl-dot--active {
@@ -120,14 +120,14 @@
 }
 
 .rl-dot--done {
-  background: #93c5fd;
+  background: var(--ms-cyan-20);
 }
 
 /* ── Cycling step label ── */
 .results-loading-step-text {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1a3d59;
+  color: var(--ms-navy);
   margin-bottom: 0.375rem;
   animation: rl-text-in 0.35s ease both;
 }
@@ -138,8 +138,8 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--ms-cyan);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--ms-cyan-10);
+  border: 1px solid var(--ms-cyan-20);
   border-radius: 999px;
   padding: 0.0625rem 0.4375rem;
   margin-right: 0.25rem;
@@ -149,7 +149,7 @@
 /* ── Cycling detail text ── */
 .results-loading-detail {
   font-size: 0.78125rem;
-  color: #6b7c93;
+  color: var(--ms-gray-600);
   line-height: 1.6;
   animation: rl-text-in 0.35s ease both;
   animation-delay: 0.05s;
@@ -162,35 +162,35 @@
 
 /* ── Dark theme ── */
 .theme-dark .results-loading-card {
-  background: #1a2738;
-  border-color: #2a3a4d;
+  background: var(--surface-subtle);
+  border-color: var(--line-200);
   box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.4);
 }
 
-.theme-dark .results-loading-eyebrow  { color: #8aa0b8; }
-.theme-dark .results-loading-message  { color: #e6edf5; }
-.theme-dark .results-loading-detail   { color: #8aa0b8; }
-.theme-dark .results-loading-step-text { color: #c6d8ec; }
+.theme-dark .results-loading-eyebrow  { color: var(--ms-gray-400); }
+.theme-dark .results-loading-message  { color: var(--ms-gray-100); }
+.theme-dark .results-loading-detail   { color: var(--ms-gray-400); }
+.theme-dark .results-loading-step-text { color: var(--ms-gray-200); }
 
 .theme-dark .results-loading-ring {
   background: conic-gradient(
     from -90deg,
-    #6ea8ff 0deg,
-    #93c5fd 170deg,
+    var(--ms-cyan) 0deg,
+    var(--ms-cyan-20) 170deg,
     transparent 210deg 360deg
   );
 }
 
-.theme-dark .rl-dot--pending { background: #2a3a4d; }
-.theme-dark .rl-dot--active  { background: #6ea8ff; box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.2); }
-.theme-dark .rl-dot--done    { background: #4a7ab8; }
+.theme-dark .rl-dot--pending { background: var(--line-200); }
+.theme-dark .rl-dot--active  { background: var(--ms-cyan); box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.2); }
+.theme-dark .rl-dot--done    { background: var(--brand-600); }
 
-.theme-dark .rl-progress-bar  { background: #2a3a4d; }
-.theme-dark .rl-progress-fill { background: linear-gradient(90deg, #4a7ab8 0%, #6ea8ff 100%); }
-.theme-dark .rl-progress-pct  { color: #93c5fd; }
+.theme-dark .rl-progress-bar  { background: var(--line-200); }
+.theme-dark .rl-progress-fill { background: linear-gradient(90deg, var(--brand-600) 0%, var(--ms-cyan) 100%); }
+.theme-dark .rl-progress-pct  { color: var(--ms-cyan-20); }
 
 .theme-dark .results-loading-step-count {
-  color: #93c5fd;
+  color: var(--ms-cyan-20);
   background: rgba(37, 99, 235, 0.15);
   border-color: rgba(37, 99, 235, 0.35);
 }

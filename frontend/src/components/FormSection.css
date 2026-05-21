@@ -6,8 +6,8 @@
   margin: 1.5rem 0 0.875rem;
   padding: 0.3125rem 0 0.3125rem 0.875rem;
   border-bottom: none;
-  border-left: 3px solid #2a76a9;
-  color: #0f1c2d;
+  border-left: 3px solid var(--brand-600);
+  color: var(--ms-navy);
   font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: -0.005em;
