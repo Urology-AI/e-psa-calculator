@@ -1784,3 +1784,41 @@
 .theme-dark .as-banner-eyebrow { color: var(--ms-cyan-20); }
 .theme-dark .as-banner--possible .as-banner-eyebrow { color: var(--ms-cyan); }
 .theme-dark .as-banner--mention  .as-banner-eyebrow { color: var(--risk-lower); }
+
+/* ── Age 70+ SDM / Life Expectancy Required banner ── */
+.p2r-sdm-required-banner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.875rem 1rem;
+  background: #f5f3ff;
+  border: 1.5px solid #c4b5fd;
+  border-left: 4px solid #7c3aed;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+.p2r-sdm-required-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.p2r-sdm-required-body { flex: 1; min-width: 0; }
+.p2r-sdm-required-title {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #5b21b6;
+  margin-bottom: 0.25rem;
+}
+.p2r-sdm-required-text {
+  font-size: 0.8rem;
+  color: #4c1d95;
+  line-height: 1.5;
+  margin: 0;
+}
+.theme-dark .p2r-sdm-required-banner {
+  background: #2e1065;
+  border-color: #7c3aed;
+  border-left-color: #a78bfa;
+}
+.theme-dark .p2r-sdm-required-title { color: #ddd6fe; }
+.theme-dark .p2r-sdm-required-text { color: #c4b5fd; }
