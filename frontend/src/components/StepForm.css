@@ -20,7 +20,7 @@
 
 .step-title {
   font-size: 1.8rem;
-  color: #003A5D;
+  color: var(--ms-navy);
   margin: 0 0 0.5rem 0;
   font-weight: 700;
 }
@@ -42,7 +42,7 @@
   align-items: center;
   margin-top: 2.5rem;
   padding-top: 2rem;
-  border-top: 0.125rem solid #f0f0f0;
+  border-top: 0.125rem solid var(--ms-gray-200);
 }
 
 .step-actions-spacer {
@@ -61,13 +61,13 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #003A5D 0%, #005A8F 100%);
+  background: linear-gradient(135deg, var(--ms-navy) 0%, var(--brand-600) 100%);
   color: white;
   box-shadow: 0 0.25rem 0.75rem rgba(0, 58, 93, 0.3);
 }
 
 .btn-primary:hover:not(.disabled) {
-  background: linear-gradient(135deg, #005A8F 0%, #003A5D 100%);
+  background: linear-gradient(135deg, var(--brand-600) 0%, var(--ms-navy) 100%);
   transform: translateY(-0.125rem);
   box-shadow: 0 0.375rem 1rem rgba(0, 58, 93, 0.4);
 }
@@ -84,12 +84,12 @@
 
 .btn-secondary {
   background: white;
-  color: #003A5D;
-  border: 0.125rem solid #003A5D;
+  color: var(--ms-navy);
+  border: 0.125rem solid var(--ms-navy);
 }
 
 .btn-secondary:hover {
-  background: #f5f5f5;
+  background: var(--ms-gray-100);
   transform: translateY(-0.125rem);
 }
 

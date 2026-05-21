@@ -15,7 +15,7 @@
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
-  border: 0.125rem solid #e0e0e0;
+  border: 0.125rem solid var(--ms-gray-200);
   border-radius: 0.5rem;
   box-sizing: border-box;
   transition: all 0.2s ease;
@@ -25,14 +25,14 @@
 
 .form-field select:focus,
 .form-field input[type="number"]:focus {
-  border-color: #003A5D;
+  border-color: var(--ms-navy);
   outline: none;
   box-shadow: 0 0 0 0.1875rem rgba(0, 58, 93, 0.1);
 }
 
 .form-field select:hover,
 .form-field input[type="number"]:hover {
-  border-color: #003A5D;
+  border-color: var(--ms-navy);
 }
 
 /* ─── Dark mode overrides ─── */
