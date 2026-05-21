@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
-import { ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon, BookOpenIcon, InfoIcon, ExternalLinkIcon, BuildingIcon } from 'lucide-react';
+import {
+  ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon,
+  BookOpenIcon, InfoIcon, ExternalLinkIcon, BuildingIcon, ShieldCheckIcon,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import ShareQrCode from './ShareQrCode';
-import './ShareQrCode.css';
 
 const GUIDELINES_SEEN_KEY = 'epsa.guidelinesModalSeen.v1';
 
@@ -133,7 +134,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
 
-  // Auto-open the screening guidelines on first visit
   useEffect(() => {
     try {
       if (typeof window === 'undefined') return;
@@ -141,7 +141,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
         setShowGuidelines(true);
       }
     } catch {
-      /* localStorage unavailable (private mode etc.) — skip auto-open */
+      /* localStorage unavailable — skip auto-open */
     }
   }, []);
 
@@ -166,142 +166,139 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
     <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
       {showGuidelines && <GuidelinesModal onClose={handleCloseGuidelines} />}
 
-      {/* ── Brand accent bar ── */}
+      {/* ── Accent bar ── */}
       <div className="ws-accent-bar" aria-hidden="true" />
 
-      {/* ── Trust strip ── */}
-      <div className="ws-trust-strip" aria-label="Institutional affiliation and guideline compliance">
-        <span className="ws-trust-sinai">Icahn School of Medicine at Mount Sinai</span>
-        <span className="ws-trust-sep" aria-hidden="true">·</span>
-        <span className="ws-trust-badge">AUA/SUO 2026</span>
-        <span className="ws-trust-badge">NCCN v1.2024</span>
-        <span className="ws-trust-badge">EAU 2024</span>
-      </div>
-
-      {/* ── Hero ── */}
-      <section className="ws-hero">
-        <div className="ws-hero-layout">
-          <div className="ws-hero-main">
-            <h1 className="ws-hero-title">
-              {t('welcome.heroTitle')}
-            </h1>
-            <p className="ws-hero-body">
-              {t('welcome.heroDescription')}
-            </p>
-
-            {/* CTA */}
-            <div className="ws-cta">
-              {showStorageChoice ? (
-                <div className="ws-storage-choice">
-                  <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
-                    <span>{t('welcome.storageCloudTitle')}</span>
-                    <span className="ws-btn-sub">{t('welcome.storageCloudSub')}</span>
-                    <ArrowRightIcon size={18} />
-                  </button>
-                  <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>
-                    <span>{t('welcome.storageDeviceOnlyTitle')}</span>
-                    <span className="ws-btn-sub ws-btn-sub-ghost">{t('welcome.storageDeviceOnlySub')}</span>
-                  </button>
-                </div>
-              ) : (
-                <button className="ws-btn-primary" onClick={handleBegin}>
-                  <span>{t('welcome.startAssessment')}</span>
-                  <ArrowRightIcon size={18} />
-                </button>
-              )}
-              <p className="ws-cta-note">
-                {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
-              </p>
-              <div className="ws-utility-links">
-                {onViewOverview && (
-                  <button type="button" className="ws-demo-link" onClick={onViewOverview}>
-                    <InfoIcon size={13} aria-hidden="true" />
-                    <span>What is ePSA?</span>
-                  </button>
-                )}
-                <button type="button" className="ws-demo-link" onClick={() => setShowGuidelines(true)}>
-                  <BookOpenIcon size={13} aria-hidden="true" />
-                  <span>View screening guidelines</span>
-                </button>
-                <a href="/demo" className="ws-demo-link">
-                  <PlayIcon size={13} aria-hidden="true" />
-                  <span>Watch demo</span>
-                </a>
-              </div>
+      {/* ── Hero card ── */}
+      <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
+        {/* Navy header: brand identity + trust signals */}
+        <div className="ws-hero-card-head">
+          <div className="ws-brand-lockup">
+            <div className="ws-brand-icon-wrap" aria-hidden="true">
+              <ShieldCheckIcon size={20} />
             </div>
+            <div>
+              <div className="ws-brand-name">ePSA</div>
+              <div className="ws-brand-tagline">Prostate Cancer Screening Aid</div>
+            </div>
+          </div>
+          <div className="ws-trust-row">
+            <span className="ws-trust-inst">Icahn School of Medicine at Mount Sinai</span>
+            <div className="ws-badge-row">
+              <span className="ws-trust-badge">AUA/SUO 2026</span>
+              <span className="ws-trust-badge">NCCN v1.2024</span>
+              <span className="ws-trust-badge">EAU 2024</span>
+            </div>
+          </div>
+        </div>
+
+        {/* White body: title, description, CTA */}
+        <div className="ws-hero-card-body">
+          <h1 className="ws-hero-title">{t('welcome.heroTitle')}</h1>
+          <p className="ws-hero-body">{t('welcome.heroDescription')}</p>
+
+          {showStorageChoice ? (
+            <div className="ws-storage-choice">
+              <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
+                <span>{t('welcome.storageCloudTitle')}</span>
+                <span className="ws-btn-sub">{t('welcome.storageCloudSub')}</span>
+                <ArrowRightIcon size={17} />
+              </button>
+              <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>
+                <span>{t('welcome.storageDeviceOnlyTitle')}</span>
+                <span className="ws-btn-sub ws-btn-sub-ghost">{t('welcome.storageDeviceOnlySub')}</span>
+              </button>
+            </div>
+          ) : (
+            <button className="ws-btn-primary" onClick={handleBegin}>
+              <span>{t('welcome.startAssessment')}</span>
+              <ArrowRightIcon size={17} />
+            </button>
+          )}
+
+          <p className="ws-cta-note">
+            {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
+          </p>
+
+          <div className="ws-utility-links">
+            {onViewOverview && (
+              <button type="button" className="ws-demo-link" onClick={onViewOverview}>
+                <InfoIcon size={13} aria-hidden="true" />
+                <span>What is ePSA?</span>
+              </button>
+            )}
+            <button type="button" className="ws-demo-link" onClick={() => setShowGuidelines(true)}>
+              <BookOpenIcon size={13} aria-hidden="true" />
+              <span>Screening guidelines</span>
+            </button>
+            <a href="/demo" className="ws-demo-link">
+              <PlayIcon size={13} aria-hidden="true" />
+              <span>Watch demo</span>
+            </a>
           </div>
         </div>
       </section>
 
       {/* ── How it works ── */}
-      <section className="ws-flow">
-        <div className="ws-flow-step">
-          <span className="ws-flow-num">1</span>
-          <div>
-            <strong>{t('welcome.flow.step1Title')}</strong>
-            <span> — {t('welcome.flow.step1Body')}</span>
+      <section className="ws-flow" aria-label="How ePSA works">
+        <h2 className="ws-flow-heading">How it works</h2>
+        <div className="ws-flow-steps">
+          <div className="ws-flow-step">
+            <span className="ws-flow-num" aria-hidden="true">1</span>
+            <div className="ws-flow-step-text">
+              <strong>{t('welcome.flow.step1Title')}</strong>
+              <span>{t('welcome.flow.step1Body')}</span>
+            </div>
           </div>
-        </div>
-        <div className="ws-flow-connector" aria-hidden="true" />
-        <div className="ws-flow-step">
-          <span className="ws-flow-num">2</span>
-          <div>
-            <strong>{t('welcome.flow.step2Title')}</strong>
-            <span> — {t('welcome.flow.step2Body')}</span>
+          <div className="ws-flow-connector" aria-hidden="true" />
+          <div className="ws-flow-step">
+            <span className="ws-flow-num" aria-hidden="true">2</span>
+            <div className="ws-flow-step-text">
+              <strong>{t('welcome.flow.step2Title')}</strong>
+              <span>{t('welcome.flow.step2Body')}</span>
+            </div>
           </div>
-        </div>
-        <div className="ws-flow-connector" aria-hidden="true" />
-        <div className="ws-flow-step">
-          <span className="ws-flow-num">3</span>
-          <div>
-            <strong>{t('welcome.flow.step3Title')}</strong>
-            <span> — {t('welcome.flow.step3Body')}</span>
+          <div className="ws-flow-connector" aria-hidden="true" />
+          <div className="ws-flow-step">
+            <span className="ws-flow-num" aria-hidden="true">3</span>
+            <div className="ws-flow-step-text">
+              <strong>{t('welcome.flow.step3Title')}</strong>
+              <span>{t('welcome.flow.step3Body')}</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Secondary actions ── */}
-      <div className="ws-secondary-wrap">
-        <div className="ws-secondary">
-          {onImport && (
-            <button type="button" className="ws-btn-text" onClick={onImport}>
-              <UploadIcon size={14} />
-              <span>{t('welcome.importPreviousSession')}</span>
-            </button>
-          )}
-          {onQuickEntry && (
-            <button type="button" className="ws-btn-text" onClick={onQuickEntry}>
-              <UploadIcon size={14} />
-              <span>{t('welcome.quickEntry')}</span>
-            </button>
-          )}
-          <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
-            <FileTextIcon size={14} />
-            <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
+      {/* ── Secondary / utility actions ── */}
+      <div className="ws-secondary">
+        {onImport && (
+          <button type="button" className="ws-btn-text" onClick={onImport}>
+            <UploadIcon size={13} />
+            <span>{t('welcome.importPreviousSession')}</span>
           </button>
-          {onBeginSinai && (
-            <button
-              type="button"
-              className="ws-btn-text"
-              onClick={onBeginSinai}
-              title="Mount Sinai patients with a clinic-issued code"
-            >
-              <BuildingIcon size={14} />
-              <span>Mount Sinai patient?</span>
-            </button>
-          )}
-        </div>
-        <ShareQrCode
-          className="ws-qr ws-qr-right"
-          url={import.meta.env.VITE_PUBLIC_APP_URL}
-          title="Scan QR to open ePSA"
-          subtitle="Click QR or URL to open."
-          size={132}
-          clickable
-        />
+        )}
+        {onQuickEntry && (
+          <button type="button" className="ws-btn-text" onClick={onQuickEntry}>
+            <UploadIcon size={13} />
+            <span>{t('welcome.quickEntry')}</span>
+          </button>
+        )}
+        <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
+          <FileTextIcon size={13} />
+          <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
+        </button>
+        {onBeginSinai && (
+          <button
+            type="button"
+            className="ws-btn-text"
+            onClick={onBeginSinai}
+            title="Mount Sinai patients with a clinic-issued code"
+          >
+            <BuildingIcon size={13} />
+            <span>Mount Sinai patient?</span>
+          </button>
+        )}
       </div>
-
-
     </div>
   );
 };

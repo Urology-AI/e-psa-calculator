@@ -11,13 +11,13 @@
 .import-header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #1C2833;
+  color: var(--ms-black);
   margin: 0 0 0.625rem 0;
 }
 
 .import-header p {
   font-size: 1.1rem;
-  color: #5D6D7E;
+  color: var(--ms-gray-600);
   margin: 0;
   line-height: 1.5;
 }
@@ -54,8 +54,8 @@
 }
 
 .import-section {
-  background: #F8FAFB;
-  border: 0.125rem solid #E8ECF0;
+  background: var(--ms-gray-100);
+  border: 0.125rem solid var(--ms-gray-200);
   border-radius: 0.75rem;
   padding: 1.875rem;
   text-align: center;
@@ -74,18 +74,18 @@
   gap: 0.625rem;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #1C2833;
+  color: var(--ms-black);
   margin: 0 0 1.25rem 0;
 }
 
 .import-section p {
-  color: #5D6D7E;
+  color: var(--ms-gray-600);
   margin: 0 0 1.25rem 0;
   line-height: 1.5;
 }
 
 .file-drop-zone {
-  border: 0.125rem dashed #D5D8DC;
+  border: 0.125rem dashed var(--ms-gray-200);
   border-radius: 0.5rem;
   padding: 2.5rem 1.25rem;
   background: white;
@@ -96,7 +96,7 @@
 .file-drop-zone:hover,
 .file-drop-zone.active {
   border-color: var(--ms-navy);
-  background: #F0F8FF;
+  background: var(--ms-cyan-10);
 }
 
 .drop-content {
@@ -113,7 +113,7 @@
 
 .drop-content p {
   margin: 0;
-  color: #5D6D7E;
+  color: var(--ms-gray-600);
   font-size: 1rem;
 }
 
@@ -135,7 +135,7 @@
 }
 
 .file-select-btn:hover {
-  background: #004570;
+  background: var(--ms-navy);
   transform: translateY(-0.0625rem);
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }
@@ -143,7 +143,7 @@
 .import-loading {
   text-align: center;
   padding: 2.5rem;
-  background: #F0F8FF;
+  background: var(--ms-cyan-10);
   border-radius: 0.5rem;
   margin-bottom: 1.25rem;
 }
@@ -157,7 +157,7 @@
 .spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 0.25rem solid #E8ECF0;
+  border: 0.25rem solid var(--ms-gray-200);
   border-top: 0.25rem solid var(--ms-navy);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -170,8 +170,8 @@
 }
 
 .import-error {
-  background: #FDEDEC;
-  border: 0.0625rem solid #FADBD8;
+  background: var(--error-50);
+  border: 0.0625rem solid var(--error-50);
   border-radius: 0.5rem;
   padding: 1.25rem;
   margin-bottom: 1.25rem;
@@ -184,15 +184,15 @@
 }
 
 .import-help {
-  background: #F8FAFB;
-  border: 0.0625rem solid #E8ECF0;
+  background: var(--ms-gray-100);
+  border: 0.0625rem solid var(--ms-gray-200);
   border-radius: 0.5rem;
   padding: 1.5625rem;
   margin-top: 1.875rem;
 }
 
 .import-help h3 {
-  color: #1C2833;
+  color: var(--ms-black);
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.9375rem 0;
@@ -204,13 +204,13 @@
 }
 
 .import-help li {
-  color: #5D6D7E;
+  color: var(--ms-gray-600);
   margin-bottom: 0.5rem;
   line-height: 1.5;
 }
 
 .import-help li strong {
-  color: #1C2833;
+  color: var(--ms-black);
 }
 
 .session-login-form {
@@ -226,7 +226,7 @@
 .session-input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 0.125rem solid #E8ECF0;
+  border: 0.125rem solid var(--ms-gray-200);
   border-radius: 0.5rem;
   font-size: 1rem;
   font-family: 'Courier New', monospace;

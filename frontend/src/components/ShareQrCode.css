@@ -1,5 +1,5 @@
 .share-qr {
-  border: 0.0625rem solid #d0e0ee;
+  border: 0.0625rem solid var(--ms-navy-20);
   border-radius: 0.75rem;
   background: #fff;
   padding: 0.75rem;
@@ -21,19 +21,19 @@
 .share-qr__title {
   font-size: 0.8125rem;
   font-weight: 800;
-  color: #1d5f8a;
+  color: var(--ms-navy);
 }
 
 .share-qr__subtitle {
   margin-top: 0.1875rem;
   font-size: 0.75rem;
-  color: #4a6b84;
+  color: var(--ms-gray-600);
   line-height: 1.4;
 }
 
 .share-qr__code-wrap {
   flex-shrink: 0;
-  border: 0.0625rem solid #d9e7f4;
+  border: 0.0625rem solid var(--ms-navy-10);
   border-radius: 0.5rem;
   padding: 0.25rem;
   background: #fff;
@@ -58,7 +58,7 @@
 
 .share-qr__fallback {
   font-size: 0.6875rem;
-  color: #7a94aa;
+  color: var(--ms-gray-400);
   width: 5.25rem;
   height: 5.25rem;
   display: flex;
@@ -71,7 +71,7 @@
   margin-top: 0.5rem;
   display: block;
   font-size: 0.6875rem;
-  color: #4a7a9b;
+  color: var(--brand-600);
   text-decoration: none;
   word-break: break-all;
 }
