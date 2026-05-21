@@ -17,7 +17,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon, ScanEyeIcon,
+  MapPinIcon, PillIcon, ScanEyeIcon, UsersIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -264,6 +264,17 @@ const Part2Results = ({
     psadFlag,
   } = result;
 
+  const ageNum = Number(preResult?.age || preData?.age) || 0;
+  const isAge70Plus = ageNum >= 70;
+
+  /* SDM is clinically indicated for elevated risk tiers, older patients, or discordance */
+  const showSDM = epsaTierKey === 'intermediate-high' || epsaTierKey === 'high'
+    || isAge70Plus || !!discordanceFlag;
+
+  /* Urology referral CTAs only appropriate for elevated combined risk */
+  const showUrologyReferral = epsaTierKey === 'intermediate-high' || epsaTierKey === 'high'
+    || biopsyRecommended;
+
   const getRiskColor = (rc) => {
     const cls = String(rc || '').toLowerCase();
     if (cls.includes('very') || (cls.includes('high') && !cls.includes('mod'))) return '#dc2626';
@@ -328,12 +339,18 @@ const Part2Results = ({
   const heroVariant = biopsyRecommended
     ? (biopsyReason === 'high_risk_discordance' ? 'amber' : 'red')
     : 'blue';
-  const heroIcon = heroVariant === 'red' ? <AlertCircleIcon size={20} /> : heroVariant === 'amber' ? <AlertTriangleIcon size={20} /> : <FlaskConicalIcon size={20} />;
-  const heroTitle = heroVariant === 'red'
-    ? t('part2Results.tiers.hero.biopsy')
-    : heroVariant === 'amber'
-    ? t('part2Results.tiers.hero.urologistReview')
-    : t('part2Results.tiers.hero.nextSteps');
+
+  const heroIcon = (() => {
+    if (biopsyRecommended) return heroVariant === 'red' ? <AlertCircleIcon size={20} /> : <AlertTriangleIcon size={20} />;
+    if (isAge70Plus) return <UsersIcon size={20} />;
+    return <FlaskConicalIcon size={20} />;
+  })();
+
+  const heroTitle = (() => {
+    if (biopsyRecommended) return heroVariant === 'red' ? t('part2Results.tiers.hero.biopsy') : t('part2Results.tiers.hero.urologistReview');
+    if (isAge70Plus) return 'Discuss Next Steps with Your Physician';
+    return t('part2Results.tiers.hero.nextSteps');
+  })();
 
   /* Plain-language recommendation based on tier — aligns with AUA/NCCN */
   const tierRecommendation = (() => {
@@ -344,7 +361,14 @@ const Part2Results = ({
     return t('part2Results.tiers.recommendation.low');
   })();
 
-  const heroMessage = biopsyRecommended && biopsyMessage ? biopsyMessage : tierRecommendation;
+  /* For 70+ patients the hero message emphasises SDM + life expectancy per AUA/SUO 2026 */
+  const heroMessage = (() => {
+    if (biopsyRecommended && biopsyMessage) return biopsyMessage;
+    if (isAge70Plus) {
+      return 'Per AUA/SUO 2026, all screening decisions at age 70+ require Shared Decision-Making based on your life expectancy and personal values. The PSA-based pathway applies only if your life expectancy is ≥ 10 years — your physician must assess this first.';
+    }
+    return tierRecommendation;
+  })();
 
   /* Surface discordance or low-PSA context as a single calm footnote in the hero */
   const hasContextNote = discordanceFlag || lowPsaWarning;
@@ -445,65 +469,6 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── Clinical Notices (consolidated) ── */}
-      {(lowPsaWarning || psadFlag || discordanceFlag) && (
-        <div className="p2r-notices" role="note" aria-label="Clinical notices">
-          <div className="p2r-notices-title">
-            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
-            <span>Clinical Notices</span>
-          </div>
-          <ul className="p2r-notices-list">
-            {lowPsaWarning && (
-              <NoticeItem label="Low PSA Risk">
-                {lowPsaWarningText}
-              </NoticeItem>
-            )}
-            {psadFlag && (
-              <NoticeItem label="PSA Density Elevated">
-                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
-                <ModalInfoIcon
-                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
-                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
-                  sources={fieldReferences.part2.psadKadeer.sources}
-                />
-              </NoticeItem>
-            )}
-            {discordanceFlag && (
-              <NoticeItem label="Risk Discordance">
-                {discordanceFlag.text}
-              </NoticeItem>
-            )}
-          </ul>
-        </div>
-      )}
-
-      {/* ── PSA Adjustment ── */}
-      {psaAdjustedFlag && (
-        <div className="v2-ari-notice" role="alert">
-          <PillIcon size={18} className="v2-ari-notice-icon" />
-          <div className="v2-ari-notice-body">
-            <div className="v2-ari-notice-title">PSA ADJUSTED FOR 5-ARI MEDICATION</div>
-            <div className="v2-ari-notice-pills">
-              <div className="v2-ari-pill v2-ari-pill--reported">Reported: <strong>{psaValue} ng/mL</strong></div>
-              <div className="v2-ari-arrow">→</div>
-              <div className="v2-ari-pill v2-ari-pill--adjusted">Adjusted: {psaAdjusted} ng/mL (×2)</div>
-            </div>
-            <p className="v2-ari-notice-text">Finasteride/dutasteride suppress PSA by ~50%. Per AUA/SUO 2026, reported PSA is doubled before risk scoring.</p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Hormonal therapy ── */}
-      {isOtherHormonal && (
-        <div className="p2r-alert p2r-alert--warning" role="alert">
-          <PillIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Hormonal Therapy Noted</div>
-            <p className="p2r-alert-body">No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.</p>
-          </div>
-        </div>
-      )}
-
       {/* ── Critical guardrail alerts only (e.g. PSA > 100) ── */}
       {guardrailAlerts?.length > 0 && guardrailAlerts
         .filter(a => a.level === 'critical')
@@ -566,23 +531,91 @@ const Part2Results = ({
         </div>
       </div>
 
-      {/* ── MRI Recommendation (post_psa only) ── */}
-      {pathwayMode === 'post_psa' && (
-        <div className={`v2-psa-hero v2-psa-hero--${mriRecommended ? 'amber' : 'blue'} res-reveal`} style={{ '--delay': '200ms' }}>
+      {/* ── PSA Adjustment ── */}
+      {psaAdjustedFlag && (
+        <div className="v2-ari-notice" role="alert">
+          <PillIcon size={18} className="v2-ari-notice-icon" />
+          <div className="v2-ari-notice-body">
+            <div className="v2-ari-notice-title">PSA ADJUSTED FOR 5-ARI MEDICATION</div>
+            <div className="v2-ari-notice-pills">
+              <div className="v2-ari-pill v2-ari-pill--reported">Reported: <strong>{psaValue} ng/mL</strong></div>
+              <div className="v2-ari-arrow">→</div>
+              <div className="v2-ari-pill v2-ari-pill--adjusted">Adjusted: {psaAdjusted} ng/mL (×2)</div>
+            </div>
+            <p className="v2-ari-notice-text">Finasteride/dutasteride suppress PSA by ~50%. Per AUA/SUO 2026, reported PSA is doubled before risk scoring.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Hormonal therapy ── */}
+      {isOtherHormonal && (
+        <div className="p2r-alert p2r-alert--warning" role="alert">
+          <PillIcon size={16} className="p2r-alert-icon" />
+          <div>
+            <div className="p2r-alert-title">Hormonal Therapy Noted</div>
+            <p className="p2r-alert-body">No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Clinical Notices (after the risk card so the result is seen first) ── */}
+      {(lowPsaWarning || psadFlag || discordanceFlag) && (
+        <div className="p2r-notices" role="note" aria-label="Clinical notices">
+          <div className="p2r-notices-title">
+            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
+            <span>Clinical Notices</span>
+          </div>
+          <ul className="p2r-notices-list">
+            {lowPsaWarning && (
+              <NoticeItem label="Low PSA Risk">
+                {lowPsaWarningText}
+              </NoticeItem>
+            )}
+            {psadFlag && (
+              <NoticeItem label="PSA Density Elevated">
+                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
+                <ModalInfoIcon
+                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
+                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
+                  sources={fieldReferences.part2.psadKadeer.sources}
+                />
+              </NoticeItem>
+            )}
+            {discordanceFlag && (
+              <NoticeItem label="Risk Discordance">
+                {discordanceFlag.text}
+              </NoticeItem>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* ── Age 70+ SDM / Life Expectancy Required banner ── */}
+      {isAge70Plus && (
+        <div className="p2r-sdm-required-banner res-reveal" role="note" style={{ '--delay': '160ms' }}>
+          <div className="p2r-sdm-required-icon">👤</div>
+          <div className="p2r-sdm-required-body">
+            <div className="p2r-sdm-required-title">Age 70+ — Shared Decision-Making Required</div>
+            <p className="p2r-sdm-required-text">
+              Per AUA/SUO 2026, all PSA screening decisions at age 70+ begin with Shared Decision-Making (SDM). Your physician must first assess your <strong>life expectancy</strong> — if less than 10 years, discontinuing screening is recommended regardless of PSA level. The PSA-based recommendations below only apply if your life expectancy is ≥ 10 years.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── MRI Recommendation — only shown when clinically indicated (AUA/NCCN/EAU: mpMRI before biopsy) ── */}
+      {pathwayMode === 'post_psa' && mriRecommended && (
+        <div className="v2-psa-hero v2-psa-hero--amber res-reveal" style={{ '--delay': '200ms' }}>
           <div className="v2-psa-hero-top">
             <div className="v2-psa-hero-icon"><ScanEyeIcon size={20} /></div>
             <div className="v2-psa-hero-body">
-              <h3 className="v2-psa-hero-title">
-                {mriRecommended ? 'MRI Recommended Before Biopsy' : 'MRI Not Required Right Now'}
-              </h3>
+              <h3 className="v2-psa-hero-title">mpMRI Recommended Before Any Biopsy Decision</h3>
               <p className="v2-psa-hero-desc">
-                {mriRecommended
-                  ? mriRecommendMessage || 'AUA/NCCN/EAU guidelines recommend an mpMRI before any biopsy decision. This gives your doctor a clearer picture and reduces unnecessary procedures.'
-                  : 'Your combined ePSA and PSA profile does not currently meet the threshold for an mpMRI. Continue with routine follow-up as directed by your physician.'}
+                {mriRecommendMessage || 'AUA/NCCN/EAU guidelines recommend an mpMRI before any biopsy decision when combined risk is elevated. This gives your doctor a clearer picture and reduces unnecessary procedures.'}
               </p>
             </div>
           </div>
-          {onContinueToMRI && mriRecommended && (
+          {onContinueToMRI && (
             <div className="v2-psa-hero-ctas">
               <button type="button" className="btn-results btn-results--solid v2-psa-hero-btn-solid" onClick={onContinueToMRI}>
                 Add MRI Results →
@@ -614,12 +647,24 @@ const Part2Results = ({
           </div>
         </div>
         <div className="v2-psa-hero-ctas">
-          <a href="https://www.mountsinai.org/care/cancer/services/prostate/mobile-screening" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--solid v2-psa-hero-btn-solid">
-            Book urology referral →
-          </a>
-          <a href="https://www.mountsinai.org/care/urology/team" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--outline v2-psa-hero-btn-outline">
-            Meet the urology team ↗
-          </a>
+          {showUrologyReferral ? (
+            <>
+              <a href="https://www.mountsinai.org/care/cancer/services/prostate/mobile-screening" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--solid v2-psa-hero-btn-solid">
+                Book urology referral →
+              </a>
+              <a href="https://www.mountsinai.org/care/urology/team" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--outline v2-psa-hero-btn-outline">
+                Meet the urology team ↗
+              </a>
+            </>
+          ) : isAge70Plus ? (
+            <a href="https://www.mountsinai.org/care/urology/team" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--outline v2-psa-hero-btn-outline">
+              Discuss with your physician →
+            </a>
+          ) : (
+            <a href="https://www.mountsinai.org/care/urology/team" target="_blank" rel="noopener noreferrer" className="btn-results btn-results--outline v2-psa-hero-btn-outline">
+              Discuss with your GP →
+            </a>
+          )}
         </div>
       </div>
 
@@ -722,7 +767,7 @@ const Part2Results = ({
           })()}
         </CollapsibleSection>
 
-        <CollapsibleSection title="Understanding Your Result" defaultOpen>
+        <CollapsibleSection title="Understanding Your Result" defaultOpen={false}>
           <p>{tierExplanation}</p>
           {(nextSteps?.length > 0) && (
             <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '10px' }}>
@@ -739,18 +784,34 @@ const Part2Results = ({
           </p>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen>
-          <p>Choosing the next step is a joint decision between you and your doctor. Key questions to raise:</p>
-          <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
-            <li><strong>What does this tier mean for me specifically?</strong> — ask how your PSA trend and personal history affect the picture.</li>
-            <li><strong>Should I repeat the PSA first?</strong> — a single elevated result can reflect inflammation, infection, or recent activity.</li>
-            <li><strong>Is an MRI recommended before biopsy?</strong> — AUA/NCCN/EAU guidelines now support MRI-targeted biopsy to reduce over-detection.</li>
-            <li><strong>What is the urgency?</strong> — most prostate cancers are slow-growing; ask whether a few weeks to gather more information is reasonable.</li>
-          </ul>
-          <p style={{ fontSize: '0.8rem', color: '#607286', fontStyle: 'italic', marginTop: '8px' }}>
-            AUA/SUO 2026 · NCCN v3.2024 · EAU 2024
-          </p>
-        </CollapsibleSection>
+        {showSDM && (
+          <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen={epsaTierKey === 'intermediate-high' || epsaTierKey === 'high' || isAge70Plus}>
+            {isAge70Plus ? (
+              <>
+                <p>At age 70+, <strong>Shared Decision-Making (SDM) with your physician is required</strong> before any PSA screening decision. Key questions:</p>
+                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
+                  <li><strong>What is my life expectancy?</strong> — this is the first factor your physician must assess. If &lt;10 years, discontinuing screening is recommended.</li>
+                  <li><strong>What are the risks of overdiagnosis at my age?</strong> — most prostate cancers are slow-growing; treatment side effects may outweigh benefits.</li>
+                  <li><strong>What are my values and preferences?</strong> — your priorities around cancer detection, quality of life, and treatment burden should guide this decision.</li>
+                  <li><strong>Should I continue, lengthen, or stop screening?</strong> — if life expectancy is ≥10 years, your PSA level guides the interval; if &lt;10 years, stopping is recommended.</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <p>Choosing the next step is a joint decision between you and your doctor. Key questions to raise:</p>
+                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
+                  <li><strong>What does this tier mean for me specifically?</strong> — ask how your PSA trend and personal history affect the picture.</li>
+                  <li><strong>Should I repeat the PSA first?</strong> — a single elevated result can reflect inflammation, infection, or recent activity.</li>
+                  <li><strong>Is an MRI recommended before biopsy?</strong> — AUA/NCCN/EAU guidelines now support MRI-targeted biopsy to reduce over-detection.</li>
+                  <li><strong>What is the urgency?</strong> — most prostate cancers are slow-growing; ask whether a few weeks to gather more information is reasonable.</li>
+                </ul>
+              </>
+            )}
+            <p style={{ fontSize: '0.8rem', color: '#607286', fontStyle: 'italic', marginTop: '8px' }}>
+              AUA/SUO 2026 · NCCN v3.2024 · EAU 2024
+            </p>
+          </CollapsibleSection>
+        )}
 
         {onShowModelDocs && (
           <div className="model-docs-btn-row">
