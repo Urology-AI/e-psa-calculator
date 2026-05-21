@@ -21,9 +21,9 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {
 
   useEffect(() => {
     const t1 = setTimeout(() => setAnimScore(score), 60);
-    // Needle animation is 1.1s + 60ms delay; fire ripple just after it settles
-    const t2 = setTimeout(() => setRipple(true),  1350);
-    const t3 = setTimeout(() => setRipple(false), 2050);
+    // Needle animation is 2.5s + 60ms delay; fire ripple just after it settles
+    const t2 = setTimeout(() => setRipple(true),  2700);
+    const t3 = setTimeout(() => setRipple(false), 3400);
     // Labels fade in after the arc is visible
     const t4 = setTimeout(() => setLabelsIn(true), 400);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
@@ -82,7 +82,7 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {
         {/* Needle shadow + needle */}
         <g
           transform={`rotate(${svgRotate}, ${cx}, ${cy})`}
-          style={{ transition: 'transform 1.1s cubic-bezier(0.34, 1.3, 0.64, 1)' }}
+          style={{ transition: 'transform 2.5s cubic-bezier(0.34, 1.3, 0.64, 1)' }}
         >
           <line x1={cx} y1={cy + 2} x2={cx} y2={cy - needleLen + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
           <line x1={cx} y1={cy}     x2={cx} y2={cy - needleLen}       stroke="#1e3a5f"          strokeWidth="3" strokeLinecap="round" />
