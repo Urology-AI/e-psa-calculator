@@ -150,6 +150,49 @@ export const COHORT_ANALYSIS_FIELDS = [
   'piradsScore'
 ];
 
+/* ─── PSA Recommendation Banner Config ───────────────────────────────────────
+ * Serialisable data only (no React components). Icon key is resolved in
+ * Part1Results.jsx via PSA_BANNER_ICONS map. See Part1Results for full config.
+ * ──────────────────────────────────────────────────────────────────────────── */
+export const PSA_BANNER_CONFIG_DATA = {
+  high_risk_early_screening: {
+    bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
+    label: 'PSA SCREENING RECOMMENDED — HIGH-RISK PROFILE', labelColor: '#991b1b',
+    iconKey: 'alert-circle',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a hereditary genetic mutation. AUA is the most explicit about starting from age 40.',
+  },
+  family_history_override: {
+    bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
+    label: 'PSA SCREENING RECOMMENDED — FAMILY HISTORY', labelColor: '#991b1b',
+    iconKey: 'alert-circle',
+    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with a first-degree family history of prostate cancer. AUA is the most explicit about starting from age 40.',
+  },
+  score_threshold: {
+    bg: '#fffbeb', border: '#d97706', iconColor: '#d97706',
+    label: 'PSA SCREENING RECOMMENDED', labelColor: '#92400e',
+    iconKey: 'alert-triangle',
+    source: 'Model-based recommendation — ePSA score exceeds the model threshold. This goes beyond AUA/NCCN/ERUS average-risk screening criteria, which use only age, race, family history, and germline mutations.',
+  },
+  age_guideline_50_69: {
+    bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
+    label: 'PSA SCREENING RECOMMENDED', labelColor: '#1e40af',
+    iconKey: 'info',
+    source: 'AUA/SUO guideline Statement 6 — regular PSA screening every 2–4 years for people aged 50–69.',
+  },
+  baseline_psa_45_50: {
+    bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
+    label: 'BASELINE PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
+    iconKey: 'info',
+    source: 'AUA/SUO guideline Statement 4 — a baseline PSA test may be offered to people aged 45–50.',
+  },
+  not_recommended: {
+    bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
+    label: 'PSA NOT CURRENTLY RECOMMENDED', labelColor: '#166534',
+    iconKey: 'check-circle',
+    source: 'Your score is below the screening threshold. Follow standard age-based guidance from AUA, NCCN, and ERUS.',
+  },
+};
+
 export const WEIGHT_ADJUSTMENT_GUIDELINES = {
   minWeight: -2.0,
   maxWeight: 2.0,
