@@ -5,6 +5,7 @@ import './epsa-v2-layout.css';
 import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
+import { PSA_BANNER_CONFIG_DATA } from '../config/calculatorConfig';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
@@ -71,7 +72,7 @@ const FactorSourceBadge = ({ itemName }) => {
         verticalAlign: 'middle',
         whiteSpace: 'nowrap',
         background: isAua ? '#dbeafe' : '#f3f4f6',
-        color: isAua ? '#1e40af' : '#6b7280',
+        color: isAua ? '#1e40af' : '#374151',
         border: `1px solid ${isAua ? '#93c5fd' : '#d1d5db'}`,
       }}
     >
@@ -236,54 +237,19 @@ const BEYOND_GUIDELINE_PAPERS = {
 };
 
 /* ─── PSA Recommendation Banner ───────────────────────────────────────────────
- *
- * Colour logic keyed to psaRecommendReason from the engine:
- *
- *   high_risk_early_screening → RED   — high-risk group, urgent
- *   family_history_override   → RED   — family history, urgent
- *   score_threshold           → AMBER — score exceeded threshold
- *   age_guideline_50_69       → BLUE  — AUA average-risk window (50–69), informational
- *   baseline_psa_45_50        → BLUE  — AUA baseline PSA offered (45–50), informational
- *   not_recommended           → GREEN — below threshold, routine
+ * Serialisable config lives in calculatorConfig.js (PSA_BANNER_CONFIG_DATA).
+ * Here we merge in the Icon component reference for each entry.
  * ─────────────────────────────────────────────────────────────────────────── */
-const PSA_BANNER_CONFIG = {
-  high_risk_early_screening: {
-    bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
-    label: 'PSA SCREENING RECOMMENDED — HIGH-RISK PROFILE', labelColor: '#991b1b',
-    Icon: AlertCircleIcon,
-    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with Black ancestry or a hereditary genetic mutation. AUA is the most explicit about starting from age 40.',
-  },
-  family_history_override: {
-    bg: '#fef2f2', border: '#dc2626', iconColor: '#dc2626',
-    label: 'PSA SCREENING RECOMMENDED — FAMILY HISTORY', labelColor: '#991b1b',
-    Icon: AlertCircleIcon,
-    source: 'AUA, NCCN, and ERUS guidelines all support earlier screening for men with a first-degree family history of prostate cancer. AUA is the most explicit about starting from age 40.',
-  },
-  score_threshold: {
-    bg: '#fffbeb', border: '#d97706', iconColor: '#d97706',
-    label: 'PSA SCREENING RECOMMENDED', labelColor: '#92400e',
-    Icon: AlertTriangleIcon,
-    source: 'Model-based recommendation — ePSA score exceeds the model threshold. This goes beyond AUA/NCCN/ERUS average-risk screening criteria, which use only age, race, family history, and germline mutations.',
-  },
-  age_guideline_50_69: {
-    bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
-    label: 'PSA SCREENING RECOMMENDED', labelColor: '#1e40af',
-    Icon: InfoIcon,
-    source: 'AUA/SUO guideline Statement 6 — regular PSA screening every 2–4 years for people aged 50–69.',
-  },
-  baseline_psa_45_50: {
-    bg: '#eff6ff', border: '#2563eb', iconColor: '#2563eb',
-    label: 'BASELINE PSA DISCUSSION RECOMMENDED', labelColor: '#1e40af',
-    Icon: InfoIcon,
-    source: 'AUA/SUO guideline Statement 4 — a baseline PSA test may be offered to people aged 45–50.',
-  },
-  not_recommended: {
-    bg: '#f0fdf4', border: '#16a34a', iconColor: '#16a34a',
-    label: 'PSA NOT CURRENTLY RECOMMENDED', labelColor: '#166534',
-    Icon: CheckCircle2Icon,
-    source: 'Your score is below the screening threshold. Follow standard age-based guidance from AUA, NCCN, and ERUS.',
-  },
+const PSA_BANNER_ICONS = {
+  'alert-circle':   AlertCircleIcon,
+  'alert-triangle': AlertTriangleIcon,
+  'info':           InfoIcon,
+  'check-circle':   CheckCircle2Icon,
 };
+
+const PSA_BANNER_CONFIG = Object.fromEntries(
+  Object.entries(PSA_BANNER_CONFIG_DATA).map(([k, v]) => [k, { ...v, Icon: PSA_BANNER_ICONS[v.iconKey] }])
+);
 
 const GUIDELINE_LABELS_P1 = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
 const GuidelineSupportBadge = ({ support, count }) => {
@@ -295,8 +261,10 @@ const GuidelineSupportBadge = ({ support, count }) => {
     : Object.values(support).filter(Boolean).length;
   const strong = n >= 3;
   const partial = n >= 1 && n < 3;
-  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  /* WCAG AA contrast-safe colors: text on colored backgrounds at 11px font-weight 600 */
+  const colour = strong ? '#166534' : partial ? '#92400e' : '#374151';
   const bg = strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6';
+  const supportedNames = Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS_P1[k]).join(', ') || 'none';
   return (
     <span
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${colour}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: colour, letterSpacing: '0.02em', cursor: 'help', alignSelf: 'flex-start' }}
@@ -306,7 +274,7 @@ const GuidelineSupportBadge = ({ support, count }) => {
       onBlur={() => setShowTip(false)}
       tabIndex={0}
       role="img"
-      aria-label={`Supported by ${n} of ${total} guidelines: ${Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS_P1[k]).join(', ') || 'none'}`}
+      aria-label={`Supported by ${n} of ${total} guidelines: ${supportedNames}`}
     >
       <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
       Supported by {n} / {total} guidelines
@@ -527,6 +495,7 @@ const Part1Results = ({
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAllImpacts, setShowAllImpacts] = useState(false);
   const breakdownRef = useRef(null);
   const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
@@ -575,6 +544,36 @@ const Part1Results = ({
 
   if (showPrintableForm) return <PrintableForm formData={formData} onBack={() => setShowPrintableForm(false)} />;
   if (!result) return <div className="results-container"><p className="results-empty">No results available.</p></div>;
+
+  /* ── Structural validity guard ──────────────────────────────────────────────
+   * Catches corrupted localStorage sessions where required fields are missing.
+   * The engine never returns a result without `age` set; if it is absent/NaN
+   * the session data was corrupted and rendering would produce a misleading score.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  const _ageValid = Number.isFinite(Number(result?.age));
+  const _scorePresent = result?.score != null || result?.belowMinAge || result?.aboveMaxScreeningAge;
+  if (!_ageValid || !_scorePresent) return (
+    <div className="results-container">
+      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+        <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
+        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>
+          Assessment Data Incomplete
+        </h3>
+        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: '0 0 16px' }}>
+          Your results could not be computed — the session data appears incomplete or corrupted.
+          This can happen if the assessment was not fully submitted, or if browser storage was cleared mid-session.
+        </p>
+        <button
+          type="button"
+          onClick={onStartOver}
+          style={{ background: '#d97706', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+        >
+          Start a New Assessment
+        </button>
+      </div>
+    </div>
+  );
+
   if (isLoading) return (
     <div className="results-container">
       <ResultsLoading
@@ -1087,40 +1086,63 @@ const Part1Results = ({
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
                 {t('part1Results.factorBadgeExplanation.before')} <FactorSourceBadge itemName="Age" /> {t('part1Results.factorBadgeExplanation.middle')} <FactorSourceBadge itemName="Exercise" /> {t('part1Results.factorBadgeExplanation.after')}
               </p>
-              <div className="impact-table-wrap">
-                <table className="impact-table" aria-label="Item impact breakdown table">
-                  <thead><tr><th>{t('part1Results.tableHeaderItem')}</th><th>{t('part1Results.tableHeaderInput')}</th><th>{t('part1Results.tableHeaderImpact')}</th><th>{t('part1Results.tableHeaderPoints')}</th></tr></thead>
-                  <tbody>
-                    {itemImpacts.map((impact) => {
-                      const skipped = isImpactSkipped(impact.item);
-                      return (
-                        <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
-                          <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
-                          <td>
-                            {skipped ? (
-                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
-                                {t('part1Results.skippedNeutralDefault')}
-                              </span>
-                            ) : impact.value}
-                          </td>
-                          <td>
-                            <div className="impact-bar-track" aria-hidden="true">
-                              <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                            </div>
-                          </td>
-                          <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={3}>{t('part1Results.totalScoreContribution')}</td>
-                      <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+              {(() => {
+                const sortedByImpact = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
+                const TOP_N = 4;
+                const visibleImpacts = showAllImpacts ? itemImpacts : sortedByImpact.slice(0, TOP_N);
+                const hiddenCount = itemImpacts.length - TOP_N;
+                return (
+                  <>
+                    <div className="impact-table-wrap">
+                      <table className="impact-table" aria-label="Item impact breakdown table">
+                        <thead><tr><th>{t('part1Results.tableHeaderItem')}</th><th>{t('part1Results.tableHeaderInput')}</th><th>{t('part1Results.tableHeaderImpact')}</th><th>{t('part1Results.tableHeaderPoints')}</th></tr></thead>
+                        <tbody>
+                          {visibleImpacts.map((impact) => {
+                            const skipped = isImpactSkipped(impact.item);
+                            return (
+                              <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
+                                <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
+                                <td>
+                                  {skipped ? (
+                                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
+                                      {t('part1Results.skippedNeutralDefault')}
+                                    </span>
+                                  ) : impact.value}
+                                </td>
+                                <td>
+                                  <div className="impact-bar-track" aria-hidden="true">
+                                    <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
+                                  </div>
+                                </td>
+                                <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={3}>{t('part1Results.totalScoreContribution')}</td>
+                            <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    {itemImpacts.length > TOP_N && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllImpacts(v => !v)}
+                        style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 0' }}
+                        aria-expanded={showAllImpacts}
+                      >
+                        {showAllImpacts
+                          ? <><ChevronUpIcon size={13} aria-hidden="true" /> Show summary (top {TOP_N} factors)</>
+                          : <><ChevronDownIcon size={13} aria-hidden="true" /> Show all {itemImpacts.length} factors ({hiddenCount} more)</>
+                        }
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </CollapsibleSection>
           </div>
           );
@@ -1138,6 +1160,11 @@ const Part1Results = ({
         <CollapsibleSection title={t('part1Results.sectionDisclaimer')}>
           <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
           <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
+          <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderLeft: '3px solid #0284c7', borderRadius: '6px', fontSize: '11px', color: '#0c4a6e', lineHeight: 1.65 }}>
+            <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
+            <br /><br />
+            <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
+          </div>
         </CollapsibleSection>
       </div>
 
