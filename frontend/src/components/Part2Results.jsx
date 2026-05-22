@@ -119,17 +119,19 @@ const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
   const n = typeof count === 'number' ? count : Object.values(support).filter(Boolean).length;
   const strong = n >= 3;
   const partial = n >= 1 && n < 3;
-  const colour = strong ? '#16a34a' : partial ? '#d97706' : '#6b7280';
+  /* WCAG AA contrast-safe colors: text on colored backgrounds at 11px font-weight 600 */
+  const colour = strong ? '#166534' : partial ? '#92400e' : '#374151';
   const bg = variant === 'dark' ? 'rgba(255,255,255,0.18)' : (strong ? '#f0fdf4' : partial ? '#fffbeb' : '#f3f4f6');
   const border = variant === 'dark' ? 'rgba(255,255,255,0.35)' : colour;
   const text = variant === 'dark' ? '#fff' : colour;
+  const supportedNames = Object.entries(support).filter(([, v]) => v).map(([k]) => GUIDELINE_LABELS[k]).join(', ') || 'none';
   return (
     <span
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', background: bg, border: `1px solid ${border}`, borderRadius: '999px', fontSize: '11px', fontWeight: 600, color: text, letterSpacing: '0.02em', cursor: 'help' }}
       onMouseEnter={() => setShowTip(true)} onMouseLeave={() => setShowTip(false)}
       onFocus={() => setShowTip(true)} onBlur={() => setShowTip(false)}
       tabIndex={0} role="img"
-      aria-label={`Supported by ${n} of ${total} guidelines`}
+      aria-label={`Supported by ${n} of ${total} guidelines: ${supportedNames}`}
     >
       <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
       Supported by {n} / {total} guidelines
@@ -166,6 +168,93 @@ const PIRADS_COLORS = ['#16a34a', '#16a34a', '#16a34a', '#2563eb', '#d97706', '#
 
 /* ─── Gauge tier colors for Part 2 ─── */
 const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' };
+
+/* ─── Decision Framework — visual pathway summary for the SDM section ───
+ * Shows a 4-tier pathway card strip highlighting the current tier.
+ * For age 70+ an extra SDM-first sequence is shown above the tier strip.
+ * ─────────────────────────────────────────────────────────────────────── */
+const PATHWAY_STEPS = [
+  { key: 'low',              label: 'Low Risk',   action: 'Routine PSA in 2–4 years',      color: '#166534', bg: '#f0fdf4', border: '#bbf7d0' },
+  { key: 'intermediate-low', label: 'Int-Low',    action: 'Repeat PSA in 1–2 years',        color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  { key: 'intermediate-high',label: 'Int-High',   action: 'mpMRI before biopsy decision',   color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  { key: 'high',             label: 'High Risk',  action: 'Discuss biopsy with urologist',  color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
+];
+
+const SDM_STEPS_70_PLUS = [
+  { num: 1, label: 'Life Expectancy Assessment', action: 'Physician assesses life expectancy', note: 'Required before any PSA-based decision per AUA/SUO 2026' },
+  { num: 2, label: 'Shared Decision-Making',     action: 'Discuss values, priorities & screening burden' },
+  { num: 3, label: 'If ≥ 10 yr life expectancy', action: 'Follow the PSA-based pathway below' },
+  { num: 4, label: 'If < 10 yr life expectancy', action: 'Discontinue screening (AUA/SUO 2026)' },
+];
+
+const DecisionFramework = ({ epsaTierKey, biopsyRecommended, isAge70Plus }) => {
+  const activeKey = biopsyRecommended && epsaTierKey !== 'high' ? 'intermediate-high' : epsaTierKey;
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#6b7280', marginBottom: '8px' }}>
+        Decision pathway — based on your combined risk tier
+      </div>
+
+      {isAge70Plus && (
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '6px' }}>
+            Age 70+: physician-led SDM is required first
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {SDM_STEPS_70_PLUS.map((step) => (
+              <div key={step.num} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '7px 10px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '6px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px', borderRadius: '50%', background: '#6d28d9', color: '#fff', fontSize: '9px', fontWeight: 800, flexShrink: 0, marginTop: '1px' }}>{step.num}</span>
+                <div>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#5b21b6' }}>{step.label}: </span>
+                  <span style={{ fontSize: '12px', color: '#374151', lineHeight: 1.4 }}>{step.action}</span>
+                  {step.note && <div style={{ fontSize: '10px', color: '#7c3aed', marginTop: '1px', fontStyle: 'italic' }}>{step.note}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', margin: '8px 0 4px' }}>
+            If life expectancy ≥10 years, follow PSA-based pathway:
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '4px' }} role="list" aria-label="Risk tier decision pathway">
+        {PATHWAY_STEPS.map((step) => {
+          const isActive = step.key === activeKey;
+          return (
+            <div
+              key={step.key}
+              role="listitem"
+              aria-current={isActive ? 'true' : undefined}
+              style={{
+                padding: '8px 6px',
+                background: isActive ? step.bg : '#fafafa',
+                border: `${isActive ? '1.5px' : '1px'} solid ${isActive ? step.border : '#e5e7eb'}`,
+                borderRadius: '6px',
+                textAlign: 'center',
+                opacity: isActive ? 1 : 0.55,
+                transition: 'opacity 0.2s, border-color 0.2s',
+              }}
+            >
+              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: isActive ? step.color : '#9ca3af', marginBottom: '3px' }}>
+                {step.label}
+              </div>
+              <div style={{ fontSize: '11px', color: isActive ? '#374151' : '#9ca3af', lineHeight: 1.35 }}>
+                {step.action}
+              </div>
+              {isActive && (
+                <div style={{ marginTop: '5px', display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: step.color }} aria-hidden="true" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>
+        AUA/SUO 2026 · NCCN v3.2024 · Based on combined PSA + risk profile
+      </p>
+    </div>
+  );
+};
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -240,6 +329,35 @@ const Part2Results = ({
   }
 
   if (!result) return <div className="p2r-container"><p className="p2r-empty">No results available.</p></div>;
+
+  /* ── Structural validity guard ──────────────────────────────────────────────
+   * Part 2 result must have a valid PSA value and a risk category. If either is
+   * absent the session is corrupted — rendering would produce a meaningless tier.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  const _psaValid = result?.psaValue != null && Number.isFinite(parseFloat(result.psaValue));
+  const _riskCatPresent = result?.riskCat != null || result?.epsaTierKey != null;
+  if (!_psaValid || !_riskCatPresent) return (
+    <div className="p2r-container">
+      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+        <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
+        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>
+          Assessment Data Incomplete
+        </h3>
+        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: '0 0 16px' }}>
+          Your Part 2 results could not be computed — the PSA data or session record appears incomplete or corrupted.
+          Please start a new assessment or return to Part 1 to re-enter your PSA value.
+        </p>
+        <button
+          type="button"
+          onClick={onStartOver}
+          style={{ background: '#d97706', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+        >
+          Start a New Assessment
+        </button>
+      </div>
+    </div>
+  );
+
   if (isLoading) return (
     <div className="p2r-container">
       <ResultsLoading
@@ -786,6 +904,7 @@ const Part2Results = ({
 
         {showSDM && (
           <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen={epsaTierKey === 'intermediate-high' || epsaTierKey === 'high' || isAge70Plus}>
+            <DecisionFramework epsaTierKey={epsaTierKey} biopsyRecommended={biopsyRecommended} isAge70Plus={isAge70Plus} />
             {isAge70Plus ? (
               <>
                 <p>At age 70+, <strong>Shared Decision-Making (SDM) with your physician is required</strong> before any PSA screening decision. Key questions:</p>
@@ -838,6 +957,11 @@ const Part2Results = ({
           </p>
           <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
           <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+          <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderLeft: '3px solid #0284c7', borderRadius: '6px', fontSize: '11px', color: '#0c4a6e', lineHeight: 1.65 }}>
+            <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
+            <br /><br />
+            <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
+          </div>
         </CollapsibleSection>
 
       </div>
