@@ -1400,13 +1400,38 @@ function App() {
   };
 
 
+  const buildASToolURL = (base = 'https://as.millionstrongmen.com') => {
+    const hasPost = postResult !== null || (postData.knowPsa && postData.psa);
+    const payload = {
+      part: hasPost ? 'complete' : 'part1',
+      exportDate: new Date().toISOString(),
+      part1Data: {
+        age: preData.age ? parseInt(preData.age, 10) : null,
+      },
+      part1Result: preResult ? {
+        epsaTierKey:   preResult.epsaTierKey,
+        epsaTierLabel: preResult.epsaTierLabel,
+        isBlack:       preResult.isBlack,
+        fhBinary:      preResult.fhBinary,
+        brcaStatus:    preResult.brcaStatus,
+        age:           preResult.age,
+      } : {},
+      part2Data: {
+        psa:        postData.knowPsa    ? postData.psa    : '',
+        knowPsa:    postData.knowPsa,
+        pirads:     postData.knowPirads ? postData.pirads : '0',
+        knowPirads: postData.knowPirads,
+      },
+      part2Result: postResult ? {
+        epsaTierKey: postResult.epsaTierKey,
+        pathwayMode: pathwayMode || postResult.pathwayMode || 'post_psa',
+      } : {},
+    };
+    return `${base}?epsa=${encodeURIComponent(JSON.stringify(payload))}`;
+  };
+
   const handleContinueToPostBiopsy = () => {
-    const params = new URLSearchParams({
-      source: 'epsa',
-      epsaTier: preResult?.epsaTierKey ?? '',
-      epsaScore: preResult?.score ?? '',
-    });
-    window.open(`https://as.millionstrongmen.com?${params}`, '_blank');
+    window.open(buildASToolURL(), '_blank');
   };
 
   const canProceedPost = () => {
@@ -1651,6 +1676,7 @@ function App() {
         <PathwaySelector
           onSelect={(mode) => {
             if (mode === 'post_biopsy') {
+              // No ePSA data yet — just tag source so AS tool knows origin
               window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
               return;
             }
