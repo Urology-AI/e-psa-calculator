@@ -1887,27 +1887,21 @@ function App() {
       <div className="container">
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
-          <div className="header-logo-container">
+          <div className="header-brand">
             <img
               src="/sinai_light.png"
-              alt="Mount Sinai Logo"
+              alt="Mount Sinai"
               className="logo logo--light"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
             <img
               src="/sinai_dark.png"
-              alt="Mount Sinai Logo"
+              alt="Mount Sinai"
               className="logo logo--dark"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
-          </div>
-          <div className="header-text">
-            <h1>ePSA</h1>
-            <h2>{t('app.header.title')}</h2>
-            <p className="subtitle">{t('app.header.subtitle')}</p>
-            <p className="header-authorship" aria-label="Authorship and institutional affiliation">
-              Developed by <strong>Ashutosh K. Tewari, MD</strong> · Icahn School of Medicine at Mount Sinai · <em>Educational use only</em>
-            </p>
+            <span className="header-brand-sep" aria-hidden="true" />
+            <span className="header-product-name">ePSA</span>
           </div>
           <div className="header-actions">
             <TextScaleControl />
