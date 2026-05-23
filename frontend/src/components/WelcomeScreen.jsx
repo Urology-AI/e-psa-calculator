@@ -200,8 +200,10 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
           {showStorageChoice ? (
             <div className="ws-storage-choice">
               <button type="button" className="ws-btn-primary" onClick={onBeginCloud}>
-                <span>{t('welcome.storageCloudTitle')}</span>
-                <span className="ws-btn-sub">{t('welcome.storageCloudSub')}</span>
+                <span className="ws-btn-label">
+                  <span>{t('welcome.storageCloudTitle')}</span>
+                  <span className="ws-btn-sub">{t('welcome.storageCloudSub')}</span>
+                </span>
                 <ArrowRightIcon size={17} />
               </button>
               <button type="button" className="ws-btn-ghost" onClick={onBeginLocal}>

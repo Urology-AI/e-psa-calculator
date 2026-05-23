@@ -190,18 +190,40 @@ body {
 
 /* ─── App Header ─── */
 .app-header {
-  margin-bottom: 1.75rem;
-  padding-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0 0.875rem;
+  margin-bottom: 1.5rem;
   border-bottom: 0.0625rem solid var(--line-200);
 }
 
-.header-logo-container {
-  text-align: center;
-  padding: 1.25rem 1.5rem 1.125rem;
-  background: var(--header-logo-bg);
-  border-radius: var(--radius-lg);
-  border: 0.0625rem solid var(--line-100);
-  margin-bottom: 1.25rem;
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.header-brand-sep {
+  display: block;
+  width: 0.09375rem;
+  height: 1.25rem;
+  background: var(--line-200);
+  flex-shrink: 0;
+}
+
+.header-product-name {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ms-navy);
+  line-height: 1;
+}
+
+.theme-dark .header-product-name {
+  color: var(--ms-cyan);
 }
 
 /* ─── Dark mode overrides ─── */
@@ -249,11 +271,8 @@ body {
 
 .logo {
   display: block;
-  margin: 0 auto;
-  max-width: 11.5625rem;
-  max-height: 6.25rem;
+  height: 2rem;
   width: auto;
-  height: auto;
   object-fit: contain;
 }
 
@@ -261,63 +280,11 @@ body {
 .theme-dark .logo--light { display: none; }
 .theme-dark .logo--dark  { display: block; }
 
-.header-text {
-  text-align: center;
-}
-
-.header-text h1 {
-  margin: 0;
-  font-size: clamp(1.9rem, 5vw, 2.3rem);
-  font-weight: 800;
-  color: var(--brand-700);
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-}
-
-.header-text h2 {
-  margin: 0.2rem 0 0.4rem;
-  font-size: clamp(1.05rem, 3vw, 1.25rem);
-  font-weight: 700;
-  color: var(--ink-900);
-  letter-spacing: -0.01em;
-}
-
-.subtitle {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--ink-500);
-  font-style: italic;
-}
-
-.header-authorship {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: var(--ink-600, #4b5563);
-  letter-spacing: 0.01em;
-}
-.header-authorship strong {
-  color: var(--ink-800, #1f2937);
-  font-weight: 600;
-}
-.header-authorship em {
-  color: var(--ink-500, #6b7280);
-  font-style: italic;
-}
-.theme-dark .header-authorship {
-  color: rgba(255, 255, 255, 0.7);
-}
-.theme-dark .header-authorship strong {
-  color: rgba(255, 255, 255, 0.92);
-}
-.theme-dark .header-authorship em {
-  color: rgba(255, 255, 255, 0.55);
-}
 
 .header-actions {
-  margin-top: 1rem;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
@@ -775,10 +742,6 @@ body {
     border-radius: var(--radius-lg);
   }
 
-  .header-logo-container {
-    padding: 0.875rem;
-  }
-
   .footer-content {
     flex-direction: column;
     text-align: center;
@@ -813,7 +776,6 @@ body {
   }
 
   .header-actions,
-  .header-logo-container,
   .stage-indicator,
   .change-pathway-btn,
   .logout-btn,
@@ -837,9 +799,7 @@ body {
     page-break-after: avoid;
   }
 
-  .app-header .header-text,
-  .app-header .header-authorship,
-  .app-header .subtitle {
+  .header-product-name {
     color: #000 !important;
   }
 
