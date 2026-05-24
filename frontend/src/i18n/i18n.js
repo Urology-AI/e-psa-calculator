@@ -10,8 +10,12 @@ import hi from './locales/hi/translation.json';
 import it from './locales/it/translation.json';
 import fr from './locales/fr/translation.json';
 import pt from './locales/pt/translation.json';
+import ptBR from './locales/pt-BR/translation.json';
 import ar from './locales/ar/translation.json';
 import tr from './locales/tr/translation.json';
+import ru from './locales/ru/translation.json';
+import mr from './locales/mr/translation.json';
+import bn from './locales/bn/translation.json';
 
 const resources = {
   en: { translation: en },
@@ -21,8 +25,12 @@ const resources = {
   it: { translation: it },
   fr: { translation: fr },
   pt: { translation: pt },
+  'pt-BR': { translation: ptBR },
   ar: { translation: ar },
   tr: { translation: tr },
+  ru: { translation: ru },
+  mr: { translation: mr },
+  bn: { translation: bn },
 };
 
 const normalizeLocale = (lng) => String(lng || '').trim();
@@ -39,9 +47,13 @@ const pickSupportedLanguage = (candidate) => {
   if (lower.startsWith('hi')) return 'hi';
   if (lower.startsWith('it')) return 'it';
   if (lower.startsWith('fr')) return 'fr';
+  if (lower === 'pt-br') return 'pt-BR';
   if (lower.startsWith('pt')) return 'pt';
   if (lower.startsWith('ar')) return 'ar';
   if (lower.startsWith('tr')) return 'tr';
+  if (lower.startsWith('ru')) return 'ru';
+  if (lower.startsWith('mr')) return 'mr';
+  if (lower.startsWith('bn')) return 'bn';
 
   return 'en';
 };
