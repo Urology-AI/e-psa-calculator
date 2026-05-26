@@ -156,10 +156,6 @@ export default function UrologistFinder({ flowMode = 'public' }) {
   if (isSinai && sinaiAnswer === null) {
     return (
       <div className="uf-root">
-        <div className="uf-header">
-          <MapPinIcon size={18} className="uf-header-icon" />
-          <h3 className="uf-title">Find a Board-Certified Urologist</h3>
-        </div>
         <div className="uf-sinai-gate">
           <p className="uf-sinai-question">
             Are you currently receiving care at the <strong>Mount Sinai Health System</strong>?
@@ -180,10 +176,6 @@ export default function UrologistFinder({ flowMode = 'public' }) {
   if (isSinai && sinaiAnswer === 'yes') {
     return (
       <div className="uf-root">
-        <div className="uf-header">
-          <MapPinIcon size={18} className="uf-header-icon" />
-          <h3 className="uf-title">Your Mount Sinai Urology Team</h3>
-        </div>
         <div className="uf-sinai-result">
           <p>
             Please share these results with your <strong>Mount Sinai urologist</strong> or contact
@@ -232,10 +224,6 @@ export default function UrologistFinder({ flowMode = 'public' }) {
 
   return (
     <div className="uf-root">
-      <div className="uf-header">
-        <MapPinIcon size={18} className="uf-header-icon" />
-        <h3 className="uf-title">Find a Board-Certified Urologist Near You</h3>
-      </div>
       <p className="uf-desc">
         Enter your ZIP code to find board-certified urologists in your area from the{' '}
         <strong>CMS National Provider Registry</strong>. Results include practitioners registered
