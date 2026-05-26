@@ -1946,10 +1946,10 @@ function App() {
                   if (pathwayMode === null && !preResult) return null;
 
                   const PATHWAY_OPTIONS = [
-                    { mode: 'pre_psa',     label: 'Pre-PSA Screening',    desc: "Haven't had a PSA test yet",      cls: 'pathway-opt--pre'    },
-                    { mode: 'post_psa',    label: 'PSA Assessment',         desc: 'I have a PSA result',              cls: 'pathway-opt--psa'    },
-                    { mode: 'post_mri',    label: 'PSA + MRI Assessment',   desc: 'I have a PSA and an MRI (PI-RADS)', cls: 'pathway-opt--mri'    },
-                    { mode: 'post_biopsy', label: "I've Had a Biopsy",      desc: 'Opens the biopsy evaluator →',     cls: 'pathway-opt--biopsy', external: true },
+                    { mode: 'pre_psa',     label: 'Pre-PSA Screening',    shortLabel: 'Pre-PSA',   desc: "Haven't had a PSA test yet",       cls: 'pathway-opt--pre'    },
+                    { mode: 'post_psa',    label: 'PSA Assessment',        shortLabel: 'PSA',       desc: 'I have a PSA result',               cls: 'pathway-opt--psa'    },
+                    { mode: 'post_mri',    label: 'PSA + MRI Assessment',  shortLabel: 'PSA + MRI', desc: 'I have a PSA and an MRI (PI-RADS)', cls: 'pathway-opt--mri'    },
+                    { mode: 'post_biopsy', label: "I've Had a Biopsy",     shortLabel: 'Biopsy',    desc: 'Opens the biopsy evaluator →',      cls: 'pathway-opt--biopsy', external: true },
                   ];
 
                   const BADGE_CLS = {
@@ -1989,7 +1989,8 @@ function App() {
                         aria-expanded={showPathwayDropdown}
                         aria-haspopup="listbox"
                       >
-                        {activeOption?.label || effectiveMode}
+                        <span className="pathway-badge-label--full">{activeOption?.label || effectiveMode}</span>
+                        <span className="pathway-badge-label--short" aria-hidden="true">{activeOption?.shortLabel || activeOption?.label || effectiveMode}</span>
                         <ChevronDownIcon size={11} aria-hidden="true" style={{ marginLeft: '3px', opacity: 0.8 }} />
                       </button>
                       {showPathwayDropdown && (
