@@ -1968,44 +1968,29 @@ function App() {
                       ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
                       : { label: t('app.stage.stagePost'), cls: 'stage-post' });
 
-                  // Only show "Change pathway" before results are locked in
-                  const canChangePathway = pathwayMode !== null && !preResult;
-                  // Show "← Part 1" to return to Part 1 Results from Part 2
-                  const canGoBackToPart1 = stage === 'post' && !!preResult;
+                  // In Part 2 (preResult locked in): clicking navigates back to Part 1 Results.
+                  // Otherwise: clicking returns to the pathway selector to change assessment type.
+                  const handleBadgeClick = () => {
+                    if (stage === 'post' && preResult) {
+                      setStage('pre');
+                      setCurrentStep(3);
+                    } else {
+                      setPathwayMode(null);
+                      setCurrentStep(1);
+                      setPart1Step(0);
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
 
                   return (
-                    <>
-                      <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
-                      {canChangePathway && (
-                        <button
-                          type="button"
-                          className="change-pathway-btn"
-                          onClick={() => {
-                            setPathwayMode(null);
-                            setCurrentStep(1);
-                            setPart1Step(0);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          title="Go back to pathway selection"
-                        >
-                          ← Change
-                        </button>
-                      )}
-                      {canGoBackToPart1 && (
-                        <button
-                          type="button"
-                          className="change-pathway-btn"
-                          onClick={() => {
-                            setStage('pre');
-                            setCurrentStep(3);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          title="Return to Part 1 Results"
-                        >
-                          ← Part 1
-                        </button>
-                      )}
-                    </>
+                    <button
+                      type="button"
+                      className={`stage-badge stage-badge--btn ${badge.cls}`}
+                      onClick={handleBadgeClick}
+                      title={stage === 'post' && preResult ? 'Return to Part 1 Results' : 'Change assessment type'}
+                    >
+                      {badge.label}
+                    </button>
                   );
                 })()}
               </div>
