@@ -1968,11 +1968,7 @@ function App() {
                       ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
                       : { label: t('app.stage.stagePost'), cls: 'stage-post' });
 
-                  const handleChangePathway = async () => {
-                    if (preResult) {
-                      if (!window.confirm(t('app.confirm.clearAllDataStartOver'))) return;
-                      await handleClearData();
-                    }
+                  const handleChangePathway = () => {
                     setPathwayMode(null);
                     setCurrentStep(1);
                     setPart1Step(0);
