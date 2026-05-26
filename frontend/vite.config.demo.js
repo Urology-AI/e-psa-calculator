@@ -17,6 +17,18 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      '/dev-proxy/npi': {
+        target: 'https://npiregistry.cms.hhs.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/dev-proxy\/npi/, '/api'),
+      },
+      '/dev-proxy/nominatim': {
+        target: 'https://nominatim.openstreetmap.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/dev-proxy\/nominatim/, ''),
+      },
+    },
   },
   define: {
     'import.meta.env.VITE_DISABLE_FIREBASE': JSON.stringify('true'),
