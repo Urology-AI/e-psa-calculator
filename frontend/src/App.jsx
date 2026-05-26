@@ -13,7 +13,7 @@ import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
 import SinaiConsentScreen from './components/SinaiConsentScreen.jsx';
 import SinaiResultsScreen from './components/SinaiResultsScreen.jsx';
 import { readSinaiConfig } from './utils/sinaiSubmit.js';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
 import ModelDocs from './components/ModelDocs.jsx';
@@ -93,6 +93,7 @@ function App() {
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
   const [quickOpen, setQuickOpen] = useState(false);
+  const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
 
   const hasCachedConsent = () => {
     try {
@@ -1925,17 +1926,6 @@ function App() {
                     Session: {appSessionId}
                   </span>
                 )}
-                <span className={`stage-step-badge ${stage === 'pre' ? 'stage-step-badge--pre' : 'stage-step-badge--post'}`}>
-                  {stage === 'pre'
-                    ? currentStep === 3
-                      ? 'Part 1 · Results'
-                      : `Part 1 · Step ${Math.min(part1Step + 1, 7)} of 7`
-                    : currentStep === 3
-                      ? 'Part 2 · Results'
-                      : currentStep === 0
-                        ? 'Part 2 · Overview'
-                        : `Part 2 · Step ${currentStep} of 2`}
-                </span>
                 {storageMode === 'cloud' && (
                   <span
                     className={`cloud-icon-badge cloud-icon-badge--${cloudSyncStatus}`}
@@ -1955,42 +1945,81 @@ function App() {
                   // On PathwaySelector screen — no badge yet
                   if (pathwayMode === null && !preResult) return null;
 
-                  // Pathway-aware labels
-                  const PATHWAY_BADGES = {
-                    pre_psa:  { label: 'Pre-PSA Screening',  cls: 'stage-pre'  },
-                    post_psa: { label: 'PSA Assessment',      cls: 'stage-post' },
-                    post_mri: { label: 'Full MRI Assessment', cls: 'stage-mri'  },
+                  const PATHWAY_OPTIONS = [
+                    { mode: 'pre_psa',     label: 'Pre-PSA Screening',    shortLabel: 'Pre-PSA',   desc: "Haven't had a PSA test yet",       cls: 'pathway-opt--pre'    },
+                    { mode: 'post_psa',    label: 'PSA Assessment',        shortLabel: 'PSA',       desc: 'I have a PSA result',               cls: 'pathway-opt--psa'    },
+                    { mode: 'post_mri',    label: 'PSA + MRI Assessment',  shortLabel: 'PSA + MRI', desc: 'I have a PSA and an MRI (PI-RADS)', cls: 'pathway-opt--mri'    },
+                    { mode: 'post_biopsy', label: "I've Had a Biopsy",     shortLabel: 'Biopsy',    desc: 'Opens the biopsy evaluator →',      cls: 'pathway-opt--biopsy', external: true },
+                  ];
+
+                  const BADGE_CLS = {
+                    pre_psa: 'stage-pre', post_psa: 'stage-post', post_mri: 'stage-mri',
                   };
+
                   const effectiveMode = pathwayMode
                     || (stage === 'post' ? (postResult?.pathwayMode || 'post_psa') : (preResult?.pathwayMode || 'pre_psa'));
-                  const badge = PATHWAY_BADGES[effectiveMode]
-                    || (stage === 'pre'
-                      ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
-                      : { label: t('app.stage.stagePost'), cls: 'stage-post' });
+                  const activeOption = PATHWAY_OPTIONS.find(o => o.mode === effectiveMode);
+                  const activeCls = BADGE_CLS[effectiveMode] || 'stage-pre';
 
-                  // In Part 2 (preResult locked in): clicking navigates back to Part 1 Results.
-                  // Otherwise: clicking returns to the pathway selector to change assessment type.
-                  const handleBadgeClick = () => {
-                    if (stage === 'post' && preResult) {
-                      setStage('pre');
-                      setCurrentStep(3);
-                    } else {
-                      setPathwayMode(null);
+                  const switchToPathway = (mode) => {
+                    setShowPathwayDropdown(false);
+                    if (mode === 'post_biopsy') {
+                      window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
+                      return;
+                    }
+                    setPathwayMode(mode);
+                    if ((mode === 'post_psa' || mode === 'post_mri') && preResult) {
+                      setStage('post');
                       setCurrentStep(1);
-                      setPart1Step(0);
+                    } else {
+                      setStage('pre');
+                      setCurrentStep(preResult ? 3 : 1);
+                      if (!preResult) setPart1Step(0);
                     }
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   };
 
                   return (
-                    <button
-                      type="button"
-                      className={`stage-badge stage-badge--btn ${badge.cls}`}
-                      onClick={handleBadgeClick}
-                      title={stage === 'post' && preResult ? 'Return to Part 1 Results' : 'Change assessment type'}
-                    >
-                      {badge.label}
-                    </button>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        type="button"
+                        className={`stage-badge stage-badge--btn ${activeCls}`}
+                        onClick={() => setShowPathwayDropdown(v => !v)}
+                        title="Change assessment pathway"
+                        aria-expanded={showPathwayDropdown}
+                        aria-haspopup="listbox"
+                      >
+                        <span className="pathway-badge-label--full">{activeOption?.label || effectiveMode}</span>
+                        <span className="pathway-badge-label--short" aria-hidden="true">{activeOption?.shortLabel || activeOption?.label || effectiveMode}</span>
+                        <ChevronDownIcon size={11} aria-hidden="true" style={{ marginLeft: '3px', opacity: 0.8 }} />
+                      </button>
+                      {showPathwayDropdown && (
+                        <>
+                          <div
+                            style={{ position: 'fixed', inset: 0, zIndex: 98 }}
+                            onClick={() => setShowPathwayDropdown(false)}
+                          />
+                          <div className="pathway-dropdown" role="listbox" aria-label="Select assessment pathway">
+                            {PATHWAY_OPTIONS.map(opt => (
+                              <button
+                                key={opt.mode}
+                                type="button"
+                                role="option"
+                                aria-selected={effectiveMode === opt.mode}
+                                className={`pathway-dropdown-item ${opt.cls} ${effectiveMode === opt.mode ? 'pathway-dropdown-item--active' : ''}`}
+                                onClick={() => switchToPathway(opt.mode)}
+                              >
+                                <span className="pathway-dropdown-item__label">
+                                  {opt.label}
+                                  {opt.external && <ExternalLinkIcon size={10} aria-hidden="true" style={{ marginLeft: '4px', opacity: 0.7 }} />}
+                                </span>
+                                <span className="pathway-dropdown-item__desc">{opt.desc}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   );
                 })()}
               </div>
@@ -2008,6 +2037,76 @@ function App() {
         ) : (
           <>
             {showTestPanel && <FirebaseTestPanel />}
+            {/* Stage navigation — shown once a pathway is active */}
+            {(pathwayMode !== null || preResult) && (
+              <nav className="stage-nav" aria-label="Assessment stages">
+                {(() => {
+                  const part2Label = pathwayMode === 'post_mri' || postResult?.pathwayMode === 'post_mri'
+                    ? 'PSA & MRI' : 'PSA Assessment';
+
+                  const part1Sub = stage === 'pre'
+                    ? (currentStep === 3 ? 'Results' : `Step ${Math.min(part1Step + 1, 7)} of 7`)
+                    : 'Complete';
+                  const part2Sub = !preResult
+                    ? 'Complete Part 1 first'
+                    : stage === 'post'
+                      ? (currentStep === 3
+                          ? 'Results'
+                          : `Step ${currentStep} of ${pathwayMode === 'post_mri' ? 2 : 1}`)
+                      : (postResult ? 'Results available' : 'Ready');
+
+                  const part1Status = stage === 'pre' ? 'current' : 'done';
+                  const part2Status = !preResult ? 'locked' : stage === 'post' ? 'current' : (postResult ? 'done' : 'available');
+
+                  const goToPart1 = () => {
+                    setStage('pre');
+                    setCurrentStep(preResult ? 3 : 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
+                  const goToPart2 = () => {
+                    if (!preResult) return;
+                    setStage('post');
+                    setCurrentStep(postResult ? 3 : 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
+
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        className={`stage-nav-item stage-nav-item--${part1Status}`}
+                        onClick={goToPart1}
+                        aria-current={part1Status === 'current' ? 'step' : undefined}
+                      >
+                        <span className="stage-nav-num" aria-hidden="true">
+                          {part1Status === 'done' ? '✓' : '1'}
+                        </span>
+                        <span className="stage-nav-body">
+                          <span className="stage-nav-label">Baseline Risk</span>
+                          <span className="stage-nav-sub">{part1Sub}</span>
+                        </span>
+                      </button>
+                      <span className="stage-nav-sep" aria-hidden="true" />
+                      <button
+                        type="button"
+                        className={`stage-nav-item stage-nav-item--${part2Status}`}
+                        onClick={goToPart2}
+                        disabled={!preResult}
+                        aria-current={part2Status === 'current' ? 'step' : undefined}
+                      >
+                        <span className="stage-nav-num" aria-hidden="true">
+                          {part2Status === 'done' ? '✓' : '2'}
+                        </span>
+                        <span className="stage-nav-body">
+                          <span className="stage-nav-label">{part2Label}</span>
+                          <span className="stage-nav-sub">{part2Sub}</span>
+                        </span>
+                      </button>
+                    </>
+                  );
+                })()}
+              </nav>
+            )}
             {stage === 'pre' ? renderPreStage() : renderPostStage()}
           </>
         )}
