@@ -1171,9 +1171,9 @@ const Part1Results = ({
       </div>
 
       {/* ── Urologist Finder ── */}
-      <div className="res-reveal" style={{ '--delay': '560ms' }}>
+      <CollapsibleSection title="Find a Board-Certified Urologist Near You">
         <UrologistFinder flowMode={flowMode} />
-      </div>
+      </CollapsibleSection>
 
       {/* ── Action buttons ── */}
       <div className="results-actions res-reveal" style={{ '--delay': '640ms' }}>
