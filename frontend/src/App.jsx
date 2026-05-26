@@ -1968,28 +1968,26 @@ function App() {
                       ? { label: t('app.stage.stagePre'),  cls: 'stage-pre'  }
                       : { label: t('app.stage.stagePost'), cls: 'stage-post' });
 
-                  // Only show "Change pathway" before results are locked in
-                  const canChangePathway = pathwayMode !== null && !preResult;
+                  const handleChangePathway = async () => {
+                    if (preResult) {
+                      if (!window.confirm(t('app.confirm.clearAllDataStartOver'))) return;
+                      await handleClearData();
+                    }
+                    setPathwayMode(null);
+                    setCurrentStep(1);
+                    setPart1Step(0);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
 
                   return (
-                    <>
-                      <span className={`stage-badge ${badge.cls}`}>{badge.label}</span>
-                      {canChangePathway && (
-                        <button
-                          type="button"
-                          className="change-pathway-btn"
-                          onClick={() => {
-                            setPathwayMode(null);
-                            setCurrentStep(1);
-                            setPart1Step(0);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          title="Go back to pathway selection"
-                        >
-                          ← Change
-                        </button>
-                      )}
-                    </>
+                    <button
+                      type="button"
+                      className={`stage-badge stage-badge--btn ${badge.cls}`}
+                      onClick={handleChangePathway}
+                      title="Change assessment type"
+                    >
+                      {badge.label}
+                    </button>
                   );
                 })()}
               </div>
