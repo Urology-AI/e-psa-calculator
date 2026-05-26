@@ -1970,6 +1970,8 @@ function App() {
 
                   // Only show "Change pathway" before results are locked in
                   const canChangePathway = pathwayMode !== null && !preResult;
+                  // Show "← Part 1" to return to Part 1 Results from Part 2
+                  const canGoBackToPart1 = stage === 'post' && !!preResult;
 
                   return (
                     <>
@@ -1987,6 +1989,20 @@ function App() {
                           title="Go back to pathway selection"
                         >
                           ← Change
+                        </button>
+                      )}
+                      {canGoBackToPart1 && (
+                        <button
+                          type="button"
+                          className="change-pathway-btn"
+                          onClick={() => {
+                            setStage('pre');
+                            setCurrentStep(3);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          title="Return to Part 1 Results"
+                        >
+                          ← Part 1
                         </button>
                       )}
                     </>
