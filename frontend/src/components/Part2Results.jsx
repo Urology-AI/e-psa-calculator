@@ -947,29 +947,6 @@ const Part2Results = ({
           <UrologistFinder flowMode={flowMode} />
         </CollapsibleSection>
 
-        <CollapsibleSection title="Important Disclaimer">
-          <p
-            className="detail-disclaimer"
-            style={{
-              padding: '0.75rem 1rem',
-              marginBottom: '0.75rem',
-              background: 'rgba(217, 119, 6, 0.08)',
-              borderLeft: '4px solid #d97706',
-              borderRadius: '6px',
-              color: '#78350f',
-            }}
-          >
-            <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
-          </p>
-          <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
-          <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
-          <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderLeft: '3px solid #0284c7', borderRadius: '6px', fontSize: '11px', color: '#0c4a6e', lineHeight: 1.65 }}>
-            <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
-            <br /><br />
-            <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
-          </div>
-        </CollapsibleSection>
-
       </div>
 
       {/* ── Action buttons ── */}
@@ -1031,6 +1008,20 @@ const Part2Results = ({
           )}
         </div>
       </div>
+
+      {/* ── Disclaimer (below buttons) ── */}
+      <CollapsibleSection title="Important Disclaimer">
+        <p className="detail-notice-box--amber detail-disclaimer">
+          <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
+        </p>
+        <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
+        <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+        <div className="detail-notice-box">
+          <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
+          <br /><br />
+          <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
+        </div>
+      </CollapsibleSection>
 
     </div>
   );

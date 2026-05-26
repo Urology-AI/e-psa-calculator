@@ -1159,15 +1159,6 @@ const Part1Results = ({
           </div>
         )}
 
-        <CollapsibleSection title={t('part1Results.sectionDisclaimer')}>
-          <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
-          <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
-          <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderLeft: '3px solid #0284c7', borderRadius: '6px', fontSize: '11px', color: '#0c4a6e', lineHeight: 1.65 }}>
-            <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
-            <br /><br />
-            <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
-          </div>
-        </CollapsibleSection>
       </div>
 
       {/* ── Urologist Finder ── */}
@@ -1200,6 +1191,17 @@ const Part1Results = ({
           )}
         </div>
       </div>
+
+      {/* ── Disclaimer (below buttons) ── */}
+      <CollapsibleSection title={t('part1Results.sectionDisclaimer')}>
+        <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
+        <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
+        <div className="detail-notice-box">
+          <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
+          <br /><br />
+          <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
+        </div>
+      </CollapsibleSection>
     </div>
   );
 };
