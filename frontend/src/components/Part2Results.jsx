@@ -943,7 +943,9 @@ const Part2Results = ({
         )}
 
         {/* ── Urologist Finder ── */}
-        <UrologistFinder flowMode={flowMode} />
+        <CollapsibleSection title="Find a Board-Certified Urologist Near You">
+          <UrologistFinder flowMode={flowMode} />
+        </CollapsibleSection>
 
         <CollapsibleSection title="Important Disclaimer">
           <p
