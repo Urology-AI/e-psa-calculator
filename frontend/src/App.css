@@ -537,6 +537,22 @@ body {
   color: #fff;
 }
 
+/* ─── Clickable stage badge ─── */
+.stage-badge--btn {
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.stage-badge--btn:hover {
+  opacity: 0.8;
+  transform: scale(1.03);
+}
+
+.stage-badge--btn:active {
+  transform: scale(0.97);
+}
+
 /* ─── Change Pathway button ─── */
 .change-pathway-btn {
   display: inline-flex;
