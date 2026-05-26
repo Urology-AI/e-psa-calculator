@@ -15,7 +15,7 @@ import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import {
-  ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
+  ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
   MapPinIcon, PillIcon, ScanEyeIcon, UsersIcon,
@@ -722,24 +722,24 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── MRI Recommendation — only shown when clinically indicated (AUA/NCCN/EAU: mpMRI before biopsy) ── */}
+      {/* ── MRI CTA — styled like Part 1 PSA CTA ── */}
       {pathwayMode === 'post_psa' && mriRecommended && (
-        <div className="v2-psa-hero v2-psa-hero--amber res-reveal" style={{ '--delay': '200ms' }}>
-          <div className="v2-psa-hero-top">
-            <div className="v2-psa-hero-icon"><ScanEyeIcon size={20} /></div>
-            <div className="v2-psa-hero-body">
-              <h3 className="v2-psa-hero-title">mpMRI Recommended Before Any Biopsy Decision</h3>
-              <p className="v2-psa-hero-desc">
-                {mriRecommendMessage || 'AUA/NCCN/EAU guidelines recommend an mpMRI before any biopsy decision when combined risk is elevated. This gives your doctor a clearer picture and reduces unnecessary procedures.'}
-              </p>
-            </div>
+        <div
+          className="psa-cta-banner res-reveal"
+          style={{ '--delay': '200ms' }}
+          role="complementary"
+          aria-label="Add MRI result"
+        >
+          <div>
+            <p className="psa-cta-banner__title">Know your MRI? Add it for a more complete picture.</p>
+            <p className="psa-cta-banner__desc">
+              {mriRecommendMessage || 'Adding your MRI result gives you a full ePSA assessment — including whether a biopsy is recommended.'}
+            </p>
           </div>
           {onContinueToMRI && (
-            <div className="v2-psa-hero-ctas">
-              <button type="button" className="btn-results btn-results--solid v2-psa-hero-btn-solid" onClick={onContinueToMRI}>
-                Add MRI Results →
-              </button>
-            </div>
+            <button type="button" onClick={onContinueToMRI} className="psa-cta-banner__btn">
+              Add MRI result <ArrowRightIcon size={15} />
+            </button>
           )}
         </div>
       )}
