@@ -36,9 +36,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.submitToRedcap = exports.syncToRedcap = void 0;
+exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.submitToRedcap = exports.syncToRedcap = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
+const https = __importStar(require("https"));
 const zod_1 = require("zod");
 const crypto_js_1 = __importDefault(require("crypto-js"));
 // REDCap sync trigger (Firestore onWrite → REDCap API)
@@ -46,6 +47,30 @@ const crypto_js_1 = __importDefault(require("crypto-js"));
 var redcapSync_1 = require("./redcapSync");
 Object.defineProperty(exports, "syncToRedcap", { enumerable: true, get: function () { return redcapSync_1.syncToRedcap; } });
 Object.defineProperty(exports, "submitToRedcap", { enumerable: true, get: function () { return redcapSync_1.submitToRedcap; } });
+// Sinai clinic cohort — IRB STUDY-14-00050.
+// Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
+// after 30 days via Firestore TTL) and optionally pushed to Sinai REDCap.
+// All Sinai data is keyed only by clinic code — never tied to PII.
+var sinaiCohort_1 = require("./sinaiCohort");
+Object.defineProperty(exports, "validateClinicCode", { enumerable: true, get: function () { return sinaiCohort_1.validateClinicCode; } });
+Object.defineProperty(exports, "submitSinaiSession", { enumerable: true, get: function () { return sinaiCohort_1.submitSinaiSession; } });
+Object.defineProperty(exports, "markCodeImported", { enumerable: true, get: function () { return sinaiCohort_1.markCodeImported; } });
+// Admin-only callables for the dashboard (codes, sessions, flag, audit).
+var sinaiAdmin_1 = require("./sinaiAdmin");
+Object.defineProperty(exports, "adminListSinaiSessions", { enumerable: true, get: function () { return sinaiAdmin_1.adminListSinaiSessions; } });
+Object.defineProperty(exports, "adminGetSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminGetSinaiSession; } });
+Object.defineProperty(exports, "adminSubmitSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminSubmitSinaiSession; } });
+Object.defineProperty(exports, "adminDeleteSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminDeleteSinaiSession; } });
+Object.defineProperty(exports, "adminToggleSinaiRedcapEnabled", { enumerable: true, get: function () { return sinaiAdmin_1.adminToggleSinaiRedcapEnabled; } });
+Object.defineProperty(exports, "adminGenerateClinicCodes", { enumerable: true, get: function () { return sinaiAdmin_1.adminGenerateClinicCodes; } });
+Object.defineProperty(exports, "adminRevokeClinicCode", { enumerable: true, get: function () { return sinaiAdmin_1.adminRevokeClinicCode; } });
+Object.defineProperty(exports, "adminListClinicCodeAuditLog", { enumerable: true, get: function () { return sinaiAdmin_1.adminListClinicCodeAuditLog; } });
+// Public-cohort viewers (sessions/* + users/{uid}, gated on researchConsent)
+Object.defineProperty(exports, "adminListPublicConsentedSessions", { enumerable: true, get: function () { return sinaiAdmin_1.adminListPublicConsentedSessions; } });
+Object.defineProperty(exports, "adminGetPublicSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminGetPublicSession; } });
+Object.defineProperty(exports, "adminResyncPublicSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminResyncPublicSession; } });
+// Admin-attested linking of a public session into the Sinai cohort
+Object.defineProperty(exports, "adminLinkPublicSessionToSinai", { enumerable: true, get: function () { return sinaiAdmin_1.adminLinkPublicSessionToSinai; } });
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -1497,6 +1522,34 @@ exports.optimizeDatabase = functions.pubsub.schedule('0 6 * * 0') // 6 AM every 
         console.error('Error optimizing database:', error);
         throw error;
     }
+});
+// ============================================
+// HTTP FUNCTION: NPI Registry proxy
+// The CMS NPI Registry API does not send CORS headers, so the browser
+// cannot call it directly. This function proxies requests server-side.
+// Firebase Hosting rewrites /api/npi/** to this function.
+// ============================================
+exports.npiProxy = functions.https.onRequest((req, res) => {
+    const suffix = req.url.replace(/^\/api\/npi/, '/api');
+    const npiUrl = `https://npiregistry.cms.hhs.gov${suffix}`;
+    const upstream = https.get(npiUrl, (proxyRes) => {
+        let body = '';
+        proxyRes.on('data', (chunk) => { body += chunk.toString(); });
+        proxyRes.on('end', () => {
+            try {
+                res.json(JSON.parse(body));
+            }
+            catch (_a) {
+                res.status(502).json({ error: 'Invalid NPI response' });
+            }
+        });
+        proxyRes.on('error', () => {
+            res.status(502).json({ error: 'NPI upstream read error' });
+        });
+    });
+    upstream.on('error', () => {
+        res.status(502).json({ error: 'NPI upstream connection error' });
+    });
 });
 // Update admin last login timestamp
 exports.updateAdminLastLogin = functions.https.onCall(async (_data, context) => {

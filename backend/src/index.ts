@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import * as https from 'https';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
 
@@ -1775,6 +1776,36 @@ export const optimizeDatabase = functions.pubsub.schedule('0 6 * * 0') // 6 AM e
       throw error;
     }
   });
+
+// ============================================
+// HTTP FUNCTION: NPI Registry proxy
+// The CMS NPI Registry API does not send CORS headers, so the browser
+// cannot call it directly. This function proxies requests server-side.
+// Firebase Hosting rewrites /api/npi/** to this function.
+// ============================================
+export const npiProxy = functions.https.onRequest((req, res) => {
+  const suffix = req.url.replace(/^\/api\/npi/, '/api');
+  const npiUrl = `https://npiregistry.cms.hhs.gov${suffix}`;
+
+  const upstream = https.get(npiUrl, (proxyRes) => {
+    let body = '';
+    proxyRes.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+    proxyRes.on('end', () => {
+      try {
+        res.json(JSON.parse(body));
+      } catch {
+        res.status(502).json({ error: 'Invalid NPI response' });
+      }
+    });
+    proxyRes.on('error', () => {
+      res.status(502).json({ error: 'NPI upstream read error' });
+    });
+  });
+
+  upstream.on('error', () => {
+    res.status(502).json({ error: 'NPI upstream connection error' });
+  });
+});
 
 // Update admin last login timestamp
 export const updateAdminLastLogin = functions.https.onCall(async (_data: unknown, context: functions.https.CallableContext) => {
