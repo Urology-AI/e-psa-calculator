@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -491,6 +492,7 @@ const Part1Results = ({
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
   researchConsent = false,
   onShowModelDocs = null,
+  flowMode = 'public',
 }) => {
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
@@ -1166,6 +1168,11 @@ const Part1Results = ({
             <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
           </div>
         </CollapsibleSection>
+      </div>
+
+      {/* ── Urologist Finder ── */}
+      <div className="res-reveal" style={{ '--delay': '560ms' }}>
+        <UrologistFinder flowMode={flowMode} />
       </div>
 
       {/* ── Action buttons ── */}

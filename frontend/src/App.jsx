@@ -1746,6 +1746,7 @@ function App() {
                 }}
                 onContinueToPostBiopsy={handleContinueToPostBiopsy}
                 onShowModelDocs={() => setShowModelDocs(true)}
+                flowMode={flowMode}
               />
             ) : (
               <div className="loading-results">

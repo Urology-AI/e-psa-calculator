@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import './Part2Results.css';
@@ -940,6 +941,9 @@ const Part2Results = ({
             </button>
           </div>
         )}
+
+        {/* ── Urologist Finder ── */}
+        <UrologistFinder flowMode={flowMode} />
 
         <CollapsibleSection title="Important Disclaimer">
           <p
