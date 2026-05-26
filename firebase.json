@@ -23,6 +23,10 @@
       ],
       "rewrites": [
         {
+          "source": "/api/npi/**",
+          "function": "npiProxy"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }

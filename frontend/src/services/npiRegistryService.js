@@ -6,7 +6,7 @@
 const IS_DEV = import.meta.env.DEV;
 const NPI_API = IS_DEV
   ? '/dev-proxy/npi/?version=2.1'
-  : 'https://npiregistry.cms.hhs.gov/api/?version=2.1';
+  : '/api/npi/?version=2.1';
 const NOMINATIM = IS_DEV
   ? '/dev-proxy/nominatim'
   : 'https://nominatim.openstreetmap.org';
