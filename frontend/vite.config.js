@@ -41,6 +41,18 @@ export default defineConfig({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      '/dev-proxy/npi': {
+        target: 'https://npiregistry.cms.hhs.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/dev-proxy\/npi/, '/api'),
+      },
+      '/dev-proxy/nominatim': {
+        target: 'https://nominatim.openstreetmap.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/dev-proxy\/nominatim/, ''),
+      },
+    },
   },
   define: {
     'process.env': process.env,

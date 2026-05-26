@@ -717,6 +717,42 @@
   margin-top: 0.5rem !important;
 }
 
+/* ── Disclaimer notice boxes ── */
+.detail-notice-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-left: 3px solid #0284c7;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #0c4a6e;
+  line-height: 1.65;
+}
+
+.detail-notice-box--amber {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  background: rgba(217, 119, 6, 0.08);
+  border-left: 4px solid #d97706;
+  border-radius: 6px;
+  color: #78350f;
+  font-size: 0.8125rem;
+}
+
+.theme-dark .detail-notice-box {
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(147, 197, 253, 0.25);
+  border-left-color: #38bdf8;
+  color: #bae6fd;
+}
+
+.theme-dark .detail-notice-box--amber {
+  background: rgba(217, 119, 6, 0.12);
+  border-left-color: #f59e0b;
+  color: #fcd34d;
+}
+
 .threshold-chip-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
