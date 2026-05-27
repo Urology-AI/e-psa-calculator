@@ -884,6 +884,45 @@
   .section-tab { justify-content: center; gap: 0.25rem; }
 }
 
+/* ─── Section guideline badges (AUA/SUO 2026, Research-based) ─── */
+
+.section-a-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 12px;
+  background: #1e40af;
+  color: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.section-b-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-radius: 12px;
+  background: transparent;
+  color: #6b7280;
+  border: 1.5px solid #d1d5db;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.theme-dark .section-a-badge {
+  background: rgba(30, 64, 175, 0.75);
+}
+
+.theme-dark .section-b-badge {
+  color: var(--ink-400);
+  border-color: var(--line-100);
+}
+
 /* ─── Skip button ─── */
 
 .skip-link-row {

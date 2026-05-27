@@ -27,43 +27,11 @@ const IPSS_LABEL_KEY_BY_VALUE = {
 
 // Section badge components
 const SectionABadge = () => (
-  <span
-    style={{
-      display: 'inline-block',
-      padding: '3px 10px',
-      fontSize: '11px',
-      fontWeight: 700,
-      letterSpacing: '0.04em',
-      borderRadius: '12px',
-      background: '#1e40af',
-      color: '#fff',
-      marginLeft: '8px',
-      verticalAlign: 'middle',
-      whiteSpace: 'nowrap',
-    }}
-  >
-    AUA/SUO 2026
-  </span>
+  <span className="section-a-badge">AUA/SUO 2026</span>
 );
 
 const SectionBBadge = () => (
-  <span
-    style={{
-      display: 'inline-block',
-      padding: '3px 10px',
-      fontSize: '11px',
-      fontWeight: 600,
-      letterSpacing: '0.03em',
-      borderRadius: '12px',
-      background: 'transparent',
-      color: '#6b7280',
-      border: '1.5px solid #d1d5db',
-      marginLeft: '8px',
-      verticalAlign: 'middle',
-    }}
-  >
-    Research-based
-  </span>
+  <span className="section-b-badge">Research-based</span>
 );
 
 const Part1Form = ({ formData, setFormData, onNext }) => {
@@ -104,7 +72,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             type="button"
             className="skip-btn skip-btn--skipped"
             onClick={() => skipField(field)}
-            aria-label="Question skipped — tap to undo"
+            aria-label="Question skipped — select to undo"
           >
             <CheckIcon size={11} />
             {t('part1.skip.skippedLabel')}

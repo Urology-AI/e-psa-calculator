@@ -332,22 +332,18 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               return (
                 <>
                   {lesions.map((lesionVal, idx) => (
-                    <div key={idx} style={{ marginBottom: idx < lesions.length - 1 ? '12px' : 0 }}>
+                    <div key={idx} className={idx < lesions.length - 1 ? 'lesion-item' : undefined}>
                       {lesions.length > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151' }}>
-                            Lesion {idx + 1}
-                          </span>
+                        <div className="lesion-header">
+                          <span className="lesion-label">Lesion {idx + 1}</span>
                           <button
                             type="button"
+                            className="lesion-remove-btn"
                             onClick={() => {
                               const next = lesions.filter((_, i) => i !== idx);
                               updateLesions(next.length > 0 ? next : [null]);
                             }}
-                            style={{
-                              background: 'transparent', border: 'none', cursor: 'pointer',
-                              color: '#6b7280', fontSize: '0.75rem', textDecoration: 'underline',
-                            }}
+                            aria-label={`Remove lesion ${idx + 1}`}
                           >
                             Remove
                           </button>
@@ -358,6 +354,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                           <button
                             key={opt.value}
                             className={`pirads-btn ${lesionVal === opt.value ? 'selected' : ''}`}
+                            aria-label={`PI-RADS ${opt.value}: ${opt.desc}`}
+                            aria-pressed={lesionVal === opt.value}
                             onClick={() => {
                               const next = [...lesions];
                               next[idx] = opt.value;
@@ -373,12 +371,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                   ))}
                   <button
                     type="button"
+                    className="lesion-add-btn"
                     onClick={() => updateLesions([...lesions, null])}
-                    style={{
-                      marginTop: '10px', background: 'transparent', border: '1px dashed #9ca3af',
-                      borderRadius: '6px', padding: '6px 12px', cursor: 'pointer',
-                      color: '#374151', fontSize: '0.8125rem', fontWeight: 500,
-                    }}
                   >
                     + Add another lesion
                   </button>

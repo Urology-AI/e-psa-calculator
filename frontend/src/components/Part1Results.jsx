@@ -546,7 +546,17 @@ const Part1Results = ({
   };
 
   if (showPrintableForm) return <PrintableForm formData={formData} onBack={() => setShowPrintableForm(false)} />;
-  if (!result) return <div className="results-container"><p className="results-empty">No results available.</p></div>;
+  if (!result) return (
+    <div className="results-container">
+      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+        <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
+        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>No Results Yet</h3>
+        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+          Complete the Part 1 questionnaire to see your baseline risk assessment.
+        </p>
+      </div>
+    </div>
+  );
 
   /* ── Structural validity guard ──────────────────────────────────────────────
    * Catches corrupted localStorage sessions where required fields are missing.

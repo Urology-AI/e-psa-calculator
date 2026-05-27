@@ -529,6 +529,80 @@
 .theme-dark .psa-ctx--orange { background: rgba(249, 115, 22, 0.1); border-color: #fb923c; color: #fed7aa; }
 .theme-dark .psa-ctx--red    { background: rgba(239, 68, 68, 0.1);  border-color: #f87171; color: #fca5a5; }
 
+/* ─── Lesion multi-entry UI ─── */
+
+.lesion-item {
+  margin-bottom: 12px;
+}
+
+.lesion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.lesion-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-700, #374151);
+}
+
+.lesion-remove-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-400, #6b7280);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.lesion-remove-btn:hover {
+  color: #dc2626;
+}
+
+.lesion-add-btn {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed var(--line-200, #9ca3af);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--ink-700, #374151);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.lesion-add-btn:hover {
+  border-color: var(--ms-navy, #212070);
+  color: var(--ms-navy, #212070);
+}
+
+.theme-dark .lesion-label { color: var(--ink-700); }
+
+.theme-dark .lesion-remove-btn {
+  color: var(--ink-500);
+}
+
+.theme-dark .lesion-remove-btn:hover {
+  color: #f87171;
+}
+
+.theme-dark .lesion-add-btn {
+  border-color: var(--line-100);
+  color: var(--ink-700);
+}
+
+.theme-dark .lesion-add-btn:hover {
+  border-color: var(--ms-cyan);
+  color: var(--ms-cyan);
+}
+
 /* ─── PI-RADS selector ─── */
 
 .pirads-grid {
