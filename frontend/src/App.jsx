@@ -29,6 +29,7 @@ import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLo
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
+import JourneyProgress from './components/JourneyProgress.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
@@ -2036,6 +2037,13 @@ function App() {
           renderAuthScreen()
         ) : (
           <>
+            <JourneyProgress
+              stage={stage}
+              currentStep={currentStep}
+              pathwayMode={pathwayMode}
+              preResult={preResult}
+              postResult={postResult}
+            />
             {showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}
             {(pathwayMode !== null || preResult) && (

@@ -77,7 +77,13 @@ const PathwaySelector = ({ onSelect }) => (
     </div>
     <div className="pathway-cards" role="list">
       {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass }) => (
-        <div key={mode} className={`pathway-card ${accentClass}`} role="listitem">
+        <div
+          key={mode}
+          className={`pathway-card ${accentClass}`}
+          role="listitem"
+          onClick={() => onSelect(mode)}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="pathway-card-icon-wrap" aria-hidden="true">
             <Icon />
           </div>
@@ -86,8 +92,9 @@ const PathwaySelector = ({ onSelect }) => (
           <button
             type="button"
             className="pathway-card-btn"
-            onClick={() => onSelect(mode)}
+            onClick={(e) => { e.stopPropagation(); onSelect(mode); }}
             aria-label={`${button} — ${headline}`}
+            tabIndex={-1}
           >
             {button}
           </button>
