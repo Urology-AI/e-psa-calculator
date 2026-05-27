@@ -883,3 +883,58 @@
   .section-tab-name { display: none; }
   .section-tab { justify-content: center; gap: 0.25rem; }
 }
+
+/* ─── Bottom nav section chips (A / B) ─── */
+
+.nav-section-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line-200, #dde4ec);
+  background: var(--surface, #fff);
+  color: var(--ink-500, #6b7280);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.nav-section-chip:hover {
+  border-color: var(--ms-cyan);
+  color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.06);
+}
+
+.nav-section-chip--done {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.nav-section-chip--done:hover {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.theme-dark .nav-section-chip {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .nav-section-chip:hover {
+  border-color: var(--ms-cyan);
+  color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.08);
+}
+
+.theme-dark .nav-section-chip--done {
+  border-color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+}
