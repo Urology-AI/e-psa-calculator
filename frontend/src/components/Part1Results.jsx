@@ -501,6 +501,7 @@ const Part1Results = ({
   const breakdownRef = useRef(null);
   const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
+  const [confirmStartOver, setConfirmStartOver] = useState(false);
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   // Hook must be before early returns — animates the impact total in the score breakdown
   const animImpactScore = useCountUp(Number(result?.calculationDetails?.rawScore) || 0);
@@ -1170,7 +1171,17 @@ const Part1Results = ({
       <div className="results-actions res-reveal" style={{ '--delay': '640ms' }}>
         <div className="results-actions-row results-actions-row--primary">
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>{t('part1Results.btnEditAnswers')}</span></button>
-          <button className="btn-results btn-results--danger-outline" onClick={onStartOver}><RefreshCwIcon size={16} /><span>{t('part1Results.btnStartOver')}</span></button>
+          {confirmStartOver ? (
+            <div className="start-over-confirm">
+              <span className="start-over-confirm-msg">This will erase all your answers. Are you sure?</span>
+              <div className="start-over-confirm-btns">
+                <button className="btn-results btn-results--danger" onClick={onStartOver}><RefreshCwIcon size={14} /><span>Yes, start over</span></button>
+                <button className="btn-results btn-results--outline" onClick={() => setConfirmStartOver(false)}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button className="btn-results btn-results--danger-outline" onClick={() => setConfirmStartOver(true)}><RefreshCwIcon size={16} /><span>{t('part1Results.btnStartOver')}</span></button>
+          )}
         </div>
         <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>{t('part1Results.btnPrintResults')}</span></button>
