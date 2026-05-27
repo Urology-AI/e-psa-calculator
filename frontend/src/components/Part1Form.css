@@ -299,12 +299,20 @@
   background: #edf5fd;
 }
 
+@keyframes option-selected-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
 .option-btn.selected {
   border-color: var(--ms-cyan);
   background: #e6f3fc;
   color: #0d3d62;
   box-shadow: 0 0 0 0.1875rem rgba(26, 104, 152, 0.12);
   font-weight: 700;
+  animation: option-selected-pop 0.22s ease;
 }
 
 .option-btn .score {
