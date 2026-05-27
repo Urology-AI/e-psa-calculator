@@ -35,7 +35,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
   // the toggle questions and go straight to the value inputs.
   const hasPsaPathway  = pathwayMode === 'post_psa' || pathwayMode === 'post_mri';
   const hasMriPathway  = pathwayMode === 'post_mri';
-  const totalPart2Steps = hasMriPathway ? 2 : 1;
+  const totalPart2Steps = 2; // MRI is always available as optional Step 2
 
   const [localData, setLocalData] = useState({
     knowPsa: hasPsaPathway ? true : (formData.knowPsa || false),
@@ -280,7 +280,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       {!hasMriPathway && (
         <div className="question-card">
           <div className="question-header">
-            <div className="question-number">3</div>
+            <div className="question-number">1</div>
             <div className="question-text">{t('part2.mri.q1')}</div>
             <InfoIcon
               title="MRI PI-RADS — evidence sources"
@@ -310,7 +310,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
       {localData.knowPirads && (
         <div className="question-card">
           <div className="question-header">
-            <div className="question-number">4</div>
+            <div className="question-number">{hasMriPathway ? 1 : 2}</div>
             <div className="question-text">{t('part2.mri.q2')}</div>
           </div>
           <div className="question-body">
@@ -404,28 +404,22 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
     );
   }
 
-  // Step chip label varies by pathway and step
-  const stepChipLabel = (() => {
-    if (totalPart2Steps === 1) return 'Your PSA Result';
-    if (currentStep === 1) return 'Step 1 of 2 — Your PSA Result';
-    return 'Step 2 of 2 — Your MRI Results';
-  })();
+  const stepChipLabel = currentStep === 1
+    ? 'Step 1 of 2 — Your PSA Result'
+    : 'Step 2 of 2 — MRI Results (Optional)';
 
-  // Step title varies by pathway and step
-  const stepTitle = (() => {
-    if (currentStep === 2) return hasMriPathway ? 'Your MRI Results' : t('part2.steps.mri.sectionTitle');
-    return hasPsaPathway ? 'Enter your PSA level' : t('part2.steps.psa.sectionTitle');
-  })();
+  const stepTitle = currentStep === 2
+    ? (hasMriPathway ? 'Your MRI Results' : 'MRI Results (Optional)')
+    : (hasPsaPathway ? 'Enter your PSA level' : t('part2.steps.psa.sectionTitle'));
 
-  // Step note varies by pathway
   const stepNote = (() => {
     if (currentStep === 2) {
       return hasMriPathway
         ? 'Enter the PI-RADS score from your MRI report. Your radiologist or urologist will have this.'
-        : t('part2.flow.note');
+        : 'If you have MRI results, enter your PI-RADS score below — this improves accuracy. You can also skip this step and calculate without MRI data.';
     }
     if (hasMriPathway) return 'Enter your PSA level first. You\'ll add your MRI score on the next screen.';
-    if (hasPsaPathway) return 'Enter your PSA level to see how it fits with your full risk profile.';
+    if (hasPsaPathway) return 'Enter your PSA level. You\'ll have the option to add MRI results on the next screen.';
     return t('part2.flow.note');
   })();
 

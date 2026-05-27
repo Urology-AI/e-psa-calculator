@@ -1,46 +1,93 @@
 import React, { useState, useEffect } from 'react';
 import './ResultsLoading.css';
 
-const LOADING_STEPS = [
+// Part 1: baseline risk profile — no PSA or MRI references
+export const PART1_LOADING_STEPS = [
   {
-    label: 'Parsing clinical profile',
-    detail: 'Reading PSA values, DRE findings, age, and symptom history…',
+    label: 'Reading your health profile',
+    detail: 'Parsing age, race, family history, and urinary symptom scores…',
     progress: 12,
     duration: 1500,
   },
   {
-    label: 'Calibrating PSA trajectory',
-    detail: 'Modeling PSA velocity and doubling time relative to your age…',
+    label: 'Assessing hereditary risk',
+    detail: 'Evaluating first-degree relatives, BRCA2 status, and Lynch syndrome flags…',
     progress: 28,
     duration: 2000,
   },
   {
-    label: 'Evaluating hereditary risk',
-    detail: 'Scanning family history — first-degree relatives, BRCA2, Lynch syndrome…',
+    label: 'Scoring urinary symptoms',
+    detail: 'Processing your IPSS responses to assess lower urinary tract symptoms…',
     progress: 44,
     duration: 2200,
   },
   {
-    label: 'Adjusting for prostate volume',
-    detail: 'Weighting PSA density against prostate size and body habitus…',
+    label: 'Weighing lifestyle factors',
+    detail: 'Factoring in BMI, exercise habits, diet patterns, and smoking history…',
     progress: 59,
     duration: 2000,
   },
   {
-    label: 'Incorporating imaging data',
-    detail: 'Cross-referencing MRI / PI-RADS scores and prior biopsy pathology…',
+    label: 'Checking guideline criteria',
+    detail: 'Matching your profile to AUA/SUO 2026 and NCCN screening thresholds…',
     progress: 74,
     duration: 2200,
   },
   {
-    label: 'Matching 2026 guidelines',
-    detail: 'Aligning your profile to AUA/SUO 2026 and NCCN Very Low → High classification…',
+    label: 'Running the baseline model',
+    detail: 'Applying the ePSA risk scoring model to your complete profile…',
     progress: 89,
     duration: 2000,
   },
   {
     label: 'Composing your recommendation',
-    detail: 'Preparing your personalized PSA screening plan with evidence-tier citations…',
+    detail: 'Preparing your personalized screening priority with evidence-tier citations…',
+    progress: 97,
+    duration: 0,
+  },
+];
+
+// Part 2: PSA + MRI analysis and next-step guideline matching
+export const PART2_LOADING_STEPS = [
+  {
+    label: 'Loading your baseline profile',
+    detail: 'Retrieving your Part 1 risk score and guideline classification…',
+    progress: 12,
+    duration: 1500,
+  },
+  {
+    label: 'Analyzing your PSA level',
+    detail: 'Placing your PSA in context — gray zone, PSA density, and hormonal adjustments…',
+    progress: 28,
+    duration: 2000,
+  },
+  {
+    label: 'Evaluating imaging data',
+    detail: 'Cross-referencing PI-RADS score with your PSA and baseline risk profile…',
+    progress: 44,
+    duration: 2200,
+  },
+  {
+    label: 'Matching 2026 guidelines',
+    detail: 'Aligning with AUA/SUO/NCCN/EAU 2026 next-step recommendations…',
+    progress: 59,
+    duration: 2000,
+  },
+  {
+    label: 'Checking biopsy thresholds',
+    detail: 'Evaluating biopsy and MRI referral criteria for your risk tier…',
+    progress: 74,
+    duration: 2200,
+  },
+  {
+    label: 'Applying the Part 2 model',
+    detail: 'Combining PSA, MRI, and baseline data through the ePSA post-PSA engine…',
+    progress: 89,
+    duration: 2000,
+  },
+  {
+    label: 'Composing your plan',
+    detail: 'Preparing your personalized PSA assessment with guideline-backed next steps…',
     progress: 97,
     duration: 0,
   },
@@ -62,9 +109,10 @@ const ResultsLoading = ({
   message = 'Analyzing your prostate health profile…',
   onComplete,
   storageKey = 'epsa_loading_seen',
+  steps = PART1_LOADING_STEPS,
 }) => {
   const isFirstVisit = !localStorage.getItem(storageKey);
-  const lastStep = LOADING_STEPS.length - 1;
+  const lastStep = steps.length - 1;
   const [step, setStep] = useState(isFirstVisit ? 0 : lastStep);
 
   useEffect(() => {
@@ -80,7 +128,7 @@ const ResultsLoading = ({
     let elapsed = 0;
 
     for (let i = 0; i < lastStep; i++) {
-      elapsed += LOADING_STEPS[i].duration;
+      elapsed += steps[i].duration;
       const nextStep = i + 1;
       timeouts.push(setTimeout(() => setStep(nextStep), elapsed));
     }
@@ -93,7 +141,7 @@ const ResultsLoading = ({
     return () => timeouts.forEach(clearTimeout);
   }, []);
 
-  const current = LOADING_STEPS[step];
+  const current = steps[step];
 
   return (
     <div className="results-loading" role="status" aria-live="polite">
@@ -116,7 +164,7 @@ const ResultsLoading = ({
         <div className="rl-progress-pct" aria-hidden="true">{current.progress}%</div>
 
         <div className="results-loading-steps" aria-hidden="true">
-          {LOADING_STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <span
               key={i}
               className={`rl-dot ${
@@ -129,7 +177,7 @@ const ResultsLoading = ({
         </div>
 
         <div className="results-loading-step-text" key={step}>
-          <span className="results-loading-step-count">{step + 1}&thinsp;/&thinsp;{LOADING_STEPS.length}</span>
+          <span className="results-loading-step-count">{step + 1}&thinsp;/&thinsp;{steps.length}</span>
           {' '}{current.label}
         </div>
 
