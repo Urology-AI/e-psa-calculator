@@ -1272,6 +1272,10 @@
   .nsc-title {
     white-space: normal;
   }
+
+  .start-over-confirm {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {

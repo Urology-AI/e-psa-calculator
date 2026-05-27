@@ -334,7 +334,8 @@
 }
 
 .input-field {
-  width: 7.5rem;
+  width: 100%;
+  max-width: 7.5rem;
   padding: 0.5625rem 0.75rem;
   font-size: 1rem;
   border: 0.09375rem solid #ccdae8;

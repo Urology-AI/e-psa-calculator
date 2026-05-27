@@ -687,3 +687,10 @@
 .theme-dark .pirads-btn.selected .pirads-btn-num { color: var(--ms-cyan); }
 .theme-dark .pirads-btn-desc { color: var(--ink-500); }
 .theme-dark .pirads-btn.selected .pirads-btn-desc { color: var(--ms-cyan); }
+
+@media (max-width: 480px) {
+  .pirads-grid { gap: 5px; }
+  .pirads-btn { padding: 8px 2px 6px; }
+  .pirads-btn-num { font-size: 1rem; }
+  .pirads-btn-desc { font-size: 0.5625rem; line-height: 1.2; }
+}
