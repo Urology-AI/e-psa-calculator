@@ -18,7 +18,7 @@ import {
   ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon, ScanEyeIcon, UsersIcon,
+  MapPinIcon, PillIcon, UsersIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -302,7 +302,7 @@ const Part2Results = ({
     biopsyGuidelineSupport, biopsyGuidelineSupportCount,
     tierGuidelineSupport, tierGuidelineSupportCount,
     mriRecommended, mriRecommendMessage,
-    pathwayMode = 'post_psa', empiricalProbabilityText,
+    pathwayMode = 'post_psa',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadFlag,

@@ -377,14 +377,14 @@ export const AUAGuidelineCriteria = ({ age, isHighRisk = false }) => {
   const is4044    = ageNum >= 40 && ageNum < 45;
   const is4549    = ageNum >= 45 && ageNum < 50;
   const is5069    = ageNum >= 50 && ageNum <= 69;
-  const is7075    = ageNum >= 70 && ageNum <= 75;
-  const isOver75  = ageNum > 75;
+  const is7074    = ageNum >= 70 && ageNum <= 74;
+  const isOver75  = ageNum >= 75;
 
   const screeningApplies = (!isUnder40 && !is4044) || isHighRisk;
-  const sdmApplies       = is7075 || isOver75;
+  const sdmApplies       = is7074 || isOver75;
 
-  const profileBg   = screeningApplies ? '#f0fdf4' : isOver75 ? '#fff7ed' : '#f9fafb';
-  const profileBorder = screeningApplies ? '#16a34a' : isOver75 ? '#ea580c' : '#9ca3af';
+  const profileBg   = screeningApplies ? '#f0fdf4' : (isOver75 || is7074) ? '#fff7ed' : '#f9fafb';
+  const profileBorder = screeningApplies ? '#16a34a' : (isOver75 || is7074) ? '#ea580c' : '#9ca3af';
 
   const profileSummary = (() => {
     if (isUnder40 && !isHighRisk)
@@ -395,8 +395,8 @@ export const AUAGuidelineCriteria = ({ age, isHighRisk = false }) => {
       return { label: `Age ${ageNum} · Baseline screening window`, body: 'AUA/SUO 2026 supports offering a baseline PSA at ages 45–49. A result < 2.5 ng/mL suggests re-entering the pathway at age 50; ≥ 2.5 ng/mL warrants continuing biannual screening.' };
     if (is5069)
       return { label: `Age ${ageNum} · Core screening window`, body: 'Ages 50–69 represent the period with the strongest evidence of benefit from PSA-based screening. AUA/SUO 2026 strongly recommends offering PSA screening every 2–4 years in this group (Grade A).' };
-    if (is7075)
-      return { label: `Age ${ageNum} · Shared decision-making required`, body: 'At age 70+, AUA/SUO 2026 requires shared decision-making (SDM). The decision to continue or discontinue screening depends on life expectancy, prior PSA history, and patient preferences. Patients with life expectancy < 10 years should generally discontinue screening.' };
+    if (is7074)
+      return { label: `Age ${ageNum} · Shared decision-making required`, body: 'At age 70–74, AUA/SUO 2026 requires shared decision-making (SDM). The decision to continue or discontinue screening depends on life expectancy, prior PSA history, and patient preferences. Patients with life expectancy < 10 years should generally discontinue screening.' };
     if (isOver75)
       return { label: `Age ${ageNum} · Screening beyond typical range`, body: 'AUA/SUO 2026 notes that patients aged 75+ with PSA < 3 ng/mL are unlikely to be diagnosed with aggressive prostate cancer or die from it during their remaining lifetime. Discontinuing or substantially lengthening the screening interval is appropriate for most patients, subject to SDM.' };
     return null;
