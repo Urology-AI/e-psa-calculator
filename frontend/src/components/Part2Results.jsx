@@ -8,7 +8,7 @@ import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
-import AUAScreeningFlowchart from './AUAFlowchart';
+import AUAScreeningFlowchart, { AUAInitialBiopsyGuidelines } from './AUAFlowchart';
 import ResultsLoading, { LOADING_SEEN_KEY_P2 } from './ResultsLoading';
 import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
@@ -18,7 +18,7 @@ import {
   ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon, ScanEyeIcon, UsersIcon,
+  MapPinIcon, PillIcon, UsersIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -170,92 +170,6 @@ const PIRADS_COLORS = ['#16a34a', '#16a34a', '#16a34a', '#2563eb', '#d97706', '#
 /* ─── Gauge tier colors for Part 2 ─── */
 const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' };
 
-/* ─── Decision Framework — visual pathway summary for the SDM section ───
- * Shows a 4-tier pathway card strip highlighting the current tier.
- * For age 70+ an extra SDM-first sequence is shown above the tier strip.
- * ─────────────────────────────────────────────────────────────────────── */
-const PATHWAY_STEPS = [
-  { key: 'low',              label: 'Low Risk',   action: 'Routine PSA in 2–4 years',      color: '#166534', bg: '#f0fdf4', border: '#bbf7d0' },
-  { key: 'intermediate-low', label: 'Int-Low',    action: 'Repeat PSA in 1–2 years',        color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-  { key: 'intermediate-high',label: 'Int-High',   action: 'mpMRI before biopsy decision',   color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
-  { key: 'high',             label: 'High Risk',  action: 'Discuss biopsy with urologist',  color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
-];
-
-const SDM_STEPS_70_PLUS = [
-  { num: 1, label: 'Life Expectancy Assessment', action: 'Physician assesses life expectancy', note: 'Required before any PSA-based decision per AUA/SUO 2026' },
-  { num: 2, label: 'Shared Decision-Making',     action: 'Discuss values, priorities & screening burden' },
-  { num: 3, label: 'If ≥ 10 yr life expectancy', action: 'Follow the PSA-based pathway below' },
-  { num: 4, label: 'If < 10 yr life expectancy', action: 'Discontinue screening (AUA/SUO 2026)' },
-];
-
-const DecisionFramework = ({ epsaTierKey, biopsyRecommended, isAge70Plus }) => {
-  const activeKey = biopsyRecommended && epsaTierKey !== 'high' ? 'intermediate-high' : epsaTierKey;
-  return (
-    <div style={{ marginBottom: '14px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#6b7280', marginBottom: '8px' }}>
-        Decision pathway — based on your combined risk tier
-      </div>
-
-      {isAge70Plus && (
-        <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: '6px' }}>
-            Age 70+: physician-led SDM is required first
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {SDM_STEPS_70_PLUS.map((step) => (
-              <div key={step.num} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '7px 10px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '6px' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '18px', height: '18px', borderRadius: '50%', background: '#6d28d9', color: '#fff', fontSize: '9px', fontWeight: 800, flexShrink: 0, marginTop: '1px' }}>{step.num}</span>
-                <div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#5b21b6' }}>{step.label}: </span>
-                  <span style={{ fontSize: '12px', color: '#374151', lineHeight: 1.4 }}>{step.action}</span>
-                  {step.note && <div style={{ fontSize: '10px', color: '#7c3aed', marginTop: '1px', fontStyle: 'italic' }}>{step.note}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', margin: '8px 0 4px' }}>
-            If life expectancy ≥10 years, follow PSA-based pathway:
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '4px' }} role="list" aria-label="Risk tier decision pathway">
-        {PATHWAY_STEPS.map((step) => {
-          const isActive = step.key === activeKey;
-          return (
-            <div
-              key={step.key}
-              role="listitem"
-              aria-current={isActive ? 'true' : undefined}
-              style={{
-                padding: '8px 6px',
-                background: isActive ? step.bg : '#fafafa',
-                border: `${isActive ? '1.5px' : '1px'} solid ${isActive ? step.border : '#e5e7eb'}`,
-                borderRadius: '6px',
-                textAlign: 'center',
-                opacity: isActive ? 1 : 0.55,
-                transition: 'opacity 0.2s, border-color 0.2s',
-              }}
-            >
-              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: isActive ? step.color : '#9ca3af', marginBottom: '3px' }}>
-                {step.label}
-              </div>
-              <div style={{ fontSize: '11px', color: isActive ? '#374151' : '#9ca3af', lineHeight: 1.35 }}>
-                {step.action}
-              </div>
-              {isActive && (
-                <div style={{ marginTop: '5px', display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: step.color }} aria-hidden="true" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#9ca3af', fontStyle: 'italic' }}>
-        AUA/SUO 2026 · NCCN v3.2024 · Based on combined PSA + risk profile
-      </p>
-    </div>
-  );
-};
 
 /* ─── Main Component ─── */
 const Part2Results = ({
@@ -383,12 +297,12 @@ const Part2Results = ({
   );
 
   const {
-    riskCat, riskClass, nextSteps, psaValue, psaAdjusted, psaAdjustedFlag,
+    riskCat, riskClass, psaValue, psaAdjusted, psaAdjustedFlag,
     isOtherHormonal, psaTier, biopsyRecommended, biopsyReason, biopsyMessage,
     biopsyGuidelineSupport, biopsyGuidelineSupportCount,
     tierGuidelineSupport, tierGuidelineSupportCount,
     mriRecommended, mriRecommendMessage,
-    pathwayMode = 'post_psa', empiricalProbabilityText,
+    pathwayMode = 'post_psa',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadFlag,
@@ -397,9 +311,8 @@ const Part2Results = ({
   const ageNum = Number(preResult?.age || preData?.age) || 0;
   const isAge70Plus = ageNum >= 70;
 
-  /* SDM is clinically indicated for elevated risk tiers, older patients, or discordance */
-  const showSDM = epsaTierKey === 'intermediate-high' || epsaTierKey === 'high'
-    || isAge70Plus || !!discordanceFlag;
+  /* SDM section only shown where clinically required: age 70+ (AUA/SUO 2026 mandate) or discordance */
+  const showSDM = isAge70Plus || !!discordanceFlag;
 
   /* Urology referral CTAs only appropriate for elevated combined risk */
   const showUrologyReferral = epsaTierKey === 'intermediate-high' || epsaTierKey === 'high'
@@ -521,14 +434,6 @@ const Part2Results = ({
   const asPreBiopsyMention = !gggNum && !biopsyRecommended &&
     epsaTierKey === 'low' && pathwayMode === 'post_mri';
   const showASBanner = asStrongIndication || asPossibleIndication || asPreBiopsyMention;
-
-  /* Plain-language tier description for "Understanding Your Result" */
-  const tierExplanation = (() => {
-    if (epsaTierKey === 'high') return t('part2Results.tiers.explanation.high');
-    if (epsaTierKey === 'intermediate-high') return t('part2Results.tiers.explanation.intermediateHigh');
-    if (epsaTierKey === 'intermediate-low') return t('part2Results.tiers.explanation.intermediateLow');
-    return t('part2Results.tiers.explanation.low');
-  })();
 
   return (
     <div className="p2r-container" role="main">
@@ -855,106 +760,58 @@ const Part2Results = ({
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
-      {/* ── Timeline ── */}
-      <div className="v2-timeline res-reveal" style={{ '--delay': '460ms' }}>
-        <div className="v2-timeline-head"><span className="v2-timeline-title">What happens next</span></div>
-        <div className="v2-timeline-track">
-          <div className="v2-timeline-step v2-timeline-step--current">
-            <span className="v2-timeline-when">Today</span>
-            <span className="v2-timeline-desc">Review these results and share with your GP or urologist</span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">Week 1</span>
-            <span className="v2-timeline-desc">
-              {epsaTierKey === 'low'
-                ? 'Confirm your next PSA screening date with your doctor'
-                : 'Book a urology referral via your GP'}
-            </span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">Week 2–4</span>
-            <span className="v2-timeline-desc">
-              {epsaTierKey === 'low'
-                ? 'Continue monitoring — re-assess with ePSA if your health status changes'
-                : 'Attend specialist appointment with your ePSA results'}
-            </span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">Ongoing</span>
-            <span className="v2-timeline-desc">Re-assess with ePSA whenever your PSA changes or your health status changes</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── ESSENTIAL label ── */}
-      <div className="v2-essential-label res-reveal" style={{ '--delay': '540ms' }}>
-        <span className="v2-essential-badge">ESSENTIAL</span>
-        <span className="v2-essential-text">Understanding your result</span>
-      </div>
-
       {/* ── Expandable Sections ── */}
-      <div className="detail-sections res-reveal" style={{ '--delay': '580ms' }}>
+      <div className="detail-sections res-reveal" style={{ '--delay': '460ms' }}>
 
-        <CollapsibleSection title="Screening Guidelines (AUA / NCCN) — for your age & PSA" defaultOpen>
+        <CollapsibleSection title="AUA/SUO 2026 Guideline — PSA Pathway & Next Steps" defaultOpen>
           {(() => {
             const ageForChart = preResult?.age ?? preData?.age;
             const isBlack = preData?.race === 'black';
             const hasFamilyHx = Number(preData?.familyHistory) > 0;
             const hasBrca = preData?.brcaStatus === 'yes';
             return (
-              <AUAScreeningFlowchart
-                age={ageForChart}
-                psaValue={psaValue}
-                isHighRisk={isBlack || hasFamilyHx || hasBrca}
-                part="part2"
-              />
+              <>
+                <AUAScreeningFlowchart
+                  age={ageForChart}
+                  psaValue={psaValue}
+                  isHighRisk={isBlack || hasFamilyHx || hasBrca}
+                  part="part2"
+                />
+                <AUAInitialBiopsyGuidelines
+                  biopsyRecommended={!!biopsyRecommended}
+                  epsaTierKey={epsaTierKey}
+                  piradsVal={piradsVal}
+                  pathwayMode={pathwayMode}
+                />
+              </>
             );
           })()}
         </CollapsibleSection>
 
-        <CollapsibleSection title="Understanding Your Result" defaultOpen={false}>
-          <p>{tierExplanation}</p>
-          {(nextSteps?.length > 0) && (
-            <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '10px' }}>
-              {nextSteps.map((step, i) => (
-                <li key={i}>{step.replace(' →', '')}</li>
-              ))}
-            </ul>
-          )}
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
-            {t('part2Results.tiers.endpointNote')}
-          </p>
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px' }}>
-            This result combines your PSA value with your Part 1 risk profile. It is an educational estimate — not a diagnosis. Always confirm any elevated PSA with a repeat test before considering a biopsy, and make decisions with your doctor.
-          </p>
-        </CollapsibleSection>
-
         {showSDM && (
-          <CollapsibleSection title="Shared Decision-Making" className="sdm-collapsible" defaultOpen={epsaTierKey === 'intermediate-high' || epsaTierKey === 'high' || isAge70Plus}>
-            <DecisionFramework epsaTierKey={epsaTierKey} biopsyRecommended={biopsyRecommended} isAge70Plus={isAge70Plus} />
+          <CollapsibleSection title={isAge70Plus ? 'Age 70+ — Shared Decision-Making (Required)' : 'Risk Discordance — Shared Decision-Making'} className="sdm-collapsible" defaultOpen={isAge70Plus}>
             {isAge70Plus ? (
               <>
-                <p>At age 70+, <strong>Shared Decision-Making (SDM) with your physician is required</strong> before any PSA screening decision. Key questions:</p>
-                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
-                  <li><strong>What is my life expectancy?</strong> — this is the first factor your physician must assess. If &lt;10 years, discontinuing screening is recommended.</li>
-                  <li><strong>What are the risks of overdiagnosis at my age?</strong> — most prostate cancers are slow-growing; treatment side effects may outweigh benefits.</li>
-                  <li><strong>What are my values and preferences?</strong> — your priorities around cancer detection, quality of life, and treatment burden should guide this decision.</li>
-                  <li><strong>Should I continue, lengthen, or stop screening?</strong> — if life expectancy is ≥10 years, your PSA level guides the interval; if &lt;10 years, stopping is recommended.</li>
+                <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>Per AUA/SUO 2026, all PSA screening decisions at age 70+ require a physician-led SDM conversation. Four questions to address:</p>
+                <ul style={{ paddingLeft: '1.25rem', fontSize: '13px', lineHeight: 1.9, color: '#374151' }}>
+                  <li><strong>Life expectancy</strong> — must be assessed first. If &lt;10 years, discontinuing screening is recommended regardless of PSA.</li>
+                  <li><strong>Overdiagnosis risk</strong> — most prostate cancers are slow-growing; treatment side effects may outweigh benefit at this age.</li>
+                  <li><strong>Patient values</strong> — priorities around cancer detection, quality of life, and treatment burden guide the decision.</li>
+                  <li><strong>Interval or stop?</strong> — if life expectancy ≥10 years, PSA level (threshold 3.0 ng/mL) guides continue vs. discontinue.</li>
                 </ul>
               </>
             ) : (
               <>
-                <p>Choosing the next step is a joint decision between you and your doctor. Key questions to raise:</p>
-                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.8, marginTop: '6px' }}>
-                  <li><strong>What does this tier mean for me specifically?</strong> — ask how your PSA trend and personal history affect the picture.</li>
-                  <li><strong>Should I repeat the PSA first?</strong> — a single elevated result can reflect inflammation, infection, or recent activity.</li>
-                  <li><strong>Is an MRI recommended before biopsy?</strong> — AUA/NCCN/EAU guidelines now support MRI-targeted biopsy to reduce over-detection.</li>
-                  <li><strong>What is the urgency?</strong> — most prostate cancers are slow-growing; ask whether a few weeks to gather more information is reasonable.</li>
+                <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>Your PSA result and ePSA baseline risk point in different directions. Questions to raise with your doctor:</p>
+                <ul style={{ paddingLeft: '1.25rem', fontSize: '13px', lineHeight: 1.9, color: '#374151' }}>
+                  <li><strong>Repeat the PSA</strong> — a single elevated result can reflect infection, inflammation, or recent activity. Confirm before any workup.</li>
+                  <li><strong>Consider MRI</strong> — if PSA remains elevated, AUA/SUO 2026 conditionally recommends MRI before biopsy (Grade A).</li>
+                  <li><strong>Assess urgency</strong> — most prostate cancers are slow-growing; gathering more information over a few weeks is usually safe.</li>
                 </ul>
               </>
             )}
-            <p style={{ fontSize: '0.8rem', color: '#607286', fontStyle: 'italic', marginTop: '8px' }}>
-              AUA/SUO 2026 · NCCN v3.2024 · EAU 2024
+            <p style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic', marginTop: '10px' }}>
+              AUA/SUO 2026 · NCCN v3.2024
             </p>
           </CollapsibleSection>
         )}
