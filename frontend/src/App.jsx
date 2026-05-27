@@ -1356,18 +1356,22 @@ function App() {
       return;
     }
     
-    // post_mri has 2 Part2 steps (PSA then MRI); post_psa has 1 (PSA only)
-    const part2TotalSteps = pathwayMode === 'post_mri' ? 2 : 1;
+    // MRI is now optional Step 2 for all post pathways
+    const part2TotalSteps = 2;
 
     if (currentStep < part2TotalSteps) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === part2TotalSteps) {
-      // Calculate Post results using DYNAMIC calculator
-      // Pass pathwayMode through postData so the engine returns it in the result.
-      // For restored sessions (pathwayMode state is null), infer from whether MRI
-      // data was entered — avoids incorrectly defaulting old PSA-only sessions to post_mri.
-      const inferredPathway = pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa');
+      // Calculate Post results using DYNAMIC calculator.
+      // If the user entered MRI data on a post_psa pathway, upgrade to post_mri
+      // so the engine applies the MRI model correctly.
+      const hasMriData = postData.knowPirads && postData.pirads && String(postData.pirads) !== '0';
+      const effectivePathway = hasMriData
+        ? 'post_mri'
+        : (pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa'));
+      if (hasMriData && pathwayMode !== 'post_mri') setPathwayMode('post_mri');
+      const inferredPathway = effectivePathway;
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
       setPostResult(result);
       
@@ -1786,7 +1790,7 @@ function App() {
               setCurrentStep(3);
             } : () => setCurrentStep(currentStep - 1)}
             currentStep={currentStep}
-            totalSteps={pathwayMode === 'post_mri' ? 2 : 1}
+            totalSteps={2}
             pathwayMode={pathwayMode}
           />
         );

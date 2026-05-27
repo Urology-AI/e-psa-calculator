@@ -9,7 +9,7 @@ import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
 import AUAScreeningFlowchart, { AUAInitialBiopsyGuidelines } from './AUAFlowchart';
-import ResultsLoading, { LOADING_SEEN_KEY_P2 } from './ResultsLoading';
+import ResultsLoading, { LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './ResultsLoading';
 import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
@@ -289,7 +289,7 @@ const Part2Results = ({
       <ResultsLoading
         label="ePSA · Part 2"
         message="Reviewing guidelines for your PSA…"
-        detail="Checking AUA / NCCN / EAU next-step guidance based on your PSA result and Part 1 profile."
+        steps={PART2_LOADING_STEPS}
         onComplete={() => setIsLoading(false)}
         storageKey={LOADING_SEEN_KEY_P2}
       />
