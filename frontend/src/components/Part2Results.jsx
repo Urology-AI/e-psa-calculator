@@ -274,6 +274,7 @@ const Part2Results = ({
   const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
+  const [confirmStartOver, setConfirmStartOver] = useState(false);
   // Hook must be before early returns — animates the PSA value on reveal
   const rawPsaForAnim = parseFloat(result?.psaValue) || 0;
   const psaDecimals = String(result?.psaValue || '').includes('.') ? String(result?.psaValue || '').split('.')[1].length : 1;
@@ -329,7 +330,17 @@ const Part2Results = ({
     );
   }
 
-  if (!result) return <div className="p2r-container"><p className="p2r-empty">No results available.</p></div>;
+  if (!result) return (
+    <div className="p2r-container">
+      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+        <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
+        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>No Results Yet</h3>
+        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+          Complete the Part 2 questionnaire to see your combined risk assessment.
+        </p>
+      </div>
+    </div>
+  );
 
   /* ── Structural validity guard ──────────────────────────────────────────────
    * Part 2 result must have a valid PSA value and a risk category. If either is
@@ -609,6 +620,21 @@ const Part2Results = ({
             <RiskLevelBar riskClass={riskClass} />
           </div>
         </div>
+
+        {/* ── Tier journey: Part 1 → Part 2 ── */}
+        {preResult?.epsaTierLabel && (
+          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 2">
+            <div className="tier-journey-step">
+              <span className="tier-journey-label">Part 1 Baseline</span>
+              <span className="tier-journey-tier">{preResult.epsaTierLabel}</span>
+            </div>
+            <span className="tier-journey-arrow" aria-hidden="true">→</span>
+            <div className="tier-journey-step tier-journey-step--to">
+              <span className="tier-journey-label">Combined Risk</span>
+              <span className="tier-journey-tier" style={{ color: riskColor }}>{cleanRiskCat}</span>
+            </div>
+          </div>
+        )}
 
         {/* ── PSA prominently displayed ── */}
         <div className="p2r-key-inputs">
@@ -988,7 +1014,17 @@ const Part2Results = ({
         )}
         <div className="results-actions-row results-actions-row--primary">
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>Edit Answers</span></button>
-          <button className="btn-results btn-results--danger-outline" onClick={onStartOver}><RefreshCwIcon size={16} /><span>Start Over</span></button>
+          {confirmStartOver ? (
+            <div className="start-over-confirm">
+              <span className="start-over-confirm-msg">This will erase all your answers. Are you sure?</span>
+              <div className="start-over-confirm-btns">
+                <button className="btn-results btn-results--danger" onClick={onStartOver}><RefreshCwIcon size={14} /><span>Yes, start over</span></button>
+                <button className="btn-results btn-results--outline" onClick={() => setConfirmStartOver(false)}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button className="btn-results btn-results--danger-outline" onClick={() => setConfirmStartOver(true)}><RefreshCwIcon size={16} /><span>Start Over</span></button>
+          )}
         </div>
         <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>Print Results</span></button>

@@ -29,6 +29,7 @@ import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLo
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
+import JourneyProgress from './components/JourneyProgress.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
@@ -1728,11 +1729,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={async () => {
-                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
-                    await handleClearData();
-                  }
-                }}
+                onStartOver={handleClearData}
                 onContinueToPostPSA={() => {
                   setPathwayMode('post_psa');
                   setStage('post');
@@ -1816,11 +1813,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={async () => {
-                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
-                    await handleClearData();
-                  }
-                }}
+                onStartOver={handleClearData}
                 onShowModelDocs={() => setShowModelDocs(true)}
                 onContinueToMRI={
                   (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
@@ -2036,6 +2029,13 @@ function App() {
           renderAuthScreen()
         ) : (
           <>
+            <JourneyProgress
+              stage={stage}
+              currentStep={currentStep}
+              pathwayMode={pathwayMode}
+              preResult={preResult}
+              postResult={postResult}
+            />
             {showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}
             {(pathwayMode !== null || preResult) && (
@@ -2107,7 +2107,9 @@ function App() {
                 })()}
               </nav>
             )}
-            {stage === 'pre' ? renderPreStage() : renderPostStage()}
+            <div key={`${stage}-${currentStep}`} className="screen-slide-enter">
+              {stage === 'pre' ? renderPreStage() : renderPostStage()}
+            </div>
           </>
         )}
       </div>

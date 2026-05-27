@@ -299,12 +299,20 @@
   background: #edf5fd;
 }
 
+@keyframes option-selected-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
 .option-btn.selected {
   border-color: var(--ms-cyan);
   background: #e6f3fc;
   color: #0d3d62;
   box-shadow: 0 0 0 0.1875rem rgba(26, 104, 152, 0.12);
   font-weight: 700;
+  animation: option-selected-pop 0.22s ease;
 }
 
 .option-btn .score {
@@ -326,7 +334,8 @@
 }
 
 .input-field {
-  width: 7.5rem;
+  width: 100%;
+  max-width: 7.5rem;
   padding: 0.5625rem 0.75rem;
   font-size: 1rem;
   border: 0.09375rem solid #ccdae8;
@@ -733,4 +742,306 @@
   background: rgba(20, 83, 160, 0.15);
   color: #93c5fd;
   border-color: rgba(147, 197, 253, 0.3);
+}
+
+/* ─── Inline progress bar (form header) ─── */
+.form-progress-track {
+  height: 4px;
+  background: var(--line-200, #E8E8EA);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.625rem 0 0.375rem;
+}
+
+.form-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ms-cyan, #06ABEB) 0%, var(--ms-navy, #212070) 100%);
+  border-radius: 999px;
+  transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 4px;
+}
+
+.theme-dark .form-progress-track { background: var(--line-100); }
+.theme-dark .form-progress-fill  { background: linear-gradient(90deg, var(--ms-cyan) 0%, #4a90d9 100%); }
+
+/* ─── Section tab navigator ─── */
+.section-tab-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.section-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--line-200, #E8E8EA);
+  background: var(--surface-subtle, #F5F5F7);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-600, #6E6E77);
+  flex: 1;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.section-tab:hover {
+  border-color: var(--ms-cyan, #06ABEB);
+  background: var(--surface, #fff);
+  color: var(--ink-800, #2D2D35);
+}
+
+.section-tab--active {
+  border-color: var(--ms-navy, #212070);
+  background: var(--ms-navy-10, #E8E8F3);
+  color: var(--ms-navy, #212070);
+  box-shadow: 0 0 0 2.5px rgba(33, 32, 112, 0.10);
+}
+
+.section-tab--done:not(.section-tab--active) {
+  border-color: var(--ms-cyan, #06ABEB);
+  background: var(--ms-cyan-10, #E8F7FD);
+  color: var(--ms-cyan, #06ABEB);
+}
+
+.section-tab-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: #1e40af;
+  color: #fff;
+  transition: background 0.18s ease;
+}
+
+.section-tab-letter--b { background: #6b7280; }
+
+.section-tab--active .section-tab-letter     { background: var(--ms-navy, #212070); }
+.section-tab--done:not(.section-tab--active) .section-tab-letter { background: var(--ms-cyan, #06ABEB); }
+.section-tab--done:not(.section-tab--active) .section-tab-letter--b { background: var(--ms-cyan, #06ABEB); }
+
+.section-tab-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.section-tab-count {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 999px;
+  background: var(--line-200, #E8E8EA);
+  color: var(--ink-500, #6E6E77);
+  flex-shrink: 0;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.section-tab-count--done {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ─── Dark mode: section nav + progress ─── */
+.theme-dark .section-tab {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+.theme-dark .section-tab:hover {
+  border-color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.08);
+  color: var(--ink-800);
+}
+.theme-dark .section-tab--active {
+  border-color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.12);
+  color: var(--ms-cyan);
+  box-shadow: 0 0 0 2.5px rgba(6, 171, 235, 0.18);
+}
+.theme-dark .section-tab--done:not(.section-tab--active) {
+  border-color: rgba(6, 171, 235, 0.5);
+  background: rgba(6, 171, 235, 0.08);
+  color: var(--ms-cyan);
+}
+.theme-dark .section-tab--active .section-tab-letter     { background: var(--ms-cyan); color: #00002D; }
+.theme-dark .section-tab--done:not(.section-tab--active) .section-tab-letter { background: var(--ms-cyan); color: #00002D; }
+.theme-dark .section-tab-count        { background: var(--line-100); color: var(--ink-500); }
+.theme-dark .section-tab-count--done  { background: rgba(22, 163, 74, 0.18); color: #86efac; }
+
+/* ─── Responsive: hide label on very small screens ─── */
+@media (max-width: 380px) {
+  .section-tab-name { display: none; }
+  .section-tab { justify-content: center; gap: 0.25rem; }
+}
+
+/* ─── Section guideline badges (AUA/SUO 2026, Research-based) ─── */
+
+.section-a-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 12px;
+  background: #1e40af;
+  color: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.section-b-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-radius: 12px;
+  background: transparent;
+  color: #6b7280;
+  border: 1.5px solid #d1d5db;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.theme-dark .section-a-badge {
+  background: rgba(30, 64, 175, 0.75);
+}
+
+.theme-dark .section-b-badge {
+  color: var(--ink-400);
+  border-color: var(--line-100);
+}
+
+/* ─── Skip button ─── */
+
+.skip-link-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.skip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--line-200, #dde4ec);
+  background: transparent;
+  color: var(--ink-400, #9ca3af);
+  font-size: 0.78125rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  letter-spacing: 0.01em;
+}
+
+.skip-btn:hover {
+  border-color: #9ca3af;
+  color: var(--ink-600, #6b7280);
+  background: #f9fafb;
+}
+
+.skip-btn--skipped {
+  border-style: solid;
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 600;
+}
+
+.skip-btn--skipped:hover {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.theme-dark .skip-btn {
+  border-color: var(--line-100);
+  color: var(--ink-400);
+}
+
+.theme-dark .skip-btn:hover {
+  border-color: var(--ink-400);
+  color: var(--ink-600);
+  background: var(--surface-subtle);
+}
+
+.theme-dark .skip-btn--skipped {
+  border-color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+}
+
+.theme-dark .skip-btn--skipped:hover {
+  border-color: #4ade80;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+/* ─── Bottom nav section chips (A / B) ─── */
+
+.nav-section-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line-200, #dde4ec);
+  background: var(--surface, #fff);
+  color: var(--ink-500, #6b7280);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.nav-section-chip:hover {
+  border-color: var(--ms-cyan);
+  color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.06);
+}
+
+.nav-section-chip--done {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.nav-section-chip--done:hover {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.theme-dark .nav-section-chip {
+  background: var(--surface-subtle);
+  border-color: var(--line-100);
+  color: var(--ink-500);
+}
+
+.theme-dark .nav-section-chip:hover {
+  border-color: var(--ms-cyan);
+  color: var(--ms-cyan);
+  background: rgba(6, 171, 235, 0.08);
+}
+
+.theme-dark .nav-section-chip--done {
+  border-color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
 }
