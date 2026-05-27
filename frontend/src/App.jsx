@@ -2115,7 +2115,9 @@ function App() {
                 })()}
               </nav>
             )}
-            {stage === 'pre' ? renderPreStage() : renderPostStage()}
+            <div key={`${stage}-${currentStep}`} className="screen-slide-enter">
+              {stage === 'pre' ? renderPreStage() : renderPostStage()}
+            </div>
           </>
         )}
       </div>

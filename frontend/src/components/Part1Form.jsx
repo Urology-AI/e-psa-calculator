@@ -1079,7 +1079,22 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       <div className="v2-form-nav">
         <div className="v2-form-nav-inner">
           <div className="v2-form-nav-status">
-            <span><strong>{answeredCount} of {totalQuestions}</strong> answered</span>
+            <button
+              type="button"
+              className={`nav-section-chip ${sectionADone ? 'nav-section-chip--done' : ''}`}
+              onClick={() => scrollToSection(sectionARef)}
+              aria-label={`Section A: ${sectionAAnswered} of ${sectionATotal} answered`}
+            >
+              A {sectionADone ? '✓' : `${sectionAAnswered}/${sectionATotal}`}
+            </button>
+            <button
+              type="button"
+              className={`nav-section-chip ${sectionBDone ? 'nav-section-chip--done' : ''}`}
+              onClick={() => scrollToSection(sectionBRef)}
+              aria-label={`Section B: ${sectionBAnswered} of ${sectionBTotal} answered`}
+            >
+              B {sectionBDone ? '✓' : `${sectionBAnswered}/${sectionBTotal}`}
+            </button>
           </div>
           <div className="v2-form-nav-btns">
             <button
