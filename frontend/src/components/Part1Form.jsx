@@ -98,24 +98,22 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const SkipLink = ({ field }) => {
     const skipped = isSkipped(field);
     return (
-      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem' }}>
+      <div className="skip-link-row">
         {skipped ? (
-          <span style={{ color: '#6B7280', fontStyle: 'italic' }}>
+          <button
+            type="button"
+            className="skip-btn skip-btn--skipped"
+            onClick={() => skipField(field)}
+            aria-label="Question skipped — tap to undo"
+          >
+            <CheckIcon size={11} />
             {t('part1.skip.skippedLabel')}
-          </span>
+          </button>
         ) : (
           <button
             type="button"
+            className="skip-btn"
             onClick={() => skipField(field)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#6B7280',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              padding: 0,
-              fontSize: '0.8125rem',
-            }}
           >
             {t('part1.skip.preferNotToSay')}
           </button>

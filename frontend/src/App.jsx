@@ -1729,11 +1729,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={async () => {
-                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
-                    await handleClearData();
-                  }
-                }}
+                onStartOver={handleClearData}
                 onContinueToPostPSA={() => {
                   setPathwayMode('post_psa');
                   setStage('post');
@@ -1817,11 +1813,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={async () => {
-                  if (window.confirm(t('app.confirm.clearAllDataStartOver'))) {
-                    await handleClearData();
-                  }
-                }}
+                onStartOver={handleClearData}
                 onShowModelDocs={() => setShowModelDocs(true)}
                 onContinueToMRI={
                   (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
