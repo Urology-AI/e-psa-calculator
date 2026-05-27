@@ -10,7 +10,7 @@ import { PSA_BANNER_CONFIG_DATA } from '../config/calculatorConfig';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
-import AUAScreeningFlowchart from './AUAFlowchart';
+import AUAScreeningFlowchart, { AUAGuidelineCriteria } from './AUAFlowchart';
 import ResultsLoading, { LOADING_SEEN_KEY_P1 } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
@@ -20,7 +20,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
-  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, BookOpenIcon,
+  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon,
 } from 'lucide-react';
 
 /* ─── Count-up animation hook ─── */
@@ -841,53 +841,6 @@ const Part1Results = ({
       })()}
 
 
-      {/* ── What happens next — 4-step timeline ── */}
-      <div className="v2-timeline res-reveal" style={{ '--delay': '320ms' }}>
-        <div className="v2-timeline-head">
-          <span className="v2-timeline-title">{t('part1Results.timelineTitle')}</span>
-        </div>
-        <div className="v2-timeline-track">
-          <div className="v2-timeline-step v2-timeline-step--current">
-            <span className="v2-timeline-when">{t('part1Results.timelineToday')}</span>
-            <span className="v2-timeline-desc">{t('part1Results.timelineTodayDesc')}</span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">{t('part1Results.timelineWeek12')}</span>
-            <span className="v2-timeline-desc">{recommendPSA ? t('part1Results.timelineWeek12DescPsa') : t('part1Results.timelineWeek12DescNoPsa')}</span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">{t('part1Results.timelineWeek34')}</span>
-            <span className="v2-timeline-desc">{recommendPSA ? t('part1Results.timelineWeek34DescPsa') : t('part1Results.timelineWeek34DescNoPsa')}</span>
-          </div>
-          <div className="v2-timeline-step">
-            <span className="v2-timeline-when">{t('part1Results.timelineOngoing')}</span>
-            <span className="v2-timeline-desc">{t('part1Results.timelineOngoingDesc')}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── High-risk notice ── */}
-      {isHighRiskFlagged && (
-        <div className="high-risk-notice" role="note">
-          <AlertTriangleIcon size={14} className="high-risk-notice-icon" />
-          <p>
-            <strong>{t('part1Results.highRiskNoticeStrong')}</strong> {t('part1Results.highRiskNoticeBody')}
-          </p>
-        </div>
-      )}
-
-
-      {/* ── Clinical metrics ── */}
-      <div className="metrics-grid res-reveal" style={{ '--delay': '400ms' }} role="list" aria-label="Clinical summary metrics">
-        {metrics.map((m) => (
-          <div className="metric-card" key={m.label} role="listitem">
-            <div className="metric-value">{m.value}{m.unit && <span className="metric-unit">{m.unit}</span>}</div>
-            <div className="metric-label">{m.label}</div>
-            {m.note && <div className="metric-note">{m.note}</div>}
-          </div>
-        ))}
-      </div>
-
       {/* ── Add PSA CTA ── */}
       {onContinueToPostPSA && (
         <div
@@ -914,26 +867,8 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Essential reading label ── */}
-      <div className="v2-essential-label res-reveal" style={{ '--delay': '500ms' }}>
-        <span className="v2-essential-badge">{t('part1Results.essentialBadge')}</span>
-        <span className="v2-essential-text">{t('part1Results.essentialText')}</span>
-      </div>
-
       {/* ── Expandable sections ── */}
-      <div className="detail-sections res-reveal" style={{ '--delay': '560ms' }}>
-
-        {screeningGuidelineAutoOpen && (
-          <div role="note" className="screening-guideline-callout">
-            <BookOpenIcon size={14} className="screening-guideline-callout__icon" />
-            <div className="screening-guideline-callout__body">
-              <strong>{t('part1Results.guidelineCalloutStrong')}</strong>
-              <ul>
-                {guidelineTriggers.map(t => <li key={t.code}>{t.text}</li>)}
-              </ul>
-            </div>
-          </div>
-        )}
+      <div className="detail-sections res-reveal" style={{ '--delay': '500ms' }}>
 
         <CollapsibleSection
           id="screening-guidelines"
@@ -943,135 +878,12 @@ const Part1Results = ({
         >
           {(() => {
             const ageNum = Number(age);
-            const ageBullets = [];
-
-            // Determine if user has high-risk anchors per AUA/NCCN: Black ancestry, family history, germline mutation
             const isBlack = formData?.race === 'black';
             const hasFamilyHistory = Number(formData?.familyHistory) > 0;
             const hasBrca = formData?.brcaStatus === 'yes';
             const isHighRisk = isBlack || hasFamilyHistory || hasBrca;
-
-            // Build the high-risk anchor list for display when relevant
-            const riskAnchors = [];
-            if (isBlack) riskAnchors.push('Black ancestry');
-            if (hasFamilyHistory) riskAnchors.push('family history');
-            if (hasBrca) riskAnchors.push('germline mutation (BRCA1/2 / ATM / Lynch)');
-            const riskAnchorText = riskAnchors.join(' + ');
-
-            if (Number.isFinite(ageNum) && ageNum < 40) {
-              if (isHighRisk) {
-                ageBullets.push(
-                  <li key="hr-u40"><strong>{t('part1Results.ageBullet.hrU40Strong')}</strong> — {t('part1Results.ageBullet.hrU40Body', { riskAnchorText })}</li>
-                );
-              } else {
-                ageBullets.push(
-                  <li key="aua-u40"><strong>{t('part1Results.ageBullet.auaU40Strong')}</strong> — {t('part1Results.ageBullet.auaU40Body')}</li>,
-                  <li key="nccn-u40"><strong>{t('part1Results.ageBullet.nccnU40Strong')}</strong> — {t('part1Results.ageBullet.nccnU40Body')}</li>
-                );
-              }
-            } else if (Number.isFinite(ageNum) && ageNum < 45) {
-              if (isHighRisk) {
-                ageBullets.push(
-                  <li key="aua-40-45"><strong>{t('part1Results.ageBullet.aua4045Strong')}</strong> — {t('part1Results.ageBullet.aua4045BodyHr', { riskAnchorText })}</li>,
-                  <li key="nccn-40-45"><strong>{t('part1Results.ageBullet.nccn4045Strong')}</strong> — {t('part1Results.ageBullet.nccn4045BodyHr')}</li>
-                );
-              } else {
-                ageBullets.push(
-                  <li key="avg-40-45"><strong>{t('part1Results.ageBullet.avg4045Strong')}</strong> — {t('part1Results.ageBullet.avg4045Body')}</li>
-                );
-              }
-            } else if (Number.isFinite(ageNum) && ageNum < 50) {
-              ageBullets.push(
-                <li key="aua-45-50"><strong>{t('part1Results.ageBullet.aua4550Strong')}</strong> — {t('part1Results.ageBullet.aua4550Body')}</li>,
-                <li key="nccn-45-50"><strong>{t('part1Results.ageBullet.nccn4550Strong')}</strong> — {isHighRisk ? t('part1Results.ageBullet.nccn4550BodyHr') : t('part1Results.ageBullet.nccn4550Body')}</li>
-              );
-            } else if (Number.isFinite(ageNum) && ageNum <= 69) {
-              ageBullets.push(
-                <li key="aua-50-69"><strong>{t('part1Results.ageBullet.aua5069Strong')}</strong> — {t('part1Results.ageBullet.aua5069Body')}</li>,
-                <li key="nccn-50-69"><strong>{t('part1Results.ageBullet.nccn5069Strong')}</strong> — {t('part1Results.ageBullet.nccn5069Body')}</li>
-              );
-            } else if (Number.isFinite(ageNum) && ageNum <= 75) {
-              ageBullets.push(
-                <li key="aua-70-75"><strong>{t('part1Results.ageBullet.aua7075Strong')}</strong> — {t('part1Results.ageBullet.aua7075Body')}</li>,
-                <li key="nccn-70-75"><strong>{t('part1Results.ageBullet.nccn7075Strong')}</strong> — {t('part1Results.ageBullet.nccn7075Body')}</li>
-              );
-            } else if (Number.isFinite(ageNum)) {
-              ageBullets.push(
-                <li key="aua-75+"><strong>{t('part1Results.ageBullet.aua75PlusStrong')}</strong> — {t('part1Results.ageBullet.aua75PlusBody')}</li>,
-                <li key="nccn-75+"><strong>{t('part1Results.ageBullet.nccn75PlusStrong')}</strong> — {t('part1Results.ageBullet.nccn75PlusBody')}</li>
-              );
-            }
-
-            return (
-              <>
-                <AUAScreeningFlowchart
-                  age={ageNum}
-                  psaValue={null}
-                  isHighRisk={isHighRisk}
-                  part="part1"
-                />
-                {ageBullets.length > 0 && (
-                  <div style={{ marginTop: '0.875rem' }}>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{t('part1Results.guidelineDetailForAge')}</p>
-                    <ul style={{ margin: '0 0 8px 18px', fontSize: '13px', lineHeight: 1.8, color: '#374151' }}>
-                      {ageBullets}
-                    </ul>
-                  </div>
-                )}
-                <p>{t('part1Results.normalPsaRanges')}</p>
-                <p style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', marginTop: '10px' }}>
-                  <a href="https://www.auanet.org/guidelines-and-quality/guidelines/early-detection-of-prostate-cancer-guidelines" target="_blank" rel="noopener noreferrer" style={{ color: '#1f6ea3', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <ExternalLinkIcon size={11} aria-hidden="true" /> {t('part1Results.auaSourceLink')}
-                  </a>
-                  <a href="https://www.nccn.org/guidelines/category_2" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <ExternalLinkIcon size={11} aria-hidden="true" /> {t('part1Results.nccnSourceLink')}
-                  </a>
-                </p>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}><em>{t('part1Results.epsaGuidelineNote')}</em></p>
-              </>
-            );
+            return <AUAGuidelineCriteria age={ageNum} isHighRisk={isHighRisk} />;
           })()}
-        </CollapsibleSection>
-
-        <CollapsibleSection title={t('part1Results.sectionAboutResult')} defaultOpen={true}>
-          {belowMinAge ? (
-            <>
-              <p>{t('part1Results.aboutResultUnder40Line1')}</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>{t('part1Results.aboutResultUnder40Line2')}</p>
-            </>
-          ) : aboveMaxScreeningAge ? (
-            <>
-              <p>{t('part1Results.aboutResultOver75Line1')}</p>
-              <p style={{ marginTop: '8px', color: '#374151' }}>{t('part1Results.aboutResultOver75Line2')}</p>
-            </>
-          ) : (
-            <>
-              {topFactors.length > 0 ? (
-                <p>
-                  {t('part1Results.scoreDescription', { score: impactTotalDisplay, maxScore: impactMaxScore, tier: epsaTierLabel || activeTier })}
-                  {' '}{t('part1Results.topFactorsIntro')}{' '}
-                  {topFactors.map((f, i) => (
-                    <span key={f.item}>{f.item} (+{f.points} pts){i < topFactors.length - 1 ? ', ' : '.'}</span>
-                  ))}
-                </p>
-              ) : (
-                <p>{t('part1Results.scoreDescription', { score: impactTotalDisplay, maxScore: impactMaxScore, tier: epsaTierLabel || activeTier })}</p>
-              )}
-              <p>{getTierDescription(epsaTierKey, activeTier)}</p>
-              {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
-                <p style={{ fontStyle: 'italic', fontSize: '0.9em', color: '#4b5563', marginTop: '8px' }}>
-                  {t('part1Results.empiricalProbabilityText', {
-                    n: empiricalRateN,
-                    events: empiricalRateEvents ?? '—',
-                    rate: Math.round(empiricalRate * 100),
-                    ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
-                    ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
-                  })}
-                </p>
-              )}
-              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>{t('part1Results.educationalEstimateNote')}</p>
-            </>
-          )}
         </CollapsibleSection>
 
         {!belowMinAge && !aboveMaxScreeningAge && itemImpacts.length > 0 && (() => {
@@ -1152,6 +964,17 @@ const Part1Results = ({
                           : <><ChevronDownIcon size={13} aria-hidden="true" /> Show all {itemImpacts.length} factors ({hiddenCount} more)</>
                         }
                       </button>
+                    )}
+                    {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
+                      <p style={{ fontStyle: 'italic', fontSize: '11px', color: '#6b7280', marginTop: '10px', lineHeight: 1.5 }}>
+                        {t('part1Results.empiricalProbabilityText', {
+                          n: empiricalRateN,
+                          events: empiricalRateEvents ?? '—',
+                          rate: Math.round(empiricalRate * 100),
+                          ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
+                          ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
+                        })}
+                      </p>
                     )}
                   </>
                 );
