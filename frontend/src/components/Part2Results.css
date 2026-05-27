@@ -983,6 +983,12 @@
   }
 }
 
+@media (max-width: 480px) {
+  .p2r-tier-chips-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 400px) {
   .p2r-clinical-grid {
     grid-template-columns: 1fr;
