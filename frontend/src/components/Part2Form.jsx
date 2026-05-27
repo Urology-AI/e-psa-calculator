@@ -5,6 +5,28 @@ import { useTranslation } from 'react-i18next';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
 
+const PSA_CONTEXT = [
+  { max: 2.5,  label: 'Below typical threshold', cls: 'psa-ctx--green',  note: 'PSA below 2.5 ng/mL is generally considered reassuring for most age groups.' },
+  { max: 4.0,  label: 'Low-normal range',         cls: 'psa-ctx--teal',   note: 'PSA 2.5–4.0 ng/mL sits at the lower edge of the guideline threshold. Context from your profile matters.' },
+  { max: 10.0, label: 'Gray zone',                cls: 'psa-ctx--amber',  note: 'PSA 4–10 ng/mL is the "gray zone." AUA/NCCN often recommend further evaluation at this level.' },
+  { max: 20.0, label: 'Elevated',                 cls: 'psa-ctx--orange', note: 'PSA > 10 ng/mL is considered elevated. Your urologist will evaluate further, often with MRI or biopsy.' },
+  { max: Infinity, label: 'Significantly elevated', cls: 'psa-ctx--red', note: 'PSA > 20 ng/mL warrants prompt urological evaluation.' },
+];
+
+const getPsaContext = (psa) => {
+  const v = parseFloat(psa);
+  if (!isFinite(v) || v <= 0) return null;
+  return PSA_CONTEXT.find(c => v < c.max) || PSA_CONTEXT[PSA_CONTEXT.length - 1];
+};
+
+const PIRADS_OPTIONS = [
+  { value: '1', label: '1', desc: 'No finding' },
+  { value: '2', label: '2', desc: 'Benign' },
+  { value: '3', label: '3', desc: 'Equivocal' },
+  { value: '4', label: '4', desc: 'Suspicious' },
+  { value: '5', label: '5', desc: 'Highly suspicious' },
+];
+
 const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentStep, totalSteps, pathwayMode }) => {
   const { t } = useTranslation();
 
@@ -151,6 +173,20 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 </div>
               )}
 
+              {/* PSA contextual feedback */}
+              {(() => {
+                const ctx = getPsaContext(localData.psa);
+                if (!ctx) return null;
+                const psaNum = parseFloat(localData.psa);
+                if (psaNum < 0.1 || psaNum > 100) return null;
+                return (
+                  <div className={`psa-ctx ${ctx.cls}`} role="status" aria-live="polite">
+                    <span className="psa-ctx-label">{ctx.label}</span>
+                    <span className="psa-ctx-note">{ctx.note}</span>
+                  </div>
+                );
+              })()}
+
               <div className="question-subtext" style={{ marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600 }}>
                 Prostate Volume (mL) (optional)
               </div>
@@ -296,45 +332,38 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               return (
                 <>
                   {lesions.map((lesionVal, idx) => (
-                    <div key={idx} style={{ marginBottom: idx < lesions.length - 1 ? '12px' : 0 }}>
+                    <div key={idx} className={idx < lesions.length - 1 ? 'lesion-item' : undefined}>
                       {lesions.length > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151' }}>
-                            Lesion {idx + 1}
-                          </span>
+                        <div className="lesion-header">
+                          <span className="lesion-label">Lesion {idx + 1}</span>
                           <button
                             type="button"
+                            className="lesion-remove-btn"
                             onClick={() => {
                               const next = lesions.filter((_, i) => i !== idx);
                               updateLesions(next.length > 0 ? next : [null]);
                             }}
-                            style={{
-                              background: 'transparent', border: 'none', cursor: 'pointer',
-                              color: '#6b7280', fontSize: '0.75rem', textDecoration: 'underline',
-                            }}
+                            aria-label={`Remove lesion ${idx + 1}`}
                           >
                             Remove
                           </button>
                         </div>
                       )}
-                      <div className="option-grid c3">
-                        {[
-                          { value: '1', label: '1' },
-                          { value: '2', label: '2' },
-                          { value: '3', label: '3' },
-                          { value: '4', label: '4' },
-                          { value: '5', label: '5' },
-                        ].map(opt => (
+                      <div className="pirads-grid">
+                        {PIRADS_OPTIONS.map(opt => (
                           <button
                             key={opt.value}
-                            className={`option-btn ${lesionVal === opt.value ? 'selected' : ''}`}
+                            className={`pirads-btn ${lesionVal === opt.value ? 'selected' : ''}`}
+                            aria-label={`PI-RADS ${opt.value}: ${opt.desc}`}
+                            aria-pressed={lesionVal === opt.value}
                             onClick={() => {
                               const next = [...lesions];
                               next[idx] = opt.value;
                               updateLesions(next);
                             }}
                           >
-                            {opt.label}
+                            <span className="pirads-btn-num">{opt.label}</span>
+                            <span className="pirads-btn-desc">{opt.desc}</span>
                           </button>
                         ))}
                       </div>
@@ -342,12 +371,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                   ))}
                   <button
                     type="button"
+                    className="lesion-add-btn"
                     onClick={() => updateLesions([...lesions, null])}
-                    style={{
-                      marginTop: '10px', background: 'transparent', border: '1px dashed #9ca3af',
-                      borderRadius: '6px', padding: '6px 12px', cursor: 'pointer',
-                      color: '#374151', fontSize: '0.8125rem', fontWeight: 500,
-                    }}
                   >
                     + Add another lesion
                   </button>

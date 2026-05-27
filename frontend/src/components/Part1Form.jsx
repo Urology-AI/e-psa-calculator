@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Part1Form.css';
 import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
@@ -27,43 +27,11 @@ const IPSS_LABEL_KEY_BY_VALUE = {
 
 // Section badge components
 const SectionABadge = () => (
-  <span
-    style={{
-      display: 'inline-block',
-      padding: '3px 10px',
-      fontSize: '11px',
-      fontWeight: 700,
-      letterSpacing: '0.04em',
-      borderRadius: '12px',
-      background: '#1e40af',
-      color: '#fff',
-      marginLeft: '8px',
-      verticalAlign: 'middle',
-      whiteSpace: 'nowrap',
-    }}
-  >
-    AUA/SUO 2026
-  </span>
+  <span className="section-a-badge">AUA/SUO 2026</span>
 );
 
 const SectionBBadge = () => (
-  <span
-    style={{
-      display: 'inline-block',
-      padding: '3px 10px',
-      fontSize: '11px',
-      fontWeight: 600,
-      letterSpacing: '0.03em',
-      borderRadius: '12px',
-      background: 'transparent',
-      color: '#6b7280',
-      border: '1.5px solid #d1d5db',
-      marginLeft: '8px',
-      verticalAlign: 'middle',
-    }}
-  >
-    Research-based
-  </span>
+  <span className="section-b-badge">Research-based</span>
 );
 
 const Part1Form = ({ formData, setFormData, onNext }) => {
@@ -98,24 +66,22 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const SkipLink = ({ field }) => {
     const skipped = isSkipped(field);
     return (
-      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem' }}>
+      <div className="skip-link-row">
         {skipped ? (
-          <span style={{ color: '#6B7280', fontStyle: 'italic' }}>
+          <button
+            type="button"
+            className="skip-btn skip-btn--skipped"
+            onClick={() => skipField(field)}
+            aria-label="Question skipped — select to undo"
+          >
+            <CheckIcon size={11} />
             {t('part1.skip.skippedLabel')}
-          </span>
+          </button>
         ) : (
           <button
             type="button"
+            className="skip-btn"
             onClick={() => skipField(field)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#6B7280',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              padding: 0,
-              fontSize: '0.8125rem',
-            }}
           >
             {t('part1.skip.preferNotToSay')}
           </button>
@@ -163,6 +129,30 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const [attemptedNext, setAttemptedNext] = useState(false);
   const [ipssMode, setIpssMode] = useState('full');
   const [ipssShortChoice, setIpssShortChoice] = useState(null);
+
+  const sectionARef = useRef(null);
+  const sectionBRef = useRef(null);
+  const [activeSectionTab, setActiveSectionTab] = useState('A');
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActiveSectionTab(entry.target.dataset.section);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '-10% 0px -55% 0px' }
+    );
+    if (sectionARef.current) observer.observe(sectionARef.current);
+    if (sectionBRef.current) observer.observe(sectionBRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = useCallback((ref) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const applyIpssShort = (choice) => {
     setIpssShortChoice(choice);
@@ -408,6 +398,33 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
 
+  // Section A: guideline factors (age, race, family history, IPSS)
+  const sectionATotal = 4;
+  const sectionAAnswered = [
+    ageValid,
+    raceValid,
+    familyHistoryValid || isSkipped('familyHistory'),
+    ipssComplete || isSkipped('ipss'),
+  ].filter(Boolean).length;
+  const sectionADone = sectionAAnswered === sectionATotal;
+
+  // Section B: additional factors (height, weight, exercise, smoking, diet, inflammation, chemical, BRCA, comorbidities)
+  const sectionBTotal = 9;
+  const sectionBAnswered = [
+    hasValidHeight(),
+    hasValidWeight(),
+    exerciseValid || isSkipped('exercise'),
+    smokingValid || isSkipped('smoking'),
+    dietValid || isSkipped('dietPattern'),
+    inflammationHistoryValid || isSkipped('inflammationHistory'),
+    chemicalValid || isSkipped('chemicalExposure'),
+    brcaValid || isSkipped('brcaStatus'),
+    comorbiditiesValid || isSkipped('comorbidityScore'),
+  ].filter(Boolean).length;
+  const sectionBDone = sectionBAnswered === sectionBTotal;
+
+  const progressPct = Math.round((answeredCount / totalQuestions) * 100);
+
   return (
     <div className="part1-form-container">
       {/* Header */}
@@ -421,6 +438,41 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             <span className="v2-flow-estimate-lbl">Answered</span>
             <div className="v2-flow-estimate-val">{answeredCount}<span className="v2-flow-estimate-max">/{totalQuestions}</span></div>
           </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="form-progress-track" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label={`${answeredCount} of ${totalQuestions} questions answered`}>
+          <div className="form-progress-fill" style={{ width: `${progressPct}%` }} />
+        </div>
+
+        {/* Section navigator */}
+        <div className="section-tab-nav" role="tablist" aria-label="Form sections">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSectionTab === 'A'}
+            className={`section-tab ${activeSectionTab === 'A' ? 'section-tab--active' : ''} ${sectionADone ? 'section-tab--done' : ''}`}
+            onClick={() => scrollToSection(sectionARef)}
+          >
+            <span className="section-tab-letter">A</span>
+            <span className="section-tab-name">Guideline Factors</span>
+            <span className={`section-tab-count ${sectionADone ? 'section-tab-count--done' : ''}`}>
+              {sectionAAnswered}/{sectionATotal}
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSectionTab === 'B'}
+            className={`section-tab ${activeSectionTab === 'B' ? 'section-tab--active' : ''} ${sectionBDone ? 'section-tab--done' : ''}`}
+            onClick={() => scrollToSection(sectionBRef)}
+          >
+            <span className="section-tab-letter section-tab-letter--b">B</span>
+            <span className="section-tab-name">Additional Factors</span>
+            <span className={`section-tab-count ${sectionBDone ? 'section-tab-count--done' : ''}`}>
+              {sectionBAnswered}/{sectionBTotal}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -437,7 +489,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION A — Guideline-Recommended Factors
           ═══════════════════════════════════════════════════════════ */}
-      <div className="part1-section-header part1-section-header--a">
+      <div ref={sectionARef} data-section="A" className="part1-section-header part1-section-header--a">
         <div className="part1-section-header-top">
           <span className="part1-section-letter">A</span>
           <h4 className="part1-section-title">
@@ -660,7 +712,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION B — Additional Risk Factors
           ═══════════════════════════════════════════════════════════ */}
-      <div className="part1-section-header part1-section-header--b">
+      <div ref={sectionBRef} data-section="B" className="part1-section-header part1-section-header--b">
         <div className="part1-section-header-top">
           <span className="part1-section-letter part1-section-letter--b">B</span>
           <h4 className="part1-section-title">
@@ -993,7 +1045,22 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       <div className="v2-form-nav">
         <div className="v2-form-nav-inner">
           <div className="v2-form-nav-status">
-            <span><strong>{answeredCount} of {totalQuestions}</strong> answered</span>
+            <button
+              type="button"
+              className={`nav-section-chip ${sectionADone ? 'nav-section-chip--done' : ''}`}
+              onClick={() => scrollToSection(sectionARef)}
+              aria-label={`Section A: ${sectionAAnswered} of ${sectionATotal} answered`}
+            >
+              A {sectionADone ? '✓' : `${sectionAAnswered}/${sectionATotal}`}
+            </button>
+            <button
+              type="button"
+              className={`nav-section-chip ${sectionBDone ? 'nav-section-chip--done' : ''}`}
+              onClick={() => scrollToSection(sectionBRef)}
+              aria-label={`Section B: ${sectionBAnswered} of ${sectionBTotal} answered`}
+            >
+              B {sectionBDone ? '✓' : `${sectionBAnswered}/${sectionBTotal}`}
+            </button>
           </div>
           <div className="v2-form-nav-btns">
             <button
