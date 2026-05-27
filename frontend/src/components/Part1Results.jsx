@@ -10,7 +10,7 @@ import { PSA_BANNER_CONFIG_DATA } from '../config/calculatorConfig';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
-import AUAScreeningFlowchart, { AUAGuidelineCriteria } from './AUAFlowchart';
+import { AUAGuidelineCriteria } from './AUAFlowchart';
 import ResultsLoading, { LOADING_SEEN_KEY_P1 } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
@@ -645,17 +645,6 @@ const Part1Results = ({
     if (k === 'intermediate' || k === 'MODERATE') return t('part1Results.tierDescriptionV2.intermediate');
     return t('part1Results.tierDescriptionV2.high');
   };
-
-  const metrics = [
-    { label: t('part1Results.metricAge'), value: age, unit: 'yrs' },
-    { label: t('part1Results.metricBmi'), value: bmi, unit: '' },
-    { label: t('part1Results.metricIpss'), value: `${ipssTotal}/35`, unit: '', note: Number(ipssTotal) >= 20 ? t('part1Results.metricIpssNote') : null },
-  ];
-
-  const topFactors = [...itemImpacts]
-    .filter((i) => Number(i.points) > 0)
-    .sort((a, b) => Number(b.points) - Number(a.points))
-    .slice(0, 4);
 
   // ── Contextual triggers: when ePSA's output diverges from guideline,
   // auto-open the AUA/NCCN reference section so the user can compare.
