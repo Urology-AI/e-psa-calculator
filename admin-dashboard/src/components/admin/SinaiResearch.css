@@ -23,7 +23,7 @@
 .sr-header-icon {
   width: 44px; height: 44px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #00264C 0%, #003580 100%);
   color: #fff; border-radius: 12px;
 }
 
@@ -52,7 +52,7 @@
 }
 .sr-tab:hover { color: #0f172a; }
 .sr-tab--active {
-  color: #2563eb; border-bottom-color: #2563eb; font-weight: 600;
+  color: #00264C; border-bottom-color: #00264C; font-weight: 600;
 }
 
 /* ─── Cohort filter chips (top of Sessions tab) ─── */
@@ -71,7 +71,7 @@
 .sr-cohort-chip:hover { border-color: #cbd5e1; }
 .sr-cohort-chip--active { font-weight: 600; color: #0f172a; }
 .sr-cohort-chip--active.sr-cohort-chip--all    { border-color: #475569; background: #f1f5f9; }
-.sr-cohort-chip--active.sr-cohort-chip--sinai  { border-color: #2563eb; background: #eff6ff; color: #1e3a8a; }
+.sr-cohort-chip--active.sr-cohort-chip--sinai  { border-color: #00264C; background: #EFF4FA; color: #00264C; }
 .sr-cohort-chip--active.sr-cohort-chip--public { border-color: #0d9488; background: #f0fdfa; color: #134e4a; }
 .sr-cohort-chip-count {
   display: inline-flex; align-items: center; justify-content: center;
@@ -90,7 +90,7 @@
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
-.sr-cohort-badge--sinai  { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.sr-cohort-badge--sinai  { background: #EFF4FA; color: #1e40af; border-color: #93c5fd; }
 .sr-cohort-badge--public { background: #f0fdfa; color: #115e59; border-color: #5eead4; }
 .sr-cohort-badge--linked { background: #faf5ff; color: #6b21a8; border-color: #d8b4fe; }
 
@@ -139,8 +139,8 @@
   font-size: 13px; font-weight: 600; cursor: pointer;
   border: 1px solid transparent; transition: background 120ms, border-color 120ms;
 }
-.sr-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-.sr-btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+.sr-btn-primary { background: #00264C; color: #fff; border-color: #00264C; }
+.sr-btn-primary:hover:not(:disabled) { background: #003580; }
 .sr-btn-primary:disabled { background: #94a3b8; border-color: #94a3b8; cursor: not-allowed; }
 
 .sr-btn-ghost {
@@ -225,7 +225,7 @@
 .sr-status--green { background: #f0fdf4; color: #15803d; border-color: #86efac; }
 .sr-status--amber { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
 .sr-status--red   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-.sr-status--blue  { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.sr-status--blue  { background: #EFF4FA; color: #1e40af; border-color: #93c5fd; }
 .sr-status--gray  { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
 
 /* ─── Banners ─── */
@@ -244,7 +244,7 @@
 .sr-banner > button:hover { opacity: 1; }
 .sr-banner--success { background: #f0fdf4; color: #14532d; border-color: #86efac; }
 .sr-banner--error   { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
-.sr-banner--info    { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.sr-banner--info    { background: #EFF4FA; color: #1e40af; border-color: #93c5fd; }
 
 /* ─── Modal ─── */
 .sr-modal-root {
@@ -332,10 +332,10 @@
 /* ─── Action panel (inline forms inside the modal) ─── */
 .sr-action-panel {
   margin: 0 18px 12px; padding: 14px;
-  background: #eff6ff; border: 1px solid #93c5fd; border-radius: 10px;
+  background: #EFF4FA; border: 1px solid #93c5fd; border-radius: 10px;
 }
 .sr-action-panel header span {
-  display: block; font-weight: 700; color: #1e3a8a; font-size: 13px; margin-bottom: 8px;
+  display: block; font-weight: 700; color: #00264C; font-size: 13px; margin-bottom: 8px;
 }
 .sr-action-panel--danger {
   background: #fef2f2; border-color: #fecaca;
@@ -362,7 +362,7 @@
   outline: none;
 }
 .sr-form-row input:focus {
-  border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #00264C; box-shadow: 0 0 0 3px rgba(0, 38, 76, 0.12);
 }
 .sr-form-row input:disabled { background: #f1f5f9; color: #94a3b8; }
 .sr-form-actions {
@@ -370,7 +370,7 @@
 }
 
 .sr-checkbox { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #475569; cursor: pointer; }
-.sr-checkbox input { width: 16px; height: 16px; accent-color: #2563eb; }
+.sr-checkbox input { width: 16px; height: 16px; accent-color: #00264C; }
 
 /* ─── Code list (after generation) ─── */
 .sr-code-list {
