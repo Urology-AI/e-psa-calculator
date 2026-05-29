@@ -73,6 +73,30 @@ export const revokeClinicCode = (code, reason) =>
 export const listClinicCodeAuditLog = (params) =>
   call('adminListClinicCodeAuditLog', params || {});
 
+// ── Patient roster ─────────────────────────────────────────────────────────
+
+/**
+ * Enroll a new study participant and auto-assign a clinic code.
+ * Returns: { ok, participantId, clinicCode }
+ */
+export const enrollPatient = (participantId, notes) =>
+  call('adminEnrollPatient', { participantId, ...(notes ? { notes } : {}) });
+
+/**
+ * List enrolled patients, newest first.
+ * params: { status?, limit?, startAfterParticipantId? }
+ */
+export const listPatients = (params) =>
+  call('adminListPatients', params || {});
+
+/**
+ * Admin manually enters ePSA data for a patient (paper intake / bedside).
+ * payload: { participantId, step1, result, step2?, finalCategory?,
+ *            finalScore?, pathwayMode?, enrollmentNotes? }
+ */
+export const createSinaiSessionForPatient = (payload) =>
+  call('adminCreateSinaiSessionForPatient', payload);
+
 // ── Feature flag ───────────────────────────────────────────────────────────
 
 export const toggleSinaiRedcapEnabled = (enabled) =>

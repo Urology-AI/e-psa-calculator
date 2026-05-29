@@ -287,8 +287,14 @@ const AdminLogin = ({ onLoginSuccess }) => {
     <div className="admin-login-container">
       <div className="admin-login-card">
         <div className="admin-login-header">
-          <h2>ePSA Admin Dashboard</h2>
-          <p>Secure Admin Access</p>
+          <div className="sinai-wordmark">
+            <div className="sinai-logo-mark">MS</div>
+            <div className="sinai-wordmark-text">
+              <span className="institution">Mount Sinai</span>
+              <span className="app-name">ePSA Research Portal</span>
+            </div>
+          </div>
+          <p>IRB Study STUDY-14-00050 · Admin Access</p>
         </div>
 
         {message.text && (
