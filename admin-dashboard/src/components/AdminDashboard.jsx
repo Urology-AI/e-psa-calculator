@@ -254,7 +254,13 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
           >
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h1>ePSA Admin Dashboard</h1>
+          <div className="header-wordmark">
+            <div className="header-logo-mark">MS</div>
+            <div className="header-wordmark-text">
+              <span className="hw-institution">Mount Sinai</span>
+              <span className="hw-app">ePSA Research Portal</span>
+            </div>
+          </div>
         </div>
         <div className="header-right">
           <div className="admin-user-info">
