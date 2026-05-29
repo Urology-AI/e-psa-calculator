@@ -18,6 +18,7 @@ import {
   RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Clock,
   Download, Upload, Trash2, ShieldOff, X, Plus, Loader2, Copy,
   ToggleLeft, ToggleRight, Search, Building, Globe, Cloud, RotateCw, Link2,
+  UserPlus, Users, ClipboardPen,
 } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit as fsLimit } from 'firebase/firestore';
 import { adminDb } from '../../config/adminFirebase';
@@ -28,11 +29,13 @@ import {
   linkPublicSessionToSinai,
   generateClinicCodes, revokeClinicCode,
   listClinicCodeAuditLog, toggleSinaiRedcapEnabled, readSinaiConfig,
+  enrollPatient, listPatients, createSinaiSessionForPatient,
   formatCode, buildCsvFromRecord, downloadFile,
 } from '../../services/sinaiAdminService';
 import './SinaiResearch.css';
 
 const SUBTABS = [
+  { id: 'patients', label: 'Patients',  Icon: Users },
   { id: 'sessions', label: 'Sessions',  Icon: ListChecks },
   { id: 'codes',    label: 'Codes',     Icon: FileText },
   { id: 'audit',    label: 'Audit Log', Icon: ClipboardList },
@@ -54,7 +57,7 @@ const fmtShort = (millis) => millis ? new Date(millis).toLocaleDateString() : '�
 // ─────────────────────────────────────────────────────────────────────────
 
 const SinaiResearch = () => {
-  const [subtab, setSubtab] = useState('sessions');
+  const [subtab, setSubtab] = useState('patients');
   const [config, setConfig] = useState({ redcapEnabled: false, updatedAt: null, updatedBy: null });
 
   useEffect(() => { readSinaiConfig().then(setConfig); }, []);
@@ -93,10 +96,763 @@ const SinaiResearch = () => {
       </nav>
 
       <div className="sr-body">
+        {subtab === 'patients' && <PatientsTab />}
         {subtab === 'sessions' && <SessionsTab />}
         {subtab === 'codes'    && <CodesTab />}
         {subtab === 'audit'    && <AuditTab />}
         {subtab === 'settings' && <SettingsTab config={config} onChange={setConfig} />}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Patients tab — study participant roster
+// ─────────────────────────────────────────────────────────────────────────
+
+const PATIENT_STATUS_LABELS = {
+  enrolled:          { label: 'Enrolled — awaiting ePSA', color: 'amber',  Icon: Clock },
+  completed:         { label: 'ePSA completed',            color: 'blue',   Icon: CheckCircle2 },
+  submitted_redcap:  { label: 'In REDCap',                 color: 'green',  Icon: CheckCircle2 },
+  imported_manually: { label: 'Imported manually',         color: 'blue',   Icon: CheckCircle2 },
+  redcap_error:      { label: 'REDCap error',              color: 'red',    Icon: AlertCircle },
+};
+
+const PatientsTab = () => {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [actionMsg, setActionMsg] = useState(null);
+  const [showEnroll, setShowEnroll] = useState(false);
+  const [selected, setSelected] = useState(null); // patient for manual results entry
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listPatients({ status: statusFilter === 'all' ? undefined : statusFilter, limit: 200 });
+      setPatients(res.patients || []);
+    } catch (err) {
+      setError(err?.message || 'Failed to load patients.');
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return patients;
+    return patients.filter((p) =>
+      p.participantId.toLowerCase().includes(q) ||
+      (p.clinicCode || '').toLowerCase().includes(q) ||
+      (p.notes || '').toLowerCase().includes(q)
+    );
+  }, [patients, searchTerm]);
+
+  return (
+    <>
+      {actionMsg && (
+        <div className={`sr-banner sr-banner--${actionMsg.kind}`}>
+          {actionMsg.kind === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{actionMsg.text}</span>
+          <button onClick={() => setActionMsg(null)} aria-label="Dismiss"><X size={14} /></button>
+        </div>
+      )}
+
+      <div className="sr-toolbar">
+        <div className="sr-toolbar-left">
+          <div className="sr-search">
+            <Search size={14} />
+            <input
+              type="text"
+              placeholder="Search by participant ID, clinic code, or notes"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select className="sr-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="all">All statuses</option>
+            <option value="enrolled">Enrolled — awaiting ePSA</option>
+            <option value="completed">ePSA completed</option>
+            <option value="submitted_redcap">In REDCap</option>
+            <option value="imported_manually">Imported manually</option>
+            <option value="redcap_error">REDCap error</option>
+          </select>
+        </div>
+        <div className="sr-toolbar-right">
+          <button className="sr-btn-ghost" onClick={load} disabled={loading}>
+            <RefreshCw size={14} className={loading ? 'sr-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+          <button className="sr-btn-primary" onClick={() => setShowEnroll(true)}>
+            <UserPlus size={14} /> <span>Enroll patient</span>
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="sr-banner sr-banner--error"><AlertCircle size={16} /><span>{error}</span></div>}
+
+      <div className="sr-table-wrap">
+        <table className="sr-table">
+          <thead>
+            <tr>
+              <th>Participant ID</th>
+              <th>Status</th>
+              <th>Clinic code</th>
+              <th>Enrolled</th>
+              <th>Enrolled by</th>
+              <th>REDCap ID</th>
+              <th>Notes</th>
+              <th aria-label="Actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 && !loading && (
+              <tr><td colSpan={8} className="sr-empty">No patients match these filters.</td></tr>
+            )}
+            {filtered.map((p) => {
+              const cfg = PATIENT_STATUS_LABELS[p.status] || PATIENT_STATUS_LABELS.enrolled;
+              return (
+                <tr key={p.participantId}>
+                  <td><code className="sr-code-soft">{p.participantId}</code></td>
+                  <td>
+                    <span className={`sr-status sr-status--${cfg.color}`}>
+                      <cfg.Icon size={12} /> {cfg.label}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="sr-code-cell">
+                      <code className="sr-code">{formatCode(p.clinicCode)}</code>
+                      <button
+                        type="button"
+                        className="sr-copy-btn"
+                        title="Copy"
+                        onClick={() => navigator.clipboard?.writeText(formatCode(p.clinicCode))}
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </span>
+                  </td>
+                  <td>{fmtShort(p.enrolledAt)}</td>
+                  <td className="sr-small">{p.enrolledBy || '—'}</td>
+                  <td className="sr-mono">{p.redcapRecordId || '—'}</td>
+                  <td className="sr-small" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.notes || '—'}
+                  </td>
+                  <td>
+                    {p.status === 'enrolled' && (
+                      <button
+                        className="sr-btn-row"
+                        onClick={() => setSelected(p)}
+                        title="Enter ePSA results manually"
+                      >
+                        <ClipboardPen size={12} style={{ marginRight: 4 }} />
+                        Enter results
+                      </button>
+                    )}
+                    {p.status !== 'enrolled' && p.sessionId && (
+                      <span className="sr-small" style={{ color: '#64748b', fontSize: 11 }}>
+                        session {p.sessionId.slice(0, 8)}…
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="sr-table-footer">
+        <span className="sr-table-meta">
+          {filtered.length} patient{filtered.length === 1 ? '' : 's'} shown · {patients.length} total enrolled
+        </span>
+      </div>
+
+      {showEnroll && (
+        <EnrollPatientModal
+          onClose={() => setShowEnroll(false)}
+          onEnrolled={(msg) => { setActionMsg(msg); setShowEnroll(false); load(); }}
+        />
+      )}
+
+      {selected && (
+        <ManualResultsModal
+          patient={selected}
+          onClose={() => setSelected(null)}
+          onSaved={(msg) => { setActionMsg(msg); setSelected(null); load(); }}
+        />
+      )}
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enroll patient modal
+// ─────────────────────────────────────────────────────────────────────────
+
+const EnrollPatientModal = ({ onClose, onEnrolled }) => {
+  const [participantId, setParticipantId] = useState('');
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const handleEnroll = async () => {
+    setError(null);
+    const id = participantId.trim();
+    if (!id) { setError('Participant ID is required.'); return; }
+    if (!/^[A-Za-z0-9_\-]{2,64}$/.test(id)) {
+      setError('Participant ID must be 2–64 characters: letters, numbers, hyphens, underscores only.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await enrollPatient(id, notes.trim() || undefined);
+      setResult(res);
+    } catch (err) {
+      setError(err?.message || 'Failed to enroll patient.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDone = () => {
+    onEnrolled({
+      kind: 'success',
+      text: `Patient ${result.participantId} enrolled. Code: ${result.clinicCode}`,
+    });
+  };
+
+  return (
+    <div className="sr-modal-root" role="dialog" aria-modal="true">
+      <div className="sr-modal-backdrop" onClick={result ? handleDone : onClose} />
+      <div className="sr-modal-panel">
+        <header className="sr-modal-header">
+          <div>
+            <h3>Enroll study participant</h3>
+            <p className="sr-modal-sub">A clinic code will be generated and reserved for this participant.</p>
+          </div>
+          <button type="button" className="sr-modal-close" onClick={result ? handleDone : onClose}><X size={16} /></button>
+        </header>
+
+        {!result && (
+          <div className="sr-modal-body">
+            {error && (
+              <div className="sr-banner sr-banner--error" style={{ marginBottom: 12 }}>
+                <AlertCircle size={16} /><span>{error}</span>
+              </div>
+            )}
+            <div className="sr-form-row">
+              <label>Participant ID <span style={{ color: '#dc2626' }}>*</span></label>
+              <input
+                type="text"
+                value={participantId}
+                onChange={(e) => setParticipantId(e.target.value)}
+                placeholder="e.g. PSA-2024-001"
+                disabled={busy}
+                style={{ fontFamily: '"SF Mono", Menlo, Consolas, monospace' }}
+              />
+            </div>
+            <p className="sr-modal-help" style={{ marginTop: -6, marginBottom: 10 }}>
+              Use your study's de-identified ID scheme. No names or MRNs.
+            </p>
+            <div className="sr-form-row" style={{ alignItems: 'flex-start' }}>
+              <label style={{ paddingTop: 8 }}>Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Optional — coordinator notes, enrollment context, etc."
+                rows={3}
+                disabled={busy}
+                maxLength={500}
+                style={{
+                  flex: 1, padding: '7px 10px', fontSize: 13,
+                  border: '1px solid #cbd5e1', borderRadius: 8,
+                  background: '#fff', outline: 'none', resize: 'vertical', fontFamily: 'inherit',
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {result && (
+          <div className="sr-modal-body">
+            <div className="sr-banner sr-banner--success" style={{ marginBottom: 16 }}>
+              <CheckCircle2 size={16} />
+              <span>Patient enrolled successfully.</span>
+            </div>
+            <div className="sr-detail-grid">
+              <DetailField label="Participant ID" value={result.participantId} mono />
+              <DetailField label="Status" value="Enrolled — awaiting ePSA" />
+            </div>
+            <div style={{ margin: '18px 0 6px', textAlign: 'center' }}>
+              <p style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>Assigned clinic code — give this to the patient</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <code style={{
+                  fontSize: 28, letterSpacing: '0.15em', fontWeight: 700,
+                  background: '#f1f5f9', padding: '10px 20px', borderRadius: 10,
+                  fontFamily: '"SF Mono", Menlo, Consolas, monospace',
+                }}>
+                  {result.clinicCode}
+                </code>
+                <button
+                  className="sr-copy-btn"
+                  title="Copy code"
+                  onClick={() => navigator.clipboard?.writeText(result.clinicCode)}
+                  style={{ padding: 8 }}
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            </div>
+            <p className="sr-modal-help" style={{ marginTop: 12, textAlign: 'center' }}>
+              The patient will enter this code in the ePSA app to link their session,
+              or you can enter their results manually from the Patients tab.
+            </p>
+          </div>
+        )}
+
+        <footer className="sr-modal-footer">
+          <div className="sr-modal-footer-left" />
+          <div className="sr-modal-footer-right">
+            {!result && (
+              <>
+                <button className="sr-btn-ghost" onClick={onClose} disabled={busy}>Cancel</button>
+                <button className="sr-btn-primary" onClick={handleEnroll} disabled={busy || !participantId.trim()}>
+                  {busy ? <Loader2 size={14} className="sr-spin" /> : <UserPlus size={14} />}
+                  <span>Enroll &amp; generate code</span>
+                </button>
+              </>
+            )}
+            {result && (
+              <button className="sr-btn-primary" onClick={handleDone}>Done</button>
+            )}
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Manual results entry modal
+// Three-step form: Step 1 data → Step 1 result → Step 2 (optional)
+// ─────────────────────────────────────────────────────────────────────────
+
+const RACE_OPTIONS = [
+  { value: 'white',    label: 'White / Caucasian' },
+  { value: 'black',    label: 'Black / African American' },
+  { value: 'hispanic', label: 'Hispanic / Latino' },
+  { value: 'asian',    label: 'Asian' },
+  { value: 'other',    label: 'Other / Unknown' },
+];
+
+const BRCA_OPTIONS = [
+  { value: 'none',    label: 'None known' },
+  { value: 'BRCA1',   label: 'BRCA1 carrier' },
+  { value: 'BRCA2',   label: 'BRCA2 carrier' },
+  { value: 'unknown', label: 'Unknown' },
+];
+
+const DIET_OPTIONS = [
+  { value: 'western',      label: 'Western (high fat, processed)' },
+  { value: 'mediterranean', label: 'Mediterranean' },
+  { value: 'vegetarian',   label: 'Vegetarian / Vegan' },
+  { value: 'other',        label: 'Other / Unknown' },
+];
+
+const RISK_OPTIONS = [
+  { value: 'low',       label: 'Low' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'high',      label: 'High' },
+  { value: 'very_high', label: 'Very High' },
+];
+
+const PIRADS_OPTIONS = ['1', '2', '3', '4', '5'];
+
+const BinaryToggle = ({ label, value, onChange, disabled }) => (
+  <div className="sr-form-row" style={{ alignItems: 'center' }}>
+    <label>{label}</label>
+    <div style={{ display: 'flex', gap: 8 }}>
+      {[{ v: 1, l: 'Yes' }, { v: 0, l: 'No' }].map(({ v, l }) => (
+        <button
+          key={v}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(v)}
+          style={{
+            padding: '5px 16px', fontSize: 13, borderRadius: 6, cursor: 'pointer',
+            border: '1px solid',
+            borderColor: value === v ? '#6366f1' : '#cbd5e1',
+            background: value === v ? '#eef2ff' : '#fff',
+            color: value === v ? '#4338ca' : '#334155',
+            fontWeight: value === v ? 600 : 400,
+          }}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+const NumInput = ({ label, value, onChange, disabled, min, max, placeholder, unit }) => (
+  <div className="sr-form-row">
+    <label>{label}</label>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+        disabled={disabled}
+        min={min}
+        max={max}
+        placeholder={placeholder}
+        style={{ width: 120 }}
+      />
+      {unit && <span style={{ fontSize: 13, color: '#94a3b8' }}>{unit}</span>}
+    </div>
+  </div>
+);
+
+const SelectInput = ({ label, value, onChange, options, disabled }) => (
+  <div className="sr-form-row">
+    <label>{label}</label>
+    <select className="sr-select" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ flex: 1 }}>
+      <option value="">— select —</option>
+      {options.map(({ value: v, label: l }) => <option key={v} value={v}>{l}</option>)}
+    </select>
+  </div>
+);
+
+const FORM_STEPS = ['Step 1 — Demographics & Risk', 'Step 1 Result', 'Step 2 — PSA & Imaging (optional)'];
+
+const ManualResultsModal = ({ patient, onClose, onSaved }) => {
+  const [step, setStep] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [enrollmentNotes, setEnrollmentNotes] = useState('');
+
+  // ── Step 1 fields ──────────────────────────────────────────────────
+  const [age, setAge] = useState('');
+  const [race, setRace] = useState('');
+  const [heightFt, setHeightFt] = useState('');
+  const [heightIn, setHeightIn] = useState('');
+  const [weight, setWeight] = useState('');
+  const [familyHistory, setFamilyHistory] = useState(0);
+  const [inflammationHistory, setInflammationHistory] = useState(0);
+  const [brcaStatus, setBrcaStatus] = useState('none');
+  const [ipssTotal, setIpssTotal] = useState('');
+  const [shimTotal, setShimTotal] = useState('');
+  const [exercise, setExercise] = useState(0);
+  const [smoking, setSmoking] = useState(0);
+  const [chemicalExposure, setChemicalExposure] = useState(0);
+  const [dietPattern, setDietPattern] = useState('');
+  const [hypertension, setHypertension] = useState(0);
+  const [hyperlipidemia, setHyperlipidemia] = useState(0);
+  const [cad, setCad] = useState(0);
+  const [diabetes, setDiabetes] = useState(0);
+
+  // ── Step 1 result fields ───────────────────────────────────────────
+  const [score, setScore] = useState('');
+  const [risk, setRisk] = useState('');
+  const [scoreRange, setScoreRange] = useState('');
+  const [modelVersion, setModelVersion] = useState('');
+
+  // ── Step 2 fields ──────────────────────────────────────────────────
+  const [includeStep2, setIncludeStep2] = useState(false);
+  const [knowPsa, setKnowPsa] = useState(true);
+  const [psa, setPsa] = useState('');
+  const [onHormonalTherapy, setOnHormonalTherapy] = useState(false);
+  const [hormonalTherapyType, setHormonalTherapyType] = useState('');
+  const [knowPirads, setKnowPirads] = useState(false);
+  const [pirads, setPirads] = useState('');
+  const [prostateVolume, setProstateVolume] = useState('');
+  const [finalCategory, setFinalCategory] = useState('');
+  const [finalScore, setFinalScore] = useState('');
+
+  const validateStep = () => {
+    setError(null);
+    if (step === 0) {
+      if (!age || Number(age) < 18 || Number(age) > 120) {
+        setError('Age must be between 18 and 120.'); return false;
+      }
+      if (!race) { setError('Race is required.'); return false; }
+    }
+    if (step === 1) {
+      if (score === '' || isNaN(Number(score))) {
+        setError('Score is required.'); return false;
+      }
+      if (!risk) { setError('Risk level is required.'); return false; }
+    }
+    return true;
+  };
+
+  const buildPayload = () => {
+    const bmi = (weight && heightFt !== '')
+      ? (() => {
+          const totalIn = (Number(heightFt) * 12) + Number(heightIn || 0);
+          const kg = Number(weight) * 0.453592;
+          const m = totalIn * 0.0254;
+          return m > 0 ? Math.round((kg / (m * m)) * 10) / 10 : undefined;
+        })()
+      : undefined;
+
+    const step1 = {
+      age: Number(age),
+      race,
+      ...(heightFt !== '' ? { heightFt: Number(heightFt), heightIn: Number(heightIn || 0), heightUnit: 'ft' } : {}),
+      ...(weight !== '' ? { weight: Number(weight), weightUnit: 'lbs', weightKg: Math.round(Number(weight) * 0.453592 * 10) / 10 } : {}),
+      ...(bmi !== undefined ? { bmi } : {}),
+      familyHistory,
+      inflammationHistory,
+      brcaStatus,
+      ...(ipssTotal !== '' ? { ipss: Number(ipssTotal) } : {}),
+      ...(shimTotal !== '' ? { shim: Number(shimTotal) } : {}),
+      exercise,
+      smoking,
+      chemicalExposure,
+      ...(dietPattern ? { dietPattern } : {}),
+      hypertension,
+      hyperlipidemia,
+      coronaryArteryDisease: cad,
+      diabetes,
+      comorbidityScore: hypertension + hyperlipidemia + cad + diabetes,
+    };
+
+    const result = {
+      score: Number(score),
+      risk,
+      ...(scoreRange ? { scoreRange } : {}),
+      ...(modelVersion ? { modelVersion } : {}),
+    };
+
+    const step2 = includeStep2 ? {
+      knowPsa,
+      ...(knowPsa && psa !== '' ? { psa: String(psa) } : {}),
+      onHormonalTherapy,
+      ...(onHormonalTherapy && hormonalTherapyType ? { hormonalTherapyType } : {}),
+      knowPirads,
+      ...(knowPirads && pirads ? { pirads } : {}),
+      ...(prostateVolume !== '' ? { prostateVolume: String(prostateVolume) } : {}),
+    } : undefined;
+
+    return {
+      participantId: patient.participantId,
+      step1,
+      result,
+      ...(step2 ? { step2 } : {}),
+      pathwayMode: includeStep2 ? 'step1_and_step2' : 'step1_only',
+      ...(finalCategory ? { finalCategory } : {}),
+      ...(finalScore !== '' ? { finalScore: Number(finalScore) } : {}),
+      ...(enrollmentNotes.trim() ? { enrollmentNotes: enrollmentNotes.trim() } : {}),
+    };
+  };
+
+  const handleNext = () => {
+    if (!validateStep()) return;
+    setStep((s) => s + 1);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const payload = buildPayload();
+      const res = await createSinaiSessionForPatient(payload);
+      onSaved({
+        kind: 'success',
+        text: `Results saved for ${patient.participantId}.${res.redcapSubmitted ? ` Submitted to REDCap (record ${res.redcapRecordId}).` : ' Session pending REDCap submission.'}`,
+      });
+    } catch (err) {
+      setError(err?.message || 'Failed to save results.');
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="sr-modal-root" role="dialog" aria-modal="true">
+      <div className="sr-modal-backdrop" onClick={onClose} />
+      <div className="sr-modal-panel sr-modal-panel--wide">
+        <header className="sr-modal-header">
+          <div>
+            <h3>Enter ePSA results manually</h3>
+            <p className="sr-modal-sub">
+              Participant: <code className="sr-code-soft">{patient.participantId}</code>
+              <span style={{ margin: '0 8px', color: '#cbd5e1' }}>·</span>
+              Code: <code className="sr-code">{formatCode(patient.clinicCode)}</code>
+            </p>
+          </div>
+          <button type="button" className="sr-modal-close" onClick={onClose}><X size={16} /></button>
+        </header>
+
+        {/* Step indicator */}
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e2e8f0', padding: '0 18px' }}>
+          {FORM_STEPS.map((label, i) => (
+            <div
+              key={i}
+              style={{
+                padding: '10px 16px', fontSize: 13, fontWeight: i === step ? 600 : 400,
+                color: i === step ? '#6366f1' : i < step ? '#16a34a' : '#94a3b8',
+                borderBottom: i === step ? '2px solid #6366f1' : '2px solid transparent',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              {i < step && <CheckCircle2 size={13} />}
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {error && (
+          <div className="sr-banner sr-banner--error" style={{ margin: '12px 18px 0' }}>
+            <AlertCircle size={16} /><span>{error}</span>
+          </div>
+        )}
+
+        <div className="sr-modal-body">
+          {/* ── STEP 0: Demographics & risk factors ── */}
+          {step === 0 && (
+            <div>
+              <NumInput label="Age *" value={age} onChange={setAge} min={18} max={120} placeholder="e.g. 65" unit="years" />
+              <SelectInput label="Race *" value={race} onChange={setRace} options={RACE_OPTIONS} />
+              <div className="sr-form-row">
+                <label>Height</label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
+                  <input type="number" value={heightFt} onChange={(e) => setHeightFt(e.target.value)} placeholder="ft" min={3} max={8} style={{ width: 70 }} />
+                  <span style={{ fontSize: 13, color: '#94a3b8' }}>ft</span>
+                  <input type="number" value={heightIn} onChange={(e) => setHeightIn(e.target.value)} placeholder="in" min={0} max={11} style={{ width: 70 }} />
+                  <span style={{ fontSize: 13, color: '#94a3b8' }}>in</span>
+                </div>
+              </div>
+              <NumInput label="Weight" value={weight} onChange={setWeight} min={50} max={700} placeholder="e.g. 185" unit="lbs" />
+              <SelectInput label="Diet pattern" value={dietPattern} onChange={setDietPattern} options={DIET_OPTIONS} />
+              <SelectInput label="BRCA status" value={brcaStatus} onChange={setBrcaStatus} options={BRCA_OPTIONS} />
+              <NumInput label="IPSS total score" value={ipssTotal} onChange={setIpssTotal} min={0} max={35} placeholder="0–35" />
+              <NumInput label="SHIM total score" value={shimTotal} onChange={setShimTotal} min={0} max={25} placeholder="0–25" />
+
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', margin: '14px 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk factors</p>
+              <BinaryToggle label="Family history of prostate cancer" value={familyHistory} onChange={setFamilyHistory} />
+              <BinaryToggle label="History of prostate inflammation" value={inflammationHistory} onChange={setInflammationHistory} />
+              <BinaryToggle label="Regular vigorous exercise" value={exercise} onChange={setExercise} />
+              <BinaryToggle label="Current / former smoker" value={smoking} onChange={setSmoking} />
+              <BinaryToggle label="Chemical / pesticide exposure" value={chemicalExposure} onChange={setChemicalExposure} />
+
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', margin: '14px 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comorbidities</p>
+              <BinaryToggle label="Hypertension" value={hypertension} onChange={setHypertension} />
+              <BinaryToggle label="Hyperlipidemia" value={hyperlipidemia} onChange={setHyperlipidemia} />
+              <BinaryToggle label="Coronary artery disease" value={cad} onChange={setCad} />
+              <BinaryToggle label="Diabetes" value={diabetes} onChange={setDiabetes} />
+            </div>
+          )}
+
+          {/* ── STEP 1: Risk score result ── */}
+          {step === 1 && (
+            <div>
+              <p className="sr-modal-help" style={{ marginBottom: 14 }}>
+                Enter the ePSA Step 1 score as computed by the calculator.
+              </p>
+              <NumInput label="Score *" value={score} onChange={setScore} min={0} max={100} placeholder="e.g. 42" />
+              <SelectInput label="Risk level *" value={risk} onChange={setRisk} options={RISK_OPTIONS} />
+              <div className="sr-form-row">
+                <label>Score range</label>
+                <input type="text" value={scoreRange} onChange={(e) => setScoreRange(e.target.value)} placeholder="e.g. 35–50" style={{ flex: 1 }} />
+              </div>
+              <div className="sr-form-row">
+                <label>Model version</label>
+                <input type="text" value={modelVersion} onChange={(e) => setModelVersion(e.target.value)} placeholder="e.g. v2.1" style={{ flex: 1 }} />
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 2: PSA & imaging ── */}
+          {step === 2 && (
+            <div>
+              <div className="sr-form-row" style={{ alignItems: 'center' }}>
+                <label>Include Step 2 data?</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={includeStep2} onChange={(e) => setIncludeStep2(e.target.checked)} />
+                  <span style={{ fontSize: 13 }}>Yes — patient had PSA / MRI data</span>
+                </label>
+              </div>
+
+              {includeStep2 && (
+                <>
+                  <BinaryToggle label="PSA value known?" value={knowPsa ? 1 : 0} onChange={(v) => setKnowPsa(v === 1)} />
+                  {knowPsa && (
+                    <NumInput label="PSA value" value={psa} onChange={setPsa} min={0} max={200} placeholder="e.g. 4.5" unit="ng/mL" />
+                  )}
+                  <BinaryToggle label="On hormonal therapy?" value={onHormonalTherapy ? 1 : 0} onChange={(v) => setOnHormonalTherapy(v === 1)} />
+                  {onHormonalTherapy && (
+                    <div className="sr-form-row">
+                      <label>Therapy type</label>
+                      <input type="text" value={hormonalTherapyType} onChange={(e) => setHormonalTherapyType(e.target.value)} placeholder="e.g. ADT, finasteride" style={{ flex: 1 }} />
+                    </div>
+                  )}
+                  <BinaryToggle label="PI-RADS score known?" value={knowPirads ? 1 : 0} onChange={(v) => setKnowPirads(v === 1)} />
+                  {knowPirads && (
+                    <SelectInput label="PI-RADS score" value={pirads} onChange={setPirads} options={PIRADS_OPTIONS.map((v) => ({ value: v, label: `PI-RADS ${v}` }))} />
+                  )}
+                  <NumInput label="Prostate volume" value={prostateVolume} onChange={setProstateVolume} min={0} max={500} placeholder="e.g. 40" unit="mL" />
+
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', margin: '14px 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Final result</p>
+                  <div className="sr-form-row">
+                    <label>Final category</label>
+                    <input type="text" value={finalCategory} onChange={(e) => setFinalCategory(e.target.value)} placeholder="e.g. Consider biopsy" style={{ flex: 1 }} />
+                  </div>
+                  <NumInput label="Final score" value={finalScore} onChange={setFinalScore} min={0} max={100} placeholder="e.g. 68" />
+                </>
+              )}
+
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', margin: '14px 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enrollment notes</p>
+              <div className="sr-form-row" style={{ alignItems: 'flex-start' }}>
+                <label style={{ paddingTop: 8 }}>Notes</label>
+                <textarea
+                  value={enrollmentNotes}
+                  onChange={(e) => setEnrollmentNotes(e.target.value)}
+                  placeholder="How the session was collected, any deviations from protocol, etc."
+                  rows={3}
+                  maxLength={1000}
+                  style={{
+                    flex: 1, padding: '7px 10px', fontSize: 13,
+                    border: '1px solid #cbd5e1', borderRadius: 8,
+                    background: '#fff', outline: 'none', resize: 'vertical', fontFamily: 'inherit',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <footer className="sr-modal-footer">
+          <div className="sr-modal-footer-left">
+            {step > 0 && (
+              <button className="sr-btn-ghost" onClick={() => { setError(null); setStep((s) => s - 1); }} disabled={busy}>
+                ← Back
+              </button>
+            )}
+          </div>
+          <div className="sr-modal-footer-right">
+            <button className="sr-btn-ghost" onClick={onClose} disabled={busy}>Cancel</button>
+            {step < FORM_STEPS.length - 1 && (
+              <button className="sr-btn-primary" onClick={handleNext}>
+                Next →
+              </button>
+            )}
+            {step === FORM_STEPS.length - 1 && (
+              <button className="sr-btn-primary" onClick={handleSubmit} disabled={busy}>
+                {busy ? <Loader2 size={14} className="sr-spin" /> : <CheckCircle2 size={14} />}
+                <span>Save results</span>
+              </button>
+            )}
+          </div>
+        </footer>
       </div>
     </div>
   );

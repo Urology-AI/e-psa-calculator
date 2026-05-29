@@ -11,6 +11,8 @@
  *   adminGenerateClinicCodes        — mint new codes (was a CLI script)
  *   adminRevokeClinicCode           — revoke a code
  *   adminListClinicCodeAuditLog     — paginated audit log read
+ *   adminCreateSinaiSession         — manual enrollment: admin creates session
+ *                                     on behalf of a patient (paper/verbal intake)
  *
  * Every admin action that touches clinical data writes an entry to
  * `adminAccessLog/{id}` so IRB can see who looked at what, when.
@@ -1033,4 +1035,370 @@ export const adminLinkPublicSessionToSinai = functions.https.onCall(
     };
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT ROSTER — sinaiPatients collection
+//
+// One document per enrolled study participant.  Identified only by the
+// study-assigned participantId (never by name or MRN).
+//
+//   sinaiPatients/{participantId} {
+//     participantId   string   — de-identified study ID
+//     clinicCode      string   — normalized code auto-assigned at enrollment
+//     enrolledAt      Timestamp
+//     enrolledBy      string   — admin email
+//     notes           string | null
+//     status          'enrolled' | 'completed' | 'submitted_redcap'
+//                              | 'imported_manually' | 'redcap_error'
+//     sessionId       string | null  — null until ePSA completed
+//     redcapRecordId  string | null
+//   }
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SINAI_PATIENTS_COLLECTION = 'sinaiPatients';
+
+// Allowed characters in a participant ID: alphanumeric, hyphens, underscores.
+const PARTICIPANT_ID_RE = /^[A-Za-z0-9_\-]{2,64}$/;
+
+// CODE_CHARSET used when minting a single code at enrollment time.
+const ENROLL_CODE_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function mintSingleCode(): string {
+  const len = 12;
+  let code = '';
+  const bytes = crypto.randomBytes(len);
+  for (let i = 0; i < len; i++) {
+    code += ENROLL_CODE_CHARSET[bytes[i] % ENROLL_CODE_CHARSET.length];
+  }
+  return code;
+}
+
+// ── adminEnrollPatient ────────────────────────────────────────────────────────
+// Creates a sinaiPatient record and auto-assigns a fresh clinic code.
+// Returns: { participantId, clinicCode (display format) }
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const adminEnrollPatient = functions.https.onCall(
+  async (data: { participantId: string; notes?: string }, context) => {
+    const auth = requireAdmin(context);
+
+    const rawId: unknown = data?.participantId;
+    if (typeof rawId !== 'string' || !PARTICIPANT_ID_RE.test(rawId)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'participantId must be 2–64 alphanumeric characters (hyphens and underscores allowed).'
+      );
+    }
+    const participantId = rawId.trim();
+    const notes = typeof data?.notes === 'string' ? data.notes.trim().slice(0, 500) : null;
+
+    const db = admin.firestore();
+    const patientRef = db.collection(SINAI_PATIENTS_COLLECTION).doc(participantId);
+    const now = admin.firestore.Timestamp.now();
+
+    // Mint a collision-free code (retry up to 5 times).
+    let code: string | null = null;
+    let codeRef: admin.firestore.DocumentReference | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = mintSingleCode();
+      const ref = db.collection(CLINIC_CODES_COLLECTION).doc(candidate);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        code = candidate;
+        codeRef = ref;
+        break;
+      }
+    }
+    if (!code || !codeRef) {
+      throw new functions.https.HttpsError('internal', 'Could not generate a unique clinic code. Please try again.');
+    }
+
+    // Atomically create the patient doc + the clinic code doc.
+    await db.runTransaction(async (tx) => {
+      const patientSnap = await tx.get(patientRef);
+      if (patientSnap.exists) {
+        throw new functions.https.HttpsError(
+          'already-exists',
+          `A patient with participantId "${participantId}" is already enrolled.`
+        );
+      }
+
+      tx.set(codeRef!, {
+        code,
+        issuedBy: auth.email ?? auth.uid,
+        issuedAt: now,
+        expiresAt: null,          // patient codes never expire by default
+        used: false,
+        revoked: false,
+        reservedFor: participantId,  // informational — not enforced by app flow
+      });
+
+      tx.set(patientRef, {
+        participantId,
+        clinicCode: code,
+        enrolledAt: now,
+        enrolledBy: auth.email ?? auth.uid,
+        notes,
+        status: 'enrolled',
+        sessionId: null,
+        redcapRecordId: null,
+      });
+    });
+
+    await logAdminAccess(auth.uid, auth.email, 'enroll_patient', 'sinaiPatients', participantId, {
+      clinicCode: code,
+    });
+    await logCodeAudit('enroll_patient', 'minted', {
+      normalizedCode: code,
+      callerKey: `uid:${auth.uid}`,
+      metadata: { participantId },
+    });
+
+    // Return display-formatted code (XXXX-XXXX-XXXX)
+    const display = [code.slice(0, 4), code.slice(4, 8), code.slice(8, 12)].join('-');
+    return { ok: true, participantId, clinicCode: display };
+  }
+);
+
+// ── adminListPatients ─────────────────────────────────────────────────────────
+// Returns the patient roster ordered by enrolledAt desc.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const adminListPatients = functions.https.onCall(
+  async (data: { status?: string; limit?: number; startAfterParticipantId?: string }, context) => {
+    requireAdmin(context);
+
+    const pageSize = Math.min(Number(data?.limit) || 100, 200);
+    const statusFilter = typeof data?.status === 'string' ? data.status : 'all';
+
+    const db = admin.firestore();
+    let q = db
+      .collection(SINAI_PATIENTS_COLLECTION)
+      .orderBy('enrolledAt', 'desc')
+      .limit(pageSize);
+
+    if (statusFilter !== 'all') {
+      q = (db
+        .collection(SINAI_PATIENTS_COLLECTION)
+        .where('status', '==', statusFilter)
+        .orderBy('enrolledAt', 'desc')
+        .limit(pageSize)) as any;
+    }
+
+    if (data?.startAfterParticipantId) {
+      const cursorSnap = await db
+        .collection(SINAI_PATIENTS_COLLECTION)
+        .doc(data.startAfterParticipantId)
+        .get();
+      if (cursorSnap.exists) {
+        q = q.startAfter(cursorSnap) as any;
+      }
+    }
+
+    const snap = await q.get();
+    const patients = snap.docs.map((d) => {
+      const doc = d.data();
+      return {
+        participantId: d.id,
+        clinicCode: doc.clinicCode ?? null,
+        enrolledAt: doc.enrolledAt?.toMillis?.() ?? null,
+        enrolledBy: doc.enrolledBy ?? null,
+        notes: doc.notes ?? null,
+        status: doc.status ?? 'enrolled',
+        sessionId: doc.sessionId ?? null,
+        redcapRecordId: doc.redcapRecordId ?? null,
+      };
+    });
+
+    const lastId = patients.length === pageSize ? patients[patients.length - 1].participantId : null;
+    return { patients, nextStartAfterId: lastId };
+  }
+);
+
+// ── adminCreateSinaiSessionForPatient ─────────────────────────────────────────
+// Manual data-entry path: admin submits ePSA results on behalf of a patient
+// (e.g. from paper intake or bedside tablet session).
+//
+// Mirrors the logic of submitSinaiSession in sinaiCohort.ts but:
+//   • requires admin auth
+//   • looks up the patient by participantId to get their assigned code
+//   • marks the patient doc with sessionId + status on success
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface AdminSessionPayload {
+  participantId: string;
+  step1: Record<string, unknown>;
+  result: Record<string, unknown>;
+  step2?: Record<string, unknown>;
+  finalCategory?: string;
+  finalScore?: number;
+  pathwayMode?: string;
+  enrollmentNotes?: string;
+}
+
+export const adminCreateSinaiSessionForPatient = functions.https.onCall(
+  async (data: AdminSessionPayload, context) => {
+    const auth = requireAdmin(context);
+
+    if (!data?.participantId || typeof data.participantId !== 'string') {
+      throw new functions.https.HttpsError('invalid-argument', 'participantId is required.');
+    }
+    if (!data?.step1 || typeof data.step1 !== 'object') {
+      throw new functions.https.HttpsError('invalid-argument', 'step1 data is required.');
+    }
+    if (!data?.result || typeof data.result !== 'object') {
+      throw new functions.https.HttpsError('invalid-argument', 'result data is required.');
+    }
+
+    const db = admin.firestore();
+    const patientRef = db.collection(SINAI_PATIENTS_COLLECTION).doc(data.participantId);
+    const patientSnap = await patientRef.get();
+    if (!patientSnap.exists) {
+      throw new functions.https.HttpsError('not-found', `Patient "${data.participantId}" not found.`);
+    }
+    const patientDoc = patientSnap.data()!;
+
+    if (patientDoc.sessionId) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'This patient already has a completed ePSA session. Delete the existing session before re-enrolling.'
+      );
+    }
+
+    const normalized = patientDoc.clinicCode as string;
+    const codeRef = db.collection(CLINIC_CODES_COLLECTION).doc(normalized);
+
+    const sessionId = crypto.randomUUID();
+    const sessionRef = db.collection(SINAI_SESSIONS_COLLECTION).doc(sessionId);
+    const now = admin.firestore.Timestamp.now();
+    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + _internal.TTL_MS);
+
+    // Determine pathway mode
+    const pathwayMode =
+      data.pathwayMode ??
+      (data.step2 && Object.keys(data.step2).length > 0 ? 'step1_and_step2' : 'step1_only');
+
+    // Atomically claim the code, write the session, and update the patient.
+    try {
+      await db.runTransaction(async (tx) => {
+        const codeSnap = await tx.get(codeRef);
+        if (!codeSnap.exists) {
+          throw new functions.https.HttpsError('not-found', 'Assigned clinic code not found — re-enroll patient.');
+        }
+        const codeData = codeSnap.data()!;
+        if (codeData.revoked) {
+          throw new functions.https.HttpsError('failed-precondition', 'Assigned clinic code has been revoked.');
+        }
+        if (codeData.used) {
+          throw new functions.https.HttpsError('failed-precondition', 'Clinic code already used — patient may have self-completed.');
+        }
+
+        const sessionDoc = {
+          clinicCode: normalized,
+          status: 'pending',
+          createdAt: now,
+          expiresAt,
+          pathwayMode,
+          step1: data.step1,
+          result: data.result,
+          enrolledManually: true,
+          enrolledBy: auth.email ?? auth.uid,
+          ...(data.enrollmentNotes ? { enrollmentNotes: data.enrollmentNotes } : {}),
+          ...(data.step2 && Object.keys(data.step2).length > 0 ? { step2: data.step2 } : {}),
+          ...(data.finalCategory ? { finalCategory: data.finalCategory } : {}),
+          ...(data.finalScore !== undefined ? { finalScore: data.finalScore } : {}),
+        };
+
+        tx.set(sessionRef, sessionDoc);
+        tx.update(codeRef, { used: true, usedAt: now, sessionId });
+        tx.update(patientRef, {
+          sessionId,
+          status: 'completed',
+          completedAt: now,
+          completedBy: auth.email ?? auth.uid,
+        });
+      });
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) throw err;
+      functions.logger.error('adminCreateSinaiSessionForPatient: transaction failed', err);
+      throw new functions.https.HttpsError('internal', 'Could not save session. Please try again.');
+    }
+
+    // Optionally push to REDCap if enabled.
+    let redcapSubmitted = false;
+    let redcapRecordId: string | undefined;
+    try {
+      const redcapConfig = getSinaiRedcapConfig();
+      const payload = { clinicCode: normalized, step1: data.step1, result: data.result, step2: data.step2, finalCategory: data.finalCategory, finalScore: data.finalScore, pathwayMode };
+      const redcapRecord = mapPayloadToRedcap(sessionId, payload as any);
+      const result = await postToRedcap(redcapConfig, redcapRecord);
+      redcapRecordId = result.recordId;
+      await sessionRef.update({
+        status: 'submitted_redcap',
+        redcapRecordId,
+        redcapSubmittedAt: admin.firestore.Timestamp.now(),
+      });
+      await patientRef.update({ status: 'submitted_redcap', redcapRecordId });
+      redcapSubmitted = true;
+    } catch (_) {
+      // REDCap submission is best-effort; session stays 'pending' for manual retry.
+    }
+
+    await logAdminAccess(
+      auth.uid, auth.email,
+      'create_session_for_patient', 'sinaiSessions', sessionId,
+      { participantId: data.participantId, clinicCode: normalized, redcapSubmitted }
+    );
+    await logCodeAudit('manual_session_created', redcapSubmitted ? 'submitted_redcap' : 'submitted_pending', {
+      normalizedCode: normalized,
+      callerKey: `uid:${auth.uid}`,
+      sessionId,
+      metadata: { participantId: data.participantId },
+    });
+
+    return { ok: true, sessionId, redcapSubmitted, redcapRecordId, ttlDays: SINAI_SESSION_TTL_DAYS };
+  }
+);
+
+// ── syncSinaiSessionStatusToPatient ──────────────────────────────────────────
+// Firestore trigger: when a sinaiSession is written (created or updated),
+// find the matching patient (by clinicCode) and sync the status + sessionId.
+// This handles the self-completion path where the patient uses the app.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const syncSinaiSessionStatusToPatient = functions.firestore
+  .document(`${SINAI_SESSIONS_COLLECTION}/{sessionId}`)
+  .onWrite(async (change, context) => {
+    const after = change.after.exists ? (change.after.data() as any) : null;
+    if (!after) return; // document deleted — nothing to sync
+
+    const clinicCode: string | undefined = after.clinicCode;
+    if (!clinicCode) return;
+
+    const db = admin.firestore();
+    const patientQuery = await db
+      .collection(SINAI_PATIENTS_COLLECTION)
+      .where('clinicCode', '==', clinicCode)
+      .limit(1)
+      .get();
+
+    if (patientQuery.empty) return; // no patient record for this code (pre-roster codes)
+
+    const patientRef = patientQuery.docs[0].ref;
+    const sessionId = context.params.sessionId;
+    const sessionStatus: string = after.status ?? 'pending';
+
+    // Map session status to patient status
+    const patientStatus =
+      sessionStatus === 'submitted_redcap'  ? 'submitted_redcap'  :
+      sessionStatus === 'imported_manually' ? 'imported_manually' :
+      sessionStatus === 'redcap_error'      ? 'redcap_error'      :
+      'completed';
+
+    await patientRef.update({
+      sessionId,
+      status: patientStatus,
+      ...(after.redcapRecordId ? { redcapRecordId: after.redcapRecordId } : {}),
+    });
+  });
 
