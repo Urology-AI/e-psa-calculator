@@ -93,6 +93,131 @@ const ModelCard = ({
   );
 };
 
+/* ── Part 1 point table: factor / pts / data β / literature OR / source used ── */
+const Part1PointsTable = () => (
+  <div className="md-points-wrap">
+    <div className="md-points-title">
+      Part 1 — Point Values: Data Run vs. Literature
+      <span className="md-points-subtitle">
+        Data run: N=100, AUC=0.562, PSA&gt;4 prevalence 81% (referred cohort). Scale: 16 pts = 1 log-OR unit (age 70+ anchor).
+      </span>
+    </div>
+    <div className="md-points-scroll">
+      <table className="md-points-table">
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>Points used</th>
+            <th>Data β (N=100)</th>
+            <th>Literature OR</th>
+            <th>Source used</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { factor: 'Age 70+',          pts: '16', data: '+0.198', lit: '5–8×', src: 'Literature', note: 'Data non-monotonic (50s > 70s) — referral bias' },
+            { factor: 'Age 60–69',        pts: '10', data: '+0.106', lit: '3–4×', src: 'Literature', note: 'Data coefficient < age 50–59 — selection bias' },
+            { factor: 'Age 50–59',        pts: '6',  data: '+0.545', lit: '1.5×', src: 'Literature', note: 'Data highest bin — artifact of cohort selection' },
+            { factor: 'BRCA+/germline',   pts: '16', data: 'N/A',    lit: '3.5–8.6× (BRCA2)', src: 'Literature', note: 'Too few positives to model' },
+            { factor: 'Family history',   pts: '10', data: '−0.328', lit: '2.5×', src: 'Literature', note: 'Data NEGATIVE — sparse positives, sign flip artifact' },
+            { factor: 'SHIM <12 (ED)',    pts: '8',  data: 'N/A',    lit: '1.5–1.8×', src: 'Literature', note: 'Not in training set' },
+            { factor: 'IPSS ≥8 (LUTS)',   pts: '8',  data: '−0.562', lit: '1.6–2×', src: 'Literature', note: 'Data NEGATIVE — referred-for-LUTS artifact (reverse causation)' },
+            { factor: 'Black ancestry',   pts: '8',  data: '+0.353', lit: '1.7–2× incidence', src: 'Literature', note: 'Direction correct; data understated (PSA-selected cohort)' },
+            { factor: 'Smoking (current)',pts: '6',  data: 'N/A',    lit: '1.4×', src: 'Literature', note: 'Not in training set' },
+            { factor: 'BMI ≥30',          pts: '4',  data: '+0.533', lit: '1.3×', src: 'Literature', note: 'Data: BMI 25–29 β=+0.982 > obese — dose-response violation, omitted' },
+            { factor: 'Diet (western)',   pts: '4',  data: 'N/A',    lit: '1.3×', src: 'Literature', note: 'Not in training set' },
+            { factor: 'Inflammation hx', pts: '4',  data: 'N/A',    lit: '1.6–2×', src: 'Literature', note: 'Not in training set' },
+            { factor: 'Chemical expo.',   pts: '4',  data: 'N/A',    lit: '1.5–2×', src: 'Literature', note: 'Not in training set' },
+            { factor: 'Exercise (none)',  pts: '4',  data: '+0.419', lit: '1.2–1.3×', src: 'Literature', note: 'Data direction confirmed; cohort bias prevents calibration' },
+            { factor: 'Comorbid ×2',     pts: '20', data: 'N/A',    lit: '1.3–1.5×', src: 'Literature', note: 'Metabolic syndrome grading; not in training set' },
+            { factor: 'Smoking (former)', pts: '2',  data: 'N/A',    lit: '1.1×', src: 'Literature', note: 'Clinical judgment (partial vs. current)' },
+            { factor: 'Exercise (some)',  pts: '2',  data: '+0.021', lit: 'Weak signal', src: 'Clinical judgment', note: 'Data near-zero; mid-tier not calibratable at N=100' },
+          ].map(row => (
+            <tr key={row.factor}
+              className={row.data.startsWith('−') ? 'md-points-table__row--warn' : row.src === 'Clinical judgment' ? 'md-points-table__row--dim' : ''}>
+              <td className="md-points-table__factor">{row.factor}</td>
+              <td className="md-points-table__pts">{row.pts}</td>
+              <td className={`md-points-table__data ${row.data.startsWith('−') ? 'md-points-table__data--neg' : row.data === 'N/A' ? 'md-points-table__data--na' : 'md-points-table__data--pos'}`}>{row.data}</td>
+              <td className="md-points-table__lit">{row.lit}</td>
+              <td className="md-points-table__src">{row.src}</td>
+              <td className="md-points-table__note">{row.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div className="md-points-footer">
+      <strong>Why data was not used to set points:</strong> The cohort is a urology referral population
+      with 81% PSA&gt;4 prevalence — not a general screening population. Three critical sanity check
+      failures: (1) age gradient non-monotonic, (2) IPSS negative due to reverse causation,
+      (3) family history negative due to sparse positives. Changing points from this data would
+      systematically underweight the most important guideline-driven risk factors.
+      No point values were changed as a result of the data run. Data coefficients are retained
+      as transparency context only.
+    </div>
+  </div>
+);
+
+/* ── Part 2 logistic regression weights table ── */
+const Part2WeightsTable = () => (
+  <div className="md-points-wrap" style={{ marginTop: '16px' }}>
+    <div className="md-points-title">
+      Part 2 — Trained Logistic Regression Weights
+      <span className="md-points-subtitle">
+        Outcome: Clinically Significant Cancer (GG≥2). Trained on ePSA Mount Sinai cohort.
+      </span>
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+      {/* Base model */}
+      <div className="md-weights-block">
+        <div className="md-weights-block__title">Base model — PSA only</div>
+        <div className="md-weights-block__meta">N=100 · AUC=0.378 · Knowledge of PSA=Yes</div>
+        <table className="md-points-table">
+          <thead><tr><th>Term</th><th>β</th><th>OR (e^β)</th></tr></thead>
+          <tbody>
+            <tr><td>Intercept</td><td>0.700</td><td>—</td></tr>
+            <tr><td>log(PSA)</td><td className="md-points-table__data--pos">+0.175</td><td>1.19×</td></tr>
+          </tbody>
+        </table>
+        <div className="md-weights-block__note">
+          AUC 0.378 is below chance — expected in a biopsied cohort where PSA is already
+          elevated for all patients. PSA alone cannot discriminate GG≥2 within this group.
+        </div>
+      </div>
+
+      {/* MRI model */}
+      <div className="md-weights-block">
+        <div className="md-weights-block__title">MRI model — PSA + PI-RADS</div>
+        <div className="md-weights-block__meta">N=96 · AUC=0.591 · Knowledge of PIRADS=Yes</div>
+        <table className="md-points-table">
+          <thead><tr><th>Term</th><th>β</th><th>OR (e^β)</th></tr></thead>
+          <tbody>
+            <tr><td>Intercept</td><td>0.357</td><td>—</td></tr>
+            <tr><td>log(PSA)</td><td className="md-points-table__data--neg">−0.017</td><td>0.98×</td></tr>
+            <tr><td>PI-RADS 3</td><td className="md-points-table__data--neg">−0.061</td><td>0.94×</td></tr>
+            <tr><td>PI-RADS 4</td><td className="md-points-table__data--pos">+0.968</td><td>2.63×</td></tr>
+            <tr><td>PI-RADS 5</td><td className="md-points-table__data--pos">+1.255</td><td>3.51×</td></tr>
+          </tbody>
+        </table>
+        <div className="md-weights-block__note">
+          PI-RADS 4 and 5 drive most of the discriminatory power. PSA β is near-zero within
+          the MRI model — PI-RADS captures what PSA alone cannot in a biopsied cohort.
+        </div>
+      </div>
+    </div>
+
+    <div className="md-points-footer">
+      <strong>Reference categories:</strong> PI-RADS 1–2 (low suspicion). Logistic regression
+      via sklearn, L2 regularisation (C=1). Thresholds: low &lt;55%, moderate 55–65%,
+      high ≥65% (rounded from Youden-optimal operating points).
+      <strong> Note:</strong> base model AUC below 0.5 is a known artifact of PSA-selected cohorts —
+      PSA has already been used to select for biopsy, removing its discriminatory signal.
+    </div>
+  </div>
+);
+
 const Model3CalibrationTable = () => (
   <div className="md-calib">
     <div className="md-calib__title">Model 3 — Observed vs Predicted GG3+ by PI-RADS</div>
@@ -217,6 +342,10 @@ const ModelDocumentation = ({ scope = 'part1', pathwayMode = null }) => {
         ]}
         notes={`Threshold: ${m1.threshold}. ${m1.note}`}
       />
+
+      <Part1PointsTable />
+
+      {isPart2 && <Part2WeightsTable />}
 
       {isPart2 ? (
         <ModelCard
