@@ -9,6 +9,7 @@ import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
 import RiskGauge from './RiskGauge';
 import AUAScreeningFlowchart, { AUAInitialBiopsyGuidelines } from './AUAFlowchart';
+import { Part2GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './ResultsLoading';
 import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
@@ -771,17 +772,28 @@ const Part2Results = ({
             const hasBrca = preData?.brcaStatus === 'yes';
             return (
               <>
-                <AUAScreeningFlowchart
-                  age={ageForChart}
+                <Part2GuidelineJourney
                   psaValue={psaValue}
-                  isHighRisk={isBlack || hasFamilyHx || hasBrca}
-                  part="part2"
-                />
-                <AUAInitialBiopsyGuidelines
-                  biopsyRecommended={!!biopsyRecommended}
-                  epsaTierKey={epsaTierKey}
                   piradsVal={piradsVal}
+                  biopsyRecommended={!!biopsyRecommended}
                   pathwayMode={pathwayMode}
+                  epsaTierKey={epsaTierKey}
+                  expandableDetail={
+                    <>
+                      <AUAScreeningFlowchart
+                        age={ageForChart}
+                        psaValue={psaValue}
+                        isHighRisk={isBlack || hasFamilyHx || hasBrca}
+                        part="part2"
+                      />
+                      <AUAInitialBiopsyGuidelines
+                        biopsyRecommended={!!biopsyRecommended}
+                        epsaTierKey={epsaTierKey}
+                        piradsVal={piradsVal}
+                        pathwayMode={pathwayMode}
+                      />
+                    </>
+                  }
                 />
               </>
             );
