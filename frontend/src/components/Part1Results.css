@@ -2063,3 +2063,60 @@
   }
 }
 .theme-dark .psa-cta-banner__btn:hover { background: var(--brand-600); }
+
+/* ── Factor rationale rows ── */
+.impact-rationale-row td {
+  padding: 0 !important;
+  border-top: none !important;
+}
+.impact-rationale-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #64748b;
+  padding: 3px 8px 3px 4px;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.impact-rationale-toggle:hover { color: #1e3a5f; }
+.impact-rationale-body {
+  padding: 6px 8px 8px 20px;
+  font-size: 0.6875rem;
+  line-height: 1.65;
+  color: #374151;
+  background: #f8fafc;
+  border-top: 1px dashed #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.theme-dark .impact-rationale-toggle { color: #64748b; }
+.theme-dark .impact-rationale-toggle:hover { color: #93c5fd; }
+.theme-dark .impact-rationale-body { background: rgba(255,255,255,0.03); color: #94a3b8; border-color: #334155; }
+
+/* ── Structured rationale table inside each factor row ── */
+.rationale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+.rationale-table td { padding: 3px 6px; vertical-align: top; }
+.rationale-table tr + tr td { border-top: 1px solid #e2e8f0; }
+.rationale-table__label {
+  width: 72px;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+}
+.rationale-table__value { color: #374151; }
+.rationale-table__label--decision { color: #1e3a5f; }
+.rationale-table__value--decision { color: #1e3a5f; font-weight: 600; }
+.theme-dark .rationale-table__label { color: #64748b; }
+.theme-dark .rationale-table__value { color: #94a3b8; }
+.theme-dark .rationale-table tr + tr td { border-top-color: #334155; }
+.theme-dark .rationale-table__label--decision { color: #93c5fd; }
+.theme-dark .rationale-table__value--decision { color: #93c5fd; }
