@@ -11,6 +11,7 @@ import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
 import { AUAGuidelineCriteria } from './AUAFlowchart';
+import { Part1GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, PART1_LOADING_STEPS } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
@@ -129,6 +130,57 @@ const SourcesPopover = ({ itemName }) => {
         </>
       )}
     </span>
+  );
+};
+
+/* ─── Factor rationale row (spans all columns, expands on demand) ─── */
+// rationale can be a plain string OR { data, literature, decision, source }
+const RationaleRow = ({ rationale }) => {
+  const [open, setOpen] = useState(false);
+  if (!rationale) return null;
+  const isStructured = typeof rationale === 'object' && rationale !== null;
+  return (
+    <tr className="impact-rationale-row">
+      <td colSpan={4} style={{ padding: 0, border: 0 }}>
+        <button
+          type="button"
+          className="impact-rationale-toggle"
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+        >
+          {open ? <ChevronUpIcon size={11} aria-hidden="true" /> : <ChevronDownIcon size={11} aria-hidden="true" />}
+          {open ? 'Hide score rationale' : 'Why this score?'}
+        </button>
+        {open && (
+          <div className="impact-rationale-body">
+            {isStructured ? (
+              <table className="rationale-table">
+                <tbody>
+                  {rationale.data && (
+                    <tr>
+                      <td className="rationale-table__label">Our data</td>
+                      <td className="rationale-table__value">{rationale.data}</td>
+                    </tr>
+                  )}
+                  {rationale.literature && (
+                    <tr>
+                      <td className="rationale-table__label">Literature</td>
+                      <td className="rationale-table__value">{rationale.literature}</td>
+                    </tr>
+                  )}
+                  {rationale.decision && (
+                    <tr>
+                      <td className="rationale-table__label rationale-table__label--decision">Decision</td>
+                      <td className="rationale-table__value rationale-table__value--decision">{rationale.decision}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            ) : rationale}
+          </div>
+        )}
+      </td>
+    </tr>
   );
 };
 
@@ -871,7 +923,14 @@ const Part1Results = ({
             const hasFamilyHistory = Number(formData?.familyHistory) > 0;
             const hasBrca = formData?.brcaStatus === 'yes';
             const isHighRisk = isBlack || hasFamilyHistory || hasBrca;
-            return <AUAGuidelineCriteria age={ageNum} isHighRisk={isHighRisk} />;
+            return (
+              <Part1GuidelineJourney
+                age={ageNum}
+                isHighRisk={isHighRisk}
+                priority={result?.priority}
+                expandableDetail={<AUAGuidelineCriteria age={ageNum} isHighRisk={isHighRisk} />}
+              />
+            );
           })()}
         </CollapsibleSection>
 
@@ -900,6 +959,9 @@ const Part1Results = ({
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
                 {t('part1Results.factorBadgeExplanation.before')} <FactorSourceBadge itemName="Age" /> {t('part1Results.factorBadgeExplanation.middle')} <FactorSourceBadge itemName="Exercise" /> {t('part1Results.factorBadgeExplanation.after')}
               </p>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid #2563eb', borderRadius: '6px', padding: '8px 12px', marginBottom: '10px', fontSize: '11.5px', color: '#374151', lineHeight: 1.6 }}>
+                <strong style={{ color: '#1e40af' }}>How point values were chosen:</strong> Each factor was evaluated against our internal dataset (N=100, AUC=0.56) and published literature. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click <em>"Why this score?"</em> under any row to see the data coefficient, literature OR, and the decision rationale.
+              </div>
               {(() => {
                 const sortedByImpact = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
                 const TOP_N = 4;
@@ -914,22 +976,25 @@ const Part1Results = ({
                           {visibleImpacts.map((impact) => {
                             const skipped = isImpactSkipped(impact.item);
                             return (
-                              <tr key={impact.item} style={skipped ? { opacity: 0.7 } : undefined}>
-                                <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
-                                <td>
-                                  {skipped ? (
-                                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
-                                      {t('part1Results.skippedNeutralDefault')}
-                                    </span>
-                                  ) : impact.value}
-                                </td>
-                                <td>
-                                  <div className="impact-bar-track" aria-hidden="true">
-                                    <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                                  </div>
-                                </td>
-                                <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
-                              </tr>
+                              <React.Fragment key={impact.item}>
+                                <tr style={skipped ? { opacity: 0.7 } : undefined}>
+                                  <td>{impact.item}<FactorSourceBadge itemName={impact.item} /><SourcesPopover itemName={impact.item} /></td>
+                                  <td>
+                                    {skipped ? (
+                                      <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', fontSize: '0.75rem', fontWeight: 600, fontStyle: 'italic' }}>
+                                        {t('part1Results.skippedNeutralDefault')}
+                                      </span>
+                                    ) : impact.value}
+                                  </td>
+                                  <td>
+                                    <div className="impact-bar-track" aria-hidden="true">
+                                      <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
+                                    </div>
+                                  </td>
+                                  <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
+                                </tr>
+                                <RationaleRow rationale={impact.rationale} />
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
