@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import RiskGauge from './RiskGauge.jsx';
-import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon } from 'lucide-react';
 import './QuickEpsaResult.css';
 
 const AUA_FACTORS = new Set(['Age', 'Black ancestry', 'Family history']);
@@ -19,7 +19,7 @@ const CATEGORIES = [
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, onContinue }) {
+export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent }) {
   const [showAll, setShowAll] = useState(false);
 
   const {
@@ -107,6 +107,21 @@ export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, on
       <p className="qer-disclaimer">
         Educational use only · Not a substitute for physician evaluation · AUA/SUO 2026
       </p>
+
+      {onStudyConsent && (
+        <div className="qer-study-banner">
+          <div className="qer-study-banner-body">
+            <FlaskConicalIcon size={16} aria-hidden="true" />
+            <div>
+              <strong>Help advance prostate cancer research</strong>
+              <p>Would you like to add your anonymous data to an IRB-approved Mount Sinai study?</p>
+            </div>
+          </div>
+          <button type="button" className="qer-action-btn qer-action-btn--study" onClick={onStudyConsent}>
+            Add My Data to Research Study
+          </button>
+        </div>
+      )}
 
       <div className="qer-actions">
         <button type="button" className="qer-action-btn qer-action-btn--primary" onClick={onContinue}>
