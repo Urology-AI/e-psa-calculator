@@ -1,8 +1,9 @@
-import React from 'react';
-import { RISK_COLORS } from '../utils/riskColors';
+import React, { useState } from 'react';
 import RiskGauge from './RiskGauge.jsx';
-import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon } from 'lucide-react';
+import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import './QuickEpsaResult.css';
+
+const AUA_FACTORS = new Set(['Age', 'Black ancestry', 'Family history']);
 
 function mapRawToGauge(raw, max, fallback) {
   if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0) return fallback ?? 50;
@@ -13,23 +14,17 @@ function mapRawToGauge(raw, max, fallback) {
 }
 
 const CATEGORIES = [
-  { key: 'low',          label: 'Lower Priority',      color: '#16a34a' },
-  { key: 'intermediate', label: 'Consider Discussion', color: '#2563eb' },
-  { key: 'elevated',     label: 'Strong Candidate',    color: '#d97706' },
+  { key: 'low',          label: 'Low — Routine Screening',              color: '#16a34a' },
+  { key: 'intermediate', label: 'Intermediate — Consider PSA Discussion', color: '#2563eb' },
+  { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-function factorColor(points) {
-  if (points >= 10) return '#c0392b';
-  if (points >= 5)  return '#d97706';
-  if (points > 0)   return '#c97b00';
-  return '#6e6e77';
-}
-
 export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, onContinue }) {
+  const [showAll, setShowAll] = useState(false);
+
   const {
     epsaTierKey, epsaTierLabel, epsaGuidelineText,
-    recommendPSA, itemImpacts = [],
-    score, calculationDetails,
+    itemImpacts = [], score, calculationDetails,
   } = result;
 
   const gaugeScore = mapRawToGauge(
@@ -41,10 +36,14 @@ export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, on
   const isHigher = epsaTierKey === 'elevated';
   const isLower  = epsaTierKey === 'low';
 
-  const topFactors = [...itemImpacts]
-    .filter((f) => f.points > 0)
-    .sort((a, b) => Number(b.points) - Number(a.points))
-    .slice(0, 5);
+  const sorted = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
+  const TOP_N = 5;
+  const visible = showAll ? sorted : sorted.slice(0, TOP_N);
+
+  const guidelineText = epsaGuidelineText ||
+    (isHigher ? 'AUA/SUO 2026 guidelines recommend a PSA test based on your risk profile.'
+    : isLower  ? 'Your risk profile is below the AUA/SUO 2026 screening threshold. Continue routine age-based screening.'
+    : 'AUA/SUO 2026 guidelines suggest discussing PSA testing with your physician.');
 
   return (
     <div className="qer-root">
@@ -63,57 +62,61 @@ export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, on
             </div>
           ))}
         </div>
-        {epsaGuidelineText && <p className="qer-guideline-text">{epsaGuidelineText}</p>}
       </div>
 
-      {/* ── PSA recommendation — short ── */}
-      <div className={`qer-psa-banner qer-psa-banner--${isHigher ? 'high' : isLower ? 'low' : 'moderate'}`}>
-        <span className="qer-psa-label">PSA Recommendation</span>
-        <span className="qer-psa-value">
-          {isHigher ? 'PSA test recommended' : isLower ? 'Routine screening' : 'Discuss with physician'}
-        </span>
+      {/* ── Guideline recommendation ── */}
+      <div className={`qer-guideline-banner qer-guideline-banner--${isHigher ? 'high' : isLower ? 'low' : 'moderate'}`}>
+        <div className="qer-guideline-eyebrow">AUA/SUO 2026 Guideline Recommendation</div>
+        <p className="qer-guideline-body">{guidelineText}</p>
       </div>
 
-      {/* ── Key risk factors ── */}
-      {topFactors.length > 0 && (
+      {/* ── Factors ordered by impact, no points shown ── */}
+      {sorted.length > 0 && (
         <div className="qer-section">
           <div className="qer-section-title">
             <TrendingUpIcon size={13} aria-hidden="true" />
-            Key risk factors
+            Risk factors — sorted by impact
           </div>
-          <div className="qer-factors">
-            {topFactors.map((f) => {
-              const color = factorColor(Number(f.points));
+          <div className="qer-factor-list">
+            {visible.map((f) => {
+              const pts = Number(f.points) || 0;
+              const isAua = AUA_FACTORS.has(f.item);
               return (
-                <div key={f.item} className="qer-factor" style={{ borderLeftColor: color }}>
-                  <span className="qer-factor-dot" style={{ background: color }} />
-                  <span className="qer-factor-name">{f.item}</span>
+                <div key={f.item} className={`qer-factor${pts > 0 ? ' qer-factor--elevated' : ''}`}>
+                  <div className="qer-factor-left">
+                    <span className="qer-factor-name">{f.item}</span>
+                    {isAua
+                      ? <span className="qer-source-tag qer-source-tag--aua">AUA/SUO 2026</span>
+                      : <span className="qer-source-tag qer-source-tag--model">Research-based</span>}
+                  </div>
                   {f.value && <span className="qer-factor-val">{f.value}</span>}
                 </div>
               );
             })}
           </div>
+          {sorted.length > TOP_N && (
+            <button type="button" className="qer-show-more" onClick={() => setShowAll(v => !v)}>
+              {showAll
+                ? <><ChevronUpIcon size={12} /> Show fewer</>
+                : <><ChevronDownIcon size={12} /> Show all {sorted.length} factors</>}
+            </button>
+          )}
         </div>
       )}
 
-      {/* ── Disclaimer ── */}
       <p className="qer-disclaimer">
         Educational use only · Not a substitute for physician evaluation · AUA/SUO 2026
       </p>
 
-      {/* ── Actions ── */}
       <div className="qer-actions">
         <button type="button" className="qer-action-btn qer-action-btn--primary" onClick={onContinue}>
-          Continue to Full ePSA
-          <ArrowRightIcon size={16} aria-hidden="true" />
+          Continue to Full ePSA <ArrowRightIcon size={16} aria-hidden="true" />
         </button>
         <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={onEditAnswers}>
-          <EditIcon size={14} aria-hidden="true" />
-          Edit Answers
+          <EditIcon size={14} aria-hidden="true" /> Edit Answers
         </button>
         <button type="button" className="qer-action-btn qer-action-btn--ghost" onClick={onStartOver}>
-          <RotateCcwIcon size={14} aria-hidden="true" />
-          Start Over
+          <RotateCcwIcon size={14} aria-hidden="true" /> Start Over
         </button>
       </div>
 

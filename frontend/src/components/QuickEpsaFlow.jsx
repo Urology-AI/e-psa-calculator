@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import './QuickEpsaFlow.css';
 import InfoIcon from './InfoIcon.jsx';
+import LanguageSwitcher from './LanguageSwitcher.jsx';
 import { fieldReferences } from '../utils/fieldReferences';
 import { calculateDynamicEPsa } from '../utils/dynamicCalculator';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
@@ -227,7 +228,10 @@ export default function QuickEpsaFlow() {
     <div className="qef-root">
       {/* ── Sticky progress bar ── */}
       <div className="qef-progress-bar">
-        <div className="qef-progress-text">{answered} of {TOTAL} answered</div>
+        <div className="qef-progress-top">
+          <div className="qef-progress-text">{answered} of {TOTAL} answered</div>
+          <LanguageSwitcher />
+        </div>
         <div className="qef-progress-track">
           <div className="qef-progress-fill" style={{ width: `${(answered / TOTAL) * 100}%` }} />
         </div>
