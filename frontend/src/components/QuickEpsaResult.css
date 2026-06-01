@@ -1,0 +1,208 @@
+/* QuickEpsaResult — mobile-first, WCAG AA */
+
+.qer-wrap {
+  min-width: 375px;
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 16px;
+  font-family: inherit;
+  color: #111827;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+.qer-header {
+  background: #1e3a5f;
+  color: #fff;
+  padding: 20px 20px 16px;
+  text-align: center;
+}
+.qer-header-brand {
+  font-size: 22px;
+  font-weight: 700;
+}
+.qer-header-sub {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.qer-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Gauge card ──────────────────────────────────────────── */
+.qer-gauge-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 16px 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: center;
+}
+
+/* ── PSA banner ──────────────────────────────────────────── */
+.qer-psa-banner {
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 16px;
+}
+.qer-psa-banner-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.8;
+}
+.qer-psa-banner-msg {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #111827;
+}
+
+/* ── Disclaimer ──────────────────────────────────────────── */
+.qer-disclaimer {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  text-align: center;
+  padding: 0 4px;
+}
+
+/* ── Consent panel ───────────────────────────────────────── */
+.qer-consent-panel {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.qer-consent-panel--done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  align-items: center;
+  text-align: center;
+  padding: 28px 16px;
+}
+.qer-consent-done-icon {
+  font-size: 36px;
+  color: #16a34a;
+  font-weight: 700;
+}
+.qer-consent-done-msg {
+  font-size: 15px;
+  color: #15803d;
+  line-height: 1.5;
+}
+.qer-consent-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+.qer-consent-body {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+}
+.qer-consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.qer-consent-check input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  accent-color: #1e3a5f;
+  cursor: pointer;
+}
+.qer-consent-error {
+  margin: 0;
+  font-size: 13px;
+  color: #dc2626;
+}
+.qer-consent-btn {
+  width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: #9ca3af;
+  color: #fff;
+  cursor: not-allowed;
+  transition: background 0.15s;
+}
+.qer-consent-btn--ready {
+  background: #1e3a5f;
+  cursor: pointer;
+}
+.qer-consent-btn--ready:hover { background: #163055; }
+.qer-consent-skip {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.qer-consent-skip:hover { color: #374151; }
+
+/* ── Actions ─────────────────────────────────────────────── */
+.qer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qer-full-btn {
+  width: 100%;
+  min-height: 52px;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: #1e3a5f;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.qer-full-btn:hover  { background: #163055; }
+.qer-full-btn:active { background: #0f2340; }
+.qer-reset-btn {
+  width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.qer-reset-btn:hover { background: #f3f4f6; }
+
+@media (prefers-color-scheme: dark) {
+  .qer-wrap  { background: #111827; color: #f9fafb; }
+  .qer-gauge-card { background: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .qer-psa-banner-msg { color: #f9fafb; }
+  .qer-disclaimer { color: #9ca3af; }
+  .qer-reset-btn { background: #1f2937; color: #d1d5db; border-color: #374151; }
+  .qer-reset-btn:hover { background: #374151; }
+}
