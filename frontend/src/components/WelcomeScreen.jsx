@@ -3,7 +3,7 @@ import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
 import {
   ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon,
-  BookOpenIcon, InfoIcon, ExternalLinkIcon, BuildingIcon, ShieldCheckIcon,
+  BookOpenIcon, InfoIcon, ExternalLinkIcon, BuildingIcon, ShieldCheckIcon, ClipboardListIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -237,6 +237,12 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               <PlayIcon size={13} aria-hidden="true" />
               <span>Watch demo</span>
             </a>
+            {onBeginSinai && (
+              <button type="button" className="ws-demo-link" onClick={onBeginSinai}>
+                <ClipboardListIcon size={13} aria-hidden="true" />
+                <span>Enroll in study</span>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -289,17 +295,10 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
           <FileTextIcon size={13} />
           <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
         </button>
-        {onBeginSinai && (
-          <button
-            type="button"
-            className="ws-btn-text"
-            onClick={onBeginSinai}
-            title="Mount Sinai patients with a clinic-issued code"
-          >
-            <BuildingIcon size={13} />
-            <span>Mount Sinai patient?</span>
-          </button>
-        )}
+        <a href="?mode=bus" className="ws-btn-text" title="Mobile bus / clinical mode">
+          <BuildingIcon size={13} />
+          <span>Clinical Mode</span>
+        </a>
       </div>
     </div>
   );
