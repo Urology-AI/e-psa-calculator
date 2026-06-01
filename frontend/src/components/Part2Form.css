@@ -1,7 +1,7 @@
 /* ─── Part 2 Form ─── */
 
 .part2-form-container {
-  max-width: 51.25rem;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0.75rem 0 7.5rem;
 }
