@@ -82,7 +82,7 @@
 }
 
 .p2r-container {
-  max-width: 47.5rem;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0.5rem 0 3rem;
   display: flex;

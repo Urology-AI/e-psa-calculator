@@ -188,6 +188,40 @@ function App() {
   useEffect(() => {
     if (!auth) return () => {};
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Bus flow import: pre-populate state from sessionStorage when the user
+      // returns from ?mode=bus by clicking "Continue to Full ePSA".
+      try {
+        const raw = sessionStorage.getItem('busflow_import');
+        if (raw) {
+          sessionStorage.removeItem('busflow_import');
+          const { formData, engineResult, studyConsent } = JSON.parse(raw);
+          if (formData && engineResult) {
+            const defaultShape = {
+              age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+              familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+              weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+              exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+              comorbidityScore: null, hypertension: null, hyperlipidemia: null,
+              coronaryArteryDisease: null, diabetes: null,
+            };
+            setPreData({ ...defaultShape, ...formData });
+            setPreResult(engineResult);
+            setPathwayMode('pre_psa');
+            setStage('pre');
+            setCurrentStep(3);
+            setPart1Step(4);
+            setConsentData({ consentToContact: true, consentBasis: 'implied_bus_flow', consentTimestamp: new Date().toISOString() });
+            cacheConsent();
+            setUser({ uid: 'local', isAnonymous: true });
+            setStorageMode('local');
+            setAppSessionId('Local');
+            if (studyConsent) setFlowMode('sinai');
+            setAuthStep('app');
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
       if (currentUser) {
         setUser(currentUser);
         const phone = currentUser.phoneNumber;
