@@ -51,7 +51,6 @@ if (!isFirebaseConfigured()) {
     const errorMessage = `Firebase configuration is missing required values: ${missingFields.join(', ')}. ` +
       `Please set environment variables (see .env.example) or configure GitHub Secrets for deployment.`;
     console.error(errorMessage);
-    throw new Error(errorMessage);
   }
 }
 

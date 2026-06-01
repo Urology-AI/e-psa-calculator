@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import './QuickEpsaFlow.css';
 import InfoIcon from './InfoIcon.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
+import ThemeSwitcher from './ThemeSwitcher.jsx';
+import TextScaleControl from './TextScaleControl.jsx';
 import { fieldReferences } from '../utils/fieldReferences';
 import { calculateDynamicEPsa } from '../utils/dynamicCalculator';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 import QuickEpsaResult from './QuickEpsaResult.jsx';
-import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon } from 'lucide-react';
+import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, TypeIcon } from 'lucide-react';
 
 /* ─── BMI helpers ─── */
 function calcBmi(ft, inch, lbs) {
@@ -65,13 +67,82 @@ const QCard = ({ num, label, info, sublabel, citation, answered, children }) => 
   </div>
 );
 
+/* ─── IRB Study Consent screen (bus flow) ─── */
+function BusStudyConsent({ onAgree, onDecline }) {
+  const [checked, setChecked] = useState(false);
+  return (
+    <div className="qef-study-consent">
+      <button type="button" className="qef-study-consent-back" onClick={onDecline}>
+        <ArrowLeftIcon size={16} /> Back to results
+      </button>
+      <div className="qef-study-consent-header">
+        <FlaskConicalIcon size={28} className="qef-study-consent-icon" />
+        <h2>Contribute to Prostate Cancer Research</h2>
+        <p className="qef-study-consent-subtitle">Mount Sinai IRB Study STUDY-14-00050</p>
+      </div>
+      <div className="qef-study-consent-body">
+        <section>
+          <h3>What we&apos;re asking</h3>
+          <p>
+            We are asking you to share your de-identified screening responses with
+            the Mount Sinai prostate cancer research team. Your data will help
+            improve early detection models for future patients.
+          </p>
+        </section>
+        <section>
+          <h3>What data is shared</h3>
+          <p>
+            Only your anonymized questionnaire responses (age range, risk factors,
+            and ePSA score) are shared. No name, phone number, or other identifying
+            information is collected or transmitted.
+          </p>
+        </section>
+        <section>
+          <h3>Your rights</h3>
+          <p>
+            Participation is entirely voluntary. You may decline without any
+            effect on the screening services available to you today. To withdraw
+            data after submission, contact the research team at{' '}
+            <strong>ePSA-research@mountsinai.org</strong>.
+          </p>
+        </section>
+        <section>
+          <h3>Principal Investigator</h3>
+          <p>Ashutosh K. Tewari, MD — Icahn School of Medicine at Mount Sinai, Urology Department</p>
+        </section>
+        <div className="qef-study-consent-shield">
+          <ShieldCheckIcon size={14} />
+          This study is approved by the Mount Sinai Program for the Protection of
+          Human Subjects — IRB Protocol STUDY-14-00050.
+        </div>
+        <label className="qef-study-consent-check">
+          <input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} />
+          <span>I have read the above and voluntarily agree to share my anonymous data with the Mount Sinai research team.</span>
+        </label>
+      </div>
+      <div className="qef-study-consent-actions">
+        <button type="button" className={`qef-submit-btn${checked ? ' qef-submit-btn--ready' : ''}`}
+          disabled={!checked} onClick={onAgree}>
+          <CheckIcon size={16} /> I Agree — Share My Data
+        </button>
+        <button type="button" className="qef-reset-link" onClick={onDecline}>
+          No thanks, continue without sharing
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Welcome screen ─── */
 function WelcomeScreen({ onStart }) {
   return (
     <div className="qef-welcome">
       <div className="qef-welcome-hero">
-        <img src="/sinai_light.png" alt="Mount Sinai" className="qef-logo qef-logo--light" onError={(e) => { e.target.style.display = 'none'; }} />
-        <img src="/sinai_dark.png" alt="Mount Sinai" className="qef-logo qef-logo--dark" onError={(e) => { e.target.style.display = 'none'; }} />
+        <div className="qef-welcome-hero-top">
+          <img src="/sinai_light.png" alt="Mount Sinai" className="qef-logo qef-logo--light" onError={(e) => { e.target.style.display = 'none'; }} />
+          <img src="/sinai_dark.png" alt="Mount Sinai" className="qef-logo qef-logo--dark" onError={(e) => { e.target.style.display = 'none'; }} />
+          <ThemeSwitcher />
+        </div>
         <h1 className="qef-welcome-title">Mount Sinai Robert F. Smith<br />Mobile Prostate Cancer Screening</h1>
         <p className="qef-welcome-sub">Bringing state-of-the-art screening directly to your community</p>
       </div>
@@ -193,13 +264,40 @@ export default function QuickEpsaFlow() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function handleContinue() {
-    // Strip ?mode=bus and go to full app
+  function saveBusflowAndNavigate(studyConsent = false) {
+    if (result) {
+      try {
+        sessionStorage.setItem('busflow_import', JSON.stringify({
+          formData: result.formData,
+          engineResult: result.engineResult,
+          studyConsent,
+        }));
+      } catch { /* ignore */ }
+    }
     window.location.href = window.location.origin + window.location.pathname;
+  }
+
+  function handleContinue() {
+    saveBusflowAndNavigate(false);
+  }
+
+  function handleStudyConsentAgree() {
+    saveBusflowAndNavigate(true);
   }
 
   if (screen === 'welcome') {
     return <WelcomeScreen onStart={() => { setScreen('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />;
+  }
+
+  if (screen === 'study_consent') {
+    return (
+      <div className="qef-root">
+        <BusStudyConsent
+          onAgree={handleStudyConsentAgree}
+          onDecline={() => { setScreen('result'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        />
+      </div>
+    );
   }
 
   if (screen === 'result' && result?.engineResult) {
@@ -215,6 +313,7 @@ export default function QuickEpsaFlow() {
           onEditAnswers={handleEditAnswers}
           onStartOver={handleReset}
           onContinue={handleContinue}
+          onStudyConsent={() => { setScreen('study_consent'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       </div>
     );
@@ -229,8 +328,15 @@ export default function QuickEpsaFlow() {
       {/* ── Sticky progress bar ── */}
       <div className="qef-progress-bar">
         <div className="qef-progress-top">
-          <div className="qef-progress-text">{answered} of {TOTAL} answered</div>
-          <LanguageSwitcher />
+          <button type="button" className="qef-back-btn" onClick={() => { setScreen('welcome'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+            <ArrowLeftIcon size={16} aria-hidden="true" /> Back
+          </button>
+          <div className="qef-progress-text">{answered} / {TOTAL}</div>
+          <div className="qef-progress-controls">
+            <TextScaleControl />
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
         </div>
         <div className="qef-progress-track">
           <div className="qef-progress-fill" style={{ width: `${(answered / TOTAL) * 100}%` }} />
@@ -324,7 +430,7 @@ export default function QuickEpsaFlow() {
           sublabel={t('part1.step2.weightHelper')} answered={isAnswered.weight}>
           <div className="qef-unit-row">
             <button type="button" className="qef-unit-toggle" onClick={() => setMetricW((v) => !v)}>
-              {metricW ? t('part1.step2.weightUnit.lbs') : t('part1.step2.weightUnit.kg')}
+              {metricW ? t('part1.step2.weightUnit.kg') : t('part1.step2.weightUnit.lbs')}
             </button>
           </div>
           {metricW ? (
