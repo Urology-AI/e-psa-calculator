@@ -34,6 +34,7 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
+import QuickEpsaFlow from './components/QuickEpsaFlow.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -1879,6 +1880,10 @@ function App() {
         />
       </div>
     );
+  }
+
+  if (new URLSearchParams(window.location.search).get('mode') === 'bus') {
+    return <QuickEpsaFlow />;
   }
 
   return (
