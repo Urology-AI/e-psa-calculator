@@ -154,37 +154,23 @@ body {
 /* ─── App Shell ─── */
 .App {
   min-height: 100vh;
-  padding: 1.5rem 1rem 3rem;
+  padding: 0;
 }
 
 .container {
-  max-width: 56.25rem;
-  margin: 0 auto;
-  padding: 2rem 2.25rem;
-  background: var(--surface);
-  border-radius: var(--radius-xl);
-  border: 0.0625rem solid var(--line-100);
-  box-shadow: var(--shadow-soft);
+  width: 100%;
+  padding: 0 clamp(0.75rem, 3vw, 2rem) 3rem;
 }
 
 @media (max-width: 768px) {
-  .App {
-    padding: 1.15rem 0.75rem 2.75rem;
-  }
-
   .container {
-    padding: 1.35rem 1.1rem;
-    border-radius: var(--radius-lg);
+    padding: 0 clamp(0.625rem, 2.5vw, 1.25rem) 2.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .App {
-    padding: 0.85rem 0.55rem 2.5rem;
-  }
-
   .container {
-    padding: 1.1rem 0.85rem;
+    padding: 0 0.75rem 2.5rem;
   }
 }
 
