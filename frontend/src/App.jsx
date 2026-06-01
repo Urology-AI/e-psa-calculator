@@ -1882,6 +1882,7 @@ function App() {
     );
   }
 
+  // Bus mode: self-contained Quick ePSA flow, no existing state touched
   if (new URLSearchParams(window.location.search).get('mode') === 'bus') {
     return <QuickEpsaFlow />;
   }
