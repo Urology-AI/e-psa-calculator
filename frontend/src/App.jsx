@@ -90,6 +90,7 @@ function App() {
   const [appSessionId, setAppSessionId] = useState(null);
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [importedData, setImportedData] = useState(null);
+  const [importError, setImportError] = useState(null);
   const [saveToCloudPending, setSaveToCloudPending] = useState(false);
   const [saveToCloudError, setSaveToCloudError] = useState(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
@@ -113,16 +114,7 @@ function App() {
     }
   };
   
-  // Detect email from URL params (legacy; we no longer collect email)
-  const [urlEmail, setUrlEmail] = useState(null);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get('email');
-    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setUrlEmail(email);
-      setStorageMode('cloud');
-    }
-  }, []);
+  // urlEmail URL param removed — PHI must not appear in URLs
   
   // Calculator configuration
   const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
@@ -704,11 +696,7 @@ function App() {
   };
 
   const handleAuthSuccess = async (user, authInfo) => {
-    console.log('[AuthFlow] handleAuthSuccess invoked', {
-      uid: user?.uid,
-      isAnonymous: user?.isAnonymous,
-      authInfo
-    });
+    if (import.meta.env.DEV) console.log('[AuthFlow] handleAuthSuccess invoked', { uid: user?.uid, isAnonymous: user?.isAnonymous, authInfo });
     setUser(user);
     if (typeof authInfo === 'string') {
       setUserPhone(authInfo);
@@ -740,7 +728,7 @@ function App() {
       }
       cacheConsent();
       setAuthStep('app');
-      console.log('[AuthFlow] consent exists -> authStep=app', { uid: user?.uid });
+      if (import.meta.env.DEV) console.log('[AuthFlow] consent exists -> authStep=app', { uid: user?.uid });
     } else {
       if (hasCachedConsent()) {
         setConsentData({
@@ -749,11 +737,11 @@ function App() {
           consentTimestamp: new Date().toISOString()
         });
         setAuthStep('app');
-        console.log('[AuthFlow] consent cached -> authStep=app', { uid: user?.uid });
+        if (import.meta.env.DEV) console.log('[AuthFlow] consent cached -> authStep=app', { uid: user?.uid });
       } else {
         // No consent found - show consent screen
         setAuthStep('consent');
-        console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
+        if (import.meta.env.DEV) console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
       }
     }
   };
@@ -955,7 +943,7 @@ function App() {
     if (importType === 'session') {
       // Session ID restore requires Firebase
       if (!auth || !functions) {
-        alert('Session ID restore is only available with cloud storage. Use Import for a JSON file instead.');
+        setImportError('Session ID restore is only available with cloud storage. Use Import for a JSON file instead.');
         return;
       }
       // Handle session ID login through backend-assisted restoration.
@@ -1053,7 +1041,7 @@ function App() {
           details: error?.details,
           stack: error?.stack
         });
-        alert(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
+        setImportError(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
         return;
       }
       return;
@@ -1314,8 +1302,8 @@ function App() {
 
       if (!result) {
         console.error('Calculation failed - missing required fields');
-        console.error('preData state:', preData);
-        alert('Please complete all required fields before calculating your score. Make sure you have entered all required fields in About You, Family & Genetic Risk, Body Metrics, Lifestyle, and Symptoms.');
+        if (import.meta.env.DEV) console.error('preData state:', preData);
+        // Part1Form's own handleSubmit already sets formErrors and scrolls to the first error — no alert needed
         return;
       }
 
@@ -1385,7 +1373,7 @@ function App() {
   const handlePostNext = async () => {
     // Ensure Part 1 is complete before calculating Part 2
     if (!preResult) {
-      alert('Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment.');
+      // Redirect back to Part 1 results — no alert needed as the stage change is self-explanatory
       setStage('pre');
       setCurrentStep(3);
       return;
@@ -1619,7 +1607,6 @@ function App() {
                 setAuthStep('sinai_gate');
               }}
               formData={{}}
-              urlEmail={urlEmail}
             />
             <footer className="app-footer">
               <div className="footer-meta">
@@ -1655,13 +1642,21 @@ function App() {
         );
       case 'import':
         return (
-          <DataImportScreen 
-            onImportSuccess={handleImportSuccess}
-            onBack={() => setAuthStep('welcome')}
-          />
+          <>
+            {importError && (
+              <div role="alert" style={{ margin: '1rem', padding: '0.75rem 1rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '14px' }}>
+                {importError}
+                <button onClick={() => setImportError(null)} style={{ marginLeft: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600 }}>Dismiss</button>
+              </div>
+            )}
+            <DataImportScreen
+              onImportSuccess={(data, type) => { setImportError(null); handleImportSuccess(data, type); }}
+              onBack={() => { setImportError(null); setAuthStep('welcome'); }}
+            />
+          </>
         );
       case 'login':
-        return <UniversalAuth onAuthSuccess={handleAuthSuccess} initialEmail={urlEmail} />;
+        return <UniversalAuth onAuthSuccess={handleAuthSuccess} />;
       case 'consent':
         return (
           <ConsentScreen
@@ -2080,7 +2075,7 @@ function App() {
               preResult={preResult}
               postResult={postResult}
             />
-            {showTestPanel && <FirebaseTestPanel />}
+            {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}
             {(pathwayMode !== null || preResult) && (
               <nav className="stage-nav" aria-label="Assessment stages">

@@ -176,7 +176,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     expect(result).toHaveProperty('riskPct');
     expect(result).toHaveProperty('riskClass');
     expect(result).toHaveProperty('riskCat');
-    expect(['< 1.0 ng/mL', '1.0-2.9 ng/mL', '3.0-9.9 ng/mL', '>= 4.0 ng/mL']).toContain(result.riskPct);
+    expect(['< 1.0 ng/mL', '1.0-2.9 ng/mL', '3.0-9.9 ng/mL', '>= 10.0 ng/mL']).toContain(result.riskPct);
     expect(['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk']).toContain(result.riskClass);
   });
 

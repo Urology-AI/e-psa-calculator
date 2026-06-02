@@ -555,6 +555,7 @@ const Part1Results = ({
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [confirmStartOver, setConfirmStartOver] = useState(false);
   const [researchSubmitError, setResearchSubmitError] = useState(null);
+  const [exportError, setExportError] = useState(null);
   // Hook must be before early returns — animates the impact total in the score breakdown
   const animImpactScore = useCountUp(Number(result?.calculationDetails?.rawScore) || 0);
 
@@ -1082,7 +1083,7 @@ const Part1Results = ({
                   const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
                   const a = Object.assign(document.createElement('a'), { href: url, download: `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json` });
                   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                } catch { alert(t('part1Results.exportFailedAlert')); }
+                } catch { setExportError(t('part1Results.exportFailedAlert')); }
               }}><DownloadIcon size={16} /><span>{t('part1Results.btnExportJson')}</span></button>
               <button className="btn-results btn-results--outline" onClick={handleExportCsv}><DownloadIcon size={16} /><span>{t('part1Results.btnExportCsv')}</span></button>
             </>
@@ -1090,8 +1091,16 @@ const Part1Results = ({
         </div>
       </div>
 
+      {/* ── Export error ── */}
+      {exportError && (
+        <div role="alert" style={{ margin: '0 0 0.75rem', padding: '0.6rem 0.875rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{exportError}</span>
+          <button onClick={() => setExportError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600, marginLeft: '0.5rem' }}>✕</button>
+        </div>
+      )}
+
       {/* ── Disclaimer (below buttons) ── */}
-      <CollapsibleSection title={t('part1Results.sectionDisclaimer')}>
+      <CollapsibleSection title={t('part1Results.sectionDisclaimer')} defaultOpen={true}>
         <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
         <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
         <div className="detail-notice-box">
