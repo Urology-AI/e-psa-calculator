@@ -25,6 +25,7 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
   const {
     epsaTierKey, epsaTierLabel, epsaGuidelineText,
     itemImpacts = [], score, calculationDetails,
+    aboveMaxScreeningAge,
   } = result;
 
   const gaugeScore = mapRawToGauge(
@@ -44,6 +45,24 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
     (isHigher ? 'AUA/SUO 2026 guidelines recommend a PSA test based on your risk profile.'
     : isLower  ? 'Your risk profile is below the AUA/SUO 2026 screening threshold. Continue routine age-based screening.'
     : 'AUA/SUO 2026 guidelines suggest discussing PSA testing with your physician.');
+
+  // AUA/SUO 2026: over age 75, screening is individualized SDM — do not show a tier card
+  if (aboveMaxScreeningAge) {
+    return (
+      <div className="qer-root">
+        <div className="qer-guideline-banner qer-guideline-banner--moderate" style={{ borderLeft: '4px solid #2563eb' }}>
+          <div className="qer-guideline-eyebrow">AUA/SUO 2026 — Shared Decision-Making Required</div>
+          <p className="qer-guideline-body">
+            Routine PSA screening above age 75 is not recommended by standard guidelines. Whether to continue screening depends on your overall health, life expectancy, and personal preferences. <strong>Please discuss with your physician.</strong>
+          </p>
+          <p className="qer-guideline-body" style={{ marginTop: '0.5rem', fontSize: '12px', color: '#6b7280' }}>
+            AUA/SUO 2026 Statement 8 · NCCN Early Detection v2.2026 · EAU 2024
+          </p>
+        </div>
+        <p className="qer-disclaimer">Educational use only · Not a substitute for physician evaluation · AUA/SUO 2026</p>
+      </div>
+    );
+  }
 
   return (
     <div className="qer-root">
@@ -106,6 +125,9 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
 
       <p className="qer-disclaimer">
         Educational use only · Not a substitute for physician evaluation · AUA/SUO 2026
+      </p>
+      <p className="qer-disclaimer" style={{ marginTop: '0.25rem' }}>
+        Model trained on Grade Group ≥3 outcome (N=94 cohort). AUA/NCCN define clinically significant cancer as Grade Group ≥2. Validated variables: age, race, family history, PSA thresholds. Other factors are research-based.
       </p>
 
       {onStudyConsent && (

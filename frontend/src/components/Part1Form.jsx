@@ -520,7 +520,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.age.helper" />
+          <label htmlFor="field-age" className="sr-only">{t('part1.fields.age.title')}</label>
           <input
+            id="field-age"
             type="number"
             className="input-field"
             style={{ width: '100%' }}
@@ -563,7 +565,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.race.helper" />
-          <div className="option-grid c2">
+          <div className="option-grid c2" role="radiogroup" aria-label={t('part1.fields.race.title')}>
             {[
               { value: 'white', label: t('part1.race.white') },
               { value: 'black', label: t('part1.race.black') },
@@ -574,6 +576,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             ].map(opt => (
               <button
                 key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={localData.race === opt.value}
                 className={`option-btn ${localData.race === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('race', opt.value)}
               >
@@ -599,7 +604,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
-          <div className="option-grid c4">
+          <div className="option-grid c4" role="radiogroup" aria-label={t('part1.fields.familyHistory.title')}>
             {[
               { value: 0, label: t('quickEntry.family.none') },
               { value: 1, label: t('quickEntry.family.one') },
@@ -608,6 +613,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             ].map(opt => (
               <button
                 key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={localData.familyHistory === opt.value}
                 className={`option-btn ${localData.familyHistory === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('familyHistory', opt.value)}
               >
@@ -743,11 +751,16 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           </div>
           {localData.heightUnit === 'imperial' ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialFeetPlaceholder')} value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
-              <input type="number" className="input-field" placeholder={t('part1.step2.heightImperialInchesPlaceholder')} value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
+              <label htmlFor="field-height-ft" className="sr-only">{t('part1.step2.heightImperialFeetPlaceholder')}</label>
+              <input id="field-height-ft" type="number" className="input-field" placeholder={t('part1.step2.heightImperialFeetPlaceholder')} value={localData.heightFt} onChange={(e) => updateField('heightFt', e.target.value)} />
+              <label htmlFor="field-height-in" className="sr-only">{t('part1.step2.heightImperialInchesPlaceholder')}</label>
+              <input id="field-height-in" type="number" className="input-field" placeholder={t('part1.step2.heightImperialInchesPlaceholder')} value={localData.heightIn} onChange={(e) => updateField('heightIn', e.target.value)} />
             </div>
           ) : (
-            <input type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
+            <>
+              <label htmlFor="field-height-cm" className="sr-only">{t('part1.step2.heightMetricPlaceholder')}</label>
+              <input id="field-height-cm" type="number" className="input-field" placeholder={t('part1.step2.heightMetricPlaceholder')} value={localData.heightCm} onChange={(e) => updateField('heightCm', e.target.value)} />
+            </>
           )}
         </div>
       </div>
@@ -772,9 +785,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </button>
           </div>
           {localData.weightUnit === 'kg' ? (
-            <input type="number" className="input-field" placeholder={t('part1.step2.weightMetricPlaceholder')} value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
+            <>
+              <label htmlFor="field-weight-kg" className="sr-only">{t('part1.step2.weightMetricPlaceholder')}</label>
+              <input id="field-weight-kg" type="number" className="input-field" placeholder={t('part1.step2.weightMetricPlaceholder')} value={localData.weightKg} onChange={(e) => updateField('weightKg', e.target.value)} />
+            </>
           ) : (
-            <input type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
+            <>
+              <label htmlFor="field-weight-lbs" className="sr-only">{t('part1.step2.weightImperialPlaceholder')}</label>
+              <input id="field-weight-lbs" type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
+            </>
           )}
           <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
@@ -794,15 +813,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.exercise.helper" />
-          <div className="option-grid c3">
+          <div className="option-grid c3" role="radiogroup" aria-label={t('part1.fields.exercise.title')}>
             {[
               { value: 0, label: t('part1.step3.exercise.regular'), Icon: Dumbbell },
               { value: 1, label: t('part1.step3.exercise.some'), Icon: Activity },
               { value: 2, label: t('part1.step3.exercise.none'), Icon: Sofa },
             ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`} onClick={() => updateField('exercise', opt.value)}>
+              <button key={opt.value} type="button" role="radio" aria-checked={localData.exercise === opt.value} className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`} onClick={() => updateField('exercise', opt.value)}>
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <opt.Icon size={18} />
+                  <opt.Icon size={18} aria-hidden="true" />
                   {opt.label}
                 </span>
               </button>

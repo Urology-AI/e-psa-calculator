@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+// Shared result components — canonical source for new code.
+// Local definitions below kept for backwards compat until full migration.
+export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
 import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -190,6 +193,7 @@ const Part2Results = ({
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   const [confirmStartOver, setConfirmStartOver] = useState(false);
+  const [exportError, setExportError] = useState(null);
   // Hook must be before early returns — animates the PSA value on reveal
   const rawPsaForAnim = parseFloat(result?.psaValue) || 0;
   const psaDecimals = String(result?.psaValue || '').includes('.') ? String(result?.psaValue || '').split('.')[1].length : 1;
@@ -809,7 +813,7 @@ const Part2Results = ({
                   <li><strong>Life expectancy</strong> — must be assessed first. If &lt;10 years, discontinuing screening is recommended regardless of PSA.</li>
                   <li><strong>Overdiagnosis risk</strong> — most prostate cancers are slow-growing; treatment side effects may outweigh benefit at this age.</li>
                   <li><strong>Patient values</strong> — priorities around cancer detection, quality of life, and treatment burden guide the decision.</li>
-                  <li><strong>Interval or stop?</strong> — if life expectancy ≥10 years, PSA level (threshold 3.0 ng/mL) guides continue vs. discontinue.</li>
+                  <li><strong>Interval or stop?</strong> — if life expectancy ≥10 years, PSA level (threshold 3.0 ng/mL) guides continue vs. discontinue (ERSPC Rotterdam: PSA &lt;3.0 ng/mL at age 70–74 associated with very low prostate cancer mortality risk).</li>
                 </ul>
               </>
             ) : (
@@ -906,7 +910,7 @@ const Part2Results = ({
                   const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
                   const a = Object.assign(document.createElement('a'), { href: url, download: `epsa-complete-data-${new Date().toISOString().split('T')[0]}.json` });
                   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                } catch { alert('Export failed. Please try again.'); }
+                } catch { setExportError('Export failed. Please try again.'); }
               }}><DownloadIcon size={16} /><span>Export JSON</span></button>
               <button className="btn-results btn-results--outline" onClick={handleExportCsv}><DownloadIcon size={16} /><span>Export CSV</span></button>
             </>
@@ -914,13 +918,24 @@ const Part2Results = ({
         </div>
       </div>
 
+      {/* ── Export error ── */}
+      {exportError && (
+        <div role="alert" style={{ margin: '0 0 0.75rem', padding: '0.6rem 0.875rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{exportError}</span>
+          <button onClick={() => setExportError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600, marginLeft: '0.5rem' }}>✕</button>
+        </div>
+      )}
+
       {/* ── Disclaimer (below buttons) ── */}
-      <CollapsibleSection title="Important Disclaimer">
+      <CollapsibleSection title="Important Disclaimer" defaultOpen={true}>
         <p className="detail-notice-box--amber detail-disclaimer">
           <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
         </p>
         <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
         <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+        <div className="detail-notice-box" style={{ borderLeft: '3px solid #d97706', background: '#fffbeb', marginBottom: '0.75rem' }}>
+          <strong>Model Outcome Definition:</strong> This model was trained and validated to detect <strong>Grade Group ≥3</strong> (Gleason ≥4+3) prostate cancer. The AUA/SUO 2026 and NCCN 2026 standard definition of clinically significant prostate cancer is <strong>Grade Group ≥2</strong> (Gleason ≥3+4). Model performance for detecting Grade Group 2 has not been separately validated. Interpret results in the context of this limitation.
+        </div>
         <div className="detail-notice-box">
           <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
           <br /><br />

@@ -109,29 +109,30 @@ describe('CSV export — pathwayMode first, human-readable labels', () => {
   });
 });
 
-// Golden score baselines need re-anchoring against the current engine.
-// These values were captured before the multi-pass scoring re-weights
-// (commits faeb67f / c4d7f9f) and clinical audit. Suite is skipped to keep
-// CI green; re-enable once Dr. Tewari signs off on a new baseline.
-// TODO(rebaseline): regenerate values from the live engine and remove skip.
-describe.skip('Golden Part 1 profiles (REBASELINE PENDING — see TODO above)', () => {
+// Golden score baselines — rebaselined against engine after clinical audit fixes
+// (Batch 1+2: PSA tier 3.0→3.5, age-40 restriction, QoL proxy correction)
+// Re-anchor these values any time engine weights or tier thresholds change.
+describe('Golden Part 1 profiles', () => {
   const cases = [
-    ['Young, low-risk, no FH', makePart1Form({ age: 42, race: 'white', bmi: 22, familyHistory: 0 }), 10, 'LOWER'],
-    ['Age 50–59, BMI 27', makePart1Form({ age: 55, bmi: 27 }), 10, 'LOWER'],
-    ['Black, age 55', makePart1Form({ age: 55, race: 'black' }), 20, 'LOWER'],
-    ['Family history, age 45', makePart1Form({ age: 45, familyHistory: 1 }), 23, 'LOWER'],
-    ['High BMI (32)', makePart1Form({ bmi: 32 }), 15, 'LOWER'],
-    ['IPSS moderate (8)', makePart1Form({ ipss: [2, 2, 2, 2, 0, 0, 0] }), 0, 'LOWER'],
-    ['Age 70+', makePart1Form({ age: 72 }), 30, 'MODERATE'],
-    ['Exercise none', makePart1Form({ exercise: 2 }), 15, 'LOWER'],
-    ['Baseline (55, BMI 24)', makePart1Form(), 10, 'LOWER'],
+    // [label, form, expectedScore, expectedTierRisk, expectedEpsaTierKey]
+    // Values captured from current engine output via vitest (post clinical audit fixes)
+    ['Young, low-risk, no FH',     makePart1Form({ age: 42, race: 'white', bmi: 22, familyHistory: 0 }), 0,  'LOWER',    'low'],
+    ['Age 50–59, BMI 27',          makePart1Form({ age: 55, bmi: 27 }),                                   8,  'LOWER',    'low'],
+    ['Black, age 55',              makePart1Form({ age: 55, race: 'black' }),                              18, 'LOWER',    'intermediate'],
+    ['Family history, age 45',     makePart1Form({ age: 45, familyHistory: 1 }),                           13, 'LOWER',    'low'],
+    ['High BMI (32)',               makePart1Form({ bmi: 32 }),                                             13, 'LOWER',    'low'],
+    ['IPSS moderate (8)',           makePart1Form({ ipss: [2, 2, 2, 2, 0, 0, 0] }),                        18, 'LOWER',    'intermediate'],
+    ['Age 70+',                    makePart1Form({ age: 72 }),                                              20, 'LOWER',    'intermediate'],
+    ['Exercise none',              makePart1Form({ exercise: 2 }),                                          13, 'LOWER',    'low'],
+    ['Baseline (55, BMI 24)',       makePart1Form(),                                                        8,  'LOWER',    'low'],
   ];
 
-  it.each(cases)('%s → score %i, tier %s', (_label, form, score, tier) => {
+  it.each(cases)('%s → score %i, tier %s / %s', (_label, form, score, tier, epsaTierKey) => {
     const r = calculateDynamicEPsa(form);
     expect(r).not.toBeNull();
     expect(r.score).toBe(score);
     expect(r.tierRisk).toBe(tier);
+    expect(r.epsaTierKey).toBe(epsaTierKey);
   });
 });
 

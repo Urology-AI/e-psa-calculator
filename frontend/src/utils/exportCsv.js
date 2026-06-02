@@ -7,7 +7,12 @@
 
 export const downloadCsv = (filename, rows) => {
   if (!rows || rows.length === 0) return;
+  // HIPAA: Prepend a PHI disclosure notice to every exported CSV
+  const PHI_NOTICE = '"NOTICE: This file contains Protected Health Information (PHI). ' +
+    'Handle in accordance with your organization\'s HIPAA policies. ' +
+    'Store securely and delete when no longer needed."';
   const csv = [
+    PHI_NOTICE,
     Object.keys(rows[0]).join(','),
     ...rows.map(row => Object.values(row).map(v => {
       const s = v == null ? '' : String(v);

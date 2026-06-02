@@ -176,7 +176,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     expect(result).toHaveProperty('riskPct');
     expect(result).toHaveProperty('riskClass');
     expect(result).toHaveProperty('riskCat');
-    expect(['< 1.0 ng/mL', '1.0-2.9 ng/mL', '3.0-9.9 ng/mL', '>= 4.0 ng/mL']).toContain(result.riskPct);
+    expect(['< 1.0 ng/mL', '1.0-2.9 ng/mL', '3.0-9.9 ng/mL', '>= 10.0 ng/mL']).toContain(result.riskPct);
     expect(['low-risk', 'moderate-risk', 'high-risk', 'very-high-risk']).toContain(result.riskClass);
   });
 
@@ -249,5 +249,109 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
     expect(result.psadFlag).toBe(false);
     expect(result.psadPoints).toBe(0);
     expect(result.psadValue).toBeNull();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Clinical Safety Tests — 5-ARI correction & calcHighGradeRisk
+// ─────────────────────────────────────────────────────────────────────────────
+import { calcHighGradeRisk } from './epsaEngine';
+
+describe('5-ARI PSA correction (REDUCE trial — ×2 for finasteride/dutasteride)', () => {
+  it('doubles PSA for finasteride and sets psaAdjustedFlag', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 3.0, onHormonalTherapy: true, hormonalTherapyType: 'finasteride' })
+    );
+    expect(result.psaAdjusted).toBeCloseTo(6.0, 1);
+    expect(result.psaAdjustedFlag).toBe(true);
+  });
+
+  it('doubles PSA for dutasteride and sets psaAdjustedFlag', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 2.5, onHormonalTherapy: true, hormonalTherapyType: 'dutasteride' })
+    );
+    expect(result.psaAdjusted).toBeCloseTo(5.0, 1);
+    expect(result.psaAdjustedFlag).toBe(true);
+  });
+
+  it('does NOT adjust PSA for other hormonal therapy', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 3.0, onHormonalTherapy: true, hormonalTherapyType: 'other' })
+    );
+    expect(result.psaAdjusted).toBeCloseTo(3.0, 1);
+    expect(result.psaAdjustedFlag).toBe(false);
+  });
+
+  it('does NOT adjust PSA when not on hormonal therapy', () => {
+    const preResult = makePreResult({ score: 30 });
+    const result = calculateDynamicEPsaPost(
+      preResult,
+      makePart2Post({ psa: 4.0, onHormonalTherapy: false })
+    );
+    expect(result.psaAdjusted).toBeCloseTo(4.0, 1);
+    expect(result.psaAdjustedFlag).toBe(false);
+  });
+});
+
+describe('calcHighGradeRisk — logistic regression PI-RADS × PSA', () => {
+  it('returns null for missing inputs', () => {
+    expect(calcHighGradeRisk(null, 4.0)).toBeNull();
+    expect(calcHighGradeRisk(3, null)).toBeNull();
+    expect(calcHighGradeRisk(undefined, undefined)).toBeNull();
+  });
+
+  it('returns null for invalid PI-RADS (not 2-5)', () => {
+    expect(calcHighGradeRisk(1, 4.0)).toBeNull();
+    expect(calcHighGradeRisk(6, 4.0)).toBeNull();
+  });
+
+  it('PI-RADS 2, PSA 4.0 → Low GG3+ risk (< 10%)', () => {
+    const r = calcHighGradeRisk(2, 4.0);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeLessThan(0.10);
+    expect(r.interpretation).toBe('Low GG3+ risk');
+  });
+
+  it('PI-RADS 3, PSA 4.0 → Intermediate GG3+ risk (10–20%)', () => {
+    const r = calcHighGradeRisk(3, 4.0);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeGreaterThanOrEqual(0.10);
+    expect(r.prob).toBeLessThan(0.35);
+  });
+
+  it('PI-RADS 4, PSA 6.0 → Elevated or High GG3+ risk (≥ 20%)', () => {
+    const r = calcHighGradeRisk(4, 6.0);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeGreaterThanOrEqual(0.20);
+  });
+
+  it('PI-RADS 5, PSA 10.0 → High GG3+ risk (≥ 35%)', () => {
+    const r = calcHighGradeRisk(5, 10.0);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeGreaterThanOrEqual(0.35);
+    expect(r.interpretation).toBe('High GG3+ risk');
+  });
+
+  it('PI-RADS 5, PSA 0.5 → result is valid (low PSA high PIRADS edge case)', () => {
+    const r = calcHighGradeRisk(5, 0.5);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeGreaterThan(0);
+    expect(r.prob).toBeLessThanOrEqual(1);
+  });
+
+  it('probability increases monotonically with PI-RADS at fixed PSA', () => {
+    const p2 = calcHighGradeRisk(2, 5.0).prob;
+    const p3 = calcHighGradeRisk(3, 5.0).prob;
+    const p4 = calcHighGradeRisk(4, 5.0).prob;
+    const p5 = calcHighGradeRisk(5, 5.0).prob;
+    expect(p2).toBeLessThan(p3);
+    expect(p3).toBeLessThan(p4);
+    expect(p4).toBeLessThan(p5);
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
 import { auth, db, functions, isFirebaseConfigured } from './config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -10,21 +10,24 @@ import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
-import SinaiConsentScreen from './components/SinaiConsentScreen.jsx';
-import SinaiResultsScreen from './components/SinaiResultsScreen.jsx';
+// Lazy-loaded — only needed for Sinai clinical flow
+const SinaiConsentScreen = React.lazy(() => import('./components/SinaiConsentScreen.jsx'));
+const SinaiResultsScreen = React.lazy(() => import('./components/SinaiResultsScreen.jsx'));
 import { readSinaiConfig } from './utils/sinaiSubmit.js';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
-import ModelDocs from './components/ModelDocs.jsx';
-import PrivacyPolicyPopup from './components/PrivacyPolicyPopup.jsx';
-import TermsOfServicePopup from './components/TermsOfServicePopup.jsx';
+// Lazy-loaded modals/overlays — only shown on demand
+const ModelDocs = React.lazy(() => import('./components/ModelDocs.jsx'));
+const PrivacyPolicyPopup = React.lazy(() => import('./components/PrivacyPolicyPopup.jsx'));
+const TermsOfServicePopup = React.lazy(() => import('./components/TermsOfServicePopup.jsx'));
 import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
-import Part2Form from './components/Part2Form.jsx';
-import Part2Results from './components/Part2Results.jsx';
+// Lazy-loaded — only shown after Part 1 is complete
+const Part2Form = React.lazy(() => import('./components/Part2Form.jsx'));
+const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -40,6 +43,10 @@ import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, ge
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
+// Increment this string whenever the consent text changes to force re-consent for returning users.
+// Format: YYYY-MM-DD of the consent text revision.
+const CONSENT_VERSION = '2026-06-01';
+const CONSENT_VERSION_KEY = 'epsa_consent_version';
 
 // Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
 const safeLS = {
@@ -90,6 +97,9 @@ function App() {
   const [appSessionId, setAppSessionId] = useState(null);
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [importedData, setImportedData] = useState(null);
+  const [importError, setImportError] = useState(null);
+  // Holds import data + type while the user is shown the consent screen
+  const pendingImportRef = useRef(null);
   const [saveToCloudPending, setSaveToCloudPending] = useState(false);
   const [saveToCloudError, setSaveToCloudError] = useState(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
@@ -99,7 +109,10 @@ function App() {
 
   const hasCachedConsent = () => {
     try {
-      return localStorage.getItem(CONSENT_CACHE_KEY) === 'true';
+      const cached = localStorage.getItem(CONSENT_CACHE_KEY) === 'true';
+      const cachedVersion = localStorage.getItem(CONSENT_VERSION_KEY);
+      // Invalidate cache if consent text has been updated since last consent
+      return cached && cachedVersion === CONSENT_VERSION;
     } catch {
       return false;
     }
@@ -108,21 +121,13 @@ function App() {
   const cacheConsent = () => {
     try {
       localStorage.setItem(CONSENT_CACHE_KEY, 'true');
+      localStorage.setItem(CONSENT_VERSION_KEY, CONSENT_VERSION);
     } catch {
       // Ignore storage errors (private mode/quota).
     }
   };
   
-  // Detect email from URL params (legacy; we no longer collect email)
-  const [urlEmail, setUrlEmail] = useState(null);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get('email');
-    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setUrlEmail(email);
-      setStorageMode('cloud');
-    }
-  }, []);
+  // urlEmail URL param removed — PHI must not appear in URLs
   
   // Calculator configuration
   const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
@@ -184,6 +189,29 @@ function App() {
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
 
+  // ── Inactivity session timeout (15 min) ──────────────────────────────────
+  // Required for HIPAA compliance on shared/clinic devices. Resets on any user
+  // interaction. Only active when a user is authenticated.
+  const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+  const inactivityTimerRef = useRef(null);
+  useEffect(() => {
+    if (!user) return;
+    const resetTimer = () => {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = setTimeout(() => {
+        handleLogout();
+      }, INACTIVITY_TIMEOUT_MS);
+    };
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer(); // Start the timer immediately on login
+    return () => {
+      clearTimeout(inactivityTimerRef.current);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
     if (!auth) return () => {};
@@ -216,15 +244,16 @@ function App() {
             setPreResult(null);
             setPathwayMode('pre_psa');
             setStage('pre');
-            setCurrentStep(1);
-            setPart1Step(0);
-            setConsentData({ consentToContact: true, consentBasis: 'implied_bus_flow', consentTimestamp: new Date().toISOString() });
-            cacheConsent();
+            setCurrentStep(3);
+            setPart1Step(4);
+            // HIPAA: show consent screen before loading PHI from bus flow
+            pendingImportRef.current = { source: 'bus_flow', formData, engineResult, studyConsent };
             setUser({ uid: 'local', isAnonymous: true });
             setStorageMode('local');
             setAppSessionId('Local');
             if (studyConsent) setFlowMode('sinai');
-            setAuthStep('app');
+            // Route to consent screen — pendingImportRef will be processed in handleConsentComplete
+            setAuthStep('consent');
             return;
           }
         }
@@ -712,11 +741,7 @@ function App() {
   };
 
   const handleAuthSuccess = async (user, authInfo) => {
-    console.log('[AuthFlow] handleAuthSuccess invoked', {
-      uid: user?.uid,
-      isAnonymous: user?.isAnonymous,
-      authInfo
-    });
+    if (import.meta.env.DEV) console.log('[AuthFlow] handleAuthSuccess invoked', { uid: user?.uid, isAnonymous: user?.isAnonymous, authInfo });
     setUser(user);
     if (typeof authInfo === 'string') {
       setUserPhone(authInfo);
@@ -748,7 +773,7 @@ function App() {
       }
       cacheConsent();
       setAuthStep('app');
-      console.log('[AuthFlow] consent exists -> authStep=app', { uid: user?.uid });
+      if (import.meta.env.DEV) console.log('[AuthFlow] consent exists -> authStep=app', { uid: user?.uid });
     } else {
       if (hasCachedConsent()) {
         setConsentData({
@@ -757,11 +782,11 @@ function App() {
           consentTimestamp: new Date().toISOString()
         });
         setAuthStep('app');
-        console.log('[AuthFlow] consent cached -> authStep=app', { uid: user?.uid });
+        if (import.meta.env.DEV) console.log('[AuthFlow] consent cached -> authStep=app', { uid: user?.uid });
       } else {
         // No consent found - show consent screen
         setAuthStep('consent');
-        console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
+        if (import.meta.env.DEV) console.log('[AuthFlow] consent missing -> authStep=consent', { uid: user?.uid });
       }
     }
   };
@@ -769,7 +794,47 @@ function App() {
   const handleConsentComplete = async (consent) => {
     setConsentData(consent);
     cacheConsent();
-    // Consent continue should always enter the Part 1 form flow.
+
+    // If consent was triggered by a pending import (bus flow or file import), resume that flow
+    if (pendingImportRef.current) {
+      const pending = pendingImportRef.current;
+      pendingImportRef.current = null;
+
+      if (pending.source === 'bus_flow') {
+        const { formData, engineResult, studyConsent } = pending;
+        const defaultShape = {
+          age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+          familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+          weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+          exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+          comorbidityScore: null, hypertension: null, hyperlipidemia: null,
+          coronaryArteryDisease: null, diabetes: null,
+        };
+        setPreData({ ...defaultShape, ...formData });
+        setPreResult(engineResult);
+        setPathwayMode('pre_psa');
+        setStage('pre');
+        setCurrentStep(3);
+        setPart1Step(4);
+        if (studyConsent) setFlowMode('sinai');
+        setAuthStep('app');
+        return;
+      }
+
+      if (pending.source === 'file_import') {
+        setStage(pending.targetStage);
+        if (pending.hasPart1Result) {
+          if (pending.targetStage === 'pre') { setCurrentStep(3); setPart1Step(4); }
+          else { setCurrentStep(3); }
+        } else {
+          setCurrentStep(1); setPart1Step(0);
+        }
+        setAuthStep('app');
+        return;
+      }
+    }
+
+    // Normal consent flow — enter Part 1 form
     setStage('pre');
     setPathwayMode(null);
     setCurrentStep(1);
@@ -963,7 +1028,7 @@ function App() {
     if (importType === 'session') {
       // Session ID restore requires Firebase
       if (!auth || !functions) {
-        alert('Session ID restore is only available with cloud storage. Use Import for a JSON file instead.');
+        setImportError('Session ID restore is only available with cloud storage. Use Import for a JSON file instead.');
         return;
       }
       // Handle session ID login through backend-assisted restoration.
@@ -1061,7 +1126,7 @@ function App() {
           details: error?.details,
           stack: error?.stack
         });
-        alert(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
+        setImportError(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
         return;
       }
       return;
@@ -1152,15 +1217,15 @@ function App() {
       setAppSessionId('Local');
     }
     
-    // Import implies consent to use the platform and continue.
-    setConsentData({
-      consentToContact: true,
-      consentBasis: 'implied_by_import',
-      consentTimestamp: new Date().toISOString()
-    });
-    cacheConsent();
-    // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
-    setAuthStep('app');
+    // HIPAA: route to consent screen before entering app with imported PHI.
+    // pendingImportRef holds the processed state so handleConsentComplete can apply it.
+    pendingImportRef.current = {
+      source: 'file_import',
+      targetStage,
+      hasPart1Result: !!part1Result,
+    };
+    setAuthStep('consent');
+    return; // don't navigate to app yet
     setStage(targetStage);
     if (part1Result) {
       if (targetStage === 'pre') {
@@ -1300,10 +1365,12 @@ function App() {
       setPathwayMode(null);
       setCurrentStep(1);
       setPart1Step(0);
-      // Clear user-specific localStorage but keep general settings
-      if (storageMode === 'cloud' && user) {
+      // Clear user-specific localStorage always (not just cloud mode)
+      if (user) {
         safeLS.remove(`sessionId_${user.uid}`);
       }
+      safeLS.remove(CONSENT_CACHE_KEY);
+      safeLS.remove(CONSENT_VERSION_KEY);
   };
 
 
@@ -1322,8 +1389,8 @@ function App() {
 
       if (!result) {
         console.error('Calculation failed - missing required fields');
-        console.error('preData state:', preData);
-        alert('Please complete all required fields before calculating your score. Make sure you have entered all required fields in About You, Family & Genetic Risk, Body Metrics, Lifestyle, and Symptoms.');
+        if (import.meta.env.DEV) console.error('preData state:', preData);
+        // Part1Form's own handleSubmit already sets formErrors and scrolls to the first error — no alert needed
         return;
       }
 
@@ -1393,7 +1460,7 @@ function App() {
   const handlePostNext = async () => {
     // Ensure Part 1 is complete before calculating Part 2
     if (!preResult) {
-      alert('Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment.');
+      // Redirect back to Part 1 results — no alert needed as the stage change is self-explanatory
       setStage('pre');
       setCurrentStep(3);
       return;
@@ -1415,6 +1482,12 @@ function App() {
         : (pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa'));
       if (hasMriData && pathwayMode !== 'post_mri') setPathwayMode('post_mri');
       const inferredPathway = effectivePathway;
+      if (!preResult) {
+        console.error('calculateDynamicEPsaPost called with null preResult — aborting');
+        setStage('pre');
+        setCurrentStep(3);
+        return;
+      }
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
       setPostResult(result);
       
@@ -1455,31 +1528,16 @@ function App() {
 
 
   const buildASToolURL = (base = 'https://as.millionstrongmen.com') => {
-    const hasPost = postResult !== null || (postData.knowPsa && postData.psa);
+    // HIPAA: Never include PHI in URLs (appears in browser history, referrer headers,
+    // and server access logs). Only pass non-identifying tier/pathway context.
+    const hasPost = postResult !== null;
     const payload = {
+      source: 'epsa',
       part: hasPost ? 'complete' : 'part1',
-      exportDate: new Date().toISOString(),
-      part1Data: {
-        age: preData.age ? parseInt(preData.age, 10) : null,
-      },
-      part1Result: preResult ? {
-        epsaTierKey:   preResult.epsaTierKey,
-        epsaTierLabel: preResult.epsaTierLabel,
-        isBlack:       preResult.isBlack,
-        fhBinary:      preResult.fhBinary,
-        brcaStatus:    preResult.brcaStatus,
-        age:           preResult.age,
-      } : {},
-      part2Data: {
-        psa:        postData.knowPsa    ? postData.psa    : '',
-        knowPsa:    postData.knowPsa,
-        pirads:     postData.knowPirads ? postData.pirads : '0',
-        knowPirads: postData.knowPirads,
-      },
-      part2Result: postResult ? {
-        epsaTierKey: postResult.epsaTierKey,
-        pathwayMode: pathwayMode || postResult.pathwayMode || 'post_psa',
-      } : {},
+      tier: hasPost
+        ? (postResult?.epsaTierKey || null)
+        : (preResult?.epsaTierKey || null),
+      pathway: pathwayMode || 'pre_psa',
     };
     return `${base}?epsa=${encodeURIComponent(JSON.stringify(payload))}`;
   };
@@ -1627,7 +1685,6 @@ function App() {
                 setAuthStep('sinai_gate');
               }}
               formData={{}}
-              urlEmail={urlEmail}
             />
             <footer className="app-footer">
               <div className="footer-meta">
@@ -1663,13 +1720,21 @@ function App() {
         );
       case 'import':
         return (
-          <DataImportScreen 
-            onImportSuccess={handleImportSuccess}
-            onBack={() => setAuthStep('welcome')}
-          />
+          <>
+            {importError && (
+              <div role="alert" style={{ margin: '1rem', padding: '0.75rem 1rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '14px' }}>
+                {importError}
+                <button onClick={() => setImportError(null)} style={{ marginLeft: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600 }}>Dismiss</button>
+              </div>
+            )}
+            <DataImportScreen
+              onImportSuccess={(data, type) => { setImportError(null); handleImportSuccess(data, type); }}
+              onBack={() => { setImportError(null); setAuthStep('welcome'); }}
+            />
+          </>
         );
       case 'login':
-        return <UniversalAuth onAuthSuccess={handleAuthSuccess} initialEmail={urlEmail} />;
+        return <UniversalAuth onAuthSuccess={handleAuthSuccess} />;
       case 'consent':
         return (
           <ConsentScreen
@@ -1930,6 +1995,7 @@ function App() {
   }
 
   return (
+    <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
       <div className="container">
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
@@ -2088,7 +2154,7 @@ function App() {
               preResult={preResult}
               postResult={postResult}
             />
-            {showTestPanel && <FirebaseTestPanel />}
+            {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}
             {(pathwayMode !== null || preResult) && (
               <nav className="stage-nav" aria-label="Assessment stages">
@@ -2183,6 +2249,7 @@ function App() {
       )}
       <VersionFooter />
     </div>
+    </React.Suspense>
   );
 }
 

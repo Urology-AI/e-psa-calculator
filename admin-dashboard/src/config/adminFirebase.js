@@ -12,15 +12,16 @@ const isLocalhost = window.location.hostname === 'localhost' || window.location.
 const useAuthEmulator = import.meta.env.VITE_USE_AUTH_EMULATOR === 'true';
 const useFirestoreEmulator = import.meta.env.VITE_USE_FIRESTORE_EMULATOR === 'true';
 
-// Admin Firebase configuration
+// Admin Firebase configuration — values from environment variables only.
+// Never hardcode credentials here. Set VITE_FIREBASE_* in .env.local (gitignored).
 const adminFirebaseConfig = {
-  apiKey: "AIzaSyA3qMN6_moBA6ZXUC1mD4yZP9YxBXd1Mps",
-  authDomain: "epsa-30d0b.firebaseapp.com",
-  projectId: "epsa-30d0b",
-  storageBucket: "epsa-30d0b.firebasestorage.app",
-  messagingSenderId: "148985999968",
-  appId: "1:148985999968:web:2c49caf6875ca31f348905",
-  measurementId: "G-0W0CWTK14Q"
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase for admin
