@@ -25,28 +25,30 @@ import * as querystring from 'querystring';
 interface Step1Data {
   age?: number;
   race?: string;
+  heightUnit?: string;
   heightFt?: number | null;
   heightIn?: number | null;
   heightCm?: number | null;
-  weight?: number;
-  bmi?: number;
-  heightUnit?: string;
-  weightUnit?: string;
   weightKg?: number | null;
-  familyHistory?: number;        // 0-3 (degree of family history)
+  weight?: number;
+  weightUnit?: string;
+  bmi?: number;
+  familyHistory?: number | string; // 0-3 or 'unknown'
   inflammationHistory?: number;  // 0|1
   brcaStatus?: string;           // 'none'|'brca1'|'brca2'|'both'|'unknown'
-  ipss?: number[];               // 7 items, 0-5
-  shim?: number[];               // 5 items, 1-5 (q1) or 0-5 (q2-5)
+  ipss?: number[];               // 7 items (Q1–Q7), 0-5; Q8 (QoL) stored separately
+  ipssQol?: number;              // Q8 quality of life, 0-6
+  shim?: number[];               // 5 items, 0-5
   exercise?: number;             // 0-2
   smoking?: number;              // 0-2
-  chemicalExposure?: number;     // 0|1
+  chemicalExposure?: string;
   dietPattern?: string;
-  hypertension?: number;         // 0|1
-  hyperlipidemia?: number;       // 0|1
-  coronaryArteryDisease?: number; // 0|1
-  diabetes?: number;             // 0|1
   comorbidityScore?: number;     // 0-2
+  // individual comorbidity fields (used to derive comorbidityScore if not set)
+  hypertension?: number;
+  hyperlipidemia?: number;
+  coronaryArteryDisease?: number;
+  diabetes?: number;
 }
 
 interface Step2Data {
@@ -57,6 +59,7 @@ interface Step2Data {
   knowPirads?: boolean;
   pirads?: string;               // '0'-'5'
   prostateVolume?: string | number | null;
+  pathwayMode?: string;
 }
 
 interface Part1Result {
@@ -64,6 +67,7 @@ interface Part1Result {
   risk?: string;
   scoreRange?: string;
   modelVersion?: string;
+  [key: string]: unknown;
 }
 
 interface SessionDocument {
@@ -72,9 +76,6 @@ interface SessionDocument {
   pathwayMode?: string;
   step1?: Step1Data;
   step2?: Step2Data;
-  result?: Part1Result;
-  finalCategory?: string;  // Part 2 risk category
-  finalScore?: number;     // Part 2 total points
   createdAt?: admin.firestore.Timestamp;
 }
 
@@ -89,8 +90,8 @@ interface RedcapRecord {
 // FIELD MAPPING HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Map Firestore brcaStatus → REDCap brca_status (yes/no/unknown) */
-function mapBrcaStatus(val: string | undefined): string | undefined {
+/** Map Firestore brcaStatus → REDCap genetic_risk (yes/no/unknown) */
+function mapGeneticRisk(val: string | undefined): string | undefined {
   if (!val) return undefined;
   if (val === 'unknown') return 'unknown';
   if (val === 'none') return 'no';
@@ -101,6 +102,19 @@ function mapBrcaStatus(val: string | undefined): string | undefined {
 function mapDietPattern(val: string | undefined): string | undefined {
   if (!val) return undefined;
   return val.replace(/-/g, '_');
+}
+
+/** Derive comorbidity count (0-2) from individual flags if not already set */
+function mapComorbidities(s1: Step1Data): number | undefined {
+  if (s1.comorbidityScore !== undefined && s1.comorbidityScore !== null) {
+    return Math.min(2, Math.max(0, s1.comorbidityScore));
+  }
+  const n = [s1.hypertension, s1.hyperlipidemia, s1.coronaryArteryDisease, s1.diabetes]
+    .filter(v => v === 1).length;
+  if (n === 0 && !s1.hypertension && !s1.hyperlipidemia && !s1.coronaryArteryDisease && !s1.diabetes) {
+    return undefined; // none of the fields were answered
+  }
+  return Math.min(2, n);
 }
 
 /**
@@ -118,6 +132,7 @@ function inferPathwayMode(
   return 'pre_psa';
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SESSION → REDCAP FIELD MAPPER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -128,130 +143,72 @@ function mapSessionToRedcap(
 ): RedcapRecord {
   const s1: Step1Data = session.step1 || {};
   const s2: Step2Data = session.step2 || {};
-  const r1: Part1Result = session.result || {};
 
   const ipss = s1.ipss || [];
   const shim = s1.shim || [];
-
+  // pathwayMode used only to guard Part 2 field inclusion (not stored in REDCap)
   const pathwayMode = inferPathwayMode(session.pathwayMode, session.step2);
+  void pathwayMode; // suppress unused-variable warning — kept for future conditional logic
 
-  // ── PSA adjustment for 5-ARI (doubles PSA if on finasteride/dutasteride) ──
-  const psaRaw = s2.psa ? parseFloat(s2.psa) : undefined;
-  const isOn5ari =
-    s2.onHormonalTherapy === true &&
-    (s2.hormonalTherapyType === 'finasteride' || s2.hormonalTherapyType === 'dutasteride');
-  const psaAdjusted = psaRaw !== undefined && isOn5ari ? psaRaw * 2 : psaRaw;
+  // Store exactly what the user entered — no unit conversion
+  const weightLbs: number | undefined = s1.weightUnit === 'lbs' && s1.weight ? s1.weight : undefined;
+  const weightKg: number | undefined =
+    s1.weightUnit === 'kg' && s1.weight ? s1.weight :
+    s1.weightKg != null ? s1.weightKg : undefined;
 
-  // ── PSA density (only when prostate volume is available) ──
-  const prostateVol = s2.prostateVolume
-    ? parseFloat(String(s2.prostateVolume))
-    : undefined;
-  const effectivePsa = psaAdjusted ?? psaRaw;
-  const psadValue =
-    prostateVol !== undefined && effectivePsa !== undefined && prostateVol > 0
-      ? parseFloat((effectivePsa / prostateVol).toFixed(3))
-      : undefined;
-  const psadFlag = psadValue !== undefined ? (psadValue > 0.177 ? 1 : 0) : undefined;
-
-  // ── Build the record ──
+  // ── Build the record — raw patient inputs only ────────────────────────────
   const record: RedcapRecord = {
-    // ── Identifiers ──────────────────────────────────────────────────────────
     record_id: sessionId,
-    pathway_mode: pathwayMode,
 
-    // ── Demographics ─────────────────────────────────────────────────────────
-    age: s1.age,
+    // Demographics
+    age:  s1.age,
     race: s1.race,
 
-    // ── Family & Genetic Risk ────────────────────────────────────────────────
-    // familyHistory in Firestore is 0-3 (degree). Map to binary for REDCap
-    // family_history field and pass raw degree as family_history_degree.
-    family_history:
-      s1.familyHistory !== undefined ? (s1.familyHistory > 0 ? 1 : 0) : undefined,
-    family_history_degree: s1.familyHistory,
+    // Family & genetic risk — pass through as-is (0, 1, 2, or 'unknown')
+    family_history:  s1.familyHistory !== undefined && s1.familyHistory !== null
+      ? (s1.familyHistory === 'unknown' ? 'unknown' : Math.min(2, Number(s1.familyHistory)))
+      : undefined,
     inflammation_hx: s1.inflammationHistory,
-    brca_status: mapBrcaStatus(s1.brcaStatus),
+    genetic_risk:    mapGeneticRisk(s1.brcaStatus),
 
-    // ── Body Metrics ─────────────────────────────────────────────────────────
-    height_unit: s1.heightUnit,
-    height_ft: s1.heightFt !== null ? s1.heightFt : undefined,
-    height_in: s1.heightIn !== null ? s1.heightIn : undefined,
-    height_cm: s1.heightCm !== null ? s1.heightCm : undefined,
-    weight_unit: s1.weightUnit,
-    weight_lbs: s1.weightUnit === 'lbs' ? s1.weight : undefined,
-    weight_kg:
-      s1.weightUnit === 'kg'
-        ? s1.weight
-        : s1.weightKg !== null
-        ? s1.weightKg
-        : undefined,
-    bmi: s1.bmi,
+    // Body — store whichever unit the user entered; parse strings from form input
+    height_ft:  s1.heightUnit === 'imperial' && s1.heightFt != null ? parseInt(String(s1.heightFt), 10) || undefined : undefined,
+    height_in:  s1.heightUnit === 'imperial' && s1.heightIn != null ? parseInt(String(s1.heightIn), 10)  || undefined : undefined,
+    height_cm:  s1.heightUnit === 'metric'   && s1.heightCm != null ? parseFloat(String(s1.heightCm))    || undefined : undefined,
+    weight_lbs: weightLbs,
+    weight_kg:  weightKg,
 
-    // ── Lifestyle ────────────────────────────────────────────────────────────
-    exercise: s1.exercise,
-    smoking: s1.smoking,
+    // Lifestyle
+    exercise:          s1.exercise,
+    smoking:           s1.smoking,
     chemical_exposure: s1.chemicalExposure,
+    diet_pattern:      mapDietPattern(s1.dietPattern),
+    comorbidities:     mapComorbidities(s1),
 
-    // ── Additional Information ───────────────────────────────────────────────
-    diet_pattern: mapDietPattern(s1.dietPattern),
-    hypertension: s1.hypertension,
-    hyperlipidemia: s1.hyperlipidemia,
-    cad: s1.coronaryArteryDisease,
-    diabetes: s1.diabetes,
-    comorbidity_score: s1.comorbidityScore,
+    // IPSS Q1–Q7
+    incomplete_emptying: ipss[0],
+    frequency:           ipss[1],
+    intermittency:       ipss[2],
+    urgency:             ipss[3],
+    weak_stream:         ipss[4],
+    straining:           ipss[5],
+    nocturia:            ipss[6],
+    quality_of_life:     s1.ipssQol,
 
-    // ── IPSS (7 questions) ───────────────────────────────────────────────────
-    ipss_1: ipss[0],
-    ipss_2: ipss[1],
-    ipss_3: ipss[2],
-    ipss_4: ipss[3],
-    ipss_5: ipss[4],
-    ipss_6: ipss[5],
-    ipss_7: ipss[6],
-    ipss_total:
-      ipss.length > 0 ? ipss.reduce((a, b) => a + b, 0) : undefined,
+    // SHIM Q1–Q5
+    erection_confidence:  shim[0],
+    erection_penetration: shim[1],
+    maintain_erection:    shim[2],
+    complete_erection:    shim[3],
+    satisfactory:         shim[4],
 
-    // ── SHIM (5 questions) ───────────────────────────────────────────────────
-    shim_1: shim[0],
-    shim_2: shim[1],
-    shim_3: shim[2],
-    shim_4: shim[3],
-    shim_5: shim[4],
-    shim_total:
-      shim.length > 0 ? shim.reduce((a, b) => a + b, 0) : undefined,
-
-    // ── Part 1 Results ───────────────────────────────────────────────────────
-    part1_score: r1.score,
-    part1_risk: r1.risk,
-    part1_score_range: r1.scoreRange,
-    recommend_psa:
-      r1.risk !== undefined
-        ? r1.risk === 'PSA_RECOMMENDED'
-          ? 1
-          : 0
-        : undefined,
-    part1_model_ver: r1.modelVersion,
+    // PSA & MRI
+    psa:                   s2.psa ? parseFloat(s2.psa) : undefined,
+    on_hormonal_therapy:   s2.onHormonalTherapy !== undefined ? (s2.onHormonalTherapy ? 1 : 0) : undefined,
+    hormonal_therapy_type: s2.hormonalTherapyType || undefined,
+    pirads:                s2.pirads ? parseInt(s2.pirads, 10) : undefined,
+    prostate_volume:       s2.prostateVolume ? parseFloat(String(s2.prostateVolume)) : undefined,
   };
-
-  // ── Part 2 fields (only when Step 2 data exists) ─────────────────────────
-  if (session.step2) {
-    record.psa = psaRaw;
-    record.on_hormonal_therapy = s2.onHormonalTherapy ? 1 : 0;
-    record.hormonal_therapy_type =
-      s2.hormonalTherapyType && s2.hormonalTherapyType !== ''
-        ? s2.hormonalTherapyType
-        : undefined;
-    record.psa_adjusted = isOn5ari ? psaAdjusted : undefined;
-    record.psa_adjusted_flag = isOn5ari ? 1 : 0;
-    record.pirads = s2.pirads ? parseInt(s2.pirads, 10) : undefined;
-    record.prostate_volume = prostateVol;
-    record.psad_value = psadValue;
-    record.psad_flag = psadFlag;
-
-    // Part 2 results
-    record.part2_risk_cat = session.finalCategory;
-    record.part2_total_pts = session.finalScore;
-  }
 
   // Strip undefined / null / empty-string values — REDCap rejects them
   return Object.fromEntries(
@@ -395,7 +352,7 @@ export const syncToRedcap = functions.firestore
 
       functions.logger.info(
         `REDCap sync starting: session=${sessionId} status=${newStatus}`,
-        { record_id: record.record_id, pathway_mode: record.pathway_mode }
+        { record_id: record.record_id }
       );
 
       await postToRedcap(apiUrl, apiToken, [record]);
@@ -441,10 +398,8 @@ export const syncToRedcap = functions.firestore
 interface SubmitPayload {
   researchConsent: boolean;
   step1: Step1Data;
-  result: Part1Result;
+  result?: Part1Result;
   step2?: Step2Data;
-  finalCategory?: string;
-  finalScore?: number;
   pathwayMode?: string;
   sessionId?: string;  // optional client-supplied ID; UUID generated if absent
 }
@@ -478,12 +433,9 @@ export const submitToRedcap = functions.https.onCall(
       data.sessionId || crypto.randomUUID();
 
     const sessionDoc: SessionDocument = {
-      step1:         data.step1,
-      result:        data.result,
-      step2:         data.step2,
-      finalCategory: data.finalCategory,
-      finalScore:    data.finalScore,
-      pathwayMode:   data.pathwayMode,
+      step1:       data.step1,
+      step2:       data.step2,
+      pathwayMode: data.pathwayMode,
     };
 
     // ── Map + push ────────────────────────────────────────────────────────
