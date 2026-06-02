@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './QuickEpsaResult.css';
+import './ClinicalModeResult.css';
 import RiskGauge from './RiskGauge';
 import { submitToRedcap } from '../utils/redcapSubmit';
 
@@ -67,7 +67,7 @@ function ConsentPanel({ answers, engineResult, onDone }) {
   );
 }
 
-export default function QuickEpsaResult({ result, onReset }) {
+export default function ClinicalModeResult({ result, onReset }) {
   const { engineResult, answers } = result;
   const { epsaTierKey, epsaTierLabel, psaRecommendMessage, recommendPSA,
           calculationDetails, score } = engineResult;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import './QuickEpsaFlow.css';
-import QuickEpsaResult from './QuickEpsaResult.jsx';
+import './ClinicalModeFlow.css';
+import ClinicalModeResult from './ClinicalModeResult.jsx';
 import { calculateDynamicEPsa } from '../utils/dynamicCalculator';
 
 function WelcomeScreen({ onStart }) {
@@ -95,7 +95,7 @@ function calcBmiMetric(heightCm, weightKg) {
 
 const TOTAL_QUESTIONS = 10;
 
-export default function QuickEpsaFlow() {
+export default function ClinicalModeFlow() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -220,7 +220,7 @@ export default function QuickEpsaFlow() {
   }
 
   if (submitted && result) {
-    return <QuickEpsaResult result={result} onReset={handleReset} />;
+    return <ClinicalModeResult result={result} onReset={handleReset} />;
   }
 
   return (
