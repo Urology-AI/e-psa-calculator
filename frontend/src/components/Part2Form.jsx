@@ -352,13 +352,15 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                           </button>
                         </div>
                       )}
-                      <div className="pirads-grid">
+                      <div className="pirads-grid" role="radiogroup" aria-label={`PI-RADS score for lesion ${idx + 1}`}>
                         {PIRADS_OPTIONS.map(opt => (
                           <button
                             key={opt.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={lesionVal === opt.value}
                             className={`pirads-btn ${lesionVal === opt.value ? 'selected' : ''}`}
                             aria-label={`PI-RADS ${opt.value}: ${opt.desc}`}
-                            aria-pressed={lesionVal === opt.value}
                             onClick={() => {
                               const next = [...lesions];
                               next[idx] = opt.value;

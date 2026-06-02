@@ -1,19 +1,19 @@
 /**
- * REDCap API submission for Quick ePSA bus mode.
- * Env vars required:
- *   VITE_REDCAP_API_URL   — e.g. https://redcap.mountsinai.org/api/
- *   VITE_REDCAP_API_TOKEN — project-specific API token
+ * REDCap API submission via Cloud Function.
  *
- * REDCap field names below must match your instrument exactly.
- * Ask your REDCap admin for the data dictionary export to verify.
+ * SECURITY: The REDCap API token must NEVER appear in frontend code or VITE_* env vars.
+ * All REDCap calls are proxied through the `submitRedcap` Cloud Function which holds
+ * the token in Firebase Functions secrets (firebase functions:secrets:set REDCAP_TOKEN).
+ *
+ * Only non-sensitive record data is sent to the Cloud Function; the token is never
+ * transmitted to or from the browser.
  */
 
-const REDCAP_URL   = import.meta.env.VITE_REDCAP_API_URL;
-const REDCAP_TOKEN = import.meta.env.VITE_REDCAP_API_TOKEN;
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 /**
  * Map Quick ePSA answers + engine result → REDCap flat record.
- * All field names are placeholders — replace with your instrument's variable names.
+ * All field names must match your REDCap instrument data dictionary exactly.
  */
 function buildRecord(answers, engineResult, consentTimestamp) {
   const { epsaTierKey, epsaTierLabel, recommendPSA, psaRecommendMessage,
@@ -27,7 +27,7 @@ function buildRecord(answers, engineResult, consentTimestamp) {
     record_id,
 
     // Consent
-    qepsa_consent: '1',                          // 1 = agreed
+    qepsa_consent: '1',
     qepsa_consent_timestamp: consentTimestamp,
     qepsa_study_id: 'STUDY-14-00050',
 
@@ -36,12 +36,12 @@ function buildRecord(answers, engineResult, consentTimestamp) {
     qepsa_race: answers.race,
 
     // Clinical inputs
-    qepsa_family_history: answers.familyHistory,  // none/one/two_plus/unknown
-    qepsa_qol_score:      answers.qol,            // 0–6
-    qepsa_shim_q1:        answers.shim,           // 1–5
-    qepsa_exercise:       answers.exercise,       // 0/1/2
-    qepsa_smoking:        answers.smoking,        // 0/1/2
-    qepsa_diet:           answers.diet,           // red_meat/mixed/plant
+    qepsa_family_history: answers.familyHistory,
+    qepsa_qol_score:      answers.qol,
+    qepsa_shim_q1:        answers.shim,
+    qepsa_exercise:       answers.exercise,
+    qepsa_smoking:        answers.smoking,
+    qepsa_diet:           answers.diet,
     qepsa_bmi:            answers.bmi != null ? parseFloat(answers.bmi).toFixed(1) : '',
 
     // Engine outputs
@@ -59,37 +59,20 @@ function buildRecord(answers, engineResult, consentTimestamp) {
 }
 
 /**
- * Submit a Quick ePSA result to REDCap.
+ * Submit a Quick ePSA result to REDCap via Cloud Function.
  * Returns { success: true } or { success: false, error: string }.
  */
 export async function submitToRedcap(answers, engineResult) {
-  if (!REDCAP_URL || !REDCAP_TOKEN) {
-    console.warn('REDCap env vars not configured — skipping submission.');
-    return { success: false, error: 'REDCap not configured' };
-  }
-
   const consentTimestamp = new Date().toISOString();
   const record = buildRecord(answers, engineResult, consentTimestamp);
 
-  const body = new URLSearchParams({
-    token:   REDCAP_TOKEN,
-    content: 'record',
-    format:  'json',
-    type:    'flat',
-    data:    JSON.stringify([record]),
-    returnContent: 'ids',
-  });
-
   try {
-    const res = await fetch(REDCAP_URL, { method: 'POST', body });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('REDCap error:', res.status, text);
-      return { success: false, error: `HTTP ${res.status}` };
-    }
+    const functions = getFunctions();
+    const submitRedcap = httpsCallable(functions, 'submitRedcap');
+    await submitRedcap({ record });
     return { success: true };
   } catch (err) {
     console.error('REDCap submit failed:', err);
-    return { success: false, error: err.message };
+    return { success: false, error: err?.message || 'Submission failed' };
   }
 }

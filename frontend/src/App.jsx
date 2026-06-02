@@ -10,21 +10,24 @@ import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
-import SinaiConsentScreen from './components/SinaiConsentScreen.jsx';
-import SinaiResultsScreen from './components/SinaiResultsScreen.jsx';
+// Lazy-loaded — only needed for Sinai clinical flow
+const SinaiConsentScreen = React.lazy(() => import('./components/SinaiConsentScreen.jsx'));
+const SinaiResultsScreen = React.lazy(() => import('./components/SinaiResultsScreen.jsx'));
 import { readSinaiConfig } from './utils/sinaiSubmit.js';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
-import ModelDocs from './components/ModelDocs.jsx';
-import PrivacyPolicyPopup from './components/PrivacyPolicyPopup.jsx';
-import TermsOfServicePopup from './components/TermsOfServicePopup.jsx';
+// Lazy-loaded modals/overlays — only shown on demand
+const ModelDocs = React.lazy(() => import('./components/ModelDocs.jsx'));
+const PrivacyPolicyPopup = React.lazy(() => import('./components/PrivacyPolicyPopup.jsx'));
+const TermsOfServicePopup = React.lazy(() => import('./components/TermsOfServicePopup.jsx'));
 import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
-import Part2Form from './components/Part2Form.jsx';
-import Part2Results from './components/Part2Results.jsx';
+// Lazy-loaded — only shown after Part 1 is complete
+const Part2Form = React.lazy(() => import('./components/Part2Form.jsx'));
+const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -40,6 +43,10 @@ import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, ge
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
+// Increment this string whenever the consent text changes to force re-consent for returning users.
+// Format: YYYY-MM-DD of the consent text revision.
+const CONSENT_VERSION = '2026-06-01';
+const CONSENT_VERSION_KEY = 'epsa_consent_version';
 
 // Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
 const safeLS = {
@@ -91,6 +98,8 @@ function App() {
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [importedData, setImportedData] = useState(null);
   const [importError, setImportError] = useState(null);
+  // Holds import data + type while the user is shown the consent screen
+  const pendingImportRef = useRef(null);
   const [saveToCloudPending, setSaveToCloudPending] = useState(false);
   const [saveToCloudError, setSaveToCloudError] = useState(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
@@ -100,7 +109,10 @@ function App() {
 
   const hasCachedConsent = () => {
     try {
-      return localStorage.getItem(CONSENT_CACHE_KEY) === 'true';
+      const cached = localStorage.getItem(CONSENT_CACHE_KEY) === 'true';
+      const cachedVersion = localStorage.getItem(CONSENT_VERSION_KEY);
+      // Invalidate cache if consent text has been updated since last consent
+      return cached && cachedVersion === CONSENT_VERSION;
     } catch {
       return false;
     }
@@ -109,6 +121,7 @@ function App() {
   const cacheConsent = () => {
     try {
       localStorage.setItem(CONSENT_CACHE_KEY, 'true');
+      localStorage.setItem(CONSENT_VERSION_KEY, CONSENT_VERSION);
     } catch {
       // Ignore storage errors (private mode/quota).
     }
@@ -225,13 +238,14 @@ function App() {
             setStage('pre');
             setCurrentStep(3);
             setPart1Step(4);
-            setConsentData({ consentToContact: true, consentBasis: 'implied_bus_flow', consentTimestamp: new Date().toISOString() });
-            cacheConsent();
+            // HIPAA: show consent screen before loading PHI from bus flow
+            pendingImportRef.current = { source: 'bus_flow', formData, engineResult, studyConsent };
             setUser({ uid: 'local', isAnonymous: true });
             setStorageMode('local');
             setAppSessionId('Local');
             if (studyConsent) setFlowMode('sinai');
-            setAuthStep('app');
+            // Route to consent screen — pendingImportRef will be processed in handleConsentComplete
+            setAuthStep('consent');
             return;
           }
         }
@@ -772,7 +786,47 @@ function App() {
   const handleConsentComplete = async (consent) => {
     setConsentData(consent);
     cacheConsent();
-    // Consent continue should always enter the Part 1 form flow.
+
+    // If consent was triggered by a pending import (bus flow or file import), resume that flow
+    if (pendingImportRef.current) {
+      const pending = pendingImportRef.current;
+      pendingImportRef.current = null;
+
+      if (pending.source === 'bus_flow') {
+        const { formData, engineResult, studyConsent } = pending;
+        const defaultShape = {
+          age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
+          familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
+          weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
+          exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
+          comorbidityScore: null, hypertension: null, hyperlipidemia: null,
+          coronaryArteryDisease: null, diabetes: null,
+        };
+        setPreData({ ...defaultShape, ...formData });
+        setPreResult(engineResult);
+        setPathwayMode('pre_psa');
+        setStage('pre');
+        setCurrentStep(3);
+        setPart1Step(4);
+        if (studyConsent) setFlowMode('sinai');
+        setAuthStep('app');
+        return;
+      }
+
+      if (pending.source === 'file_import') {
+        setStage(pending.targetStage);
+        if (pending.hasPart1Result) {
+          if (pending.targetStage === 'pre') { setCurrentStep(3); setPart1Step(4); }
+          else { setCurrentStep(3); }
+        } else {
+          setCurrentStep(1); setPart1Step(0);
+        }
+        setAuthStep('app');
+        return;
+      }
+    }
+
+    // Normal consent flow — enter Part 1 form
     setStage('pre');
     setPathwayMode(null);
     setCurrentStep(1);
@@ -1155,15 +1209,15 @@ function App() {
       setAppSessionId('Local');
     }
     
-    // Import implies consent to use the platform and continue.
-    setConsentData({
-      consentToContact: true,
-      consentBasis: 'implied_by_import',
-      consentTimestamp: new Date().toISOString()
-    });
-    cacheConsent();
-    // Navigate: if calculation succeeded go to results; otherwise go to form to fill missing data
-    setAuthStep('app');
+    // HIPAA: route to consent screen before entering app with imported PHI.
+    // pendingImportRef holds the processed state so handleConsentComplete can apply it.
+    pendingImportRef.current = {
+      source: 'file_import',
+      targetStage,
+      hasPart1Result: !!part1Result,
+    };
+    setAuthStep('consent');
+    return; // don't navigate to app yet
     setStage(targetStage);
     if (part1Result) {
       if (targetStage === 'pre') {
@@ -1308,6 +1362,7 @@ function App() {
         safeLS.remove(`sessionId_${user.uid}`);
       }
       safeLS.remove(CONSENT_CACHE_KEY);
+      safeLS.remove(CONSENT_VERSION_KEY);
   };
 
 
@@ -1932,6 +1987,7 @@ function App() {
   }
 
   return (
+    <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
       <div className="container">
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
@@ -2185,6 +2241,7 @@ function App() {
       )}
       <VersionFooter />
     </div>
+    </React.Suspense>
   );
 }
 
