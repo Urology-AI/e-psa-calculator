@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 const DEFAULT_TIERS = [
   { key: 'low',          label: 'Lower Priority',      color: '#16a34a' },
   { key: 'intermediate', label: 'Consider Discussion', color: '#2563eb' },
-  { key: 'elevated',     label: 'Strong Candidate',    color: '#d97706' },
+  { key: 'elevated',     label: 'Strong Candidate',    color: '#b45309' }, // darkened from #d97706 for WCAG AA contrast
 ];
 
 const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {

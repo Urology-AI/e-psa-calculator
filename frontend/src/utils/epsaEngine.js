@@ -702,11 +702,21 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   let psaRecommendReason = null;
 
   // Step 1 — score-based threshold
+  // AUA/SUO 2026 Statement 5 (Strong, Grade B): routine screening before age 45
+  // is only indicated for high-risk individuals (Black ancestry, germline mutations,
+  // or strong family history). Score-threshold alone must not override this at age 40–44.
+  const isHighRiskForEarlyScreening = isBlack || brcaPositive || fhBinary === 1;
   if (upperProb < recommendThreshold) {
     recommendPSA = false;
   } else if (lowerProb >= recommendThreshold) {
-    recommendPSA = true;
-    psaRecommendReason = 'score_threshold';
+    if (ageNum < 45 && !isHighRiskForEarlyScreening) {
+      // Average-risk age 40–44: score may be elevated but guideline does not support
+      // routine PSA screening. Leave recommendPSA = null so downstream steps can assign
+      // low_risk_followup or symptomatic_out_of_guideline as appropriate.
+    } else {
+      recommendPSA = true;
+      psaRecommendReason = 'score_threshold';
+    }
   }
 
   // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
@@ -1097,8 +1107,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   let psaPoints = 0;
   if (psaAdjusted != null && !Number.isNaN(psaAdjusted)) {
+    // Tier boundaries aligned with AUA_PSA_THRESHOLDS.age50_69.threshold = 3.5 ng/mL
+    // per AUA/SUO 2026 age-varying PSA thresholds (50s: 3.5, 60s: 4.5, 70s: 6.5)
     if (psaAdjusted < 1.0) psaPoints = 0;
-    else if (psaAdjusted < 3.0) psaPoints = 10;
+    else if (psaAdjusted < 3.5) psaPoints = 10;
     else if (psaAdjusted < 10.0) psaPoints = 25;
     else psaPoints = 45;
   }
@@ -1214,8 +1226,9 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   let psaTierIndex = null;
   let psaTierLabel = null;
   if (psaVal != null && !Number.isNaN(psaVal)) {
+    // Aligned with AUA/SUO 2026 age-varying thresholds (3.5 ng/mL for 50s)
     if (psaVal < 1.0) { psaTierIndex = 0; psaTierLabel = 'Low'; }
-    else if (psaVal < 3.0) { psaTierIndex = 1; psaTierLabel = 'Intermediate-Low'; }
+    else if (psaVal < 3.5) { psaTierIndex = 1; psaTierLabel = 'Intermediate-Low'; }
     else if (psaVal < 10.0) { psaTierIndex = 2; psaTierLabel = 'Intermediate-High'; }
     else { psaTierIndex = 3; psaTierLabel = 'High'; }
   }

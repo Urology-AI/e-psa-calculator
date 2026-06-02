@@ -149,7 +149,9 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
               <div className="question-text">{t('part2.psa.q2')}</div>
             </div>
             <div className="question-body">
+              <label htmlFor="field-psa" className="sr-only">{t('part2.psa.q2')}</label>
               <input
+                id="field-psa"
                 type="number"
                 className="input-field"
                 placeholder={t('part2.psa.psaPlaceholder')}
@@ -187,10 +189,11 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                 );
               })()}
 
-              <div className="question-subtext" style={{ marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600 }}>
-                Prostate Volume (mL) (optional)
-              </div>
+              <label htmlFor="field-prostate-volume" style={{ display: 'block', marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600 }}>
+                Prostate Volume (mL) <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional — from MRI or ultrasound report)</span>
+              </label>
               <input
+                id="field-prostate-volume"
                 type="number"
                 className="input-field"
                 placeholder="e.g. 30"
@@ -257,7 +260,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                       </button>
                     ))}
                   </div>
-                  <div className="question-note" style={{ marginTop: '8px', fontSize: '0.75rem', color: '#F39C12' }}>
+                  <div className="question-note" style={{ marginTop: '8px', fontSize: '0.75rem', color: '#92400e' }}> {/* darkened from #F39C12 for WCAG AA contrast */}
                     {t('part2.psa.q4Note')}
                   </div>
                 </div>
@@ -349,13 +352,15 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                           </button>
                         </div>
                       )}
-                      <div className="pirads-grid">
+                      <div className="pirads-grid" role="radiogroup" aria-label={`PI-RADS score for lesion ${idx + 1}`}>
                         {PIRADS_OPTIONS.map(opt => (
                           <button
                             key={opt.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={lesionVal === opt.value}
                             className={`pirads-btn ${lesionVal === opt.value ? 'selected' : ''}`}
                             aria-label={`PI-RADS ${opt.value}: ${opt.desc}`}
-                            aria-pressed={lesionVal === opt.value}
                             onClick={() => {
                               const next = [...lesions];
                               next[idx] = opt.value;

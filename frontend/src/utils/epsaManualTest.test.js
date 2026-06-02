@@ -120,10 +120,15 @@ describe('ePSA Part 1 — Clinical test patients', () => {
     expect(r.psaRecommendReason).toBe('age_guideline_50_69');
   });
 
-  it('Age 47 average-risk gets baseline PSA recommendation', () => {
+  it('Age 47 average-risk zero-score: model defers Conditional Grade B offer', () => {
+    // AUA/SUO 2026 Statement 4 (Conditional, Grade B) baseline PSA offer at 45–49.
+    // Engine design (Step 1.5): when model is CONFIDENTLY against (tight CI below threshold),
+    // the conditional guideline defers to the model. A zero-risk 47-year-old returns false.
+    // High-risk anchors (Black, BRCA, FH) activate Steps 3/4 which always override.
     const r = calculateDynamicEPsa({ age: 47, race: 'white', bmi: 22, ipss: [0,0,0,0,0,0,0], shim: [5,5,5,5,5], exercise: 0, familyHistory: 0, comorbidityScore: 0 });
-    expect(r.recommendPSA).toBe(true);
-    expect(r.psaRecommendReason).toBe('baseline_psa_45_50');
+    expect(r.recommendPSA).toBe(false);
+    // reason is null (no affirmative reason assigned when model is confident against)
+    expect(r.psaRecommendReason).toBeNull();
   });
 
   it('Family history + age 45 → PSA recommended (family_history_override)', () => {

@@ -1,14 +1,15 @@
 /**
- * REDCap submission for Clinical Mode.
+ * REDCap submission for Clinical Mode via Cloud Function.
  * Fields match redcap_data_dictionary_clinical_mode.csv exactly.
  *
- * Env vars:
- *   VITE_REDCAP_API_URL   — e.g. https://redcap.mountsinai.org/api/
- *   VITE_REDCAP_API_TOKEN — project-specific token
+ * SECURITY: The REDCap API token must NEVER appear in frontend code or VITE_* env vars.
+ * All REDCap calls are proxied through the `submitRedcap` Cloud Function which holds
+ * the token in Firebase Functions secrets (firebase functions:secrets:set REDCAP_TOKEN).
+ * Only non-sensitive record data is sent to the Cloud Function; the token never
+ * reaches the browser.
  */
 
-const REDCAP_URL   = import.meta.env.VITE_REDCAP_API_URL;
-const REDCAP_TOKEN = import.meta.env.VITE_REDCAP_API_TOKEN;
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 /**
  * Build a record matching the clinical mode instrument.
@@ -59,35 +60,19 @@ function buildClinicalRecord(formData) {
 }
 
 /**
- * Submit a Clinical Mode record to REDCap.
+ * Submit a Clinical Mode record to REDCap via Cloud Function.
  * Returns { success: true } or { success: false, error: string }.
  */
 export async function submitToRedcap(formData) {
-  if (!REDCAP_URL || !REDCAP_TOKEN) {
-    console.warn('REDCap env vars not set — skipping submission.');
-    return { success: false, error: 'REDCap not configured' };
-  }
-
   const record = buildClinicalRecord(formData);
-  const body = new URLSearchParams({
-    token:         REDCAP_TOKEN,
-    content:       'record',
-    format:        'json',
-    type:          'flat',
-    data:          JSON.stringify([record]),
-    returnContent: 'ids',
-  });
 
   try {
-    const res = await fetch(REDCAP_URL, { method: 'POST', body });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('REDCap error:', res.status, text);
-      return { success: false, error: `HTTP ${res.status}` };
-    }
+    const functions = getFunctions();
+    const submitRedcap = httpsCallable(functions, 'submitRedcap');
+    await submitRedcap({ record });
     return { success: true };
   } catch (err) {
     console.error('REDCap submit failed:', err);
-    return { success: false, error: err.message };
+    return { success: false, error: err?.message || 'Submission failed' };
   }
 }
