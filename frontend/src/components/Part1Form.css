@@ -291,7 +291,7 @@
   text-align: center;
   line-height: 1.35;
   transition: all 0.15s ease;
-  min-height: 2.75rem;
+  min-height: 3rem; /* 48px — WCAG 2.1 AA touch target minimum */
 }
 
 .option-btn:hover {
