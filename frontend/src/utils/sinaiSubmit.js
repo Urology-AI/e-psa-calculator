@@ -99,24 +99,26 @@ export function buildSinaiPayload({
 
 // ─── REDCap CSV builder (mirrors backend/src/sinaiCohort.ts mapper) ────────
 
-function mapBrcaStatus(val) {
-  if (!val) return undefined;
-  if (val === 'unknown') return 'unknown';
-  if (val === 'none') return 'no';
-  return 'yes';
-}
-
 function mapDietPattern(val) {
   if (!val) return undefined;
   return val.replace(/-/g, '_');
 }
 
-function inferPathwayMode(stored, s2) {
-  if (stored) return stored;
-  if (!s2) return 'pre_psa';
-  if (s2.knowPirads && s2.pirads && s2.pirads !== '0') return 'post_mri';
-  if (s2.knowPsa && s2.psa) return 'post_psa';
-  return 'pre_psa';
+// Normalise chemical_exposure to CSV codings:
+//   agent_orange | nine_eleven | other_chemical | none | unknown
+function mapChemicalExposure(val) {
+  if (!val || val === 'no') return 'none';
+  if (val === 'wtc_911') return 'nine_eleven';
+  // clinical mode sends 'yes' (simple form) → treat as other_chemical
+  if (val === 'yes') return 'other_chemical';
+  return val;
+}
+
+// genetic_risk: yes | no | unknown
+function mapGeneticRisk(val) {
+  if (!val || val === 'unknown') return 'unknown';
+  if (val === 'none' || val === 'no') return 'no';
+  return 'yes';
 }
 
 /**
@@ -127,85 +129,56 @@ function inferPathwayMode(stored, s2) {
 export function buildRedcapRecord(recordId, payload) {
   const s1 = payload.step1 || {};
   const s2 = payload.step2 || {};
-  const r1 = payload.result || {};
   const ipss = s1.ipss || [];
   const shim = s1.shim || [];
-
-  const pathwayMode = inferPathwayMode(payload.pathwayMode, payload.step2);
 
   const psaRaw = s2.psa ? parseFloat(s2.psa) : undefined;
   const isOn5ari =
     s2.onHormonalTherapy === true &&
     (s2.hormonalTherapyType === 'finasteride' || s2.hormonalTherapyType === 'dutasteride');
-  const psaAdjusted = psaRaw !== undefined && isOn5ari ? psaRaw * 2 : psaRaw;
-
-  const prostateVol = s2.prostateVolume ? parseFloat(String(s2.prostateVolume)) : undefined;
-  const effectivePsa = psaAdjusted ?? psaRaw;
-  const psadValue =
-    prostateVol !== undefined && effectivePsa !== undefined && prostateVol > 0
-      ? parseFloat((effectivePsa / prostateVol).toFixed(3))
-      : undefined;
-  const psadFlag = psadValue !== undefined ? (psadValue > 0.177 ? 1 : 0) : undefined;
 
   const record = {
     record_id: recordId,
-    pathway_mode: pathwayMode,
-    data_source: 'sinai_clinic',
 
-    age: s1.age,
+    // Demographics
+    age:  s1.age,
     race: s1.race,
 
-    family_history:
-      s1.familyHistory !== undefined ? (s1.familyHistory > 0 ? 1 : 0) : undefined,
-    family_history_degree: s1.familyHistory,
-    inflammation_hx: s1.inflammationHistory,
-    brca_status: mapBrcaStatus(s1.brcaStatus),
+    // Family & genetic risk
+    family_history:  s1.familyHistory,          // 0 | 1 | 2 | unknown
+    inflammation_hx: s1.inflammationHistory,    // 0 | 1
+    genetic_risk:    mapGeneticRisk(s1.brcaStatus), // yes | no | unknown
 
-    height_unit: s1.heightUnit,
-    height_ft: s1.heightFt ?? undefined,
-    height_in: s1.heightIn ?? undefined,
-    height_cm: s1.heightCm ?? undefined,
-    weight_unit: s1.weightUnit,
+    // Body — raw height/weight; REDCap calculates BMI
+    height_ft:  s1.heightFt  ?? undefined,
+    height_in:  s1.heightIn  ?? undefined,
+    height_cm:  s1.heightCm  ?? undefined,
     weight_lbs: s1.weightUnit === 'lbs' ? s1.weight : undefined,
-    weight_kg:
-      s1.weightUnit === 'kg'
-        ? s1.weight
-        : s1.weightKg ?? undefined,
-    bmi: s1.bmi,
+    weight_kg:  s1.weightUnit === 'kg'  ? s1.weight : (s1.weightKg ?? undefined),
 
-    exercise: s1.exercise,
-    smoking: s1.smoking,
-    chemical_exposure: s1.chemicalExposure,
+    // Lifestyle
+    exercise:         s1.exercise,
+    smoking:          s1.smoking,
+    chemical_exposure: mapChemicalExposure(s1.chemicalExposure),
+    diet_pattern:     mapDietPattern(s1.dietPattern),
+    comorbidities:    s1.comorbidityScore,       // 0 | 1 | 2
 
-    diet_pattern: mapDietPattern(s1.dietPattern),
-    hypertension: s1.hypertension,
-    hyperlipidemia: s1.hyperlipidemia,
-    cad: s1.coronaryArteryDisease,
-    diabetes: s1.diabetes,
-    comorbidity_score: s1.comorbidityScore,
+    // IPSS — named fields per CSV; blank when clinical mode (only QoL collected)
+    incomplete_emptying: ipss[0],
+    frequency:           ipss[1],
+    intermittency:       ipss[2],
+    urgency:             ipss[3],
+    weak_stream:         ipss[4],
+    straining:           ipss[5],
+    nocturia:            ipss[6],
+    quality_of_life:     s1.ipssQol,
 
-    ipss_1: ipss[0],
-    ipss_2: ipss[1],
-    ipss_3: ipss[2],
-    ipss_4: ipss[3],
-    ipss_5: ipss[4],
-    ipss_6: ipss[5],
-    ipss_7: ipss[6],
-    ipss_total: ipss.length > 0 ? ipss.reduce((a, b) => a + b, 0) : undefined,
-
-    shim_1: shim[0],
-    shim_2: shim[1],
-    shim_3: shim[2],
-    shim_4: shim[3],
-    shim_5: shim[4],
-    shim_total: shim.length > 0 ? shim.reduce((a, b) => a + b, 0) : undefined,
-
-    part1_score: r1.score,
-    part1_risk: r1.risk,
-    part1_score_range: r1.scoreRange,
-    recommend_psa:
-      r1.risk !== undefined ? (r1.risk === 'PSA_RECOMMENDED' ? 1 : 0) : undefined,
-    part1_model_ver: r1.modelVersion,
+    // SHIM — named fields per CSV; only erection_confidence filled by clinical mode
+    erection_confidence:  shim[0],
+    erection_penetration: shim[1],
+    maintain_erection:    shim[2],
+    complete_erection:    shim[3],
+    satisfactory:         shim[4],
   };
 
   if (payload.step2) {
@@ -215,14 +188,10 @@ export function buildRedcapRecord(recordId, payload) {
       s2.hormonalTherapyType && s2.hormonalTherapyType !== ''
         ? s2.hormonalTherapyType
         : undefined;
-    record.psa_adjusted = isOn5ari ? psaAdjusted : undefined;
-    record.psa_adjusted_flag = isOn5ari ? 1 : 0;
-    record.pirads = s2.pirads ? parseInt(s2.pirads, 10) : undefined;
-    record.prostate_volume = prostateVol;
-    record.psad_value = psadValue;
-    record.psad_flag = psadFlag;
-    record.part2_risk_cat = payload.finalCategory;
-    record.part2_total_pts = payload.finalScore;
+    record.pirads          = s2.pirads ? parseInt(s2.pirads, 10) : undefined;
+    record.prostate_volume = s2.prostateVolume
+      ? parseFloat(String(s2.prostateVolume))
+      : undefined;
   }
 
   // Drop undefined / null / empty fields — REDCap import is happier without them
