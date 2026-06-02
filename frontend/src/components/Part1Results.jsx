@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+// Shared result components — canonical source; local definitions below kept for
+// backwards compatibility until a full merge is completed.
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
 import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';

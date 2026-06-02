@@ -1941,3 +1941,57 @@ export const deleteUserData = functions.https.onCall(async (_data: unknown, cont
     userDeleted: true,
   };
 });
+
+// ============================================
+// CLOUD FUNCTION: Submit to REDCap
+// ============================================
+// The REDCap API token is stored as a Firebase Functions secret.
+// Deploy with: firebase functions:secrets:set REDCAP_TOKEN
+// Then set REDCAP_API_URL in environment config.
+//
+// To deploy the secret: firebase functions:secrets:set REDCAP_TOKEN
+// To set the URL: firebase functions:config:set redcap.url="https://redcap.mountsinai.org/api/"
+export const submitRedcap = functions.https.onCall(async (data: { record?: Record<string, unknown> }, context: functions.https.CallableContext) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
+  }
+
+  const record = data?.record;
+  if (!record || typeof record !== 'object') {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing record payload');
+  }
+
+  // Token and URL come from Firebase Functions secrets / environment config — never from client
+  const token = process.env.REDCAP_TOKEN;
+  const url = process.env.REDCAP_API_URL;
+
+  if (!token || !url) {
+    console.warn('REDCap not configured — REDCAP_TOKEN or REDCAP_API_URL missing');
+    throw new functions.https.HttpsError('failed-precondition', 'REDCap not configured on server');
+  }
+
+  const body = new URLSearchParams({
+    token,
+    content: 'record',
+    format: 'json',
+    type: 'flat',
+    data: JSON.stringify([record]),
+    returnContent: 'ids',
+  });
+
+  const fetch = (await import('node-fetch')).default;
+  const res = await (fetch as (url: string, init: object) => Promise<{ok: boolean, status: number, text: () => Promise<string>}>)(url, {
+    method: 'POST',
+    body,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('REDCap error:', res.status, text);
+    throw new functions.https.HttpsError('internal', `REDCap returned HTTP ${res.status}`);
+  }
+
+  await logAudit('REDCAP_SUBMIT', context.auth.uid, 'research', String(record.record_id ?? 'unknown'));
+  return { success: true };
+});

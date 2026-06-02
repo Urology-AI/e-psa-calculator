@@ -557,7 +557,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.race.helper" />
-          <div className="option-grid c2">
+          <div className="option-grid c2" role="radiogroup" aria-label={t('part1.fields.race.title')}>
             {[
               { value: 'white', label: t('part1.race.white') },
               { value: 'black', label: t('part1.race.black') },
@@ -568,6 +568,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             ].map(opt => (
               <button
                 key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={localData.race === opt.value}
                 className={`option-btn ${localData.race === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('race', opt.value)}
               >
@@ -593,7 +596,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
-          <div className="option-grid c4">
+          <div className="option-grid c4" role="radiogroup" aria-label={t('part1.fields.familyHistory.title')}>
             {[
               { value: 0, label: t('quickEntry.family.none') },
               { value: 1, label: t('quickEntry.family.one') },
@@ -602,6 +605,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             ].map(opt => (
               <button
                 key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={localData.familyHistory === opt.value}
                 className={`option-btn ${localData.familyHistory === opt.value ? 'selected' : ''}`}
                 onClick={() => updateField('familyHistory', opt.value)}
               >
@@ -810,15 +816,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.exercise.helper" />
-          <div className="option-grid c3">
+          <div className="option-grid c3" role="radiogroup" aria-label={t('part1.fields.exercise.title')}>
             {[
               { value: 0, label: t('part1.step3.exercise.regular'), Icon: Dumbbell },
               { value: 1, label: t('part1.step3.exercise.some'), Icon: Activity },
               { value: 2, label: t('part1.step3.exercise.none'), Icon: Sofa },
             ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`} onClick={() => updateField('exercise', opt.value)}>
+              <button key={opt.value} type="button" role="radio" aria-checked={localData.exercise === opt.value} className={`option-btn ${localData.exercise === opt.value ? 'selected' : ''}`} onClick={() => updateField('exercise', opt.value)}>
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <opt.Icon size={18} />
+                  <opt.Icon size={18} aria-hidden="true" />
                   {opt.label}
                 </span>
               </button>
