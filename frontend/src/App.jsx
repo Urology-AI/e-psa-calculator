@@ -37,7 +37,7 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
-import QuickEpsaFlow from './components/QuickEpsaFlow.jsx';
+import ClinicalModeFlow from './components/ClinicalModeFlow.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -229,11 +229,19 @@ function App() {
               familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
               weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
               exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-              comorbidityScore: null, hypertension: null, hyperlipidemia: null,
+              inflammationHistory: 0, comorbidityScore: null, hypertension: null, hyperlipidemia: null,
               coronaryArteryDisease: null, diabetes: null,
             };
-            setPreData({ ...defaultShape, ...formData });
-            setPreResult(engineResult);
+            // Clear proxy IPSS/SHIM — user fills those fresh in the full form.
+            // All other fields (demographics, lifestyle, BRCA, etc.) transfer seamlessly.
+            setPreData({
+              ...defaultShape,
+              ...formData,
+              ipss: Array(7).fill(null),
+              ipssQol: null,
+              shim: Array(5).fill(null),
+            });
+            setPreResult(null);
             setPathwayMode('pre_psa');
             setStage('pre');
             setCurrentStep(3);
@@ -1983,7 +1991,7 @@ function App() {
 
   // Bus mode: self-contained Quick ePSA flow, no existing state touched
   if (new URLSearchParams(window.location.search).get('mode') === 'bus') {
-    return <QuickEpsaFlow />;
+    return <ClinicalModeFlow />;
   }
 
   return (

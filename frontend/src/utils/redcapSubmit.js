@@ -1,70 +1,70 @@
 /**
- * REDCap API submission via Cloud Function.
+ * REDCap submission for Clinical Mode via Cloud Function.
+ * Fields match redcap_data_dictionary_clinical_mode.csv exactly.
  *
  * SECURITY: The REDCap API token must NEVER appear in frontend code or VITE_* env vars.
  * All REDCap calls are proxied through the `submitRedcap` Cloud Function which holds
  * the token in Firebase Functions secrets (firebase functions:secrets:set REDCAP_TOKEN).
- *
- * Only non-sensitive record data is sent to the Cloud Function; the token is never
- * transmitted to or from the browser.
+ * Only non-sensitive record data is sent to the Cloud Function; the token never
+ * reaches the browser.
  */
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 /**
- * Map Quick ePSA answers + engine result → REDCap flat record.
- * All field names must match your REDCap instrument data dictionary exactly.
+ * Build a record matching the clinical mode instrument.
+ * formData is the shape produced by ClinicalModeFlow handleSubmit.
  */
-function buildRecord(answers, engineResult, consentTimestamp) {
-  const { epsaTierKey, epsaTierLabel, recommendPSA, psaRecommendMessage,
-          calculationDetails, score } = engineResult;
+function buildClinicalRecord(formData) {
+  // chemical_exposure in form: no | agent_orange | wtc_911 | other_chemical
+  // CSV only has: no | yes | unknown
+  const chemRaw = formData.chemicalExposure;
+  const chemical_exposure =
+    chemRaw === 'no' ? 'no'
+    : chemRaw === 'unknown' ? 'unknown'
+    : chemRaw ? 'yes'
+    : undefined;
 
-  // REDCap requires a unique record_id per submission.
-  // Using timestamp + random suffix avoids collisions without PII.
-  const record_id = `bus_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const record = {
+    record_id: `cm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
 
-  return {
-    record_id,
+    // patient_info
+    age:  formData.age,
+    race: formData.race,
 
-    // Consent
-    qepsa_consent: '1',
-    qepsa_consent_timestamp: consentTimestamp,
-    qepsa_study_id: 'STUDY-14-00050',
+    // clinical_inputs — Family & Genetic Risk
+    family_history: formData.familyHistory,   // 0 | 1 | 2 | unknown
+    genetic_risk:   formData.brcaStatus,      // yes | no | unknown
 
-    // Demographics
-    qepsa_age:  answers.age,
-    qepsa_race: answers.race,
+    // clinical_inputs — Body
+    bmi: formData.bmi != null ? parseFloat(String(formData.bmi)).toFixed(1) : undefined,
 
-    // Clinical inputs
-    qepsa_family_history: answers.familyHistory,
-    qepsa_qol_score:      answers.qol,
-    qepsa_shim_q1:        answers.shim,
-    qepsa_exercise:       answers.exercise,
-    qepsa_smoking:        answers.smoking,
-    qepsa_diet:           answers.diet,
-    qepsa_bmi:            answers.bmi != null ? parseFloat(answers.bmi).toFixed(1) : '',
+    // clinical_inputs — Lifestyle
+    exercise:         formData.exercise,
+    smoking:          formData.smoking,
+    chemical_exposure,
+    diet_pattern:     formData.dietPattern,
+    comorbidities:    formData.comorbidityScore ?? 0,  // 0 | 1 | 2
 
-    // Engine outputs
-    qepsa_tier_key:       epsaTierKey,
-    qepsa_tier_label:     epsaTierLabel,
-    qepsa_recommend_psa:  recommendPSA ? '1' : '0',
-    qepsa_psa_message:    psaRecommendMessage || '',
-    qepsa_raw_score:      calculationDetails?.rawScore ?? '',
-    qepsa_score_pct:      score ?? '',
-
-    // Metadata
-    qepsa_submitted_at:   new Date().toISOString(),
-    qepsa_source:         'mobile_bus',
+    // symptom_scores
+    ipss_qol:             formData.ipssQol,   // 0–6  (IPSS Q8)
+    erection_confidence:  formData.shim?.[0], // 1–5  (SHIM Q1)
   };
+
+  // Drop undefined / null / empty
+  const clean = {};
+  for (const [k, v] of Object.entries(record)) {
+    if (v !== undefined && v !== null && v !== '') clean[k] = v;
+  }
+  return clean;
 }
 
 /**
- * Submit a Quick ePSA result to REDCap via Cloud Function.
+ * Submit a Clinical Mode record to REDCap via Cloud Function.
  * Returns { success: true } or { success: false, error: string }.
  */
-export async function submitToRedcap(answers, engineResult) {
-  const consentTimestamp = new Date().toISOString();
-  const record = buildRecord(answers, engineResult, consentTimestamp);
+export async function submitToRedcap(formData) {
+  const record = buildClinicalRecord(formData);
 
   try {
     const functions = getFunctions();
