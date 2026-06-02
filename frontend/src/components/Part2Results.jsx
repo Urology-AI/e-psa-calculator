@@ -810,7 +810,7 @@ const Part2Results = ({
                   <li><strong>Life expectancy</strong> — must be assessed first. If &lt;10 years, discontinuing screening is recommended regardless of PSA.</li>
                   <li><strong>Overdiagnosis risk</strong> — most prostate cancers are slow-growing; treatment side effects may outweigh benefit at this age.</li>
                   <li><strong>Patient values</strong> — priorities around cancer detection, quality of life, and treatment burden guide the decision.</li>
-                  <li><strong>Interval or stop?</strong> — if life expectancy ≥10 years, PSA level (threshold 6.5 ng/mL) guides continue vs. discontinue.</li>
+                  <li><strong>Interval or stop?</strong> — if life expectancy ≥10 years, PSA level (threshold 3.0 ng/mL) guides continue vs. discontinue (ERSPC Rotterdam: PSA &lt;3.0 ng/mL at age 70–74 associated with very low prostate cancer mortality risk).</li>
                 </ul>
               </>
             ) : (
@@ -930,6 +930,9 @@ const Part2Results = ({
         </p>
         <p className="detail-disclaimer">ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.</p>
         <p className="detail-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+        <div className="detail-notice-box" style={{ borderLeft: '3px solid #d97706', background: '#fffbeb', marginBottom: '0.75rem' }}>
+          <strong>Model Outcome Definition:</strong> This model was trained and validated to detect <strong>Grade Group ≥3</strong> (Gleason ≥4+3) prostate cancer. The AUA/SUO 2026 and NCCN 2026 standard definition of clinically significant prostate cancer is <strong>Grade Group ≥2</strong> (Gleason ≥3+4). Model performance for detecting Grade Group 2 has not been separately validated. Interpret results in the context of this limitation.
+        </div>
         <div className="detail-notice-box">
           <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
           <br /><br />

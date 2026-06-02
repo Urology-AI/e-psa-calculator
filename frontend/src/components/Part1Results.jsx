@@ -1103,6 +1103,9 @@ const Part1Results = ({
       <CollapsibleSection title={t('part1Results.sectionDisclaimer')} defaultOpen={true}>
         <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
         <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
+        <div className="detail-notice-box" style={{ borderLeft: '3px solid #d97706', background: '#fffbeb', marginBottom: '0.75rem' }}>
+          <strong>Model Outcome Definition:</strong> This model was trained and validated to detect <strong>Grade Group ≥3</strong> (Gleason score ≥4+3) prostate cancer in a referral cohort (N=94, 23 events). The AUA/SUO 2026, NCCN 2026, and ERSPC define clinically significant prostate cancer (csPCa) as <strong>Grade Group ≥2</strong> (Gleason ≥3+4). Model performance for detecting Grade Group 2 specifically has not been separately validated. Results should be interpreted in the context of this limitation.
+        </div>
         <div className="detail-notice-box">
           <strong>Clinical Deployment Notice:</strong> This application uses Google Firebase, which is HIPAA-eligible only under an executed Business Associate Agreement (BAA). Until a BAA is confirmed, do not enter Protected Health Information (PHI) in a clinical context. Institutional or clinical deployment requires a signed BAA with the platform provider.
           <br /><br />
