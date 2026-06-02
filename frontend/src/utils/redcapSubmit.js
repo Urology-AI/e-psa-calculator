@@ -1,5 +1,5 @@
 /**
- * REDCap API submission for Quick ePSA bus mode.
+ * REDCap API submission for Clinical ePSA mode.
  * Env vars required:
  *   VITE_REDCAP_API_URL   — e.g. https://redcap.mountsinai.org/api/
  *   VITE_REDCAP_API_TOKEN — project-specific API token
@@ -12,7 +12,7 @@ const REDCAP_URL   = import.meta.env.VITE_REDCAP_API_URL;
 const REDCAP_TOKEN = import.meta.env.VITE_REDCAP_API_TOKEN;
 
 /**
- * Map Quick ePSA answers + engine result → REDCap flat record.
+ * Map Clinical ePSA answers + engine result → REDCap flat record.
  * All field names are placeholders — replace with your instrument's variable names.
  */
 function buildRecord(answers, engineResult, consentTimestamp) {
@@ -21,7 +21,7 @@ function buildRecord(answers, engineResult, consentTimestamp) {
 
   // REDCap requires a unique record_id per submission.
   // Using timestamp + random suffix avoids collisions without PII.
-  const record_id = `bus_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const record_id = `clinical_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
   return {
     record_id,
@@ -54,12 +54,12 @@ function buildRecord(answers, engineResult, consentTimestamp) {
 
     // Metadata
     qepsa_submitted_at:   new Date().toISOString(),
-    qepsa_source:         'mobile_bus',
+    qepsa_source:         'mobile_clinical',
   };
 }
 
 /**
- * Submit a Quick ePSA result to REDCap.
+ * Submit a Clinical ePSA result to REDCap.
  * Returns { success: true } or { success: false, error: string }.
  */
 export async function submitToRedcap(answers, engineResult) {
