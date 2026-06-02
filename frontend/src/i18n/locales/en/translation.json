@@ -1178,6 +1178,8 @@
     "usingDefault": "Default",
     "resetDefaults": "Reset to defaults",
     "requiredMark": "*",
+    "iDontKnow": "I don't know my IPSS",
+    "iDontKnowHide": "Use IPSS number instead",
     "ageLabel": "Age (18-120)",
     "agePlaceholder": "e.g., 55",
     "raceLabel": "Race / Ethnicity",
@@ -1201,16 +1203,13 @@
       "twoPlus": "2+ relatives",
       "unknown": "Unknown"
     },
-    "ipssQolLabel": "How would you feel if your urinary symptoms stayed the same? (IPSS-QoL)",
-    "ipssQolPlaceholder": "Select…",
-    "shimQ1Label": "Erection confidence (SHIM Q1)",
-    "shimQ1": {
-      "veryLow": "Very low",
-      "low": "Low",
-      "moderate": "Moderate",
-      "high": "High",
-      "veryHigh": "Very high"
-    },
+    "ipssLabel": "IPSS total (0-35)",
+    "ipssPlaceholder": "e.g., 4",
+    "shimLabel": "SHIM total (0-25)",
+    "shimPlaceholder": "e.g., 25",
+    "ipssQolLabel": "Don't know your IPSS? Pick how you'd feel if your urinary symptoms stayed the same (IPSS-QoL)",
+    "ipssQolPlaceholder": "Skip — I'll use the IPSS total above",
+    "ipssQolHint": "Only used if you leave the IPSS total above blank. A rough proxy for urinary bother.",
     "ipssQol": {
       "delighted": "Delighted",
       "pleased": "Pleased",
