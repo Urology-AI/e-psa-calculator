@@ -9,8 +9,8 @@ import { ZapIcon, UploadIcon, RotateCcwIcon, ChevronDownIcon, AlertCircleIcon, A
 
 const DEFAULTS = {
   bmi: '26',
-  ipssTotal: '4',
-  shimTotal: '22',
+  ipssQol: '',
+  shimQ1: 4,
   familyHistory: 0,
   exercise: 0,
   comorbidityScore: 0,
@@ -79,15 +79,13 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [useQolFallback, setUseQolFallback] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [age, setAge] = useState('');
   const [race, setRace] = useState('');
   const [bmi, setBmi] = useState(DEFAULTS.bmi);
-  const [ipssTotal, setIpssTotal] = useState(DEFAULTS.ipssTotal);
-  const [shimTotal, setShimTotal] = useState(DEFAULTS.shimTotal);
-  const [ipssQol, setIpssQol] = useState('');
+  const [ipssQol, setIpssQol] = useState(DEFAULTS.ipssQol);
+  const [shimQ1, setShimQ1] = useState(DEFAULTS.shimQ1);
   const [familyHistory, setFamilyHistory] = useState(DEFAULTS.familyHistory);
   const [exercise, setExercise] = useState(DEFAULTS.exercise);
   const [comorbidityScore, setComorbidityScore] = useState(DEFAULTS.comorbidityScore);
@@ -100,22 +98,26 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   const formData = useMemo(() => {
     const ageNum = age === '' ? '' : Number(age);
     const bmiNum = bmi === '' ? '' : Number(bmi);
-    let ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
-    const shimTotalNum = shimTotal === '' ? '' : Number(shimTotal);
 
-    if ((ipssTotalNum === '' || !Number.isFinite(ipssTotalNum)) && ipssQol !== '') {
+    // IPSS: scale QoL (0–6) to estimated total (0–30), distribute across 7 questions.
+    let ipssTotalNum = '';
+    if (ipssQol !== '') {
       const qol = Number(ipssQol);
       if (Number.isFinite(qol) && qol >= 0 && qol <= 6) {
         ipssTotalNum = Math.round((qol / 6) * 30);
       }
     }
 
+    // SHIM: scale Q1 confidence (1–5) to estimated total (5–25), distribute across 5 questions.
+    const shimQ1Num = Number(shimQ1);
+    const shimTotalEstimate = Number.isFinite(shimQ1Num) ? shimQ1Num * 5 : null;
+
     return {
       age: ageNum,
       race: race || null,
       bmi: bmiNum,
       ipss: distributeTotalToArray(ipssTotalNum, 7, 5),
-      shim: distributeTotalToArray(shimTotalNum, 5, 5),
+      shim: distributeTotalToArray(shimTotalEstimate, 5, 5),
       exercise,
       familyHistory,
       smoking,
@@ -129,15 +131,14 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       coronaryArteryDisease: null,
       diabetes: null,
     };
-  }, [age, bmi, ipssTotal, ipssQol, shimTotal, race, familyHistory,
+  }, [age, bmi, ipssQol, shimQ1, race, familyHistory,
       exercise, comorbidityScore, smoking, dietPattern, brcaStatus,
       inflammationHistory, chemicalExposure]);
 
   const resetDefaults = () => {
     setBmi(DEFAULTS.bmi);
-    setIpssTotal(DEFAULTS.ipssTotal);
-    setShimTotal(DEFAULTS.shimTotal);
-    setIpssQol('');
+    setIpssQol(DEFAULTS.ipssQol);
+    setShimQ1(DEFAULTS.shimQ1);
     setFamilyHistory(DEFAULTS.familyHistory);
     setExercise(DEFAULTS.exercise);
     setComorbidityScore(DEFAULTS.comorbidityScore);
@@ -146,7 +147,6 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
     setBrcaStatus(DEFAULTS.brcaStatus);
     setInflammationHistory(DEFAULTS.inflammationHistory);
     setChemicalExposure(DEFAULTS.chemicalExposure);
-    setUseQolFallback(false);
   };
 
   const handlePrefillFromJsonFile = async (file) => {
@@ -174,14 +174,27 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       const bmiNum = num(imported.bmi);
       const ipssArray = Array.isArray(imported.ipss) ? imported.ipss : null;
       const shimArray = Array.isArray(imported.shim) ? imported.shim : null;
-      const ipssTotalNum = ipssArray
-        ? ipssArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0)
-        : Number(imported.ipssTotal);
-      const shimTotalNum = shimArray
-        ? shimArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0)
-        : Number(imported.shimTotal);
-      const safeIpss = Number.isFinite(ipssTotalNum) ? ipssTotalNum : '';
-      const safeShim = Number.isFinite(shimTotalNum) ? shimTotalNum : '';
+
+      // IPSS QoL: use directly if present, else estimate from total.
+      let importedIpssQol = imported.ipssQol ?? imported.quality_of_life ?? '';
+      if ((importedIpssQol === '' || importedIpssQol === null || importedIpssQol === undefined) && (imported.ipssTotal !== undefined || ipssArray)) {
+        const ipssTotalNum = ipssArray
+          ? ipssArray.reduce((s, v) => s + (v === null || v === undefined || v === '' ? 0 : Number(v) || 0), 0)
+          : Number(imported.ipssTotal);
+        if (Number.isFinite(ipssTotalNum)) importedIpssQol = String(Math.round((ipssTotalNum / 30) * 6));
+      }
+      const safeIpssQol = (importedIpssQol !== '' && importedIpssQol !== null && importedIpssQol !== undefined) ? String(importedIpssQol) : '';
+
+      // SHIM Q1: use directly if present, else derive from array Q1 or scale from total.
+      let importedShimQ1 = imported.shimQ1 ?? imported.erection_confidence ?? null;
+      if ((importedShimQ1 === null || importedShimQ1 === undefined) && shimArray && shimArray[0] != null) {
+        importedShimQ1 = Number(shimArray[0]);
+      }
+      if ((importedShimQ1 === null || importedShimQ1 === undefined) && imported.shimTotal !== undefined) {
+        const shimTotalNum = Number(imported.shimTotal);
+        if (Number.isFinite(shimTotalNum)) importedShimQ1 = Math.max(1, Math.min(5, Math.round(shimTotalNum / 5)));
+      }
+      const safeShimQ1 = Number.isFinite(Number(importedShimQ1)) ? Math.max(1, Math.min(5, Number(importedShimQ1))) : DEFAULTS.shimQ1;
       const fhRaw = imported.familyHistory;
       const familyHistoryNum =
         fhRaw === 'unknown' ? 'unknown'
@@ -221,8 +234,8 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       setAge(ageNum === '' ? '' : String(ageNum));
       setRace(raceStr);
       setBmi(bmiNum === '' ? '' : String(bmiNum));
-      setIpssTotal(safeIpss === '' ? '' : String(safeIpss));
-      setShimTotal(safeShim === '' ? '' : String(safeShim));
+      setIpssQol(safeIpssQol);
+      setShimQ1(safeShimQ1);
       setFamilyHistory(familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : DEFAULTS.familyHistory);
       setExercise(Number.isFinite(exerciseNum) ? exerciseNum : DEFAULTS.exercise);
       setComorbidityScore(comorbidityNum);
@@ -232,9 +245,11 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       setInflammationHistory(mappedInflammation);
       setChemicalExposure(mappedChem);
 
+      const importedIpssTotalNum = safeIpssQol !== '' ? Math.round((Number(safeIpssQol) / 6) * 30) : '';
+      const importedShimTotal = safeShimQ1 * 5;
       const localFormData = {
         age: ageNum === '' ? '' : ageNum, race: raceStr || null, bmi: bmiNum === '' ? '' : bmiNum,
-        ipss: distributeTotalToArray(safeIpss, 7, 5), shim: distributeTotalToArray(safeShim, 5, 5),
+        ipss: distributeTotalToArray(importedIpssTotalNum, 7, 5), shim: distributeTotalToArray(importedShimTotal, 5, 5),
         exercise: Number.isFinite(exerciseNum) ? exerciseNum : DEFAULTS.exercise,
         familyHistory: familyHistoryNum === 'unknown' ? 'unknown' : Number.isFinite(familyHistoryNum) ? familyHistoryNum : DEFAULTS.familyHistory,
         smoking: Number.isFinite(smokingNum) ? smokingNum : DEFAULTS.smoking,
@@ -243,12 +258,8 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
         hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
       };
 
-      const extraErrors = [];
-      if (safeIpss !== '' && (!Number.isFinite(safeIpss) || safeIpss < 0 || safeIpss > 35)) extraErrors.push(t('quickEntry.errors.ipssRange'));
-      if (safeShim !== '' && (!Number.isFinite(safeShim) || safeShim < 0 || safeShim > 25)) extraErrors.push(t('quickEntry.errors.shimRange'));
-
       const validation = validateInputs(localFormData, calculatorConfig);
-      const mergedErrors = [...(validation.errors || []), ...extraErrors];
+      const mergedErrors = [...(validation.errors || [])];
       setWarnings(validation.warnings || []);
       setErrors(mergedErrors);
       if (mergedErrors.length > 0) { setPreResult(null); setShowResults(false); return; }
@@ -265,13 +276,8 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
   };
 
   const handleCalculate = () => {
-    const ipssTotalNum = ipssTotal === '' ? '' : Number(ipssTotal);
-    const shimTotalNum = shimTotal === '' ? '' : Number(shimTotal);
-    const extraErrors = [];
-    if (ipssTotalNum !== '' && (!Number.isFinite(ipssTotalNum) || ipssTotalNum < 0 || ipssTotalNum > 35)) extraErrors.push(t('quickEntry.errors.ipssRange'));
-    if (shimTotalNum !== '' && (!Number.isFinite(shimTotalNum) || shimTotalNum < 0 || shimTotalNum > 25)) extraErrors.push(t('quickEntry.errors.shimRange'));
     const validation = validateInputs(formData, calculatorConfig);
-    const mergedErrors = [...(validation.errors || []), ...extraErrors];
+    const mergedErrors = [...(validation.errors || [])];
     setErrors(mergedErrors);
     setWarnings(validation.warnings || []);
     if (mergedErrors.length > 0) { setPreResult(null); setShowResults(false); return; }
@@ -288,8 +294,8 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
 
   const isDefault = {
     bmi: String(bmi) === String(DEFAULTS.bmi),
-    ipss: String(ipssTotal) === String(DEFAULTS.ipssTotal),
-    shim: String(shimTotal) === String(DEFAULTS.shimTotal),
+    ipss: ipssQol === DEFAULTS.ipssQol,
+    shim: shimQ1 === DEFAULTS.shimQ1,
     family: String(familyHistory) === String(DEFAULTS.familyHistory),
     exercise: String(exercise) === String(DEFAULTS.exercise),
     comorbid: String(comorbidityScore) === String(DEFAULTS.comorbidityScore),
@@ -443,52 +449,34 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
           </div>
 
           <div className="qe-grid-2">
-            {!useQolFallback ? (
-              <FieldRow
-                label={t('part1.steps.ipss.sectionTitle')}
-                info={fieldReferences.ipss}
-                badge={isDefault.ipss ? defaultLabel : null}
-              >
-                <input
-                  className="qe-input" type="number"
-                  placeholder={t('part1.ipss.totalLabel')}
-                  min="0" max="35" step="1"
-                  value={ipssTotal} onChange={(e) => setIpssTotal(e.target.value)}
-                />
-                <button type="button" className="qe-link"
-                  onClick={() => { setIpssTotal(''); setUseQolFallback(true); }}>
-                  {t('quickEntry.iDontKnow')}
-                </button>
-              </FieldRow>
-            ) : (
-              <FieldRow label={t('quickEntry.ipssQolLabel')}>
-                <select className="qe-select" value={ipssQol} onChange={(e) => setIpssQol(e.target.value)}>
-                  <option value="">{t('quickEntry.ipssQolPlaceholder')}</option>
-                  <option value="0">0 — {t('quickEntry.ipssQol.delighted')}</option>
-                  <option value="1">1 — {t('quickEntry.ipssQol.pleased')}</option>
-                  <option value="2">2 — {t('quickEntry.ipssQol.mostlySatisfied')}</option>
-                  <option value="3">3 — {t('quickEntry.ipssQol.mixed')}</option>
-                  <option value="4">4 — {t('quickEntry.ipssQol.mostlyDissatisfied')}</option>
-                  <option value="5">5 — {t('quickEntry.ipssQol.unhappy')}</option>
-                  <option value="6">6 — {t('quickEntry.ipssQol.terrible')}</option>
-                </select>
-                <button type="button" className="qe-link"
-                  onClick={() => { setIpssQol(''); setUseQolFallback(false); setIpssTotal(DEFAULTS.ipssTotal); }}>
-                  {t('quickEntry.iDontKnowHide')}
-                </button>
-              </FieldRow>
-            )}
+            <FieldRow label={t('quickEntry.ipssQolLabel')}>
+              <select className="qe-select" value={ipssQol} onChange={(e) => setIpssQol(e.target.value)}>
+                <option value="">{t('quickEntry.ipssQolPlaceholder')}</option>
+                <option value="0">0 — {t('quickEntry.ipssQol.delighted')}</option>
+                <option value="1">1 — {t('quickEntry.ipssQol.pleased')}</option>
+                <option value="2">2 — {t('quickEntry.ipssQol.mostlySatisfied')}</option>
+                <option value="3">3 — {t('quickEntry.ipssQol.mixed')}</option>
+                <option value="4">4 — {t('quickEntry.ipssQol.mostlyDissatisfied')}</option>
+                <option value="5">5 — {t('quickEntry.ipssQol.unhappy')}</option>
+                <option value="6">6 — {t('quickEntry.ipssQol.terrible')}</option>
+              </select>
+            </FieldRow>
 
             <FieldRow
-              label={t('part1.fields.shim.title')}
-              info={fieldReferences.shim}
+              label={t('quickEntry.shimQ1Label')}
               badge={isDefault.shim ? defaultLabel : null}
             >
-              <input
-                className="qe-input" type="number"
-                placeholder={t('part1.shim.totalLabel')}
-                min="0" max="25" step="1"
-                value={shimTotal} onChange={(e) => setShimTotal(e.target.value)}
+              <Chips
+                ariaLabel={t('quickEntry.shimQ1Label')}
+                value={shimQ1}
+                onChange={(v) => setShimQ1(Number(v))}
+                options={[
+                  { value: 1, label: t('quickEntry.shimQ1.veryLow') },
+                  { value: 2, label: t('quickEntry.shimQ1.low') },
+                  { value: 3, label: t('quickEntry.shimQ1.moderate') },
+                  { value: 4, label: t('quickEntry.shimQ1.high') },
+                  { value: 5, label: t('quickEntry.shimQ1.veryHigh') },
+                ]}
               />
             </FieldRow>
           </div>
