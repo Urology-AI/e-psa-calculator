@@ -129,9 +129,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
 
   const [formErrors, setFormErrors] = useState([]);
   const [attemptedNext, setAttemptedNext] = useState(false);
-  const [ipssMode, setIpssMode] = useState('full');
-  const [ipssShortChoice, setIpssShortChoice] = useState(null);
-
   const sectionARef = useRef(null);
   const sectionBRef = useRef(null);
   const [activeSectionTab, setActiveSectionTab] = useState('A');
@@ -155,14 +152,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const scrollToSection = useCallback((ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
-
-  const applyIpssShort = (choice) => {
-    setIpssShortChoice(choice);
-    const perQ = choice === 'none' ? 0 : choice === 'mild' ? 1 : choice === 'moderate' ? 3 : choice === 'severe' ? 5 : null;
-    if (perQ != null) {
-      setLocalData(prev => ({ ...prev, ipss: Array(7).fill(perQ) }));
-    }
-  };
 
   useEffect(() => {
     const toInches = () => {
@@ -662,42 +651,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           {t('part1.ipss.note')}
         </div>
 
-        <div className="ipss-short-toggle" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <button type="button" className={`option-btn ${ipssMode === 'full' ? 'selected' : ''}`} style={{ flex: '1 1 200px', fontSize: '0.8125rem' }} onClick={() => { setIpssMode('full'); setIpssShortChoice(null); }}>
-            {t('part1.ipssShort.toggleFull')}
-          </button>
-          <button type="button" className={`option-btn ${ipssMode === 'short' ? 'selected' : ''}`} style={{ flex: '1 1 200px', fontSize: '0.8125rem' }} onClick={() => setIpssMode('short')}>
-            {t('part1.ipssShort.toggleShort')}
-          </button>
-          <button type="button" className="option-btn" style={{ flex: '1 1 200px', fontSize: '0.8125rem' }} onClick={() => { setIpssMode('short'); applyIpssShort('none'); }}>
-            {t('part1.ipssShort.skip')}
-          </button>
-        </div>
-
-        {ipssMode === 'short' && (
-          <div className="question-card" style={{ borderColor: ipssShortChoice ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-            <div className="question-header">
-              <div className="question-text">{t('part1.ipssShort.singleQuestionLabel')}</div>
-              {ipssShortChoice && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
-            </div>
-            <div className="question-body">
-              <div className="option-grid c2">
-                {[
-                  { value: 'none', label: t('part1.ipssShort.options.none') },
-                  { value: 'mild', label: t('part1.ipssShort.options.mild') },
-                  { value: 'moderate', label: t('part1.ipssShort.options.moderate') },
-                  { value: 'severe', label: t('part1.ipssShort.options.severe') },
-                ].map(opt => (
-                  <button key={opt.value} type="button" className={`option-btn ${ipssShortChoice === opt.value ? 'selected' : ''}`} onClick={() => applyIpssShort(opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {ipssMode === 'full' && ipssQuestions.map((q, index) => (
+        {ipssQuestions.map((q, index) => (
           <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
             <div className="question-header">
               <div className="question-number">{index + 1}</div>
@@ -716,11 +670,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </div>
           </div>
         ))}
-        {ipssMode === 'full' && (
-          <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
-            {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
-          </div>
-        )}
+        <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
+          {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
+        </div>
 
         {/* IPSS Q8 — Quality of Life (separate scale, not added to total) */}
         <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px', marginTop: '12px' }}>

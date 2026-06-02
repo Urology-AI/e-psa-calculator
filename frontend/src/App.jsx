@@ -201,15 +201,23 @@ function App() {
               familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
               weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
               exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-              comorbidityScore: null, hypertension: null, hyperlipidemia: null,
+              inflammationHistory: 0, comorbidityScore: null, hypertension: null, hyperlipidemia: null,
               coronaryArteryDisease: null, diabetes: null,
             };
-            setPreData({ ...defaultShape, ...formData });
-            setPreResult(engineResult);
+            // Clear proxy IPSS/SHIM — user fills those fresh in the full form.
+            // All other fields (demographics, lifestyle, BRCA, etc.) transfer seamlessly.
+            setPreData({
+              ...defaultShape,
+              ...formData,
+              ipss: Array(7).fill(null),
+              ipssQol: null,
+              shim: Array(5).fill(null),
+            });
+            setPreResult(null);
             setPathwayMode('pre_psa');
             setStage('pre');
-            setCurrentStep(3);
-            setPart1Step(4);
+            setCurrentStep(1);
+            setPart1Step(0);
             setConsentData({ consentToContact: true, consentBasis: 'implied_bus_flow', consentTimestamp: new Date().toISOString() });
             cacheConsent();
             setUser({ uid: 'local', isAnonymous: true });

@@ -692,3 +692,17 @@
 .qef-study-consent-actions .qef-reset-link {
   font-size: 0.875rem;
 }
+
+/* ── Optional factors section ── */
+.qef-optional-section {
+  margin-top: 0.5rem;
+}
+.qef-optional-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-500, #6b7280);
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
