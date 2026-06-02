@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import './QuickEpsaFlow.css';
+import './ClinicalModeFlow.css';
 import InfoIcon from './InfoIcon.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import ThemeSwitcher from './ThemeSwitcher.jsx';
@@ -8,7 +8,7 @@ import TextScaleControl from './TextScaleControl.jsx';
 import { fieldReferences } from '../utils/fieldReferences';
 import { calculateDynamicEPsa } from '../utils/dynamicCalculator';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
-import QuickEpsaResult from './QuickEpsaResult.jsx';
+import ClinicalModeResult from './ClinicalModeResult.jsx';
 import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, TypeIcon } from 'lucide-react';
 
 /* ─── BMI helpers ─── */
@@ -183,7 +183,7 @@ function WelcomeScreen({ onStart }) {
 
 const TOTAL = 11;
 
-export default function QuickEpsaFlow() {
+export default function ClinicalModeFlow() {
   const { t } = useTranslation();
   const [screen, setScreen] = useState('welcome');
   const [answers, setAnswers] = useState({});
@@ -307,7 +307,7 @@ export default function QuickEpsaFlow() {
           <img src="/sinai_dark.png" alt="Mount Sinai" style={{ height: '1.5rem', width: 'auto' }} onError={(e) => { e.target.style.display = 'none'; }} />
           <span className="qef-result-header-title">Your Results</span>
         </div>
-        <QuickEpsaResult
+        <ClinicalModeResult
           result={result.engineResult}
           formData={result.formData}
           onEditAnswers={handleEditAnswers}

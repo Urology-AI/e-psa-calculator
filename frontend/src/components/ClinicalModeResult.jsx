@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RiskGauge from './RiskGauge.jsx';
 import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon } from 'lucide-react';
-import './QuickEpsaResult.css';
+import './ClinicalModeResult.css';
 
 const AUA_FACTORS = new Set(['Age', 'Black ancestry', 'Family history']);
 
@@ -19,7 +19,7 @@ const CATEGORIES = [
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-export default function QuickEpsaResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent }) {
+export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent }) {
   const [showAll, setShowAll] = useState(false);
 
   const {
