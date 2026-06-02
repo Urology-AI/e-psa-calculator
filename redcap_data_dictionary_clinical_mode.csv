@@ -3,7 +3,6 @@
 "age","patient_info","","text","Age (years)","","","integer","18","120","","","y","","","","",""
 "race","patient_info","","radio","Race","white, White | black, Black or African American | hispanic, Hispanic or Latino | asian, Asian | mixed, Mixed | other, Other","","","","","","","y","","","","",""
 "family_history","clinical_inputs","Family & Genetic Risk","radio","Family history of prostate cancer (number of first-degree relatives)","0, None | 1, One | 2, Two or more | unknown, Unknown","","","","","","","y","","","","",""
-"inflammation_hx","clinical_inputs","","radio","History of prostate inflammation or prostatitis","0, No | 1, Yes","","","","","","","y","","","","",""
 "genetic_risk","clinical_inputs","","radio","BRCA1/2 mutation status","yes, Positive | no, Negative | unknown, Unknown / Never tested","","","","","","","y","","","","",""
 "bmi","clinical_inputs","Body","text","BMI (kg/m²)","","","number","15","60","","","y","","","","",""
 "exercise","clinical_inputs","Lifestyle","radio","Exercise frequency","0, Regular — 3 or more times per week | 1, Some — 1 to 2 times per week | 2, None","","","","","","","y","","","","",""
