@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
 import { auth, db, functions, isFirebaseConfigured } from './config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -175,6 +175,29 @@ function App() {
   const [postResult, setPostResult] = useState(null);
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
+
+  // ── Inactivity session timeout (15 min) ──────────────────────────────────
+  // Required for HIPAA compliance on shared/clinic devices. Resets on any user
+  // interaction. Only active when a user is authenticated.
+  const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+  const inactivityTimerRef = useRef(null);
+  useEffect(() => {
+    if (!user) return;
+    const resetTimer = () => {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = setTimeout(() => {
+        handleLogout();
+      }, INACTIVITY_TIMEOUT_MS);
+    };
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer(); // Start the timer immediately on login
+    return () => {
+      clearTimeout(inactivityTimerRef.current);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
@@ -1280,10 +1303,11 @@ function App() {
       setPathwayMode(null);
       setCurrentStep(1);
       setPart1Step(0);
-      // Clear user-specific localStorage but keep general settings
-      if (storageMode === 'cloud' && user) {
+      // Clear user-specific localStorage always (not just cloud mode)
+      if (user) {
         safeLS.remove(`sessionId_${user.uid}`);
       }
+      safeLS.remove(CONSENT_CACHE_KEY);
   };
 
 
@@ -1395,6 +1419,12 @@ function App() {
         : (pathwayMode || (postData.knowPirads ? 'post_mri' : 'post_psa'));
       if (hasMriData && pathwayMode !== 'post_mri') setPathwayMode('post_mri');
       const inferredPathway = effectivePathway;
+      if (!preResult) {
+        console.error('calculateDynamicEPsaPost called with null preResult — aborting');
+        setStage('pre');
+        setCurrentStep(3);
+        return;
+      }
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
       setPostResult(result);
       
@@ -1435,31 +1465,16 @@ function App() {
 
 
   const buildASToolURL = (base = 'https://as.millionstrongmen.com') => {
-    const hasPost = postResult !== null || (postData.knowPsa && postData.psa);
+    // HIPAA: Never include PHI in URLs (appears in browser history, referrer headers,
+    // and server access logs). Only pass non-identifying tier/pathway context.
+    const hasPost = postResult !== null;
     const payload = {
+      source: 'epsa',
       part: hasPost ? 'complete' : 'part1',
-      exportDate: new Date().toISOString(),
-      part1Data: {
-        age: preData.age ? parseInt(preData.age, 10) : null,
-      },
-      part1Result: preResult ? {
-        epsaTierKey:   preResult.epsaTierKey,
-        epsaTierLabel: preResult.epsaTierLabel,
-        isBlack:       preResult.isBlack,
-        fhBinary:      preResult.fhBinary,
-        brcaStatus:    preResult.brcaStatus,
-        age:           preResult.age,
-      } : {},
-      part2Data: {
-        psa:        postData.knowPsa    ? postData.psa    : '',
-        knowPsa:    postData.knowPsa,
-        pirads:     postData.knowPirads ? postData.pirads : '0',
-        knowPirads: postData.knowPirads,
-      },
-      part2Result: postResult ? {
-        epsaTierKey: postResult.epsaTierKey,
-        pathwayMode: pathwayMode || postResult.pathwayMode || 'post_psa',
-      } : {},
+      tier: hasPost
+        ? (postResult?.epsaTierKey || null)
+        : (preResult?.epsaTierKey || null),
+      pathway: pathwayMode || 'pre_psa',
     };
     return `${base}?epsa=${encodeURIComponent(JSON.stringify(payload))}`;
   };
