@@ -469,7 +469,18 @@ export const getUser = functions.https.onCall(async (data: { userId?: string }, 
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
 
-  const userId = data?.userId || context.auth.uid;
+  const requestedId = data?.userId;
+  const callerId = context.auth.uid;
+
+  // IDOR fix: non-admin users may only fetch their own data
+  if (requestedId && requestedId !== callerId) {
+    const isAdmin = await isAdminUser(callerId);
+    if (!isAdmin) {
+      throw new functions.https.HttpsError('permission-denied', 'You may only access your own data');
+    }
+  }
+
+  const userId = requestedId || callerId;
 
   const userDoc = await db.collection('users').doc(userId).get();
 
@@ -1707,7 +1718,7 @@ export const cleanupInactiveAdmins = functions.pubsub.schedule('0 4 * * 0') // 4
 export const cleanupOldAuditLogs = functions.pubsub.schedule('0 5 * * 0') // 5 AM every Sunday
   .timeZone('America/New_York')
   .onRun(async (_context) => {
-    const RETENTION_DAYS = 365; // Keep audit logs for 1 year
+    const RETENTION_DAYS = 2190; // Keep audit logs for 6 years (HIPAA 45 CFR §164.530(j))
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - RETENTION_DAYS);
 

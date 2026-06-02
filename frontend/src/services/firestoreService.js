@@ -31,7 +31,7 @@ export const createOrUpdateUser = async (uid, phone, consentData) => {
   const consentToContact = consentData.consentToContact === true || consentData.consentToContact === 'true';
   
   const userData = {
-    phone: phone, // E.164 format
+    // Never store raw phone number — only the hash (HIPAA: PHI minimisation)
     phoneHash: phoneHash,
     createdAt: serverTimestamp(),
     lastLoginAt: serverTimestamp(),
