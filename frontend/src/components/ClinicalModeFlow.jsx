@@ -8,6 +8,8 @@ import TextScaleControl from './TextScaleControl.jsx';
 import { fieldReferences } from '../utils/fieldReferences';
 import { calculateDynamicEPsa } from '../utils/dynamicCalculator';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { FH_MAP, DIET_MAP, deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
+import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, TypeIcon } from 'lucide-react';
 
@@ -28,12 +30,6 @@ function deriveBmi(a, mH, mW) {
     : (parseFloat(a.heightFt) || 0) * 12 + (parseFloat(a.heightIn) || 0);
   const lbs = mW ? (parseFloat(a.weightKg) || 0) * 2.20462 : parseFloat(a.weightLbs);
   return inches && lbs ? (703 * lbs) / (inches * inches) : null;
-}
-function deriveIpss(qol) {
-  if (qol <= 1) return [0, 0, 0, 0, 0, 0, 0];
-  if (qol === 2) return [1, 1, 1, 1, 1, 1, 1];
-  if (qol <= 4) return [3, 3, 3, 3, 3, 3, 3];
-  return [5, 5, 5, 5, 5, 5, 5];
 }
 
 /* ─── Chip group ─── */
@@ -172,7 +168,7 @@ function WelcomeScreen({ onStart }) {
         </div>
         <button className="qef-cta-btn" onClick={onStart} type="button">
           <ZapIcon size={18} aria-hidden="true" />
-          Check My Risk — 11 Questions
+          Check My Risk — 12 Questions
           <ChevronRightIcon size={18} aria-hidden="true" />
         </button>
         <p className="qef-walkin">Walk-ins welcome · No appointment needed<br />Questions? Call <a href="tel:6465318092" className="qef-tel">646-531-8092</a></p>
@@ -181,7 +177,7 @@ function WelcomeScreen({ onStart }) {
   );
 }
 
-const TOTAL = 11;
+const TOTAL = 12;
 
 export default function ClinicalModeFlow() {
   const { t } = useTranslation();
@@ -211,6 +207,7 @@ export default function ClinicalModeFlow() {
       exercise:      answers.exercise !== undefined && answers.exercise !== null && answers.exercise !== '',
       smoking:       answers.smoking  !== undefined && answers.smoking  !== null && answers.smoking  !== '',
       diet:          !!answers.diet,
+      comorbidities: answers.comorbidities !== undefined && answers.comorbidities !== null && answers.comorbidities !== '',
       shim:          answers.shim !== undefined && answers.shim !== null && answers.shim !== '',
       brca:          !!answers.brca,
     };
@@ -228,23 +225,21 @@ export default function ClinicalModeFlow() {
 
   function handleSubmit() {
     if (!ready) return;
-    const fhMap = { none: 0, one: 1, two_plus: 2, unknown: 'unknown' };
-    const dietMap = { red_meat: 'western', mixed: 'other', plant: 'plant-based' };
-    const shimVal = answers.shim;
     const formData = {
       age: parseInt(answers.age),
       race: answers.race,
-      familyHistory: fhMap[answers.familyHistory] ?? 0,
-      ipss: deriveIpss(answers.qol),
-      shim: [shimVal, shimVal, shimVal, shimVal, shimVal],
-      dietPattern: dietMap[answers.diet] || 'other',
+      familyHistory: FH_MAP[answers.familyHistory] ?? 0,
+      ipss: deriveIpssFromQol(answers.qol),
+      ipssQol: answers.qol,
+      shim: expandShimSingle(answers.shim),
+      dietPattern: answers.diet || 'other',
       exercise: answers.exercise,
       smoking: answers.smoking,
       bmi: bmi ? parseFloat(bmi.toFixed(1)) : 22,
       brcaStatus: answers.brca,
-      inflammationHistory: 0,
-      chemicalExposure: 'no',
-      comorbidityScore: 0,
+      inflammationHistory: answers.inflammation === 'yes' ? 1 : 0,
+      chemicalExposure: answers.chemicalExposure ?? 'no',
+      comorbidityScore: Number(answers.comorbidities) || 0,
       hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
     };
     const engineResult = calculateDynamicEPsa(formData, DEFAULT_CALCULATOR_CONFIG);
@@ -281,7 +276,10 @@ export default function ClinicalModeFlow() {
     saveBusflowAndNavigate(false);
   }
 
-  function handleStudyConsentAgree() {
+  async function handleStudyConsentAgree() {
+    if (result?.formData) {
+      submitToRedcap(result.formData); // fire-and-forget; don't block UX
+    }
     saveBusflowAndNavigate(true);
   }
 
@@ -474,15 +472,33 @@ export default function ClinicalModeFlow() {
           sublabel={t('part1.fields.diet.helper')} answered={isAnswered.diet}>
           <Chips ariaLabel={t('part1.fields.diet.title')} value={answers.diet ?? ''} onChange={(v) => set('diet', v)}
             options={[
-              { value: 'red_meat', label: 'Mostly red meat / fast food' },
-              { value: 'mixed',    label: t('part1.step4.diet.other') },
-              { value: 'plant',    label: t('part1.step4.diet.plantBased') },
+              { value: 'western',       label: t('part1.step4.diet.western') },
+              { value: 'mediterranean', label: t('part1.step4.diet.mediterranean') },
+              { value: 'indian',        label: t('part1.step4.diet.indian') },
+              { value: 'dash',          label: t('part1.step4.diet.dash') },
+              { value: 'plant-based',   label: t('part1.step4.diet.plantBased') },
+              { value: 'pescatarian',   label: t('part1.step4.diet.pescatarian') },
+              { value: 'low-carb-keto', label: t('part1.step4.diet.lowCarbKeto') },
+              { value: 'other',         label: t('part1.step4.diet.other') },
             ]}
           />
         </QCard>
 
-        {/* Q10 — SHIM */}
-        <QCard num={10} label={t('part1.fields.shim.title')} info={fieldReferences.shim}
+        {/* Q10 — Comorbidities */}
+        <QCard num={10} label="Major comorbidities" info={fieldReferences.comorbidities}
+          sublabel="Hypertension, high cholesterol (hyperlipidemia), coronary artery disease, or diabetes"
+          answered={isAnswered.comorbidities}>
+          <Chips ariaLabel="Comorbidities" value={answers.comorbidities ?? ''} onChange={(v) => set('comorbidities', v)}
+            options={[
+              { value: 0, label: 'None' },
+              { value: 1, label: 'One' },
+              { value: 2, label: 'Two or more' },
+            ]}
+          />
+        </QCard>
+
+        {/* Q11 — SHIM */}
+        <QCard num={11} label={t('part1.fields.shim.title')} info={fieldReferences.shim}
           sublabel={t('part1.shimShort.singleQuestionLabel')} answered={isAnswered.shim}
           citation="Sexual Health Inventory for Men (SHIM / IIEF-5). Your answer is private and confidential.">
           <Chips ariaLabel={t('part1.fields.shim.title')} value={answers.shim ?? ''} onChange={(v) => set('shim', v)}
@@ -496,8 +512,8 @@ export default function ClinicalModeFlow() {
           />
         </QCard>
 
-        {/* Q11 — BRCA / Genetic testing */}
-        <QCard num={11} label={t('part1.fields.brcaStatus.title')} info={fieldReferences.brcaStatus}
+        {/* Q12 — BRCA / Genetic testing */}
+        <QCard num={12} label={t('part1.fields.brcaStatus.title')} info={fieldReferences.brcaStatus}
           sublabel={t('part1.fields.brcaStatus.helper')} answered={isAnswered.brca}>
           <Chips ariaLabel={t('part1.fields.brcaStatus.title')} value={answers.brca ?? ''} onChange={(v) => set('brca', v)}
             options={[
@@ -507,6 +523,37 @@ export default function ClinicalModeFlow() {
             ]}
           />
         </QCard>
+
+        {/* Optional factors */}
+        <div className="qef-optional-section">
+          <p className="qef-optional-heading">Optional — answer if known</p>
+
+          {/* Inflammation history */}
+          <QCard num="+" label="History of prostate inflammation / prostatitis"
+            info={fieldReferences.inflammationHistory}
+            answered={answers.inflammation !== undefined}>
+            <Chips ariaLabel="Inflammation history" value={answers.inflammation ?? ''} onChange={(v) => set('inflammation', v)}
+              options={[
+                { value: 'no',  label: 'No' },
+                { value: 'yes', label: 'Yes' },
+              ]}
+            />
+          </QCard>
+
+          {/* Chemical / occupational exposure */}
+          <QCard num="+" label="Chemical or occupational exposure"
+            info={fieldReferences.chemicalExposure}
+            sublabel="Includes Agent Orange, 9/11 WTC dust, or other significant chemical exposure"
+            answered={answers.chemicalExposure !== undefined}>
+            <Chips ariaLabel="Chemical exposure" value={answers.chemicalExposure ?? ''} onChange={(v) => set('chemicalExposure', v)}
+              options={[
+                { value: 'no',      label: 'No' },
+                { value: 'yes',     label: 'Yes' },
+                { value: 'unknown', label: 'Unknown' },
+              ]}
+            />
+          </QCard>
+        </div>
 
       </div>
 
