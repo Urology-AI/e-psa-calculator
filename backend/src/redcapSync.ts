@@ -25,6 +25,7 @@ import * as querystring from 'querystring';
 interface Step1Data {
   age?: number;
   race?: string;
+  heightUnit?: string;
   heightFt?: number | null;
   heightIn?: number | null;
   heightCm?: number | null;
@@ -32,7 +33,7 @@ interface Step1Data {
   weight?: number;
   weightUnit?: string;
   bmi?: number;
-  familyHistory?: number;        // 0-3 (degree of family history)
+  familyHistory?: number | string; // 0-3 or 'unknown'
   inflammationHistory?: number;  // 0|1
   brcaStatus?: string;           // 'none'|'brca1'|'brca2'|'both'|'unknown'
   ipss?: number[];               // 7 items (Q1–Q7), 0-5; Q8 (QoL) stored separately
@@ -131,14 +132,6 @@ function inferPathwayMode(
   return 'pre_psa';
 }
 
-/** Resolve height to cm regardless of which unit the user chose */
-function resolveHeightCm(s1: Step1Data): number | undefined {
-  if (s1.heightCm) return s1.heightCm;
-  const ft = Number(s1.heightFt);
-  const inch = Number(s1.heightIn ?? 0);
-  if (ft > 0) return Math.round(((ft * 12) + inch) * 2.54);
-  return undefined;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SESSION → REDCAP FIELD MAPPER
@@ -157,15 +150,11 @@ function mapSessionToRedcap(
   const pathwayMode = inferPathwayMode(session.pathwayMode, session.step2);
   void pathwayMode; // suppress unused-variable warning — kept for future conditional logic
 
-  // ── Resolve weight to kg regardless of user's chosen unit ─────────────────
+  // Store exactly what the user entered — no unit conversion
+  const weightLbs: number | undefined = s1.weightUnit === 'lbs' && s1.weight ? s1.weight : undefined;
   const weightKg: number | undefined =
-    s1.weightKg !== null && s1.weightKg !== undefined
-      ? s1.weightKg
-      : s1.weightUnit === 'kg' && s1.weight
-      ? s1.weight
-      : s1.weightUnit === 'lbs' && s1.weight
-      ? Math.round((s1.weight / 2.20462) * 10) / 10
-      : undefined;
+    s1.weightUnit === 'kg' && s1.weight ? s1.weight :
+    s1.weightKg != null ? s1.weightKg : undefined;
 
   // ── Build the record — raw patient inputs only ────────────────────────────
   const record: RedcapRecord = {
@@ -175,16 +164,19 @@ function mapSessionToRedcap(
     age:  s1.age,
     race: s1.race,
 
-    // Family & genetic risk
+    // Family & genetic risk — pass through as-is (0, 1, 2, or 'unknown')
     family_history:  s1.familyHistory !== undefined && s1.familyHistory !== null
-      ? Math.min(2, Number(s1.familyHistory))
+      ? (s1.familyHistory === 'unknown' ? 'unknown' : Math.min(2, Number(s1.familyHistory)))
       : undefined,
     inflammation_hx: s1.inflammationHistory,
     genetic_risk:    mapGeneticRisk(s1.brcaStatus),
 
-    // Body
-    height_cm: resolveHeightCm(s1),
-    weight_kg: weightKg,
+    // Body — store whichever unit the user entered; parse strings from form input
+    height_ft:  s1.heightUnit === 'imperial' && s1.heightFt != null ? parseInt(String(s1.heightFt), 10) || undefined : undefined,
+    height_in:  s1.heightUnit === 'imperial' && s1.heightIn != null ? parseInt(String(s1.heightIn), 10)  || undefined : undefined,
+    height_cm:  s1.heightUnit === 'metric'   && s1.heightCm != null ? parseFloat(String(s1.heightCm))    || undefined : undefined,
+    weight_lbs: weightLbs,
+    weight_kg:  weightKg,
 
     // Lifestyle
     exercise:          s1.exercise,
@@ -360,7 +352,7 @@ export const syncToRedcap = functions.firestore
 
       functions.logger.info(
         `REDCap sync starting: session=${sessionId} status=${newStatus}`,
-        { record_id: record.record_id, pathway_mode: record.pathway_mode }
+        { record_id: record.record_id }
       );
 
       await postToRedcap(apiUrl, apiToken, [record]);
