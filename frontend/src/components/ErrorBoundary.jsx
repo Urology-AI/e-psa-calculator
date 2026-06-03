@@ -1,14 +1,5 @@
 import React from 'react';
 
-// Sentry is imported lazily to avoid breaking the app if the DSN is not configured
-let Sentry = null;
-try {
-  // Dynamic require so this file works even before @sentry/react is installed
-  Sentry = await import('@sentry/react').catch(() => null);
-} catch {
-  // Sentry not available — errors still shown in UI, just not reported
-}
-
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -20,12 +11,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Always log to console (not gated on DEV — production errors need to be visible in browser tools)
     console.error('ErrorBoundary caught:', error, errorInfo);
-    // Report to Sentry in all environments when configured
-    if (Sentry?.captureException) {
-      Sentry.captureException(error, { contexts: { react: errorInfo } });
-    }
   }
 
   handleReset = () => {
