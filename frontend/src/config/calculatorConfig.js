@@ -44,7 +44,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       { id: 'ipss_moderate',             name: 'ipss_moderate',             weight: -0.572095, type: 'binary' },
       { id: 'ipss_severe',               name: 'ipss_severe',               weight: -0.054009, type: 'binary' },
       { id: 'exercise_some',             name: 'exercise_some',             weight:  0.040351, type: 'binary' },
-      { id: 'exercise_none',             name: 'exercise_none',             weight:  0.000000, type: 'binary' },
+      { id: 'exercise_none',             name: 'exercise_none',             weight:  0.419234, type: 'binary' }, // corrected from 0.000000 (copy-paste error); training run 2026-06-02
       { id: 'raceBlack',                 name: 'raceBlack',                 weight:  0.744867, type: 'binary' },
       { id: 'fhBinary',                  name: 'fhBinary',                  weight: -0.647446, type: 'binary' },
       { id: 'age60plus_x_ipss_moderate', name: 'age60plus_x_ipss_moderate', weight: -0.105186, type: 'binary' },
@@ -58,25 +58,29 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   },
   part2: {
     modelType: 'unified_logistic_v1',
-    targetLabel: 'Higher-grade cancer risk (GG≥3)',
+    // Outcome: GG≥2 (AUA/SUO 2023/2026 definition of clinically significant PCa, p.4)
+    targetLabel: 'Clinically significant cancer risk (GG≥2)',
     calibration: { slope: 1.0, interceptShift: 0.0 },
 
     thresholds: { low: 0.2583, moderate: 0.2892, high: 0.2987 },
 
     models: {
+      // Base model — logPSA only. Retained from prior GG≥3 run (AUC 0.378 on GG≥2 — below chance).
       base: {
         intercept: -1.438927,
         variables: [
           { id: 'logPSA', weight: +0.188130, type: 'continuous' }
         ]
       },
+      // MRI model — updated 2026-06-02: dummy-variable logistic regression, N=96, GG≥2 outcome.
+      // AUC OOF 0.591. PIRADS 4 (0.968) and 5 (1.255) now properly separated (were near-identical at 0.368/0.368).
       mri: {
-        intercept: -1.429457,
+        intercept: 0.356742,
         variables: [
-          { id: 'logPSA',   weight: +0.095942, type: 'continuous' },
-          { id: 'pirads_3', weight: -1.050051, type: 'binary' },
-          { id: 'pirads_4', weight: +0.368169, type: 'binary' },
-          { id: 'pirads_5', weight: +0.367806, type: 'binary' }
+          { id: 'logPSA',   weight: -0.017489, type: 'continuous' },
+          { id: 'pirads_3', weight: -0.061356, type: 'binary' },
+          { id: 'pirads_4', weight: +0.967766, type: 'binary' },
+          { id: 'pirads_5', weight: +1.255289, type: 'binary' }
         ]
       }
     }

@@ -62,6 +62,11 @@ const COMBINED_TIER_CALIBRATION = {
 // These are the authoritative values used by AUAFlowchart.jsx and the engine.
 // Do NOT change without updating both this block and the flowchart component.
 // ---------------------------------------------------------------------------
+// CORRECTION (2026-06-02): age50_69 split into age50_59 (3.5) and age60_69 (4.5).
+// AUA 2026 EDPC p.11: "3.5 ng/mL for people in their 50s, 4.5 ng/mL for people in their 60s"
+// Prior single 3.5 threshold for ages 50–69 under-thresholded men aged 60–69.
+// TODO: Update AUAFlowchart.jsx to use age50_59 and age60_69 keys separately.
+// ---------------------------------------------------------------------------
 export const AUA_PSA_THRESHOLDS = {
   age45_49: {
     threshold:     2.5,
@@ -70,12 +75,19 @@ export const AUA_PSA_THRESHOLDS = {
     grade:         'Conditional — Grade B',
     source:        'AUA/SUO 2026 Statement 4',
   },
-  age50_69: {
+  age50_59: {
     threshold:     3.5,
     action_below:  'biannual_sdm',         // PSA < 3.5 → every 2–4 years (SDM may extend)
     action_above:  'urology_referral',     // PSA ≥ 3.5 → confirmatory PSA, then urology
     grade:         'Strong — Grade A',
     source:        'AUA/SUO 2026 Statement 6',
+  },
+  age60_69: {
+    threshold:     4.5,                    // CORRECTED from 3.5 — AUA 2026 EDPC p.11 (verified)
+    action_below:  'biannual_sdm',         // PSA < 4.5 → every 2–4 years (SDM may extend)
+    action_above:  'urology_referral',     // PSA ≥ 4.5 → confirmatory PSA, then urology
+    grade:         'Strong — Grade A',
+    source:        'AUA/SUO 2026 Statement 6 — age-varying threshold: 4.5 ng/mL for ages 60–69',
   },
   age70plus: {
     threshold:           6.5,
@@ -83,7 +95,10 @@ export const AUA_PSA_THRESHOLDS = {
     action_below:        'discontinue_or_lengthen', // PSA < 6.5 + LE ≥ 10y → SDM
     action_above:        'urology_referral',        // PSA ≥ 6.5 + LE ≥ 10y → urology
     grade:               'SDM — individualized',
-    source:              'AUA/SUO 2026 Statement 8',
+    // Statement 7: personalize re-screening interval — Conditional, Grade B (AUA 2026 p.2).
+    // NOTE: Statement 8 in AUA 2026 = DRE alongside PSA (Conditional, Grade C).
+    // Prior versions incorrectly cited "Statement 8" for the older-patient SDM recommendation.
+    source:              'AUA/SUO 2026 Statement 7 (SDM); age-varying threshold per EDPC p.11',
   },
 };
 
@@ -124,35 +139,72 @@ export const MODEL_ACCURACY = {
 };
 
 /**
- * Calculates predicted probability of GG3+ (high-grade) prostate cancer
- * from PI-RADS score and PSA using logistic regression trained on N=83 patients.
+ * Calculates predicted probability of GG≥2 (clinically significant) prostate cancer
+ * from PI-RADS score and PSA using logistic regression trained on N=96 patients.
  *
- * Model: logit(GG3+) = -4.7205 + 0.6478*PIRADS + 0.5141*ln(PSA + 0.01)
- * AUC 0.694 [0.593–0.714], 5-fold CV AUC 0.687
+ * Model (dummy-variable logistic regression):
+ *   logit(GG≥2) = 0.356742
+ *               + (−0.017489) × ln(PSA)     [near-zero: PSA adds little once PIRADS known]
+ *               + (−0.061356) × [PIRADS=3]  [ref: PIRADS ≤2]
+ *               + 0.967766    × [PIRADS=4]
+ *               + 1.255289    × [PIRADS=5]
  *
- * @param {number} pirads  - PI-RADS score (2, 3, 4, or 5)
+ * Outcome:   GG≥2 — AUA/SUO 2023/2026 definition of clinically significant PCa (p.4)
+ * Cohort:    N=96, Mount Sinai biopsy registry, prevalence 74% GG≥2, run 2026-06-02
+ * AUC OOF:  0.591 (5-fold CV × 100 repeats)
+ * Weights:   calculatorConfig.js → part2.models.mri
+ *
+ * AUA 2026 GUIDELINE TABLE 5 — Population-level GG≥2 detection rates by PI-RADS
+ * (pooled 23 studies; AUA/SUO EDPC 2026 p.21):
+ *   PI-RADS 1–2:  7% (95%CI 4–11%)
+ *   PI-RADS 3:   11% (95%CI 8–14%)
+ *   PI-RADS 4:   37% (95%CI 33–40%)
+ *   PI-RADS 5:   70% (95%CI 62–79%)
+ *
+ * @param {number} pirads  - PI-RADS score (1–5)
  * @param {number} psa     - PSA in ng/mL (raw, before any 5-ARI correction)
- * @returns {{ prob: number, percent: number, interpretation: string } | null}
- *          null if inputs are missing or invalid
+ * @returns {{ prob: number, percent: number, interpretation: string, guidelineRate: string } | null}
  */
 export function calcHighGradeRisk(pirads, psa) {
   if (pirads == null || psa == null) return null;
   const p = Number(pirads);
   const s = Number(psa);
   if (!Number.isFinite(p) || !Number.isFinite(s) || s < 0) return null;
-  if (![2, 3, 4, 5].includes(p)) return null;
+  if (![1, 2, 3, 4, 5].includes(p)) return null;
 
-  const logit = -4.7205 + 0.6478 * p + 0.5141 * Math.log(s + 0.01);
+  // Dummy variables — reference category is PIRADS ≤2 (includes 1 and 2)
+  const pirads3 = p === 3 ? 1 : 0;
+  const pirads4 = p === 4 ? 1 : 0;
+  const pirads5 = p === 5 ? 1 : 0;
+  const logPSA  = Math.log(Math.max(s, 0.01));
+
+  const logit = 0.356742
+    + (-0.017489) * logPSA
+    + (-0.061356) * pirads3
+    +   0.967766  * pirads4
+    +   1.255289  * pirads5;
+
   const prob = 1 / (1 + Math.exp(-logit));
-  const percent = Math.round(prob * 1000) / 10; // 1 decimal place
+  const percent = Math.round(prob * 1000) / 10;
 
+  // Guideline Table 5 detection rates (AUA 2026 p.21)
+  const GUIDELINE_RATES = {
+    1: '7% (95%CI 4–11%) — AUA 2026 Table 5 (PI-RADS 1–2)',
+    2: '7% (95%CI 4–11%) — AUA 2026 Table 5 (PI-RADS 1–2)',
+    3: '11% (95%CI 8–14%) — AUA 2026 Table 5',
+    4: '37% (95%CI 33–40%) — AUA 2026 Table 5',
+    5: '70% (95%CI 62–79%) — AUA 2026 Table 5',
+  };
+  const guidelineRate = GUIDELINE_RATES[p] || null;
+
+  // Thresholds calibrated to 74% GG≥2 baseline (biopsied cohort)
   let interpretation;
-  if (prob < 0.10)      interpretation = 'Low GG3+ risk';
-  else if (prob < 0.20) interpretation = 'Intermediate GG3+ risk';
-  else if (prob < 0.35) interpretation = 'Elevated GG3+ risk';
-  else                  interpretation = 'High GG3+ risk';
+  if (prob < 0.60)      interpretation = 'Below-average GG≥2 risk (for a biopsied cohort)';
+  else if (prob < 0.74) interpretation = 'Near-average GG≥2 risk';
+  else if (prob < 0.82) interpretation = 'Elevated GG≥2 risk';
+  else                  interpretation = 'High GG≥2 risk';
 
-  return { prob, percent, interpretation };
+  return { prob, percent, interpretation, guidelineRate };
 }
 
 // GUARDRAILS — fires when ePSA input exceeds validated model range or
@@ -511,7 +563,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // WHY: This cohort is a urology referral population. Many patients were referred specifically
   // because of LUTS — their PSA was measured as part of that workup, not because they had cancer.
   // High IPSS predicts referral, but NOT cancer independently in this already-referred group.
-  // Literature (Ørsted & Bojesen, Nat Rev Urol 2015; ERSPC): LUTS OR ≈ 1.6–2× for PCa at biopsy
+  // Literature (Ørsted & Bojesen, Nat Rev Urol. 2013;10:45–54 [corrected from prior "2015"]): LUTS OR ≈ 1.6–2× for PCa at biopsy
   // in screening populations. Mechanism: shared androgenic pathway, prostate enlargement,
   // chronic inflammation. Data sign reversal is a clear referral-bias artifact.
   // Decision: use literature value (8 pts), overriding negative data coefficient.
@@ -527,7 +579,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // are consistent across data and literature. Raised from 4→6 pts to better match the
   // observed OR (~1.5×), which is slightly higher than the Liu 2011 meta-analysis (1.2–1.3×).
   // exercise_some β≈0 in data (N too small to calibrate). 2 pts kept as clinical judgment.
-  // Literature: Liu et al. EJCA 2011 meta-analysis OR ≈ 1.2–1.3×. Data here stronger (1.5×).
+  // Literature: Liu Y et al. Eur Urol. 2011;60(5):1029–44 [corrected from prior "EJCA"] OR ≈ 1.2–1.3×. Data here stronger (1.5×).
   // Decision: 4 pts for none (literature-anchored), 2 pts for some (clinical judgment).
   // Note: data β=+0.419 for exercise_none is directionally consistent but the cohort is
   // an already-referred urology population (81% PSA>4) — not a screening population.
@@ -582,7 +634,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // WHY: very few family history positives in N=100 (exact count unknown but sparse).
   // In a small cohort, if family history patients happen to have slightly lower PSA>4 rates
   // by chance, the coefficient flips. This is a pure small-sample artifact — the sign is wrong.
-  // Literature (Carter et al. JAMA 1993; meta-analysis Bruner et al.): OR ≈ 2.5× for
+  // Literature (Carter BS et al. J Urol. 1993;150:797–802 [corrected from prior "JAMA 1993"]; Bruner et al.): OR ≈ 2.5× for
   // first-degree family history. AUA/NCCN Grade A high-risk classification. One of the
   // most robustly replicated PCa risk factors.
   // Decision: use literature (10 pts). Data coefficient is unreliable and clinically implausible.
@@ -625,7 +677,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ── Chemical / 9-11 exposure ─────────────────────────────────────────────────
   // Literature: Agent Orange (dioxin) OR ≈ 1.5–2.0× for PCa (VA/IARC data; Pavuk et al.
   // 2018). 9/11 WTC dust: preliminary cohort data show elevated PCa incidence in responders
-  // (Zeig-Owens et al. JAMA 2011). Other chemicals: heterogeneous, weaker evidence.
+  // (Zeig-Owens et al. Lancet. 2011;378:898–905 [corrected from prior "JAMA"]). Other chemicals: heterogeneous, weaker evidence.
   // 4 pts for strong exposure, 2 pts for weak/uncertain.
   const _ce = chemicalExposure;
   const _ceStrong = _ce === 'agent_orange' || _ce === 'nine_eleven' || _ce === 'yes';
@@ -720,15 +772,14 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   }
 
   // Step 1.5 — Baseline PSA offered at ages 45–49 for average-risk people
-  // (Statement 4, Conditional Recommendation, Evidence Level: Grade B)
-  // Guard: only fire when the model is not CONFIDENTLY against PSA (recommendPSA !== false).
-  // When recommendPSA === null (CI straddles threshold) or true (model agrees),
-  // we apply the guideline baseline-offer reason, replacing 'score_threshold' so the
-  // deviation banner does not fire for an age/guideline-backed recommendation.
-  // When the model is confident (recommendPSA === false, tight CI below threshold),
-  // the conditional Grade B guideline defers to the model finding.
+  // AUA/SUO 2026 Statement 4 — Conditional Recommendation, Evidence Level: Grade B
+  // "Clinicians may begin prostate cancer screening and offer a baseline PSA test to
+  //  people between ages 45 to 50 years." (AUA 2026 EDPC p.11)
+  // This offer applies regardless of model score — it is an age-based guideline
+  // recommendation for a baseline reference value, not a risk-score threshold.
+  // FIX (2026-06-02): removed prior `recommendPSA !== false` guard which incorrectly
+  // blocked this offer for low-scoring 45–49 year olds.
   if (ageNum >= 45 && ageNum < 50 &&
-      recommendPSA !== false &&
       psaRecommendReason !== 'high_risk_early_screening') {
     recommendPSA = true;
     psaRecommendReason = 'baseline_psa_45_50';
@@ -767,7 +818,11 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   }
 
   // Step 5 — Older shared decision (ages 70-75)
-  // AUA/SUO 2026 Statement 8 + NCCN Early Detection v1.2024 + EAU 2024:
+  // AUA/SUO 2026 Statement 7 (Conditional, Grade B) + NCCN Early Detection v1.2024 + EAU 2024:
+  // Statement 7: "Clinicians may personalize the re-screening interval, or decide to
+  // discontinue screening, based on patient preference, age, PSA, prostate cancer risk,
+  // life expectancy, and general health following SDM." (AUA 2026 p.2)
+  // NOTE: Statement 8 = DRE alongside PSA (Grade C) — not the SDM recommendation.
   // Routine PSA screening above age 70 is an individualized shared decision
   // based on overall health and life expectancy. Above 75 is handled separately
   // by the `aboveMaxScreeningAge` flag.
@@ -818,7 +873,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     symptomatic_out_of_guideline:
       'Your urinary symptom score (IPSS ≥ 8) is in the moderate-to-severe range. Although you are outside the standard PSA screening age window (50–69), AUA/SUO BPH/LUTS guidelines recommend urological evaluation for moderate IPSS regardless of screening age. Please consult your physician or urologist.',
     older_shared_decision:
-      'AUA/SUO 2026 (Statement 8) recommends individualized shared decision-making for PSA screening at ages 70–74, based on overall health and life expectancy. NCCN Early Detection v1.2024 and EAU 2024 align. Discuss with your physician whether continued screening is appropriate for you.'
+      'AUA/SUO 2026 (Statement 7) recommends individualized shared decision-making for PSA screening at ages 70–74, based on overall health and life expectancy. In very healthy patients with life expectancy ≥10 years, ongoing screening every 2–4 years is reasonable following SDM. NCCN Early Detection v1.2024 and EAU 2024 align. Discuss with your physician whether continued screening is appropriate for you.'
   };
 
   const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
@@ -879,7 +934,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
       'Discuss PSA testing with your physician (AUA/SUO 2026 Statement 5 — Strong, Grade B).',
     older_shared_decision:
       'Shared Decision-Making (SDM) is recommended for PSA screening at ages 70–74.\n' +
-      'Discuss your overall health, life expectancy, and personal preferences with your physician (AUA/SUO 2026 Statement 8).',
+      'Discuss your overall health, life expectancy, and personal preferences with your physician (AUA/SUO 2026 Statement 7 — Conditional, Grade B).',
     symptomatic_out_of_guideline:
       'Your urinary symptoms (IPSS ≥ 8) suggest urological evaluation is warranted.\n' +
       'This is a symptom-based referral signal, not a routine PSA screening recommendation — discuss with your physician.',
@@ -1343,8 +1398,11 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
 
   // ---------------------------------------------------------------------------
   // MRI recommendation — for post_psa pathway (no MRI data entered yet)
-  // AUA/NCCN/EAU 2026: mpMRI before biopsy is recommended when PSA or combined
-  // risk warrants further evaluation.
+  // AUA 2026 Statement 13 (Conditional, Grade A): Clinicians may use MRI prior to
+  // initial biopsy to increase detection of GG2+ prostate cancer. (AUA 2026 EDPC p.19)
+  // PSA threshold: 4.0 ng/mL — "the commonly cited threshold" (AUA 2026 EDPC p.11).
+  // Statement 13 does not specify a PSA cutoff; 4.0 is the historically established
+  // threshold for "elevated PSA warranting further workup" per the same document.
   // ---------------------------------------------------------------------------
   let mriRecommended = false;
   let mriRecommendReason = null;
@@ -1354,7 +1412,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     if (psaVal >= 4.0) {
       mriRecommended = true;
       mriRecommendReason = 'psa_elevated';
-      mriRecommendMessage = 'Your PSA (≥ 4.0 ng/mL) warrants further evaluation. AUA/NCCN/EAU guidelines recommend an mpMRI before biopsy to characterize any suspicious lesion and reduce unnecessary biopsies.';
+      mriRecommendMessage = 'Your PSA (≥ 4.0 ng/mL) warrants further evaluation. AUA/NCCN/EAU guidelines recommend an mpMRI before biopsy to characterize any suspicious lesion and reduce unnecessary biopsies. (AUA 2026 Statement 13 — Conditional, Grade A)';
     } else if (tierIndex >= 2) {
       mriRecommended = true;
       mriRecommendReason = 'combined_risk_elevated';
