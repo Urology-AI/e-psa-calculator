@@ -9,7 +9,7 @@ import './i18n/i18n.js'
 // Sentry error monitoring — configure VITE_SENTRY_DSN in .env to enable.
 // @sentry/react must be installed: npm install @sentry/react
 if (import.meta.env.VITE_SENTRY_DSN) {
-  import('@sentry/react').then((Sentry) => {
+  import(/* @vite-ignore */ '@sentry/react').then((Sentry) => {
     Sentry.init({
       dsn: import.meta.env.VITE_SENTRY_DSN,
       environment: import.meta.env.MODE,
