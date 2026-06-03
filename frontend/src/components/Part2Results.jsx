@@ -771,7 +771,7 @@ const Part2Results = ({
         <CollapsibleSection title="AUA/SUO 2026 Guideline — PSA Pathway & Next Steps" defaultOpen>
           {(() => {
             const ageForChart = preResult?.age ?? preData?.age;
-            const isBlack = preData?.race === 'black';
+            const isBlack = preData?.race === 'black' || preData?.race === 'african-american';
             const hasFamilyHx = Number(preData?.familyHistory) > 0;
             const hasBrca = preData?.brcaStatus === 'yes';
             return (

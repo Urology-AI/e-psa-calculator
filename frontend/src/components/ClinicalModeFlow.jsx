@@ -374,12 +374,23 @@ export default function ClinicalModeFlow() {
         <QCard num={2} label={t('part1.fields.race.title')} info={fieldReferences.race} answered={isAnswered.race}>
           <Chips ariaLabel={t('part1.fields.race.title')} value={answers.race ?? ''} onChange={(v) => set('race', v)}
             options={[
-              { value: 'white',    label: t('part1.race.white') },
-              { value: 'black',    label: t('part1.race.black') },
-              { value: 'hispanic', label: t('part1.race.hispanic') },
-              { value: 'asian',    label: t('part1.race.asian') },
-              { value: 'mixed',    label: t('part1.race.mixed') },
-              { value: 'other',    label: t('part1.race.other') },
+              { value: 'african-american', label: t('part1.race.african-american') },
+              { value: 'american-indian',  label: t('part1.race.american-indian') },
+              { value: 'asian',            label: t('part1.race.asian') },
+              { value: 'native-hawaiian',  label: t('part1.race.native-hawaiian') },
+              { value: 'white',            label: t('part1.race.white') },
+              { value: 'unknown',          label: t('part1.race.unknown') },
+            ]}
+          />
+        </QCard>
+
+        {/* Q2b — Ethnicity */}
+        <QCard num="2b" label={t('part1.fields.ethnicity.title')} answered={!!answers.ethnicity}>
+          <Chips ariaLabel={t('part1.fields.ethnicity.title')} value={answers.ethnicity ?? ''} onChange={(v) => set('ethnicity', v)}
+            options={[
+              { value: 'hispanic-latino',     label: t('part1.ethnicity.hispanic-latino') },
+              { value: 'not-hispanic-latino', label: t('part1.ethnicity.not-hispanic-latino') },
+              { value: 'unknown',             label: t('part1.ethnicity.unknown') },
             ]}
           />
         </QCard>

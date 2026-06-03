@@ -84,6 +84,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
 
   const [age, setAge] = useState('');
   const [race, setRace] = useState('');
+  const [ethnicity, setEthnicity] = useState('');
   const [bmi, setBmi] = useState(DEFAULTS.bmi);
   const [ipssTotal, setIpssTotal] = useState(DEFAULTS.ipssTotal);
   const [shimTotal, setShimTotal] = useState(DEFAULTS.shimTotal);
@@ -113,6 +114,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
     return {
       age: ageNum,
       race: race || null,
+      ethnicity: ethnicity || null,
       bmi: bmiNum,
       ipss: distributeTotalToArray(ipssTotalNum, 7, 5),
       shim: distributeTotalToArray(shimTotalNum, 5, 5),
@@ -129,7 +131,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
       coronaryArteryDisease: null,
       diabetes: null,
     };
-  }, [age, bmi, ipssTotal, ipssQol, shimTotal, race, familyHistory,
+  }, [age, bmi, ipssTotal, ipssQol, shimTotal, race, ethnicity, familyHistory,
       exercise, comorbidityScore, smoking, dietPattern, brcaStatus,
       inflammationHistory, chemicalExposure]);
 
@@ -387,11 +389,23 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
             >
               <select className="qe-select" value={race} onChange={(e) => setRace(e.target.value)} required>
                 <option value="">{t('part1.fields.race.selectPlaceholder')}</option>
-                <option value="white">{t('part1.race.white')}</option>
-                <option value="black">{t('part1.race.black')}</option>
-                <option value="hispanic">{t('part1.race.hispanic')}</option>
+                <option value="african-american">{t('part1.race.african-american')}</option>
+                <option value="american-indian">{t('part1.race.american-indian')}</option>
                 <option value="asian">{t('part1.race.asian')}</option>
-                <option value="other">{t('part1.race.other')}</option>
+                <option value="native-hawaiian">{t('part1.race.native-hawaiian')}</option>
+                <option value="white">{t('part1.race.white')}</option>
+                <option value="unknown">{t('part1.race.unknown')}</option>
+              </select>
+            </FieldRow>
+            <FieldRow
+              label={t('part1.fields.ethnicity.title')}
+              info={fieldReferences.race}
+            >
+              <select className="qe-select" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)}>
+                <option value="">{t('part1.fields.ethnicity.selectPlaceholder')}</option>
+                <option value="hispanic-latino">{t('part1.ethnicity.hispanic-latino')}</option>
+                <option value="not-hispanic-latino">{t('part1.ethnicity.not-hispanic-latino')}</option>
+                <option value="unknown">{t('part1.ethnicity.unknown')}</option>
               </select>
             </FieldRow>
           </div>
