@@ -386,8 +386,8 @@
         "description": "Le risque augmente avec l'âge, particulièrement après 50 ans. L'âge moyen du diagnostic est de 66 ans."
       },
       "race": {
-        "title": "Race/Ethnicité",
-        "selectPlaceholder": "Sélectionnez race/ethnicité",
+        "title": "Race",
+        "selectPlaceholder": "Sélectionner la race",
         "helper": "Choisissez la catégorie qui correspond le mieux à votre identité ; l'ascendance peut affecter les recommandations de dépistage.",
         "description": "Les hommes noirs/afro-américains ont un risque plus élevé et sont plus susceptibles de développer un cancer de la prostate à un âge plus jeune."
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "Comorbidités (HTA, HLD, CAD, Diabète)",
         "description": "Hypertension artérielle (HTA), Hyperlipidémie (HLD), Coronaropathie (CAD) et Diabète. Deux questions : (1) En avez-vous eu ? Non / Oui. (2) Si oui : Une ou Deux ou plus ?"
+      },
+      "ethnicity": {
+        "title": "Ethnicité",
+        "selectPlaceholder": "Sélectionner l'ethnicité (facultatif)",
+        "helper": "Choisissez la catégorie qui correspond le mieux à votre identité ; l'ascendance peut affecter les recommandations de dépistage.",
+        "description": "Les hommes noirs/afro-américains ont un risque plus élevé et sont plus susceptibles de développer un cancer de la prostate à un âge plus jeune."
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "Blanc / Caucasien",
-      "black": "Noir / Afro-américain",
+      "african-american": "Afro-américain",
+      "american-indian": "Amérindien / Natif de l'Alaska",
+      "asian": "Asiatique",
+      "native-hawaiian": "Natif d'Hawaï ou autre insulaire du Pacifique",
+      "white": "Blanc ou Caucasien",
+      "unknown": "Inconnu ou non déclaré",
+      "black": "Afro-américain",
       "hispanic": "Hispanique / Latino",
-      "asian": "Asiatique / Insulaire du Pacifique",
-      "other": "Autre / Mixte",
-      "mixed": "Métis / Multiracial"
+      "mixed": "Afro-américain",
+      "other": "Inconnu ou non déclaré"
     },
     "errors": {
       "step0": {
@@ -735,6 +745,11 @@
     "guidelineBadge": {
       "guideline": "AUA/NCCN",
       "modelOnly": "ePSA uniquement"
+    },
+    "ethnicity": {
+      "hispanic-latino": "Hispanique ou Latino",
+      "not-hispanic-latino": "Non hispanique ou Latino",
+      "unknown": "Inconnu ou non déclaré"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "Utiliser le total IPSS à la place",
     "ageLabel": "Âge (18-120)",
     "agePlaceholder": "ex. 55",
-    "raceLabel": "Race / Ethnicité",
-    "selectRace": "Sélectionnez race/ethnicité",
+    "raceLabel": "Race",
+    "selectRace": "Sélectionner la race",
     "race": {
-      "white": "Blanc / Caucasien",
-      "black": "Noir / Afro-américain",
+      "african-american": "Afro-américain",
+      "american-indian": "Amérindien / Natif de l'Alaska",
+      "asian": "Asiatique",
+      "native-hawaiian": "Natif d'Hawaï ou autre insulaire du Pacifique",
+      "white": "Blanc ou Caucasien",
+      "unknown": "Inconnu ou non déclaré",
+      "black": "Afro-américain",
       "hispanic": "Hispanique / Latino",
-      "asian": "Asiatique / Insulaire du Pacifique",
-      "other": "Autre / Mixte",
-      "mixed": "Métis / Multiracial"
+      "mixed": "Afro-américain",
+      "other": "Inconnu ou non déclaré"
     },
     "bmiLabel": "IMC",
     "bmiPlaceholder": "ex. 25.49",
@@ -1261,6 +1280,13 @@
       "mostlyDissatisfied": "Plutôt insatisfait",
       "unhappy": "Mécontent",
       "terrible": "Très mal"
+    },
+    "ethnicityLabel": "Ethnicité",
+    "selectEthnicity": "Sélectionner l'ethnicité (facultatif)",
+    "ethnicity": {
+      "hispanic-latino": "Hispanique ou Latino",
+      "not-hispanic-latino": "Non hispanique ou Latino",
+      "unknown": "Inconnu ou non déclaré"
     }
   },
   "welcomeGh": {

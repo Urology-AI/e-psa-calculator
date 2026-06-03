@@ -25,6 +25,7 @@ import * as querystring from 'querystring';
 interface Step1Data {
   age?: number;
   race?: string;
+  ethnicity?: string;
   heightUnit?: string;
   heightFt?: number | null;
   heightIn?: number | null;
@@ -163,6 +164,7 @@ function mapSessionToRedcap(
     // Demographics
     age:  s1.age,
     race: s1.race,
+    ethnicity: s1.ethnicity,
 
     // Family & genetic risk — pass through as-is (0, 1, 2, or 'unknown')
     family_history:  s1.familyHistory !== undefined && s1.familyHistory !== null

@@ -83,7 +83,8 @@ const ConsentSchema = z.object({
 
 const PreDataSchema = z.object({
   age: z.union([z.number().int().min(18).max(120), z.string()]).transform(val => typeof val === 'string' ? parseInt(val, 10) : val),
-  race: z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say']),
+  race: z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say', 'african-american', 'american-indian', 'native-hawaiian', 'unknown']),
+  ethnicity: z.enum(['hispanic-latino', 'not-hispanic-latino', 'unknown']).optional(),
   heightFt: z.union([z.number().int().min(1).max(9), z.string(), z.null()]).optional(),
   heightIn: z.union([z.number().int().min(0).max(11), z.string(), z.null()]).optional(),
   heightCm: z.union([z.number().positive(), z.string(), z.null()]).optional(),
@@ -1605,6 +1606,7 @@ export const exportSessionsCSV = functions.https.onCall(async (data: { dateRange
       'Updated At',
       'Step1 - Age',
       'Step1 - Race',
+      'Step1 - Ethnicity',
       'Step1 - BMI',
       'Step1 - Family History',
       'Step1 - IPSS Total',
@@ -1635,6 +1637,7 @@ export const exportSessionsCSV = functions.https.onCall(async (data: { dateRange
         session.updatedAt || 'N/A',
         step1.age || 'N/A',
         step1.race || 'N/A',
+        step1.ethnicity || 'N/A',
         step1.bmi || 'N/A',
         step1.familyHistory || 'N/A',
         ipssTotal,

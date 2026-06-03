@@ -17,7 +17,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
       interceptShift: 0.0
     },
     encodings: {
-      raceBlackValues: ['black', 'african american', 'black or african american', 'black/aa', 'black/african american'],
+      raceBlackValues: ['black', 'african american', 'black or african american', 'black/aa', 'black/african american', 'african-american'],
       ageBins: [
         { min: 18, max: 49, label: '40-49' },
         { min: 50, max: 59, label: '50-59' },

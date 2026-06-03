@@ -62,6 +62,7 @@ const CODE_CHARSET_RE = /^[A-Z0-9]+$/;
 interface Step1Data {
   age?: number;
   race?: string;
+  ethnicity?: string;
   heightFt?: number | null;
   heightIn?: number | null;
   heightCm?: number | null;
