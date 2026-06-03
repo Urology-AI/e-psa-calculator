@@ -386,8 +386,8 @@
         "description": "El riesgo aumenta con la edad, especialmente después de los 50 años. La edad promedio de diagnóstico es 66 años."
       },
       "race": {
-        "title": "Raza/Etnia",
-        "selectPlaceholder": "Seleccione raza/etnia",
+        "title": "Raza",
+        "selectPlaceholder": "Seleccionar raza",
         "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
         "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "Otras condiciones de salud (corazón, presión arterial, colesterol, diabetes)",
         "description": "¿Le han diagnosticado presión arterial alta, colesterol alto, enfermedad cardíaca o diabetes? Le preguntaremos si tiene alguna — y si es así, si es una de estas o dos o más."
+      },
+      "ethnicity": {
+        "title": "Etnia",
+        "selectPlaceholder": "Seleccionar etnia (opcional)",
+        "helper": "Elija la categoría que mejor se ajuste a cómo se identifica; la ascendencia puede afectar las recomendaciones de detección.",
+        "description": "Los hombres negros/afroamericanos tienen mayor riesgo y son más propensos a desarrollar cáncer de próstata a una edad más temprana."
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "Blanco / Caucásico",
-      "black": "Negro / Afroamericano",
+      "african-american": "Afroamericano",
+      "american-indian": "Indio Americano / Nativo de Alaska",
+      "asian": "Asiático",
+      "native-hawaiian": "Nativo de Hawái u Otro Isleño del Pacífico",
+      "white": "Blanco o Caucásico",
+      "unknown": "Desconocido o No Reportado",
+      "black": "Afroamericano",
       "hispanic": "Hispano / Latino",
-      "asian": "Asiático/Isleño del Pacífico",
-      "other": "Otro / Mixto",
-      "mixed": "Mixto / Multirracial"
+      "mixed": "Afroamericano",
+      "other": "Desconocido o No Reportado"
     },
     "nonGuideline": {
       "badge": "FUERA DE GUÍAS",
@@ -735,6 +745,11 @@
       "q5.opt3": "A veces",
       "q5.opt4": "La mayoría de las veces",
       "q5.opt5": "Casi siempre"
+    },
+    "ethnicity": {
+      "hispanic-latino": "Hispano o Latino",
+      "not-hispanic-latino": "No Hispano o Latino",
+      "unknown": "Desconocido o No Reportado"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "Usar número de IPSS en su lugar",
     "ageLabel": "Edad (18-120)",
     "agePlaceholder": "por ejemplo, 55",
-    "raceLabel": "Raza / Etnia",
-    "selectRace": "Seleccione raza/etnia",
+    "raceLabel": "Raza",
+    "selectRace": "Seleccionar raza",
     "race": {
-      "white": "Blanco / Caucásico",
-      "black": "Negro / Afroamericano",
+      "african-american": "Afroamericano",
+      "american-indian": "Indio Americano / Nativo de Alaska",
+      "asian": "Asiático",
+      "native-hawaiian": "Nativo de Hawái u Otro Isleño del Pacífico",
+      "white": "Blanco o Caucásico",
+      "unknown": "Desconocido o No Reportado",
+      "black": "Afroamericano",
       "hispanic": "Hispano / Latino",
-      "asian": "Asiático/Isleño del Pacífico",
-      "other": "Otro / Mixto",
-      "mixed": "Mixto / Multirracial"
+      "mixed": "Afroamericano",
+      "other": "Desconocido o No Reportado"
     },
     "bmiLabel": "IMC",
     "bmiPlaceholder": "por ejemplo, 25,49",
@@ -1261,6 +1280,13 @@
       "ipssRange": "El total de IPSS debe estar entre 0 y 35",
       "shimRange": "El total de SHIM debe estar entre 0 y 25",
       "calculationFailed": "El cálculo falló. Por favor revise sus entradas."
+    },
+    "ethnicityLabel": "Etnia",
+    "selectEthnicity": "Seleccionar etnia (opcional)",
+    "ethnicity": {
+      "hispanic-latino": "Hispano o Latino",
+      "not-hispanic-latino": "No Hispano o Latino",
+      "unknown": "Desconocido o No Reportado"
     }
   },
   "welcomeGh": {

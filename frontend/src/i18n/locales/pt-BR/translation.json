@@ -386,8 +386,8 @@
         "description": "O risco aumenta com a idade, especialmente após os 50 anos. A idade média do diagnóstico é 66 anos."
       },
       "race": {
-        "title": "Raça/Etnia",
-        "selectPlaceholder": "Selecione raça/etnia",
+        "title": "Raça",
+        "selectPlaceholder": "Selecionar raça",
         "helper": "Escolha a categoria que melhor se encaixa em como você se identifica; a ancestralidade pode afetar as recomendações de triagem.",
         "description": "Homens negros/afro-americanos têm maior risco e são mais propensos a desenvolver câncer de próstata em idade mais jovem."
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "Comorbidades (HAS, HLD, DAC, Diabetes)",
         "description": "Hipertensão Arterial Sistêmica (HAS), Hiperlipidemia (HLD), Doença Arterial Coronariana (DAC) e Diabetes. Duas perguntas: (1) Você teve alguma? Não / Sim. (2) Se sim: Uma ou Duas ou mais?"
+      },
+      "ethnicity": {
+        "title": "Etnia",
+        "selectPlaceholder": "Selecionar etnia (opcional)",
+        "helper": "Escolha a categoria que melhor se encaixa em como você se identifica; a ancestralidade pode afetar as recomendações de triagem.",
+        "description": "Homens negros/afro-americanos têm maior risco e são mais propensos a desenvolver câncer de próstata em idade mais jovem."
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "Branco / Caucasiano",
-      "black": "Negro / Afro-americano",
+      "african-american": "Afro-americano",
+      "american-indian": "Índio Americano / Nativo do Alasca",
+      "asian": "Asiático",
+      "native-hawaiian": "Nativo do Havaí ou outro Ilhéu do Pacífico",
+      "white": "Branco ou Caucasiano",
+      "unknown": "Desconhecido ou não informado",
+      "black": "Afro-americano",
       "hispanic": "Hispânico / Latino",
-      "asian": "Asiático / Ilhéu do Pacífico",
-      "other": "Outro / Misto",
-      "mixed": "Mista / Multirracial"
+      "mixed": "Afro-americano",
+      "other": "Desconhecido ou não informado"
     },
     "nonGuideline": {
       "badge": "FORA DAS DIRETRIZES",
@@ -735,6 +745,11 @@
       "severityMildModerate": "ED leve a moderada",
       "severityMild": "ED leve",
       "severityNone": "Sem ED"
+    },
+    "ethnicity": {
+      "hispanic-latino": "Hispânico ou Latino",
+      "not-hispanic-latino": "Não hispânico ou Latino",
+      "unknown": "Desconhecido ou não informado"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "Usar número IPSS no lugar",
     "ageLabel": "Idade (18-120)",
     "agePlaceholder": "ex. 55",
-    "raceLabel": "Raça / Etnia",
-    "selectRace": "Selecione raça/etnia",
+    "raceLabel": "Raça",
+    "selectRace": "Selecionar raça",
     "race": {
-      "white": "Branco / Caucasiano",
-      "black": "Negro / Afro-americano",
+      "african-american": "Afro-americano",
+      "american-indian": "Índio Americano / Nativo do Alasca",
+      "asian": "Asiático",
+      "native-hawaiian": "Nativo do Havaí ou outro Ilhéu do Pacífico",
+      "white": "Branco ou Caucasiano",
+      "unknown": "Desconhecido ou não informado",
+      "black": "Afro-americano",
       "hispanic": "Hispânico / Latino",
-      "asian": "Asiático / Ilhéu do Pacífico",
-      "other": "Outro / Misto",
-      "mixed": "Mista / Multirracial"
+      "mixed": "Afro-americano",
+      "other": "Desconhecido ou não informado"
     },
     "bmiLabel": "IMC",
     "bmiPlaceholder": "ex. 25.49",
@@ -1261,6 +1280,13 @@
       "ipssRange": "O total IPSS deve ser entre 0 e 35",
       "shimRange": "O total SHIM deve ser entre 0 e 25",
       "calculationFailed": "Cálculo falhou. Por favor, verifique seus dados de entrada."
+    },
+    "ethnicityLabel": "Etnia",
+    "selectEthnicity": "Selecionar etnia (opcional)",
+    "ethnicity": {
+      "hispanic-latino": "Hispânico ou Latino",
+      "not-hispanic-latino": "Não hispânico ou Latino",
+      "unknown": "Desconhecido ou não informado"
     }
   },
   "welcomeGh": {
