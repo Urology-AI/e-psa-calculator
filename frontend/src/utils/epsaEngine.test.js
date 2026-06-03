@@ -306,36 +306,43 @@ describe('calcHighGradeRisk — logistic regression PI-RADS × PSA', () => {
     expect(calcHighGradeRisk(undefined, undefined)).toBeNull();
   });
 
-  it('returns null for invalid PI-RADS (not 2-5)', () => {
-    expect(calcHighGradeRisk(1, 4.0)).toBeNull();
+  // Updated 2026-06-02: model now uses dummy-variable logistic regression (GG≥2 outcome).
+  // Thresholds calibrated to 74% GG≥2 prevalence in biopsied cohort.
+  // PIRADS 1 is now valid (treated as reference ≤2). PIRADS 6+ is still invalid.
+  it('returns null for invalid PI-RADS (6+)', () => {
     expect(calcHighGradeRisk(6, 4.0)).toBeNull();
+    expect(calcHighGradeRisk(0, 4.0)).toBeNull();
   });
 
-  it('PI-RADS 2, PSA 4.0 → Low GG3+ risk (< 10%)', () => {
+  it('PIRADS 1 is now valid — treated as reference category (≤2)', () => {
+    const r = calcHighGradeRisk(1, 4.0);
+    expect(r).not.toBeNull();
+    expect(r.prob).toBeGreaterThan(0);
+    expect(r.prob).toBeLessThanOrEqual(1);
+  });
+
+  it('PI-RADS 2, PSA 4.0 → below-average GG≥2 risk (model calibrated to 74% prevalence cohort)', () => {
     const r = calcHighGradeRisk(2, 4.0);
     expect(r).not.toBeNull();
-    expect(r.prob).toBeLessThan(0.10);
-    expect(r.interpretation).toBe('Low GG3+ risk');
+    // Reference category in biopsied cohort: baseline ~58–60% — below cohort average (74%)
+    expect(r.prob).toBeLessThan(0.74);
+    expect(r.interpretation).toContain('Below-average');
+    expect(r.guidelineRate).toContain('7%'); // AUA 2026 Table 5
   });
 
-  it('PI-RADS 3, PSA 4.0 → Intermediate GG3+ risk (10–20%)', () => {
-    const r = calcHighGradeRisk(3, 4.0);
-    expect(r).not.toBeNull();
-    expect(r.prob).toBeGreaterThanOrEqual(0.10);
-    expect(r.prob).toBeLessThan(0.35);
-  });
-
-  it('PI-RADS 4, PSA 6.0 → Elevated or High GG3+ risk (≥ 20%)', () => {
+  it('PI-RADS 4, PSA 6.0 → elevated GG≥2 risk (≥ 74% cohort average)', () => {
     const r = calcHighGradeRisk(4, 6.0);
     expect(r).not.toBeNull();
-    expect(r.prob).toBeGreaterThanOrEqual(0.20);
+    expect(r.prob).toBeGreaterThanOrEqual(0.74);
+    expect(r.guidelineRate).toContain('37%'); // AUA 2026 Table 5
   });
 
-  it('PI-RADS 5, PSA 10.0 → High GG3+ risk (≥ 35%)', () => {
+  it('PI-RADS 5, PSA 10.0 → high GG≥2 risk', () => {
     const r = calcHighGradeRisk(5, 10.0);
     expect(r).not.toBeNull();
-    expect(r.prob).toBeGreaterThanOrEqual(0.35);
-    expect(r.interpretation).toBe('High GG3+ risk');
+    expect(r.prob).toBeGreaterThanOrEqual(0.82);
+    expect(r.interpretation).toBe('High GG≥2 risk');
+    expect(r.guidelineRate).toContain('70%'); // AUA 2026 Table 5
   });
 
   it('PI-RADS 5, PSA 0.5 → result is valid (low PSA high PIRADS edge case)', () => {
@@ -345,12 +352,12 @@ describe('calcHighGradeRisk — logistic regression PI-RADS × PSA', () => {
     expect(r.prob).toBeLessThanOrEqual(1);
   });
 
-  it('probability increases monotonically with PI-RADS at fixed PSA', () => {
-    const p2 = calcHighGradeRisk(2, 5.0).prob;
+  it('probability increases from PI-RADS 3→4→5 at fixed PSA (PIRADS 3 equivocal — near ref)', () => {
+    // Note: pirads_3 coefficient is −0.061 (equivocal, near zero), so p3 ≈ p2 (reference).
+    // The strong signal is PIRADS 4 (coef +0.968) and 5 (coef +1.255).
     const p3 = calcHighGradeRisk(3, 5.0).prob;
     const p4 = calcHighGradeRisk(4, 5.0).prob;
     const p5 = calcHighGradeRisk(5, 5.0).prob;
-    expect(p2).toBeLessThan(p3);
     expect(p3).toBeLessThan(p4);
     expect(p4).toBeLessThan(p5);
   });
