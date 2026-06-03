@@ -65,7 +65,6 @@ const COMBINED_TIER_CALIBRATION = {
 // CORRECTION (2026-06-02): age50_69 split into age50_59 (3.5) and age60_69 (4.5).
 // AUA 2026 EDPC p.11: "3.5 ng/mL for people in their 50s, 4.5 ng/mL for people in their 60s"
 // Prior single 3.5 threshold for ages 50–69 under-thresholded men aged 60–69.
-// TODO: Update AUAFlowchart.jsx to use age50_59 and age60_69 keys separately.
 // ---------------------------------------------------------------------------
 export const AUA_PSA_THRESHOLDS = {
   age45_49: {
