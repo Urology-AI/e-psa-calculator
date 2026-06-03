@@ -286,11 +286,12 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">2.</span> {t('part1.fields.race.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
-              <label className="checkbox-inline"><input type="radio" name="race" value="white" defaultChecked={isChecked('race', 'white')} /> {t('part1.race.white')}</label>
-              <label className="checkbox-inline"><input type="radio" name="race" value="black" defaultChecked={isChecked('race', 'black')} /> {t('part1.race.black')}</label>
-              <label className="checkbox-inline"><input type="radio" name="race" value="hispanic" defaultChecked={isChecked('race', 'hispanic')} /> {t('part1.race.hispanic')}</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="african-american" defaultChecked={isChecked('race', 'african-american') || isChecked('race', 'black')} /> {t('part1.race.african-american')}</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="american-indian" defaultChecked={isChecked('race', 'american-indian')} /> {t('part1.race.american-indian')}</label>
               <label className="checkbox-inline"><input type="radio" name="race" value="asian" defaultChecked={isChecked('race', 'asian')} /> {t('part1.race.asian')}</label>
-              <label className="checkbox-inline"><input type="radio" name="race" value="other" defaultChecked={isChecked('race', 'other')} /> {t('part1.race.other')}</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="native-hawaiian" defaultChecked={isChecked('race', 'native-hawaiian')} /> {t('part1.race.native-hawaiian')}</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="white" defaultChecked={isChecked('race', 'white')} /> {t('part1.race.white')}</label>
+              <label className="checkbox-inline"><input type="radio" name="race" value="unknown" defaultChecked={isChecked('race', 'unknown') || isChecked('race', 'other')} /> {t('part1.race.unknown')}</label>
             </label>
           </div>
         </div>

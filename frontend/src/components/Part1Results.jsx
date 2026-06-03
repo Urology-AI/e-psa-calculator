@@ -923,7 +923,7 @@ const Part1Results = ({
         >
           {(() => {
             const ageNum = Number(age);
-            const isBlack = formData?.race === 'black';
+            const isBlack = formData?.race === 'black' || formData?.race === 'african-american';
             const hasFamilyHistory = Number(formData?.familyHistory) > 0;
             const hasBrca = formData?.brcaStatus === 'yes';
             const isHighRisk = isBlack || hasFamilyHistory || hasBrca;

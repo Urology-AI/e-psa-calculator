@@ -386,8 +386,8 @@
         "description": "Il rischio aumenta con l'età, in particolare dopo i 50 anni. L'età media alla diagnosi è 66 anni."
       },
       "race": {
-        "title": "Razza/Etnia",
-        "selectPlaceholder": "Seleziona razza/etnia",
+        "title": "Razza",
+        "selectPlaceholder": "Seleziona razza",
         "helper": "Scegli la categoria che meglio rappresenta la tua identità; l'ascendenza può influenzare le raccomandazioni di screening.",
         "description": "Gli uomini neri/afroamericani hanno un rischio maggiore e sono più propensi a sviluppare il cancro alla prostata in età più giovane."
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "Comorbidità (IPT, ILD, CAD, Diabete)",
         "description": "Ipertensione (IPT), Iperlipidemia (ILD), Malattia coronarica (CAD) e Diabete. Due domande: (1) Ne hai avute? No / Sì. (2) In caso affermativo: Una o due o più?"
+      },
+      "ethnicity": {
+        "title": "Etnia",
+        "selectPlaceholder": "Seleziona etnia (facoltativo)",
+        "helper": "Scegli la categoria che meglio rappresenta la tua identità; l'ascendenza può influenzare le raccomandazioni di screening.",
+        "description": "Gli uomini neri/afroamericani hanno un rischio maggiore e sono più propensi a sviluppare il cancro alla prostata in età più giovane."
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "Bianco / Caucasico",
-      "black": "Nero / Afroamericano",
+      "african-american": "Afroamericano",
+      "american-indian": "Indiano Americano / Nativo dell'Alaska",
+      "asian": "Asiatico",
+      "native-hawaiian": "Nativo delle Hawaii o altro isolano del Pacifico",
+      "white": "Bianco o Caucasico",
+      "unknown": "Sconosciuto o non dichiarato",
+      "black": "Afroamericano",
       "hispanic": "Ispanico / Latino",
-      "asian": "Asiatico / Isolano del Pacifico",
-      "other": "Altro / Misto",
-      "mixed": "Mista / Multietnica"
+      "mixed": "Afroamericano",
+      "other": "Sconosciuto o non dichiarato"
     },
     "errors": {
       "step0": {
@@ -735,6 +745,11 @@
     "guidelineBadge": {
       "guideline": "AUA/NCCN",
       "modelOnly": "Solo ePSA"
+    },
+    "ethnicity": {
+      "hispanic-latino": "Ispanico o Latino",
+      "not-hispanic-latino": "Non ispanico o Latino",
+      "unknown": "Sconosciuto o non dichiarato"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "Usa invece il numero IPSS",
     "ageLabel": "Età (18-120)",
     "agePlaceholder": "es. 55",
-    "raceLabel": "Razza / Etnia",
-    "selectRace": "Seleziona razza/etnia",
+    "raceLabel": "Razza",
+    "selectRace": "Seleziona razza",
     "race": {
-      "white": "Bianco / Caucasico",
-      "black": "Nero / Afroamericano",
+      "african-american": "Afroamericano",
+      "american-indian": "Indiano Americano / Nativo dell'Alaska",
+      "asian": "Asiatico",
+      "native-hawaiian": "Nativo delle Hawaii o altro isolano del Pacifico",
+      "white": "Bianco o Caucasico",
+      "unknown": "Sconosciuto o non dichiarato",
+      "black": "Afroamericano",
       "hispanic": "Ispanico / Latino",
-      "asian": "Asiatico / Isolano del Pacifico",
-      "other": "Altro / Misto",
-      "mixed": "Mista / Multietnica"
+      "mixed": "Afroamericano",
+      "other": "Sconosciuto o non dichiarato"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "es. 25,49",
@@ -1261,6 +1280,13 @@
       "mostlyDissatisfied": "Per lo più insoddisfatto",
       "unhappy": "Infelice",
       "terrible": "Terribile"
+    },
+    "ethnicityLabel": "Etnia",
+    "selectEthnicity": "Seleziona etnia (facoltativo)",
+    "ethnicity": {
+      "hispanic-latino": "Ispanico o Latino",
+      "not-hispanic-latino": "Non ispanico o Latino",
+      "unknown": "Sconosciuto o non dichiarato"
     }
   },
   "welcomeGh": {

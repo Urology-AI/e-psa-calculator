@@ -567,12 +567,12 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <QuestionSubtext i18nKey="part1.fields.race.helper" />
           <div className="option-grid c2" role="radiogroup" aria-label={t('part1.fields.race.title')}>
             {[
-              { value: 'white', label: t('part1.race.white') },
-              { value: 'black', label: t('part1.race.black') },
-              { value: 'hispanic', label: t('part1.race.hispanic') },
+              { value: 'african-american', label: t('part1.race.african-american') },
+              { value: 'american-indian', label: t('part1.race.american-indian') },
               { value: 'asian', label: t('part1.race.asian') },
-              { value: 'mixed', label: t('part1.race.mixed') },
-              { value: 'other', label: t('part1.race.other') },
+              { value: 'native-hawaiian', label: t('part1.race.native-hawaiian') },
+              { value: 'white', label: t('part1.race.white') },
+              { value: 'unknown', label: t('part1.race.unknown') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -591,6 +591,35 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               {t('part1.errors.step0.raceInline')}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Ethnicity */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">2b</div>
+          <div className="question-text">{t('part1.fields.ethnicity.title')}</div>
+        </div>
+        <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.ethnicity.helper" />
+          <div className="option-grid c2" role="radiogroup" aria-label={t('part1.fields.ethnicity.title')}>
+            {[
+              { value: 'hispanic-latino', label: t('part1.ethnicity.hispanic-latino') },
+              { value: 'not-hispanic-latino', label: t('part1.ethnicity.not-hispanic-latino') },
+              { value: 'unknown', label: t('part1.ethnicity.unknown') },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={localData.ethnicity === opt.value}
+                className={`option-btn ${localData.ethnicity === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('ethnicity', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

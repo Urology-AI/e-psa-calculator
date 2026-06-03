@@ -386,8 +386,8 @@
         "description": "Risk yaşla birlikte, özellikle 50'den sonra artar. Tanı için ortalama yaş 66'dır."
       },
       "race": {
-        "title": "Irk/Etnik Köken",
-        "selectPlaceholder": "Irk/etnik köken seçin",
+        "title": "Irk",
+        "selectPlaceholder": "Irk seçin",
         "helper": "Kendinizi nasıl tanımladığınıza en uygun kategoriyi seçin; soy, tarama önerilerini etkileyebilir.",
         "description": "Siyahi/Afrikalı Amerikalı erkeklerde risk daha yüksektir ve prostat kanserine daha genç yaşta yakalanma olasılıkları daha fazladır."
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "Diğer Sağlık Durumları (kalp, tansiyon, kolesterol, diyabet)",
         "description": "Yüksek tansiyon, yüksek kolesterol, kalp hastalığı veya diyabet tanısı aldınız mı? Bunlardan herhangi birinin olup olmadığını — ve evet ise bunlardan biri mi yoksa iki veya daha fazlası mı olduğunu soracağız."
+      },
+      "ethnicity": {
+        "title": "Etnisite",
+        "selectPlaceholder": "Etnisite seçin (isteğe bağlı)",
+        "helper": "Kendinizi nasıl tanımladığınıza en uygun kategoriyi seçin; soy, tarama önerilerini etkileyebilir.",
+        "description": "Siyahi/Afrikalı Amerikalı erkeklerde risk daha yüksektir ve prostat kanserine daha genç yaşta yakalanma olasılıkları daha fazladır."
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "Beyaz / Kafkas",
-      "black": "Siyahi / Afrikalı Amerikalı",
+      "african-american": "Afrikalı Amerikalı",
+      "american-indian": "Amerikan Yerlisi / Alaska Yerlisi",
+      "asian": "Asyalı",
+      "native-hawaiian": "Hawaii Yerlisi veya Diğer Pasifik Adalısı",
+      "white": "Beyaz veya Kafkasyalı",
+      "unknown": "Bilinmiyor veya Belirtilmemiş",
+      "black": "Afrikalı Amerikalı",
       "hispanic": "Hispanik / Latin",
-      "asian": "Asyalı / Pasifik Adalı",
-      "mixed": "Karma / Çok Irklı",
-      "other": "Diğer"
+      "mixed": "Afrikalı Amerikalı",
+      "other": "Bilinmiyor veya Belirtilmemiş"
     },
     "nonGuideline": {
       "badge": "KILAVUZ DIŞI",
@@ -735,6 +745,11 @@
       "q5.opt3": "Bazen",
       "q5.opt4": "Çoğu zaman",
       "q5.opt5": "Neredeyse her zaman"
+    },
+    "ethnicity": {
+      "hispanic-latino": "Hispanik veya Latino",
+      "not-hispanic-latino": "Hispanik veya Latino Değil",
+      "unknown": "Bilinmiyor veya Belirtilmemiş"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "Bunun yerine IPSS sayısını kullan",
     "ageLabel": "Yaş (18-120)",
     "agePlaceholder": "ör. 55",
-    "raceLabel": "Irk / Etnik Köken",
-    "selectRace": "Irk/etnik köken seçin",
+    "raceLabel": "Irk",
+    "selectRace": "Irk seçin",
     "race": {
-      "white": "Beyaz / Kafkas",
-      "black": "Siyahi / Afrikalı Amerikalı",
+      "african-american": "Afrikalı Amerikalı",
+      "american-indian": "Amerikan Yerlisi / Alaska Yerlisi",
+      "asian": "Asyalı",
+      "native-hawaiian": "Hawaii Yerlisi veya Diğer Pasifik Adalısı",
+      "white": "Beyaz veya Kafkasyalı",
+      "unknown": "Bilinmiyor veya Belirtilmemiş",
+      "black": "Afrikalı Amerikalı",
       "hispanic": "Hispanik / Latin",
-      "asian": "Asyalı / Pasifik Adalı",
-      "mixed": "Karma / Çok Irklı",
-      "other": "Diğer"
+      "mixed": "Afrikalı Amerikalı",
+      "other": "Bilinmiyor veya Belirtilmemiş"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "ör. 25.49",
@@ -1261,6 +1280,13 @@
       "ipssRange": "IPSS toplamı 0 ile 35 arasında olmalıdır",
       "shimRange": "SHIM toplamı 0 ile 25 arasında olmalıdır",
       "calculationFailed": "Hesaplama başarısız oldu. Lütfen girdilerinizi tekrar kontrol edin."
+    },
+    "ethnicityLabel": "Etnisite",
+    "selectEthnicity": "Etnisite seçin (isteğe bağlı)",
+    "ethnicity": {
+      "hispanic-latino": "Hispanik veya Latino",
+      "not-hispanic-latino": "Hispanik veya Latino Değil",
+      "unknown": "Bilinmiyor veya Belirtilmemiş"
     }
   },
   "welcomeGh": {

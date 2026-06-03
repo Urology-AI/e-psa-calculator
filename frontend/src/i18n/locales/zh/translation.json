@@ -386,8 +386,8 @@
         "description": "风险随年龄增长而增加，尤其是在50岁以后。诊断的平均年龄为66岁。"
       },
       "race": {
-        "title": "种族/民族",
-        "selectPlaceholder": "选择种族/民族",
+        "title": "种族",
+        "selectPlaceholder": "选择种族",
         "helper": "选择最符合您身份认同的类别；祖先可能影响筛查建议。",
         "description": "黑人/非裔美国男性患病风险更高，更可能在更年轻的年龄发展为前列腺癌。"
       },
@@ -440,6 +440,12 @@
       "comorbidities": {
         "title": "其他健康状况（心脏、血压、胆固醇、糖尿病）",
         "description": "您是否被诊断患有高血压、高胆固醇、心脏病或糖尿病？我们将询问您是否患有任何此类疾病——如果有，是其中一种还是两种及以上。"
+      },
+      "ethnicity": {
+        "title": "族裔",
+        "selectPlaceholder": "选择族裔（可选）",
+        "helper": "选择最符合您身份认同的类别；祖先可能影响筛查建议。",
+        "description": "黑人/非裔美国男性患病风险更高，更可能在更年轻的年龄发展为前列腺癌。"
       }
     },
     "steps": {
@@ -474,12 +480,16 @@
       }
     },
     "race": {
-      "white": "白人/高加索人",
-      "black": "黑人/非裔美国人",
+      "african-american": "非裔美国人",
+      "american-indian": "美国印第安人/阿拉斯加原住民",
+      "asian": "亚裔",
+      "native-hawaiian": "夏威夷原住民或其他太平洋岛民",
+      "white": "白人或高加索人",
+      "unknown": "未知或未申报",
+      "black": "非裔美国人",
       "hispanic": "西班牙裔/拉丁裔",
-      "asian": "亚裔/太平洋岛民",
-      "other": "其他/混合",
-      "mixed": "混合 / 多种族"
+      "mixed": "非裔美国人",
+      "other": "未知或未申报"
     },
     "nonGuideline": {
       "badge": "非指南",
@@ -735,6 +745,11 @@
       "q5.opt3": "有时",
       "q5.opt4": "大多数时候",
       "q5.opt5": "几乎总是"
+    },
+    "ethnicity": {
+      "hispanic-latino": "西班牙裔或拉丁裔",
+      "not-hispanic-latino": "非西班牙裔或拉丁裔",
+      "unknown": "未知或未申报"
     }
   },
   "part2": {
@@ -1182,15 +1197,19 @@
     "iDontKnowHide": "改用IPSS数值",
     "ageLabel": "年龄（18-120）",
     "agePlaceholder": "例如 55",
-    "raceLabel": "种族/民族",
-    "selectRace": "选择种族/民族",
+    "raceLabel": "种族",
+    "selectRace": "选择种族",
     "race": {
-      "white": "白人/高加索人",
-      "black": "黑人/非裔美国人",
+      "african-american": "非裔美国人",
+      "american-indian": "美国印第安人/阿拉斯加原住民",
+      "asian": "亚裔",
+      "native-hawaiian": "夏威夷原住民或其他太平洋岛民",
+      "white": "白人或高加索人",
+      "unknown": "未知或未申报",
+      "black": "非裔美国人",
       "hispanic": "西班牙裔/拉丁裔",
-      "asian": "亚裔/太平洋岛民",
-      "other": "其他/混合",
-      "mixed": "混合 / 多种族"
+      "mixed": "非裔美国人",
+      "other": "未知或未申报"
     },
     "bmiLabel": "BMI",
     "bmiPlaceholder": "例如 25.49",
@@ -1261,6 +1280,13 @@
       "ipssRange": "IPSS总分必须在0到35之间",
       "shimRange": "SHIM总分必须在0到25之间",
       "calculationFailed": "计算失败。请仔细检查您的输入。"
+    },
+    "ethnicityLabel": "族裔",
+    "selectEthnicity": "选择族裔（可选）",
+    "ethnicity": {
+      "hispanic-latino": "西班牙裔或拉丁裔",
+      "not-hispanic-latino": "非西班牙裔或拉丁裔",
+      "unknown": "未知或未申报"
     }
   },
   "welcomeGh": {
