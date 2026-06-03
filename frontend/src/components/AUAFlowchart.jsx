@@ -35,8 +35,10 @@ const ICONS = {
  * 45–49  PSA < 2.5  → resume pathway at 50 (baseline screen only)
  *        PSA ≥ 2.5  → continue biannual screening
  *
- * 50–69  PSA < 3.5  → continue biannual (or every 4 yrs via SDM if < 1 at 60)
+ * 50–59  PSA < 3.5  → continue biannual (or every 4 yrs via SDM if < 1 at 60)
  *        PSA ≥ 3.5  → urology referral after confirmatory repeat PSA
+ * 60–69  PSA < 4.5  → continue biannual
+ *        PSA ≥ 4.5  → urology referral after confirmatory repeat PSA
  *
  * 70–74  PSA < 3.0  → discontinue or lengthen interval (SDM required).
  *                     Guideline text: cumulative PCa-specific mortality at 85 is
@@ -53,13 +55,15 @@ const getAgeGroup = (age) => {
   if (age < 40) return 'under40';
   if (age < 45) return '40-44';
   if (age < 50) return '45-49';
-  if (age <= 69) return '50-69';
+  if (age <= 59) return '50-59';
+  if (age <= 69) return '60-69';
   if (age <= 74) return '70-74';
   return 'over75';
 };
 
 const outcome4549  = (psa) => psa === null ? null : (psa < 2.5 ? 'resume' : 'biannual');
-const outcome5069  = (psa) => psa === null ? null : (psa < 3.5 ? 'biannual' : 'urology');
+const outcome5059  = (psa) => psa === null ? null : (psa < 3.5 ? 'biannual' : 'urology');
+const outcome6069  = (psa) => psa === null ? null : (psa < 4.5 ? 'biannual' : 'urology');
 const outcome70plus = (psa) => {
   if (psa === null) return null;
   if (psa >= 3.0) return 'urology';
@@ -118,14 +122,21 @@ const AUAScreeningFlowchart = ({ age, psaValue = null, isHighRisk = false, part 
   const ageGroup = getAgeGroup(ageNum);
 
   const isCol4549 = ageGroup === '45-49' || (ageGroup === '40-44' && isHighRisk);
-  const isCol5069 = ageGroup === '50-69';
+  const isCol5059 = ageGroup === '50-59';
+  const isCol6069 = ageGroup === '60-69';
+  const isCol5069 = isCol5059 || isCol6069;
   const isCol70   = ageGroup === '70-74' || ageGroup === 'over75';
   const isUnder40 = ageGroup === 'under40' || (ageGroup === '40-44' && !isHighRisk);
 
   const hasActiveCol = isCol4549 || isCol5069 || isCol70;
 
+  // AUA 2026: 3.5 ng/mL for ages 50–59, 4.5 ng/mL for ages 60–69
+  const psaThreshold5069 = isCol6069 ? 4.5 : 3.5;
+
   const active4549 = isCol4549 ? outcome4549(hasPsa ? psaNum : null)   : null;
-  const active5069 = isCol5069 ? outcome5069(hasPsa ? psaNum : null)   : null;
+  const active5069 = isCol5059 ? outcome5059(hasPsa ? psaNum : null)
+                   : isCol6069 ? outcome6069(hasPsa ? psaNum : null)
+                   : null;
   const active70   = isCol70   ? outcome70plus(hasPsa ? psaNum : null) : null;
 
   /* Patient position text */
@@ -137,9 +148,9 @@ const AUAScreeningFlowchart = ({ age, psaValue = null, isHighRisk = false, part 
       ? `PSA ${psaNum} ng/mL at age ${ageNum}: Below the 2.5 ng/mL threshold — no immediate follow-up needed. Re-enter pathway at age 50.`
       : `PSA ${psaNum} ng/mL at age ${ageNum}: At or above 2.5 ng/mL — continue biannual PSA screening.`;
     if (isCol5069 && !hasPsa)     return `Age ${ageNum}: Regular PSA screening every 2–4 years is recommended (AUA Grade A). Your PSA result will determine whether to continue routine screening or refer to urology.`;
-    if (isCol5069 && hasPsa)      return psaNum < 3.5
-      ? `PSA ${psaNum} ng/mL at age ${ageNum}: Below threshold — continue biannual screening. SDM may extend to every 4 years.`
-      : `PSA ${psaNum} ng/mL at age ${ageNum}: At or above 3.5 ng/mL — urology referral is recommended after a confirmatory repeat PSA.`;
+    if (isCol5069 && hasPsa)      return psaNum < psaThreshold5069
+      ? `PSA ${psaNum} ng/mL at age ${ageNum}: Below the ${psaThreshold5069} ng/mL threshold (AUA 2026) — continue biannual screening. SDM may extend to every 4 years.`
+      : `PSA ${psaNum} ng/mL at age ${ageNum}: At or above ${psaThreshold5069} ng/mL (AUA 2026) — urology referral is recommended after a confirmatory repeat PSA.`;
     if (isCol70 && !hasPsa)       return `Age ${ageNum}: Per AUA/SUO 2026, all screening decisions at 70+ require Shared Decision-Making (SDM). Your physician must first assess life expectancy. If < 10 years, discontinuing screening is recommended regardless of PSA.`;
     if (isCol70 && hasPsa)        return psaNum >= 3.0
       ? `PSA ${psaNum} ng/mL at age ${ageNum}: PSA ≥ 3.0 ng/mL — if life expectancy is ≥ 10 years, urology referral is recommended after a confirmatory PSA. SDM with your physician is required first.`
@@ -205,22 +216,28 @@ const AUAScreeningFlowchart = ({ age, psaValue = null, isHighRisk = false, part 
         {/* Column 2: 50–69 */}
         <div className={`aua-fc__col${isCol5069 ? ' aua-fc__col--active' : ''}`}>
           <AgeBox
-            label="Age 50–69"
-            note="Strong recommendation · Grade A"
+            label={isCol5059 ? 'Age 50–59' : isCol6069 ? 'Age 60–69' : 'Age 50–69'}
+            note={isCol6069 ? 'Strong recommendation · Grade A · 4.5 ng/mL threshold' : 'Strong recommendation · Grade A'}
             active={isCol5069}
             inactive={!isCol5069 && hasActiveCol}
           />
           <div className="aua-fc__branches">
-            <Threshold label="PSA < 3.5 ng/mL" active={isCol5069 && active5069 === 'biannual'} />
+            <Threshold
+              label={`PSA < ${isCol5069 ? psaThreshold5069 : 3.5} ng/mL`}
+              active={isCol5069 && active5069 === 'biannual'}
+            />
             <Outcome
               icon={ICONS.biannual}
               label="Continue Biannual"
-              detail="SDM: may extend to every 4 years"
+              detail={isCol6069 ? 'PSA < 4.5 ng/mL (AUA 2026, age 60–69)' : 'SDM: may extend to every 4 years'}
               variant="biannual"
               active={isCol5069 && active5069 === 'biannual'}
               inactive={isCol5069 && hasPsa && active5069 !== 'biannual'}
             />
-            <Threshold label="PSA ≥ 3.5 ng/mL" active={isCol5069 && active5069 === 'urology'} />
+            <Threshold
+              label={`PSA ≥ ${isCol5069 ? psaThreshold5069 : 3.5} ng/mL`}
+              active={isCol5069 && active5069 === 'urology'}
+            />
             <Outcome
               icon={ICONS.urology}
               label="Urology Referral"
