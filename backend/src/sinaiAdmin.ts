@@ -94,6 +94,7 @@ interface SessionSummary {
   // Brief peek so the table can show a few fields without a full fetch
   age?: number;
   race?: string;
+  ethnicity?: string;
 }
 
 interface ListSessionsResult {
