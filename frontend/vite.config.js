@@ -49,7 +49,6 @@ export default defineConfig({
     outDir: 'build',
     sourcemap: 'hidden',
     rollupOptions: {
-      external: ['@sentry/react'],
       output: {
         manualChunks: {
           firebase: [
