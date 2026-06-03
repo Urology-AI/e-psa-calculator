@@ -242,6 +242,7 @@ export default function ClinicalModeFlow() {
     const formData = {
       age: parseInt(answers.age),
       race: answers.race,
+      ethnicity: answers.ethnicity || null,
       familyHistory: FH_MAP[answers.familyHistory] ?? 0,
       ipss: deriveIpssFromQol(answers.qol),
       ipssQol: answers.qol,
