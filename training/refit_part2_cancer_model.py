@@ -428,10 +428,21 @@ def main():
         raise ValueError(f"PIRADS column '{cols.pirads}' not found. Available: {list(df.columns)}")
 
     # Print outcome distribution
+    # Uses the same int(float(s)) parsing as build_features to handle float-stored values
+    # (e.g. 1.0/0.0). Prior isin(["1","0"]) string match silently showed 0/0/N (false alarm).
     if cols.clinically_significant in df.columns:
-        cs = df[cols.clinically_significant].apply(lambda v: normalize_str(v))
-        n_pos = cs.isin(["1", "yes", "y", "true"]).sum()
-        n_neg = cs.isin(["0", "no", "n", "false"]).sum()
+        def _count_cs(v):
+            s = normalize_str(v)
+            if s in ("1", "yes", "y", "true"): return 1
+            if s in ("0", "no", "n", "false"): return 0
+            try:
+                iv = int(float(s))
+                return iv if iv in (0, 1) else None
+            except Exception:
+                return None
+        cs_parsed = df[cols.clinically_significant].apply(_count_cs)
+        n_pos = (cs_parsed == 1).sum()
+        n_neg = (cs_parsed == 0).sum()
         print(f"  ClinicallySignificant=1: n={n_pos}")
         print(f"  ClinicallySignificant=0: n={n_neg}")
         print(f"  Missing / unparseable:   n={len(df) - n_pos - n_neg}")
