@@ -1,6 +1,7 @@
 import React from 'react';
 import { MODEL_ACCURACY } from '../utils/epsaEngine';
 import './ModelDocumentation.css';
+import { AlertTriangleIcon } from 'lucide-react';
 
 /* ── Architecture stages ── */
 const STAGES = [
@@ -45,7 +46,7 @@ const StatChip = ({ label, value, note, warn }) => (
 
 const Caution = ({ children }) => (
   <div className="md-caution">
-    <span className="md-caution__icon" aria-hidden="true">⚠</span>
+    <AlertTriangleIcon size={14} className="md-caution__icon" aria-hidden="true" />
     <span>{children}</span>
   </div>
 );

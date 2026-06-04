@@ -3,7 +3,7 @@
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
 import React, { useState } from 'react';
-import { ChevronUpIcon, ChevronDownIcon } from 'lucide-react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon } from 'lucide-react';
 
 // ─── Collapsible Section ──────────────────────────────────────────────────────
 export const CollapsibleSection = ({
@@ -36,9 +36,9 @@ export const CollapsibleSection = ({
 
 // ─── Guardrail Banner ─────────────────────────────────────────────────────────
 const GUARDRAIL_CONFIG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: InfoIcon },
 };
 
 export const GuardrailBanner = ({ alert }) => {
@@ -55,7 +55,7 @@ export const GuardrailBanner = ({ alert }) => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '15px' }} aria-hidden="true">{cfg.icon}</span>
+        <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
         <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor }}>{alert?.title}</span>
       </div>
       <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{alert?.message}</p>
@@ -110,7 +110,7 @@ export const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => 
       aria-label={`Supported by ${n} of ${total} guidelines: ${supportedNames}`}
       aria-describedby={showTip ? 'guideline-badge-tip' : undefined}
     >
-      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      {strong ? <CheckIcon size={12} aria-hidden="true" /> : partial ? <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.6 }} /> : <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.3 }} />}
       Supported by {n} / {total} guidelines
       {showTip && (
         <span
@@ -133,10 +133,10 @@ export const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => 
           }}
         >
           {Object.entries(GUIDELINE_LABELS).map(([k, label]) => (
-            <span key={k} style={{ display: 'block' }}>
-              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>
-                {support[k] ? '✓' : '—'}
-              </span>
+            <span key={k} style={{ display: 'block', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {support[k]
+                ? <CheckIcon size={11} color="#4ade80" aria-hidden="true" />
+                : <span style={{ color: '#9ca3af', fontWeight: 700, fontSize: '11px' }}>—</span>}
               {label}
             </span>
           ))}

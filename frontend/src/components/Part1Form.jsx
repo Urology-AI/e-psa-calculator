@@ -516,7 +516,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-number">1</div>
           <div className="question-text">{t('part1.fields.age.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.age} />
-          {ageValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {ageValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.age.helper" />
@@ -561,7 +561,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-number">2</div>
           <div className="question-text">{t('part1.fields.race.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.race} />
-          {raceValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {raceValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.race.helper" />
@@ -629,7 +629,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-number">3</div>
           <div className="question-text">{t('part1.step1.familyHistory.title')} <GuidelineBadge /></div>
           <InfoIcon {...fieldReferences.familyHistory} />
-          {familyHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {familyHistoryValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.familyHistory.helper" />
@@ -693,7 +693,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             <div className="question-header">
               <div className="question-number">{index + 1}</div>
               <div className="question-text">{q}</div>
-              {localData.ipss[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+              {localData.ipss[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
             </div>
             <div className="question-body">
               <QuestionSubtext i18nKey="part1.ipss.helper" />
@@ -716,7 +716,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-header">
             <div className="question-number">Q8</div>
             <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
-            {localData.ipssQol !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+            {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
           </div>
           <div className="question-body">
             <div className="option-grid c2">
@@ -766,7 +766,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.step2.heightQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
-          {heightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {heightValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.step2.heightHelper" />
@@ -801,7 +801,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.step2.weightQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
-          {weightValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {weightValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.step2.weightHelper" />
@@ -826,7 +826,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           )}
           <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
-            {bmiValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+            {bmiValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
           </div>
         </div>
       </div>
@@ -838,7 +838,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.fields.exercise.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.exercise} />
-          {exerciseValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {exerciseValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.exercise.helper" />
@@ -872,7 +872,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.fields.smoking.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.smoking} />
-          {smokingValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {smokingValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.smoking.helper" />
@@ -945,7 +945,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.step1.inflammationHistory.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.inflammationHistory} />
-          {inflammationHistoryValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {inflammationHistoryValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext>
@@ -981,7 +981,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.chemicalExposure} />
-          {chemicalValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {chemicalValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
@@ -1018,7 +1018,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.brcaStatus} />
-          {brcaValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {brcaValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
@@ -1049,7 +1049,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.comorbidities} />
-          {comorbiditiesValid && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+          {comorbiditiesValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
           <QuestionSubtext>{t('part1.step4.comorbidities.prompt')}</QuestionSubtext>
@@ -1176,7 +1176,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
                 <div className="question-header">
                   <div className="question-number">{index + 1}</div>
                   <div className="question-text">{q.label}</div>
-                  {localData.shim[index] !== null && <span style={{ color: '#27AE60', marginLeft: '8px' }}>✓</span>}
+                  {localData.shim[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
                 </div>
                 <div className="question-body">
                   <div className="option-grid c3">
@@ -1209,7 +1209,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               onClick={() => scrollToSection(sectionARef)}
               aria-label={`Section A: ${sectionAAnswered} of ${sectionATotal} answered`}
             >
-              A {sectionADone ? '✓' : `${sectionAAnswered}/${sectionATotal}`}
+              A {sectionADone ? <CheckIcon size={12} aria-hidden="true" /> : `${sectionAAnswered}/${sectionATotal}`}
             </button>
             <button
               type="button"
@@ -1217,7 +1217,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               onClick={() => scrollToSection(sectionBRef)}
               aria-label={`Section B: ${sectionBAnswered} of ${sectionBTotal} answered`}
             >
-              B {sectionBDone ? '✓' : `${sectionBAnswered}/${sectionBTotal}`}
+              B {sectionBDone ? <CheckIcon size={12} aria-hidden="true" /> : `${sectionBAnswered}/${sectionBTotal}`}
             </button>
           </div>
           <div className="v2-form-nav-btns">
