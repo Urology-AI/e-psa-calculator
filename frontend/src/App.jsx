@@ -14,7 +14,7 @@ import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
 const SinaiConsentScreen = React.lazy(() => import('./components/SinaiConsentScreen.jsx'));
 const SinaiResultsScreen = React.lazy(() => import('./components/SinaiResultsScreen.jsx'));
 import { readSinaiConfig } from './utils/sinaiSubmit.js';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
 // Lazy-loaded modals/overlays — only shown on demand
@@ -2197,7 +2197,7 @@ function App() {
                         aria-current={part1Status === 'current' ? 'step' : undefined}
                       >
                         <span className="stage-nav-num" aria-hidden="true">
-                          {part1Status === 'done' ? '✓' : '1'}
+                          {part1Status === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '1'}
                         </span>
                         <span className="stage-nav-body">
                           <span className="stage-nav-label">Baseline Risk</span>
@@ -2213,7 +2213,7 @@ function App() {
                         aria-current={part2Status === 'current' ? 'step' : undefined}
                       >
                         <span className="stage-nav-num" aria-hidden="true">
-                          {part2Status === 'done' ? '✓' : '2'}
+                          {part2Status === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '2'}
                         </span>
                         <span className="stage-nav-body">
                           <span className="stage-nav-label">{part2Label}</span>

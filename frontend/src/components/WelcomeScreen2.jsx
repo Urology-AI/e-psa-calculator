@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './WelcomeScreen2.css';
 import RiskAssessmentDocs from './RiskAssessmentDocs';
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, FlaskConicalIcon, HospitalIcon, DnaIcon } from 'lucide-react';
 import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 import { useTranslation } from 'react-i18next';
 
@@ -64,7 +64,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
                 
                 <div className="model-factors">
                   <div className="factor-card">
-                    <span className="factor-icon">🔬</span>
+                    <FlaskConicalIcon size={18} className="factor-icon" aria-hidden="true" />
                     <div className="factor-content">
                       <strong>{t('welcome2.modelDetails.factors.clinical.title')}</strong>
                       <span>{t('welcome2.modelDetails.factors.clinical.desc')}</span>
@@ -72,7 +72,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
                   </div>
                   
                   <div className="factor-card">
-                    <span className="factor-icon">🏥</span>
+                    <HospitalIcon size={18} className="factor-icon" aria-hidden="true" />
                     <div className="factor-content">
                       <strong>{t('welcome2.modelDetails.factors.history.title')}</strong>
                       <span>{t('welcome2.modelDetails.factors.history.desc')}</span>
@@ -80,7 +80,7 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
                   </div>
                   
                   <div className="factor-card">
-                    <span className="factor-icon">🧬</span>
+                    <DnaIcon size={18} className="factor-icon" aria-hidden="true" />
                     <div className="factor-content">
                       <strong>{t('welcome2.modelDetails.factors.genetic.title')}</strong>
                       <span>{t('welcome2.modelDetails.factors.genetic.desc')}</span>

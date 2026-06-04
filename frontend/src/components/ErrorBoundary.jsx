@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangleIcon } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,7 +38,7 @@ class ErrorBoundary extends React.Component {
           boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
         }}
       >
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }} aria-hidden="true">⚠️</div>
+        <div style={{ marginBottom: '1rem', color: '#d97706' }} aria-hidden="true"><AlertTriangleIcon size={40} /></div>
         <h1 style={{ fontSize: '1.25rem', margin: '0 0 0.5rem 0', fontWeight: 700 }}>
           Something went wrong
         </h1>

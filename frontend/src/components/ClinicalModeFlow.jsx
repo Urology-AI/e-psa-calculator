@@ -147,45 +147,97 @@ function BusStudyConsent({ onAgree, onDecline }) {
 function WelcomeScreen({ onStart }) {
   return (
     <div className="qef-welcome">
+
+      {/* ── Hero ── */}
       <div className="qef-welcome-hero">
         <div className="qef-welcome-hero-top">
-          <img src="/sinai_light.png" alt="Mount Sinai" className="qef-logo qef-logo--light" onError={(e) => { e.target.style.display = 'none'; }} />
-          <img src="/sinai_dark.png" alt="Mount Sinai" className="qef-logo qef-logo--dark" onError={(e) => { e.target.style.display = 'none'; }} />
+          <img src="/sinai_dark.png" alt="Mount Sinai" className="qef-logo" onError={(e) => { e.target.style.display = 'none'; }} />
           <ThemeSwitcher />
         </div>
-        <h1 className="qef-welcome-title">Mount Sinai Robert F. Smith<br />Mobile Prostate Cancer Screening</h1>
+        <h1 className="qef-welcome-title">
+          Million Strong Initiative
+          <br />
+          <span className="qef-welcome-title-sub">ePSA — Electronic Prostate Specific Awareness</span>
+        </h1>
         <p className="qef-welcome-sub">Bringing state-of-the-art screening directly to your community</p>
       </div>
+
       <div className="qef-welcome-body">
+
+        {/* ── Stats ── */}
         <div className="qef-stats-row">
           <div className="qef-stat">
-            <span className="qef-stat-num">10,000+</span>
-            <span className="qef-stat-label">People screened since 2022</span>
+            <span className="qef-stat-num">1 in 8</span>
+            <span className="qef-stat-label">Men get prostate cancer — early detection saves lives</span>
           </div>
           <div className="qef-stat">
-            <span className="qef-stat-num">1 in 8</span>
-            <span className="qef-stat-label">Men affected by prostate cancer</span>
+            <span className="qef-stat-num">10,000+</span>
+            <span className="qef-stat-label">Men screened since 2022</span>
           </div>
         </div>
+
+        {/* ── Quick-read info cards ── */}
+        <div className="qef-learn-section">
+          <p className="qef-learn-label">Quick read — know before you go</p>
+
+          <div className="qef-learn-card qef-learn-card--psa">
+            <div className="qef-learn-card-head">
+              <strong>What is PSA?</strong>
+            </div>
+            <p>PSA (Prostate-Specific Antigen) is a protein made by your prostate gland. A simple blood test measures its level. Elevated PSA can be an early clue to prostate cancer — or to other harmless prostate conditions. It is <em>not</em> a diagnosis on its own, but it is the best early-warning signal we have.</p>
+          </div>
+
+          <div className="qef-learn-card qef-learn-card--who">
+            <div className="qef-learn-card-head">
+              <strong>Who should get a PSA test?</strong>
+            </div>
+            <ul className="qef-learn-list">
+              <li><strong>All men ages 45–75</strong> — routine screening is recommended</li>
+              <li><strong>Black men from age 40</strong> — 2× higher lifetime risk</li>
+              <li><strong>Family history of prostate cancer</strong> — start at 40–45</li>
+              <li><strong>BRCA1/2 carrier</strong> — earlier and more frequent testing</li>
+            </ul>
+            <p className="qef-learn-note">Most early prostate cancer has <strong>no symptoms</strong>. Don't wait to feel something wrong.</p>
+          </div>
+
+          <div className="qef-learn-card qef-learn-card--epsa">
+            <div className="qef-learn-card-head">
+              <strong>What is Prostate Cancer Screening?</strong>
+            </div>
+            <p>This screening tool is built on data from thousands of Mount Sinai patients. It combines your age, race, family history, lifestyle, and symptoms to estimate your prostate cancer risk — giving you and your clinician a clear starting point for a shared decision about PSA testing.</p>
+            <div className="qef-learn-badges">
+              <span className="qef-learn-badge">AUA/SUO 2026</span>
+              <span className="qef-learn-badge">NCCN 2024</span>
+              <span className="qef-learn-badge">Not a diagnosis</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Services ── */}
         <div className="qef-info-card">
           <div className="qef-info-title">Free services available today</div>
           <ul className="qef-info-list">
             <li>PSA blood test</li>
-            <li>Micro-ultrasound imaging</li>
             <li>Bladder health scan</li>
             <li>Nurse consultation</li>
           </ul>
         </div>
-        <div className="qef-info-card">
-          <div className="qef-info-title">Who should get screened?</div>
-          <p className="qef-info-p">Men ages 45–75. Black men and those with a family history of prostate cancer are especially encouraged — your risk may be 2× higher.</p>
-        </div>
+
+        {/* ── CTA ── */}
         <button className="qef-cta-btn" onClick={onStart} type="button">
           <ZapIcon size={18} aria-hidden="true" />
-          Check My Risk — 12 Questions
+          <span className="qef-cta-btn-text">
+            <span className="qef-cta-btn-main">Check My Risk Now</span>
+            <span className="qef-cta-btn-note">12 questions · about 1 minute</span>
+          </span>
           <ChevronRightIcon size={18} aria-hidden="true" />
         </button>
-        <p className="qef-walkin">Walk-ins welcome · No appointment needed<br />Questions? Call <a href="tel:6465318092" className="qef-tel">646-531-8092</a></p>
+
+        <p className="qef-walkin">
+          Walk-ins welcome · No appointment needed
+          <br />
+          Questions? Call <a href="tel:6465318092" className="qef-tel">646-531-8092</a>
+        </p>
       </div>
     </div>
   );

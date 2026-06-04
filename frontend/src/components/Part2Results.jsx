@@ -22,7 +22,7 @@ import {
   ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
-  MapPinIcon, PillIcon, UsersIcon,
+  MapPinIcon, PillIcon, UsersIcon, UserIcon, XIcon, CheckIcon, CircleIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -87,16 +87,16 @@ const RiskLevelBar = ({ riskClass }) => {
 
 /* ─── Guardrail Banner ─── */
 const GUARDRAIL_CONFIG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: AlertCircleIcon },
 };
 const GuardrailBanner = ({ alert }) => {
   const cfg = GUARDRAIL_CONFIG[alert.level] || GUARDRAIL_CONFIG.info;
   return (
     <div role="alert" style={{ background: cfg.bg, borderLeft: `4px solid ${cfg.border}`, borderRadius: '8px', padding: '12px 14px', margin: '8px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '15px' }}>{cfg.icon}</span>
+        <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
         <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor }}>{alert.title}</span>
       </div>
       <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
@@ -138,13 +138,13 @@ const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => {
       tabIndex={0} role="img"
       aria-label={`Supported by ${n} of ${total} guidelines: ${supportedNames}`}
     >
-      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      {strong ? <CheckCircle2Icon size={12} aria-hidden="true" /> : partial ? <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.6 }} /> : <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.3 }} />}
       Supported by {n} / {total} guidelines
       {showTip && (
         <span role="tooltip" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}>
           {Object.entries(GUIDELINE_LABELS).map(([k, label]) => (
             <span key={k} style={{ display: 'block' }}>
-              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+              {support[k] ? <CheckIcon size={11} color="#4ade80" aria-hidden="true" style={{ marginRight: '6px' }} /> : <span style={{ color: '#9ca3af', marginRight: '6px', fontWeight: 700 }}>—</span>}
               {label}
             </span>
           ))}
@@ -648,7 +648,7 @@ const Part2Results = ({
       {/* ── Age 70+ SDM / Life Expectancy Required banner ── */}
       {isAge70Plus && (
         <div className="p2r-sdm-required-banner res-reveal" role="note" style={{ '--delay': '160ms' }}>
-          <div className="p2r-sdm-required-icon">👤</div>
+          <div className="p2r-sdm-required-icon"><UserIcon size={20} aria-hidden="true" /></div>
           <div className="p2r-sdm-required-body">
             <div className="p2r-sdm-required-title">Age 70+ — Shared Decision-Making Required</div>
             <p className="p2r-sdm-required-text">
@@ -922,7 +922,7 @@ const Part2Results = ({
       {exportError && (
         <div role="alert" style={{ margin: '0 0 0.75rem', padding: '0.6rem 0.875rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{exportError}</span>
-          <button onClick={() => setExportError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600, marginLeft: '0.5rem' }}>✕</button>
+          <button onClick={() => setExportError(null)} aria-label="Dismiss" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', marginLeft: '0.5rem', display: 'inline-flex', alignItems: 'center' }}><XIcon size={14} aria-hidden="true" /></button>
         </div>
       )}
 

@@ -24,7 +24,7 @@ import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
-  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon,
+  FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, CheckIcon, CircleIcon, XIcon,
 } from 'lucide-react';
 
 /* ─── Count-up animation hook ─── */
@@ -332,7 +332,7 @@ const GuidelineSupportBadge = ({ support, count }) => {
       role="img"
       aria-label={`Supported by ${n} of ${total} guidelines: ${supportedNames}`}
     >
-      <span aria-hidden="true">{strong ? '✓' : partial ? '◐' : '○'}</span>
+      {strong ? <CheckCircle2Icon size={12} aria-hidden="true" /> : partial ? <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.6 }} /> : <CircleIcon size={12} aria-hidden="true" style={{ opacity: 0.3 }} />}
       Supported by {n} / {total} guidelines
       {showTip && (
         <span
@@ -340,8 +340,8 @@ const GuidelineSupportBadge = ({ support, count }) => {
           style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 10, background: '#111827', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 6px 14px rgba(0,0,0,0.18)' }}
         >
           {Object.entries(GUIDELINE_LABELS_P1).map(([k, label]) => (
-            <span key={k} style={{ display: 'block' }}>
-              <span style={{ color: support[k] ? '#4ade80' : '#9ca3af', marginRight: '6px' }}>{support[k] ? '✓' : '—'}</span>
+            <span key={k} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {support[k] ? <CheckIcon size={11} color="#4ade80" aria-hidden="true" /> : <span style={{ color: '#9ca3af', fontWeight: 700 }}>—</span>}
               {label}
             </span>
           ))}
@@ -490,7 +490,7 @@ const ResearchIdCard = ({ sessionId }) => {
           }}
           aria-label="Copy research ID to clipboard"
         >
-          {copied ? '✓ Copied' : 'Copy'}
+          {copied ? <><CheckIcon size={13} style={{ marginRight: 4 }} />Copied</> : 'Copy'}
         </button>
       </div>
       <p style={{ margin: 0, fontSize: '12px', color: '#1e40af' }}>
@@ -502,9 +502,9 @@ const ResearchIdCard = ({ sessionId }) => {
 
 /* ─── Guardrail Alert Banner ─── */
 const GUARDRAIL_CFG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', icon: '⛔' },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', icon: '⚠️' },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', icon: 'ℹ️' },
+  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
+  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
+  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: InfoIcon },
 };
 
 const GuardrailBanner = ({ alert }) => {
@@ -524,7 +524,7 @@ const GuardrailBanner = ({ alert }) => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '16px' }}>{cfg.icon}</span>
+        <cfg.Icon size={16} aria-hidden="true" color={cfg.labelColor} />
         <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
           {alert.title}
         </span>
@@ -1098,7 +1098,7 @@ const Part1Results = ({
       {exportError && (
         <div role="alert" style={{ margin: '0 0 0.75rem', padding: '0.6rem 0.875rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', color: '#991b1b', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{exportError}</span>
-          <button onClick={() => setExportError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', fontWeight: 600, marginLeft: '0.5rem' }}>✕</button>
+          <button onClick={() => setExportError(null)} aria-label="Dismiss" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991b1b', marginLeft: '0.5rem', display: 'inline-flex', alignItems: 'center' }}><XIcon size={14} aria-hidden="true" /></button>
         </div>
       )}
 
