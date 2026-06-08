@@ -15,7 +15,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
  * Build a record matching the clinical mode instrument.
  * formData is the shape produced by ClinicalModeFlow handleSubmit.
  */
-function buildClinicalRecord(formData) {
+function buildClinicalRecord(formData, sessionRef) {
   // chemical_exposure in form: no | agent_orange | wtc_911 | other_chemical
   // CSV only has: no | yes | unknown
   const chemRaw = formData.chemicalExposure;
@@ -26,7 +26,7 @@ function buildClinicalRecord(formData) {
     : undefined;
 
   const record = {
-    record_id: `cm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    record_id: sessionRef ?? `cm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
 
     // patient_info
     age:  formData.age,
@@ -63,8 +63,8 @@ function buildClinicalRecord(formData) {
  * Submit a Clinical Mode record to REDCap via Cloud Function.
  * Returns { success: true } or { success: false, error: string }.
  */
-export async function submitToRedcap(formData) {
-  const record = buildClinicalRecord(formData);
+export async function submitToRedcap(formData, sessionRef) {
+  const record = buildClinicalRecord(formData, sessionRef);
 
   try {
     const functions = getFunctions();

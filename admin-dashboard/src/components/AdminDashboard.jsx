@@ -15,6 +15,7 @@ import UserManagement from './admin/UserManagement';
 import SystemStatus from './admin/SystemStatus';
 import AdminManagement from './admin/AdminManagement';
 import SinaiResearch from './admin/SinaiResearch';
+import ClinicalSessionsAdmin from './admin/ClinicalSessionsAdmin';
 import { getCalculatorConfig, saveCalculatorConfig, refreshCalculatorConfig } from '../utils/dynamicCalculator';
 import { getAdminInsightsData } from '../services/adminAnalyticsService';
 import { trackAdminEvent } from '../services/adminAnalyticsService';
@@ -103,6 +104,8 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
         return <AdminManagement />;
       case 'sinai':
         return <SinaiResearch />;
+      case 'clinical':
+        return <ClinicalSessionsAdmin />;
       case 'system':
         return <SystemStatus insights={insights} />;
       default:
@@ -317,6 +320,14 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
             >
               <Shield size={20} />
               <span>Mount Sinai Research</span>
+            </button>
+
+            <button
+              className={`nav-item ${activeTab === 'clinical' ? 'active' : ''}`}
+              onClick={() => setActiveTab('clinical')}
+            >
+              <Database size={20} />
+              <span>Clinical Sessions</span>
             </button>
 
             <button
