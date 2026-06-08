@@ -19,7 +19,7 @@ const CATEGORIES = [
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent }) {
+export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
   const [showAll, setShowAll] = useState(false);
 
   const {
@@ -66,6 +66,15 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
 
   return (
     <div className="qer-root">
+
+      {/* ── Session reference ── */}
+      {sessionRef && (
+        <div className="qer-session-ref">
+          <span className="qer-session-ref-label">Session ID</span>
+          <span className="qer-session-ref-value">{sessionRef}</span>
+          <span className="qer-session-ref-hint">Note this ID — it links to your REDCap record</span>
+        </div>
+      )}
 
       {/* ── Gauge + categories ── */}
       <div className="qer-gauge-section">
@@ -145,17 +154,19 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
         </div>
       )}
 
-      <div className="qer-actions">
-        <button type="button" className="qer-action-btn qer-action-btn--primary" onClick={onContinue}>
-          Continue to Full ePSA <ArrowRightIcon size={16} aria-hidden="true" />
-        </button>
-        <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={onEditAnswers}>
-          <EditIcon size={14} aria-hidden="true" /> Edit Answers
-        </button>
-        <button type="button" className="qer-action-btn qer-action-btn--ghost" onClick={onStartOver}>
-          <RotateCcwIcon size={14} aria-hidden="true" /> Start Over
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="qer-actions">
+          <button type="button" className="qer-action-btn qer-action-btn--primary" onClick={onContinue}>
+            Continue to Full ePSA <ArrowRightIcon size={16} aria-hidden="true" />
+          </button>
+          <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={onEditAnswers}>
+            <EditIcon size={14} aria-hidden="true" /> Edit Answers
+          </button>
+          <button type="button" className="qer-action-btn qer-action-btn--ghost" onClick={onStartOver}>
+            <RotateCcwIcon size={14} aria-hidden="true" /> Start Over
+          </button>
+        </div>
+      )}
 
     </div>
   );

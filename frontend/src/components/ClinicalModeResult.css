@@ -8,6 +8,38 @@
   gap: 0.875rem;
 }
 
+/* ── Session reference banner ── */
+.qer-session-ref {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 0.875rem;
+  flex-wrap: wrap;
+  background: var(--ms-navy, #212070);
+  color: #fff;
+  border-radius: var(--radius-md, 0.75rem);
+  padding: 0.75rem 1rem;
+}
+.qer-session-ref-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.qer-session-ref-value {
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: monospace;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.qer-session-ref-hint {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  flex-basis: 100%;
+}
+
 /* ── Gauge + categories ── */
 .qer-gauge-section {
   background: var(--surface, #fff);
