@@ -75,9 +75,17 @@ export function normaliseSession(raw) {
   };
 }
 
+/** Short human-readable reference: EP-YYYYMMDD-XXXX (shown on result + sent to REDCap). */
+export function generateSessionRef(date = new Date()) {
+  const ymd = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `EP-${ymd}-${suffix}`;
+}
+
 export async function saveClinicalSession(uid, sessionData) {
   const id = `cs_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const record = { id, ...normaliseSession(sessionData) };
+  const sessionRef = sessionData.sessionRef ?? generateSessionRef();
+  const record = { id, sessionRef, ...normaliseSession(sessionData) };
 
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {

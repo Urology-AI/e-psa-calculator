@@ -39,6 +39,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
   const hasPost = !!(session.step2 || session.postResult);
   const psa = session.step2?.psa ?? null;
   const pirads = session.step2?.pirads ?? null;
+  const ref = session.sessionRef ?? null;
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return; }
@@ -51,7 +52,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
     setPushing(true);
     setPushStatus(null);
     try {
-      await submitToRedcap(session.formData);
+      await submitToRedcap(session.formData, session.sessionRef);
       setPushStatus('ok');
     } catch {
       setPushStatus('err');
@@ -82,6 +83,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
           title={tierLabel}
         />
         <span className="csm-row-date">{formatDate(session.createdAt)}</span>
+        {ref && <span className="csm-row-ref">{ref}</span>}
         <span className="csm-row-meta">Age {age} · {race}</span>
         <span className="csm-row-tier" style={{ color: TIER_COLORS[tier] || '#6b7280' }}>
           {tierLabel} ({scoreRange})
@@ -126,6 +128,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
               <ClinicalModeResult
                 result={session.engineResult}
                 formData={session.formData}
+                sessionRef={ref}
                 onEditAnswers={null}
                 onStartOver={null}
                 onContinue={null}
