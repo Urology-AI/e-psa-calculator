@@ -175,6 +175,19 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // ============================================
+    // CLINICAL MODE SESSIONS (device-local, anonymous auth)
+    //
+    // Stores saved ePSA results from the kiosk/clinical mode flow.
+    // Each sub-collection is scoped to the anonymous Firebase UID
+    // of the device (one UID per browser profile; no PII stored).
+    // Admins can read all records for ops/support.
+    // ============================================
+    match /clinicalSessions/{uid}/records/{recordId} {
+      allow read, create, update, delete: if isAuthenticated() && request.auth.uid == uid;
+      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
+    }
+
     // App-level feature flags. Currently used for:
     //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
     // The frontend reads this to choose between the live REDCap submit
