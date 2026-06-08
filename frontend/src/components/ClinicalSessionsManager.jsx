@@ -36,6 +36,9 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
   const scoreRange = session.engineResult?.displayRange || '—';
   const age = session.formData?.age || '—';
   const race = session.formData?.race || '—';
+  const hasPost = !!(session.step2 || session.postResult);
+  const psa = session.step2?.psa ?? null;
+  const pirads = session.step2?.pirads ?? null;
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return; }
@@ -83,6 +86,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
         <span className="csm-row-tier" style={{ color: TIER_COLORS[tier] || '#6b7280' }}>
           {tierLabel} ({scoreRange})
         </span>
+        {hasPost && <span className="csm-row-badge csm-row-badge--full">Part 1+2</span>}
         {expanded ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
       </button>
 
@@ -128,6 +132,22 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
                 onStudyConsent={null}
                 readOnly
               />
+              {hasPost && (
+                <div className="csm-part2-summary">
+                  <div className="csm-part2-title">Part 2 — Post-PSA</div>
+                  <div className="csm-part2-fields">
+                    {psa !== null && <span><strong>PSA:</strong> {psa} ng/mL</span>}
+                    {pirads !== null && pirads !== '0' && <span><strong>PI-RADS:</strong> {pirads}</span>}
+                    {session.step2?.onHormonalTherapy && <span>On hormonal therapy</span>}
+                    {session.postResult?.finalCategory && (
+                      <span><strong>Final category:</strong> {session.postResult.finalCategory}</span>
+                    )}
+                    {session.finalCategory && !session.postResult?.finalCategory && (
+                      <span><strong>Final category:</strong> {session.finalCategory}</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
