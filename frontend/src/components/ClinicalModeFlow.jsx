@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './ClinicalModeFlow.css';
 import InfoIcon from './InfoIcon.jsx';
@@ -11,7 +11,10 @@ import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 import { FH_MAP, DIET_MAP, deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
-import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, TypeIcon } from 'lucide-react';
+import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, LockIcon } from 'lucide-react';
+import ClinicalSessionsManager from './ClinicalSessionsManager.jsx';
+import './ClinicalSessionsManager.css';
+import { getOrCreateUid, saveClinicalSession } from '../services/clinicalSessionService';
 
 /* ─── BMI helpers ─── */
 function calcBmi(ft, inch, lbs) {
@@ -143,8 +146,55 @@ function BusStudyConsent({ onAgree, onDecline }) {
   );
 }
 
+/* ─── Staff PIN modal ─── */
+const ADMIN_PIN = import.meta.env.VITE_CLINICAL_ADMIN_PIN || '1234';
+
+function StaffPinModal({ onSuccess, onClose }) {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (pin === ADMIN_PIN) {
+      onSuccess();
+    } else {
+      setError('Incorrect PIN. Please try again.');
+      setPin('');
+      inputRef.current?.focus();
+    }
+  }
+
+  return (
+    <div className="csm-pin-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="csm-pin-modal" role="dialog" aria-modal="true" aria-label="Staff access">
+        <div className="csm-pin-icon"><LockIcon size={22} /></div>
+        <h2 className="csm-pin-title">Staff Access</h2>
+        <p className="csm-pin-sub">Enter your PIN to manage saved sessions.</p>
+        <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <input
+            ref={inputRef}
+            type="password"
+            className={`csm-pin-input${error ? ' csm-pin-input--error' : ''}`}
+            value={pin}
+            onChange={e => { setPin(e.target.value); setError(''); }}
+            placeholder="••••"
+            maxLength={20}
+            autoComplete="current-password"
+          />
+          {error && <p className="csm-pin-error">{error}</p>}
+          <button type="submit" className="csm-pin-submit" disabled={!pin}>Unlock</button>
+        </form>
+        <button type="button" className="csm-pin-cancel" onClick={onClose}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Welcome screen ─── */
-function WelcomeScreen({ onStart }) {
+function WelcomeScreen({ onStart, onStaffAccess }) {
   return (
     <div className="qef-welcome">
 
@@ -238,6 +288,9 @@ function WelcomeScreen({ onStart }) {
           <br />
           Questions? Call <a href="tel:6465318092" className="qef-tel">646-531-8092</a>
         </p>
+        <button type="button" className="qef-staff-link" onClick={onStaffAccess}>
+          Staff access
+        </button>
       </div>
     </div>
   );
@@ -253,6 +306,12 @@ export default function ClinicalModeFlow() {
   const [metricW, setMetricW] = useState(false);
   const [result, setResult] = useState(null);
   const [ageError, setAgeError] = useState('');
+  const [uid, setUid] = useState(null);
+  const [showPinModal, setShowPinModal] = useState(false);
+
+  useEffect(() => {
+    getOrCreateUid().then(setUid).catch(() => {});
+  }, []);
 
   const set = (key, val) => setAnswers((p) => ({ ...p, [key]: val }));
 
@@ -289,7 +348,7 @@ export default function ClinicalModeFlow() {
     else setAgeError('');
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!ready) return;
     const formData = {
       age: parseInt(answers.age),
@@ -313,6 +372,10 @@ export default function ClinicalModeFlow() {
     setResult({ engineResult, formData });
     setScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // auto-save session in background
+    if (uid) {
+      saveClinicalSession(uid, { formData, engineResult }).catch(() => {});
+    }
   }
 
   function handleReset() {
@@ -350,8 +413,31 @@ export default function ClinicalModeFlow() {
     saveBusflowAndNavigate(true);
   }
 
+  if (screen === 'manage') {
+    return (
+      <ClinicalSessionsManager
+        uid={uid}
+        onBack={() => { setScreen('welcome'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        onNewSession={() => { setScreen('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+      />
+    );
+  }
+
   if (screen === 'welcome') {
-    return <WelcomeScreen onStart={() => { setScreen('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />;
+    return (
+      <>
+        <WelcomeScreen
+          onStart={() => { setScreen('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onStaffAccess={() => setShowPinModal(true)}
+        />
+        {showPinModal && (
+          <StaffPinModal
+            onSuccess={() => { setShowPinModal(false); setScreen('manage'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClose={() => setShowPinModal(false)}
+          />
+        )}
+      </>
+    );
   }
 
   if (screen === 'study_consent') {
