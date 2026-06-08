@@ -188,6 +188,13 @@ service cloud.firestore {
       allow read, list: if isAuthenticated() && isAuthorizedAdmin();
     }
 
+    // collectionGroup rule required for admin dashboard cross-device query.
+    // Matches ANY 'records' subcollection — scoped by parent path check in
+    // application code. Admins only; devices cannot cross-read other UIDs.
+    match /{path=**}/records/{recordId} {
+      allow read: if isAuthenticated() && isAuthorizedAdmin();
+    }
+
     // App-level feature flags. Currently used for:
     //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
     // The frontend reads this to choose between the live REDCap submit
