@@ -199,6 +199,18 @@
   flex-shrink: 0;
 }
 
+.csm-row-ref {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.04em;
+  color: var(--ms-navy, #212070);
+  background: #e8eaf6;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
 .csm-row-meta {
   font-size: 0.8125rem;
   color: var(--text-secondary, #374151);

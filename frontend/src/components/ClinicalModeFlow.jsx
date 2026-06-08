@@ -14,7 +14,7 @@ import ClinicalModeResult from './ClinicalModeResult.jsx';
 import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, LockIcon } from 'lucide-react';
 import ClinicalSessionsManager from './ClinicalSessionsManager.jsx';
 import './ClinicalSessionsManager.css';
-import { getOrCreateUid, saveClinicalSession } from '../services/clinicalSessionService';
+import { getOrCreateUid, saveClinicalSession, generateSessionRef } from '../services/clinicalSessionService';
 
 /* ─── BMI helpers ─── */
 function calcBmi(ft, inch, lbs) {
@@ -308,6 +308,7 @@ export default function ClinicalModeFlow() {
   const [ageError, setAgeError] = useState('');
   const [uid, setUid] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [sessionRef, setSessionRef] = useState(null);
 
   useEffect(() => {
     getOrCreateUid().then(setUid).catch(() => {});
@@ -369,17 +370,19 @@ export default function ClinicalModeFlow() {
       hypertension: null, hyperlipidemia: null, coronaryArteryDisease: null, diabetes: null,
     };
     const engineResult = calculateDynamicEPsa(formData, DEFAULT_CALCULATOR_CONFIG);
+    const ref = generateSessionRef();
+    setSessionRef(ref);
     setResult({ engineResult, formData });
     setScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // auto-save session in background
     if (uid) {
-      saveClinicalSession(uid, { formData, engineResult }).catch(() => {});
+      saveClinicalSession(uid, { formData, engineResult, sessionRef: ref }).catch(() => {});
     }
   }
 
   function handleReset() {
-    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError('');
+    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError(''); setSessionRef(null);
     setScreen('welcome');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -408,7 +411,7 @@ export default function ClinicalModeFlow() {
 
   async function handleStudyConsentAgree() {
     if (result?.formData) {
-      submitToRedcap(result.formData); // fire-and-forget; don't block UX
+      submitToRedcap(result.formData, sessionRef); // fire-and-forget; don't block UX
     }
     saveBusflowAndNavigate(true);
   }
@@ -461,6 +464,7 @@ export default function ClinicalModeFlow() {
         <ClinicalModeResult
           result={result.engineResult}
           formData={result.formData}
+          sessionRef={sessionRef}
           onEditAnswers={handleEditAnswers}
           onStartOver={handleReset}
           onContinue={handleContinue}

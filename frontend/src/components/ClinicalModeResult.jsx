@@ -19,7 +19,7 @@ const CATEGORIES = [
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false }) {
+export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
   const [showAll, setShowAll] = useState(false);
 
   const {
@@ -66,6 +66,15 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
 
   return (
     <div className="qer-root">
+
+      {/* ── Session reference ── */}
+      {sessionRef && (
+        <div className="qer-session-ref">
+          <span className="qer-session-ref-label">Session ID</span>
+          <span className="qer-session-ref-value">{sessionRef}</span>
+          <span className="qer-session-ref-hint">Note this ID — it links to your REDCap record</span>
+        </div>
+      )}
 
       {/* ── Gauge + categories ── */}
       <div className="qer-gauge-section">
