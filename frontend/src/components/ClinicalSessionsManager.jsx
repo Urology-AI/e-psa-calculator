@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   TrashIcon, DownloadIcon, UploadIcon, PrinterIcon,
   ChevronDownIcon, ChevronUpIcon, ArrowLeftIcon,
-  SendIcon, RefreshCwIcon, PlusIcon
+  SendIcon, RefreshCwIcon, PlusIcon, ZapIcon
 } from 'lucide-react';
 import { getClinicalSessions, deleteClinicalSession, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession } from '../services/clinicalSessionService';
 import { submitToRedcap } from '../utils/redcapSubmit';
@@ -142,6 +142,12 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState(null);
 
+  // Check if there's a live ePSA session in sessionStorage to import
+  const busflow = (() => {
+    try { return JSON.parse(sessionStorage.getItem('busflow_import') || 'null'); } catch { return null; }
+  })();
+  const hasBusflow = !!(busflow?.engineResult && busflow?.formData);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -176,6 +182,21 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     exportSessionsAsJson(sessions);
   }
 
+  async function handleImportBusflow() {
+    if (!hasBusflow) return;
+    setImportMsg(null);
+    try {
+      await saveClinicalSession(uid, {
+        formData: busflow.formData,
+        engineResult: busflow.engineResult,
+      });
+      setImportMsg('ePSA session saved successfully.');
+      await refresh();
+    } catch (err) {
+      setImportMsg(`Save failed: ${err.message}`);
+    }
+  }
+
   return (
     <div className="csm-root">
       <div className="csm-header">
@@ -189,6 +210,19 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
           </button>
         </div>
       </div>
+
+      {hasBusflow && (
+        <div className="csm-busflow-banner">
+          <ZapIcon size={16} className="csm-busflow-icon" />
+          <div className="csm-busflow-text">
+            <strong>Unsaved ePSA result detected</strong>
+            <span>You have a completed ePSA session ready to save.</span>
+          </div>
+          <button type="button" className="csm-busflow-save-btn" onClick={handleImportBusflow}>
+            Save Now
+          </button>
+        </div>
+      )}
 
       <div className="csm-toolbar">
         <button type="button" className="csm-toolbar-btn csm-toolbar-btn--primary" onClick={onNewSession}>

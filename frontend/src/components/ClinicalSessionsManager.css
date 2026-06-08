@@ -55,6 +55,50 @@
 }
 .csm-icon-btn:hover { background: rgba(255,255,255,0.25); }
 
+/* ── Unsaved ePSA session banner ── */
+.csm-busflow-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.csm-busflow-icon {
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.csm-busflow-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.csm-busflow-text strong {
+  font-size: 0.8125rem;
+  color: #1e3a8a;
+}
+.csm-busflow-text span {
+  font-size: 0.75rem;
+  color: #3b82f6;
+}
+
+.csm-busflow-save-btn {
+  padding: 0.4rem 0.875rem;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.csm-busflow-save-btn:hover { background: #1e40af; }
+
 /* ── Toolbar ── */
 .csm-toolbar {
   display: flex;
