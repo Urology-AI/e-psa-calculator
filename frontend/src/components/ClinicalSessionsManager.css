@@ -215,6 +215,21 @@
   flex-shrink: 0;
 }
 
+/* ── Session type badge ── */
+.csm-row-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.csm-row-badge--full {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 /* ── Row body ── */
 .csm-row-body {
   border-top: 1px solid var(--border-color, #e5e7eb);
@@ -258,6 +273,28 @@
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 8px;
   overflow: hidden;
+}
+
+/* ── Part 2 summary panel ── */
+.csm-part2-summary {
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  padding: 0.875rem 1rem;
+  background: #faf5ff;
+}
+.csm-part2-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6d28d9;
+  margin-bottom: 0.5rem;
+}
+.csm-part2-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #374151);
 }
 
 /* ── Storage note ── */
