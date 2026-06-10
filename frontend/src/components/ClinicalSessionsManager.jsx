@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   TrashIcon, DownloadIcon, UploadIcon, PrinterIcon,
   ChevronDownIcon, ChevronUpIcon, ArrowLeftIcon,
-  SendIcon, RefreshCwIcon, PlusIcon, ZapIcon
+  SendIcon, RefreshCwIcon, PlusIcon, ZapIcon,
+  CloudUploadIcon, CloudDownloadIcon
 } from 'lucide-react';
-import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession } from '../services/clinicalSessionService';
+import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession, mergeSessions } from '../services/clinicalSessionService';
+import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey } from '../services/tursoService';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import './ClinicalSessionsManager.css';
@@ -25,7 +27,7 @@ function formatDate(iso) {
   } catch { return iso; }
 }
 
-function SessionRow({ session, uid, onDelete, onRefresh }) {
+function SessionRow({ session, uid, onDelete, onRefresh, tursoReady, tursoSynced }) {
   const [expanded, setExpanded] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
@@ -95,6 +97,14 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
         <span className={`csm-row-badge csm-row-badge--${storage}`} title={`Stored in ${storageLabel.toLowerCase()} storage`}>
           {storageLabel}
         </span>
+        {tursoReady && (
+          <span
+            className={`csm-row-badge csm-row-badge--${tursoSynced ? 'synced' : 'unsynced'}`}
+            title={tursoSynced ? 'This case exists in the Turso cloud database' : 'Not yet pushed to the Turso cloud database'}
+          >
+            {tursoSynced ? 'Turso ✓' : 'Not synced'}
+          </span>
+        )}
         {expanded ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
       </button>
 
@@ -172,6 +182,9 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [syncing, setSyncing] = useState(null); // 'push' | 'pull' | null
+  const [syncedKeys, setSyncedKeys] = useState(() => getSyncedKeys());
+  const tursoReady = isTursoConfigured();
 
   // Check if there's a live ePSA session in sessionStorage to import
   const busflow = (() => {
@@ -219,6 +232,38 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     await clearAllClinicalSessions(uid);
     setImportMsg('All locally stored sessions cleared.');
     await refresh();
+  }
+
+  async function handlePushCloud() {
+    if (!sessions.length || syncing) return;
+    setSyncing('push');
+    setImportMsg(null);
+    try {
+      const count = await pushSessions(sessions);
+      setSyncedKeys(getSyncedKeys());
+      setImportMsg(`Pushed ${count} session${count !== 1 ? 's' : ''} to cloud.`);
+    } catch (err) {
+      setImportMsg(`Push failed: ${err.message}`);
+    } finally {
+      setSyncing(null);
+    }
+  }
+
+  async function handlePullCloud() {
+    if (syncing) return;
+    setSyncing('pull');
+    setImportMsg(null);
+    try {
+      const pulled = await pullSessions();
+      const added = mergeSessions(pulled);
+      setSyncedKeys(getSyncedKeys());
+      setImportMsg(`Pulled ${pulled.length} session${pulled.length !== 1 ? 's' : ''} from cloud (${added} new).`);
+      await refresh();
+    } catch (err) {
+      setImportMsg(`Pull failed: ${err.message}`);
+    } finally {
+      setSyncing(null);
+    }
   }
 
   async function handleImportBusflow() {
@@ -274,6 +319,28 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
           <UploadIcon size={15} /> {importing ? 'Importing…' : 'Import JSON'}
           <input type="file" accept=".json" hidden onChange={handleImport} />
         </label>
+        {tursoReady && (
+          <>
+            <button
+              type="button"
+              className={`csm-toolbar-btn${syncing === 'push' ? ' csm-toolbar-btn--loading' : ''}`}
+              onClick={handlePushCloud}
+              disabled={!sessions.length || !!syncing}
+              title="Push all sessions to the Turso cloud database (de-identified)"
+            >
+              <CloudUploadIcon size={15} /> {syncing === 'push' ? 'Pushing…' : 'Push to Cloud'}
+            </button>
+            <button
+              type="button"
+              className={`csm-toolbar-btn${syncing === 'pull' ? ' csm-toolbar-btn--loading' : ''}`}
+              onClick={handlePullCloud}
+              disabled={!!syncing}
+              title="Pull sessions from the Turso cloud database"
+            >
+              <CloudDownloadIcon size={15} /> {syncing === 'pull' ? 'Pulling…' : 'Pull from Cloud'}
+            </button>
+          </>
+        )}
         <button
           type="button"
           className={`csm-toolbar-btn csm-toolbar-btn--danger${confirmClear ? ' csm-toolbar-btn--confirm' : ''}`}
@@ -287,7 +354,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
       </div>
 
       {importMsg && (
-        <div className={`csm-import-msg${importMsg.startsWith('Import failed') ? ' csm-import-msg--err' : ''}`}>
+        <div className={`csm-import-msg${/failed/i.test(importMsg) ? ' csm-import-msg--err' : ''}`}>
           {importMsg}
         </div>
       )}
@@ -307,6 +374,8 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
               uid={uid}
               onDelete={() => {}}
               onRefresh={refresh}
+              tursoReady={tursoReady}
+              tursoSynced={syncedKeys.has(syncKey(s))}
             />
           ))
         )}
