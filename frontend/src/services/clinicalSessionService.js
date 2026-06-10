@@ -88,17 +88,18 @@ export async function saveClinicalSession(uid, sessionData) {
   const sessionRef = sessionData.sessionRef ?? generateSessionRef();
   const record = { id, sessionRef, ...normaliseSession(sessionData) };
 
-  // Always persist to localStorage so sessions survive offline / Firebase outages
+  // Always persist locally so sessions survive offline / Firebase outages
   const sessions = getLocal();
   sessions.unshift({ ...record, createdAt: new Date().toISOString() });
   setLocal(sessions);
 
+  // Also sync to Firestore when available
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
       const ref = doc(db, 'clinicalSessions', uid, 'records', id);
       await setDoc(ref, { ...record, createdAt: serverTimestamp() });
     } catch (e) {
-      console.warn('Firestore save failed, session already saved to localStorage:', e);
+      console.warn('Firestore save failed; session retained in localStorage:', e);
     }
   }
 
@@ -113,22 +114,27 @@ function toIso(ts) {
 
 /** Fetch sessions saved in the clinical sessions collection. */
 async function fetchClinicalSessions(uid) {
+  const local = getLocal().map(s => ({ ...normaliseSession(s), id: s.id, createdAt: s.createdAt, _source: 'local' }));
+
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
       const ref = collection(db, 'clinicalSessions', uid, 'records');
       const q = query(ref, orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
-      return snap.docs.map(d => ({
+      const cloud = snap.docs.map(d => ({
         ...normaliseSession(d.data()),
         id: d.id,
         createdAt: toIso(d.data().createdAt),
         _source: 'clinical',
       }));
+      // Merge cloud + local; cloud wins on duplicate id
+      const seen = new Set(cloud.map(s => s.id));
+      return [...cloud, ...local.filter(s => !seen.has(s.id))];
     } catch (e) {
-      console.warn('Firestore clinicalSessions read failed:', e);
+      console.warn('Firestore clinicalSessions read failed, using localStorage:', e);
     }
   }
-  return getLocal().map(s => ({ ...normaliseSession(s), id: s.id, createdAt: s.createdAt, _source: 'local' }));
+  return local;
 }
 
 /** Fetch full ePSA sessions from the main sessions collection (user's own). */
