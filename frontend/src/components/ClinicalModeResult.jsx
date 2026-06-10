@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
 import RiskGauge from './RiskGauge.jsx';
-import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon } from 'lucide-react';
+import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon, PrinterIcon, CloudIcon } from 'lucide-react';
+import ClinicalModePrintForm from './ClinicalModePrintForm.jsx';
+import ClinicalModeResultPrint from './ClinicalModeResultPrint.jsx';
+import ShareQrCode from './ShareQrCode.jsx';
 import './ClinicalModeResult.css';
+
+const CLINICAL_MODE_URL = (() => {
+  if (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_PUBLIC_APP_URL) {
+    return `${import.meta.env.VITE_PUBLIC_APP_URL.replace(/\/$/, '')}/?mode=bus`;
+  }
+  if (typeof window !== 'undefined' && window?.location?.origin) {
+    const o = window.location.origin;
+    if (!o.includes('localhost') && !o.includes('127.0.0.1')) return `${o}/?mode=bus`;
+  }
+  return 'https://epsa.millionstrongmen.com/?mode=bus';
+})();
 
 const AUA_FACTORS = new Set(['Age', 'Black ancestry', 'Family history']);
 
@@ -19,8 +33,27 @@ const CATEGORIES = [
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
 
-export default function ClinicalModeResult({ result, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
+export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
   const [showAll, setShowAll] = useState(false);
+  const [showPrintForm, setShowPrintForm] = useState(false);
+  const [showResultPrint, setShowResultPrint] = useState(false);
+  const [showCloudNote, setShowCloudNote] = useState(false);
+
+  if (showPrintForm) {
+    return <ClinicalModePrintForm answers={answers ?? {}} onBack={() => setShowPrintForm(false)} />;
+  }
+
+  if (showResultPrint) {
+    return (
+      <ClinicalModeResultPrint
+        result={result}
+        formData={formData}
+        rawAnswers={answers}
+        sessionRef={sessionRef}
+        onBack={() => setShowResultPrint(false)}
+      />
+    );
+  }
 
   const {
     epsaTierKey, epsaTierLabel, epsaGuidelineText,
@@ -67,12 +100,26 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
   return (
     <div className="qer-root">
 
-      {/* ── Session reference ── */}
+      {/* ── Session reference + cloud save indicator ── */}
       {sessionRef && (
         <div className="qer-session-ref">
           <span className="qer-session-ref-label">Session ID</span>
           <span className="qer-session-ref-value">{sessionRef}</span>
-          <span className="qer-session-ref-hint">Note this ID — it links to your REDCap record</span>
+          <button
+            type="button"
+            className="qer-cloud-btn"
+            onClick={() => setShowCloudNote(v => !v)}
+            aria-label="Data storage info"
+            title="About data storage"
+          >
+            <CloudIcon size={15} />
+          </button>
+        </div>
+      )}
+      {showCloudNote && (
+        <div className="qer-cloud-note">
+          <strong>Saved temporarily to the cloud.</strong> This response is stored in a secure database and will be automatically transferred to the REDCap research registry. Once transferred, it is deleted from temporary storage. No personally identifiable information is collected.
+          <button type="button" className="qer-cloud-note-close" onClick={() => setShowCloudNote(false)}>Dismiss</button>
         </div>
       )}
 
@@ -154,6 +201,15 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
         </div>
       )}
 
+      <ShareQrCode
+        url={CLINICAL_MODE_URL}
+        title="Start your screening"
+        subtitle="Scan to open the clinical screening form on your device"
+        size={100}
+        clickable
+        className="qer-qr"
+      />
+
       {!readOnly && (
         <div className="qer-actions">
           <button type="button" className="qer-action-btn qer-action-btn--primary" onClick={onContinue}>
@@ -161,6 +217,12 @@ export default function ClinicalModeResult({ result, onEditAnswers, onStartOver,
           </button>
           <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={onEditAnswers}>
             <EditIcon size={14} aria-hidden="true" /> Edit Answers
+          </button>
+          <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={() => setShowResultPrint(true)}>
+            <PrinterIcon size={14} aria-hidden="true" /> Print Answers &amp; Result
+          </button>
+          <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={() => setShowPrintForm(true)}>
+            <PrinterIcon size={14} aria-hidden="true" /> Print Blank Form
           </button>
           <button type="button" className="qer-action-btn qer-action-btn--ghost" onClick={onStartOver}>
             <RotateCcwIcon size={14} aria-hidden="true" /> Start Over
