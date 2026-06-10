@@ -510,7 +510,9 @@ export default function ClinicalModeFlow() {
     return (
       <div className="qef-root">
         <div className="qef-result-header">
-          <img src="/sinai_dark.png" alt="Mount Sinai" style={{ height: '1.5rem', width: 'auto' }} onError={(e) => { e.target.style.display = 'none'; }} />
+          <button type="button" className="qef-logo-home-btn" onClick={() => { handleReset(); }} title="Go to home">
+            <img src="/sinai_dark.png" alt="Mount Sinai" style={{ height: '1.5rem', width: 'auto' }} onError={(e) => { e.target.style.display = 'none'; }} />
+          </button>
           <span className="qef-result-header-title">Your Results</span>
         </div>
         <ClinicalModeResult
@@ -537,6 +539,9 @@ export default function ClinicalModeFlow() {
       {/* ── Sticky progress bar ── */}
       <div className="qef-progress-bar">
         <div className="qef-progress-top">
+          <button type="button" className="qef-logo-home-btn" onClick={() => { setScreen('welcome'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} title="Go to home">
+            <img src="/sinai_dark.png" alt="Mount Sinai" style={{ height: '1.25rem', width: 'auto' }} onError={(e) => { e.target.style.display = 'none'; }} />
+          </button>
           <button type="button" className="qef-back-btn" onClick={() => { setScreen('welcome'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             <ArrowLeftIcon size={16} aria-hidden="true" /> Back
           </button>
