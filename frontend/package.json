@@ -21,6 +21,7 @@
     "deploy": "gh-pages -d ../docs"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
     "crypto-js": "^4.2.0",
     "firebase": "^12.9.0",
     "html2canvas": "^1.4.1",

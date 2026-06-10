@@ -57,6 +57,44 @@
 .qer-cloud-btn:hover {
   background: rgba(255,255,255,0.28);
 }
+/* When a sync status is shown, the button widens into a labeled pill */
+.qer-cloud-btn--saved,
+.qer-cloud-btn--saving,
+.qer-cloud-btn--error {
+  width: auto;
+  border-radius: 999px;
+  gap: 0.3rem;
+  padding: 0 0.6rem;
+}
+.qer-cloud-btn--saved {
+  background: rgba(22, 163, 74, 0.85);
+  border-color: rgba(255,255,255,0.4);
+}
+.qer-cloud-btn--saved:hover {
+  background: rgba(22, 163, 74, 1);
+}
+.qer-cloud-btn--saving {
+  opacity: 0.85;
+}
+.qer-cloud-btn--saving svg {
+  animation: qer-cloud-pulse 1.2s ease-in-out infinite;
+}
+.qer-cloud-btn--error {
+  background: rgba(217, 119, 6, 0.85);
+  border-color: rgba(255,255,255,0.4);
+}
+.qer-cloud-btn--error:hover {
+  background: rgba(217, 119, 6, 1);
+}
+.qer-cloud-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+@keyframes qer-cloud-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 .qer-cloud-note {
   background: var(--brand-50);
   border: 1px solid var(--brand-400);

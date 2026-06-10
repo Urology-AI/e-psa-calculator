@@ -88,8 +88,10 @@ export async function saveClinicalSession(uid, sessionData) {
   const sessionRef = sessionData.sessionRef ?? generateSessionRef();
   const record = { id, sessionRef, ...normaliseSession(sessionData) };
 
-  // Always persist locally so sessions survive offline / Firebase outages
-  const sessions = getLocal();
+  // Always persist locally so sessions survive offline / Firebase outages.
+  // A case with the same sessionRef replaces the old copy instead of
+  // duplicating (e.g. re-importing a previously exported session).
+  const sessions = getLocal().filter(s => s.sessionRef !== sessionRef);
   sessions.unshift({ ...record, createdAt: new Date().toISOString() });
   setLocal(sessions);
 
@@ -115,7 +117,7 @@ function toIso(ts) {
 /** Fetch sessions saved in the clinical sessions collection.
  *  Each session is tagged with `_storage`: 'local', 'cloud', or 'both'. */
 async function fetchClinicalSessions(uid) {
-  const local = getLocal().map(s => ({ ...normaliseSession(s), id: s.id, createdAt: s.createdAt, _source: 'local', _storage: 'local' }));
+  const local = getLocal().map(s => ({ ...normaliseSession(s), id: s.id, sessionRef: s.sessionRef ?? null, createdAt: s.createdAt, _source: 'local', _storage: 'local' }));
 
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
@@ -126,6 +128,7 @@ async function fetchClinicalSessions(uid) {
       const cloud = snap.docs.map(d => ({
         ...normaliseSession(d.data()),
         id: d.id,
+        sessionRef: d.data().sessionRef ?? null,
         createdAt: toIso(d.data().createdAt),
         _source: 'clinical',
         _storage: localIds.has(d.id) ? 'both' : 'cloud',
@@ -210,9 +213,30 @@ export async function clearAllClinicalSessions(uid) {
   }
 }
 
-/** Download sessions as a unified JSON file. */
+/** Merge externally fetched sessions (e.g. a Turso pull) into localStorage.
+ *  Cases are matched by sessionRef (falling back to id) so the same case is
+ *  never duplicated; incoming records win. Returns the number of new sessions. */
+export function mergeSessions(records) {
+  const keyOf = s => s.sessionRef ?? s.id;
+  const local = getLocal();
+  const localKeys = new Set(local.map(keyOf));
+  const incomingKeys = new Set(records.map(keyOf));
+  const merged = [
+    ...records,
+    ...local.filter(s => !incomingKeys.has(keyOf(s))),
+  ].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  setLocal(merged);
+  return records.filter(s => !localKeys.has(keyOf(s))).length;
+}
+
+/** Download sessions as a unified JSON file. sessionRef is kept so a
+ *  re-import is recognised as the same case rather than a duplicate. */
 export function exportSessionsAsJson(sessions, filename) {
-  const payload = sessions.map(s => normaliseSession(s));
+  const payload = sessions.map(s => ({
+    ...normaliseSession(s),
+    sessionRef: s.sessionRef ?? null,
+    createdAt: s.createdAt ?? null,
+  }));
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

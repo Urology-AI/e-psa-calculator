@@ -32,7 +32,7 @@ function downloadJson(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
+export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef, cloudStatus = null }) {
   const [showAll, setShowAll] = useState(false);
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [showResultPrint, setShowResultPrint] = useState(false);
@@ -106,18 +106,30 @@ export default function ClinicalModeResult({ result, answers, formData, onEditAn
           <span className="qer-session-ref-value">{sessionRef}</span>
           <button
             type="button"
-            className="qer-cloud-btn"
+            className={`qer-cloud-btn${cloudStatus ? ` qer-cloud-btn--${cloudStatus}` : ''}`}
             onClick={() => setShowCloudNote(v => !v)}
             aria-label="Data storage info"
-            title="About data storage"
+            title={cloudStatus === 'saved' ? 'Saved in the database'
+              : cloudStatus === 'saving' ? 'Saving to the database…'
+              : cloudStatus === 'error' ? 'Could not save to the database'
+              : 'About data storage'}
           >
             <CloudIcon size={15} />
+            {cloudStatus === 'saved' && <span className="qer-cloud-label">Saved in database</span>}
+            {cloudStatus === 'saving' && <span className="qer-cloud-label">Saving…</span>}
+            {cloudStatus === 'error' && <span className="qer-cloud-label">Not saved</span>}
           </button>
         </div>
       )}
       {showCloudNote && (
         <div className="qer-cloud-note">
-          <strong>Saved temporarily to the cloud.</strong> This response is stored in a secure database and will be automatically transferred to the REDCap research registry. Once transferred, it is deleted from temporary storage. No personally identifiable information is collected.
+          {cloudStatus === 'saved' ? (
+            <><strong>Saved in the database.</strong> This response was stored in the secure study database and will be transferred to the REDCap research registry. No personally identifiable information is collected.</>
+          ) : cloudStatus === 'error' ? (
+            <><strong>Could not reach the database.</strong> Your response is saved on this device and will be uploaded when staff sync sessions. No personally identifiable information is collected.</>
+          ) : (
+            <><strong>Saved temporarily to the cloud.</strong> This response is stored in a secure database and will be automatically transferred to the REDCap research registry. Once transferred, it is deleted from temporary storage. No personally identifiable information is collected.</>
+          )}
           <button type="button" className="qer-cloud-note-close" onClick={() => setShowCloudNote(false)}>Dismiss</button>
         </div>
       )}
