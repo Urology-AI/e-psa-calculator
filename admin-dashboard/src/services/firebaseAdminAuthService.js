@@ -12,9 +12,28 @@ export class FirebaseAdminAuthService {
     this.adminCollection = 'admins'; // Changed from admin_users to admins
   }
 
+  // Emails that are always authorized regardless of Firestore doc.
+  // Must match the isSuperAdmin() list in firestore.rules.
+  isSuperAdminEmail(email) {
+    if (!email) return false;
+    const lower = email.toLowerCase();
+    return (
+      lower === 'adidix99@gmail.com' ||
+      lower === 'aditya.dixit@mssm.edu' ||
+      lower === 'adixit@nyu.edu' ||
+      lower.endsWith('@mountsinai.org') ||
+      lower.endsWith('@mssm.edu')
+    );
+  }
+
   // Check if user is authorized admin using Firestore
   async isAdminAuthorized(email, uid) {
     try {
+      // Super-admins are always authorized (matches firestore.rules isSuperAdmin).
+      if (this.isSuperAdminEmail(email)) {
+        return { authorized: true, source: 'super_admin', adminData: { email, uid, role: 'super_admin' } };
+      }
+
       // Method 1: Check Firestore admins collection
       const adminDoc = await getDoc(doc(adminDb, this.adminCollection, uid));
       
