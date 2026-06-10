@@ -196,7 +196,7 @@ const ClinicalModePrintForm = ({ onBack, answers = {} }) => {
                 <span className="field-number">9.</span> {t('part1.fields.diet.title')} <span className="pf-nonguideline-badge">{t('part1.nonGuideline.badge')}</span>:
                 <label className="checkbox-inline"><input type="radio" name="diet" value="western"       defaultChecked={chk('diet', 'western')} /> {t('part1.step4.diet.western')}</label>
                 <label className="checkbox-inline"><input type="radio" name="diet" value="mediterranean" defaultChecked={chk('diet', 'mediterranean')} /> {t('part1.step4.diet.mediterranean')}</label>
-                <label className="checkbox-inline"><input type="radio" name="diet" value="indian"        defaultChecked={chk('diet', 'indian')} /> {t('part1.step4.diet.indian')}</label>
+                <label className="checkbox-inline"><input type="radio" name="diet" value="asian"         defaultChecked={chk('diet', 'asian')} /> {t('part1.step4.diet.asian')}</label>
                 <label className="checkbox-inline"><input type="radio" name="diet" value="dash"          defaultChecked={chk('diet', 'dash')} /> {t('part1.step4.diet.dash')}</label>
                 <label className="checkbox-inline"><input type="radio" name="diet" value="plant-based"   defaultChecked={chk('diet', 'plant-based')} /> {t('part1.step4.diet.plantBased')}</label>
                 <label className="checkbox-inline"><input type="radio" name="diet" value="pescatarian"   defaultChecked={chk('diet', 'pescatarian')} /> {t('part1.step4.diet.pescatarian')}</label>
