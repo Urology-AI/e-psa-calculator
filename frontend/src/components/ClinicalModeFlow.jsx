@@ -150,6 +150,36 @@ function BusStudyConsent({ onAgree, onDecline }) {
   );
 }
 
+/* ─── Storage consent question (asked before results) ───
+   Designed for patients screening directly on their own phone: if they
+   signed the paper consent form their session is saved to the study
+   database; otherwise results stay on the device only. */
+function StorageConsentQuestion({ onYes, onNo }) {
+  return (
+    <div className="qef-consent-q">
+      <div className="qef-consent-q-icon"><ShieldCheckIcon size={28} /></div>
+      <h2 className="qef-consent-q-title">One quick question before your results</h2>
+      <p className="qef-consent-q-body">
+        Have you <strong>signed a consent form</strong> for the Mount Sinai
+        screening study today?
+      </p>
+      <p className="qef-consent-q-note">
+        If yes, your anonymous responses are saved to the secure study
+        database. If no, your results are kept on this device only — you can
+        still see and print them.
+      </p>
+      <div className="qef-consent-q-actions">
+        <button type="button" className="qef-submit-btn qef-submit-btn--ready" onClick={onYes}>
+          <CheckIcon size={16} /> Yes — I signed the consent form
+        </button>
+        <button type="button" className="qef-consent-q-local-btn" onClick={onNo}>
+          No — use my results locally only
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Staff PIN modal ─── */
 const ADMIN_PIN = import.meta.env.VITE_CLINICAL_ADMIN_PIN || '1234';
 
@@ -337,24 +367,70 @@ function WelcomeScreen({ onStart, onStaffAccess, onPrintForm, onPrintQr }) {
 
 const TOTAL = 12;
 
+/* ─── Active-session persistence ───
+   The patient's own results live on their phone: the last completed session
+   is kept in localStorage so closing the tab or reloading brings the results
+   screen (and the consent-later option) back, until they tap "Start over".
+   Expires after 24h so a shared/kiosk device doesn't show stale results. */
+const ACTIVE_SESSION_KEY = 'epsa_clinical_active_session';
+const ACTIVE_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function loadActiveSession() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(ACTIVE_SESSION_KEY) || 'null');
+    if (!raw?.result?.engineResult || !raw.sessionRef) return null;
+    if (!raw.savedAt || Date.now() - new Date(raw.savedAt).getTime() > ACTIVE_SESSION_TTL_MS) {
+      localStorage.removeItem(ACTIVE_SESSION_KEY);
+      return null;
+    }
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+function saveActiveSession(snapshot) {
+  try {
+    localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify({ ...snapshot, savedAt: new Date().toISOString() }));
+  } catch { /* ignore quota errors */ }
+}
+
+function clearActiveSession() {
+  try { localStorage.removeItem(ACTIVE_SESSION_KEY); } catch { /* ignore */ }
+}
+
 export default function ClinicalModeFlow() {
   const { t } = useTranslation();
-  const [screen, setScreen] = useState('welcome');
-  const [answers, setAnswers] = useState({});
+  // Restore the patient's last session (if any) so a reload or closed tab
+  // returns to the results screen — or to the consent question if they
+  // never answered it.
+  const restored = useMemo(loadActiveSession, []);
+  const [screen, setScreen] = useState(restored ? (restored.consented == null ? 'storage_consent' : 'result') : 'welcome');
+  const [answers, setAnswers] = useState(restored?.answers ?? {});
   const [metricH, setMetricH] = useState(false);
   const [metricW, setMetricW] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(restored?.result ?? null);
   const [ageError, setAgeError] = useState('');
   const [uid, setUid] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
-  const [sessionRef, setSessionRef] = useState(null);
-  const [cloudStatus, setCloudStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
+  const [sessionRef, setSessionRef] = useState(restored?.sessionRef ?? null);
+  // null | 'saving' | 'saved' | 'error' | 'local' — an interrupted 'saving'
+  // restores as 'error' (the local copy uploads on the next staff sync).
+  const [cloudStatus, setCloudStatus] = useState(restored ? (restored.cloudStatus === 'saving' ? 'error' : restored.cloudStatus ?? null) : null);
+  const [consented, setConsented] = useState(restored?.consented ?? null); // null until the consent question is answered
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [showQrPoster, setShowQrPoster] = useState(false);
 
   useEffect(() => {
     getOrCreateUid().then(setUid).catch(() => {});
   }, []);
+
+  // Keep the active session snapshot in sync so reloads land back here.
+  useEffect(() => {
+    if (result?.engineResult && sessionRef) {
+      saveActiveSession({ answers, result, sessionRef, consented, cloudStatus });
+    }
+  }, [answers, result, sessionRef, consented, cloudStatus]);
 
   const set = (key, val) => setAnswers((p) => ({ ...p, [key]: val }));
 
@@ -415,14 +491,20 @@ export default function ClinicalModeFlow() {
     const ref = generateSessionRef();
     setSessionRef(ref);
     setResult({ engineResult, formData });
-    setScreen('result');
+    setScreen('storage_consent');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // auto-save session and push to REDCap in background
+  }
+
+  /** Save the session with the patient's consent choice. Consented sessions
+   *  go to Turso + REDCap; non-consented ones stay on this device only. */
+  function persistSession(didConsent, { formData, engineResult }, ref) {
     const localSave = uid
-      ? saveClinicalSession(uid, { formData, engineResult, sessionRef: ref, rawAnswers: answers }).catch(() => null)
+      ? saveClinicalSession(uid, { formData, engineResult, sessionRef: ref, rawAnswers: answers, consented: didConsent }).catch(() => null)
       : Promise.resolve(null);
-    // Every completed session — kiosk, staff, or mobile QR scan — is also
-    // auto-pushed to the Turso database when configured.
+    if (!didConsent) {
+      setCloudStatus('local');
+      return;
+    }
     if (isTursoConfigured()) {
       setCloudStatus('saving');
       localSave
@@ -433,16 +515,31 @@ export default function ClinicalModeFlow() {
           formData,
           engineResult,
           rawAnswers: answers,
+          consented: true,
         }]))
         .then(() => setCloudStatus('saved'))
         .catch(() => setCloudStatus('error'));
     }
-    // Clinical mode always submits to REDCap — no consent gate needed for kiosk data
     submitToRedcap(formData, ref).catch(() => {});
   }
 
+  function handleStorageConsent(didConsent) {
+    setConsented(didConsent);
+    setScreen('result');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    persistSession(didConsent, result, sessionRef);
+  }
+
+  /** Patient consents after seeing results (e.g. signs the form afterwards):
+   *  upgrade the saved session and push it to the cloud. */
+  function handleConsentNow() {
+    setConsented(true);
+    persistSession(true, result, sessionRef);
+  }
+
   function handleReset() {
-    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError(''); setSessionRef(null); setCloudStatus(null);
+    clearActiveSession();
+    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError(''); setSessionRef(null); setCloudStatus(null); setConsented(null);
     setScreen('welcome');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -513,6 +610,17 @@ export default function ClinicalModeFlow() {
     );
   }
 
+  if (screen === 'storage_consent' && result?.engineResult) {
+    return (
+      <div className="qef-root">
+        <StorageConsentQuestion
+          onYes={() => handleStorageConsent(true)}
+          onNo={() => handleStorageConsent(false)}
+        />
+      </div>
+    );
+  }
+
   if (screen === 'study_consent') {
     return (
       <div className="qef-root">
@@ -539,6 +647,8 @@ export default function ClinicalModeFlow() {
           formData={result.formData}
           sessionRef={sessionRef}
           cloudStatus={cloudStatus}
+          consented={consented}
+          onConsentNow={handleConsentNow}
           readOnly={false}
           onEditAnswers={handleEditAnswers}
           onStartOver={handleReset}
