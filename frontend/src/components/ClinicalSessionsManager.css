@@ -131,6 +131,10 @@
 }
 .csm-toolbar-btn--primary:hover { background: #1a1959; }
 .csm-toolbar-btn--loading { opacity: 0.7; cursor: wait; }
+.csm-toolbar-btn--danger { color: #991b1b; }
+.csm-toolbar-btn--danger:hover:not(:disabled) { background: #fee2e2; border-color: #fecaca; }
+.csm-toolbar-btn--confirm { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; font-weight: 800; }
+.csm-toolbar-btn--confirm:hover:not(:disabled) { background: #fecaca; }
 
 /* ── Import message ── */
 .csm-import-msg {
@@ -240,6 +244,18 @@
 .csm-row-badge--full {
   background: #ede9fe;
   color: #5b21b6;
+}
+.csm-row-badge--cloud {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.csm-row-badge--local {
+  background: #f3f4f6;
+  color: #374151;
+}
+.csm-row-badge--both {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 /* ── Row body ── */

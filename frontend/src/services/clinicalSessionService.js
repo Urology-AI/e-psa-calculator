@@ -112,20 +112,23 @@ function toIso(ts) {
   return ts;
 }
 
-/** Fetch sessions saved in the clinical sessions collection. */
+/** Fetch sessions saved in the clinical sessions collection.
+ *  Each session is tagged with `_storage`: 'local', 'cloud', or 'both'. */
 async function fetchClinicalSessions(uid) {
-  const local = getLocal().map(s => ({ ...normaliseSession(s), id: s.id, createdAt: s.createdAt, _source: 'local' }));
+  const local = getLocal().map(s => ({ ...normaliseSession(s), id: s.id, createdAt: s.createdAt, _source: 'local', _storage: 'local' }));
 
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
       const ref = collection(db, 'clinicalSessions', uid, 'records');
       const q = query(ref, orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
+      const localIds = new Set(local.map(s => s.id));
       const cloud = snap.docs.map(d => ({
         ...normaliseSession(d.data()),
         id: d.id,
         createdAt: toIso(d.data().createdAt),
         _source: 'clinical',
+        _storage: localIds.has(d.id) ? 'both' : 'cloud',
       }));
       // Merge cloud + local; cloud wins on duplicate id
       const seen = new Set(cloud.map(s => s.id));
@@ -151,6 +154,7 @@ async function fetchFullEpsaSessions(uid) {
         id: d.id,
         createdAt: toIso(d.data().createdAt),
         _source: 'full',
+        _storage: 'cloud',
       }));
   } catch {
     return [];
@@ -171,16 +175,39 @@ export async function getClinicalSessions(uid) {
     .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 
-export async function deleteClinicalSession(uid, sessionId) {
-  if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
+/** Delete a session from wherever it is stored (`_storage`: 'local' | 'cloud' | 'both'). */
+export async function deleteClinicalSession(uid, session) {
+  const { id, _source, _storage } = session;
+  // Default to removing the local copy when storage is unknown, otherwise the
+  // session resurrects from localStorage on the next refresh.
+  if (_storage !== 'cloud') {
+    setLocal(getLocal().filter(s => s.id !== id));
+  }
+
+  if (_storage !== 'local' && isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
-      await deleteDoc(doc(db, 'clinicalSessions', uid, 'records', sessionId));
-      return;
+      const ref = _source === 'full'
+        ? doc(db, 'sessions', id)
+        : doc(db, 'clinicalSessions', uid, 'records', id);
+      await deleteDoc(ref);
     } catch (e) {
-      console.warn('Firestore delete failed, using localStorage:', e);
+      console.warn('Firestore delete failed:', e);
     }
   }
-  setLocal(getLocal().filter(s => s.id !== sessionId));
+}
+
+/** Remove every saved session: localStorage plus this device's Firestore records. */
+export async function clearAllClinicalSessions(uid) {
+  try { localStorage.removeItem(LOCAL_KEY); } catch { /* ignore */ }
+
+  if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
+    try {
+      const snap = await getDocs(collection(db, 'clinicalSessions', uid, 'records'));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    } catch (e) {
+      console.warn('Firestore clear failed; localStorage cleared:', e);
+    }
+  }
 }
 
 /** Download sessions as a unified JSON file. */
