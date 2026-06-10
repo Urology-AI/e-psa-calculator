@@ -158,7 +158,7 @@ function StorageConsentQuestion({ onYes, onNo }) {
   return (
     <div className="qef-consent-q">
       <div className="qef-consent-q-icon"><ShieldCheckIcon size={28} /></div>
-      <h2 className="qef-consent-q-title">One quick question before your results</h2>
+      <h2 className="qef-consent-q-title">One quick question before you begin</h2>
       <p className="qef-consent-q-body">
         Have you <strong>signed a consent form</strong> for the Mount Sinai
         screening study today?
@@ -491,7 +491,14 @@ export default function ClinicalModeFlow() {
     const ref = generateSessionRef();
     setSessionRef(ref);
     setResult({ engineResult, formData });
-    setScreen('storage_consent');
+    if (consented == null) {
+      // Consent question normally comes before the questionnaire; this is a
+      // fallback for restored sessions that never answered it.
+      setScreen('storage_consent');
+    } else {
+      setScreen('result');
+      persistSession(consented, { formData, engineResult }, ref);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -525,9 +532,15 @@ export default function ClinicalModeFlow() {
 
   function handleStorageConsent(didConsent) {
     setConsented(didConsent);
-    setScreen('result');
+    if (result?.engineResult) {
+      // Asked post-submit (restored session fallback): save and show results.
+      setScreen('result');
+      persistSession(didConsent, result, sessionRef);
+    } else {
+      // Normal path: asked right after "Check My Risk", before the questions.
+      setScreen('form');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    persistSession(didConsent, result, sessionRef);
   }
 
   /** Patient consents after seeing results (e.g. signs the form afterwards):
