@@ -18,6 +18,7 @@ import './ClinicalSessionsManager.css';
 import ClinicalModePrintForm from './ClinicalModePrintForm.jsx';
 import QrCodePoster from './QrCodePoster.jsx';
 import { getOrCreateUid, saveClinicalSession, generateSessionRef } from '../services/clinicalSessionService';
+import { isTursoConfigured, pushSessions } from '../services/tursoService';
 
 /* ─── BMI helpers ─── */
 function calcBmi(ft, inch, lbs) {
@@ -347,6 +348,7 @@ export default function ClinicalModeFlow() {
   const [uid, setUid] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [sessionRef, setSessionRef] = useState(null);
+  const [cloudStatus, setCloudStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [showQrPoster, setShowQrPoster] = useState(false);
 
@@ -416,15 +418,31 @@ export default function ClinicalModeFlow() {
     setScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // auto-save session and push to REDCap in background
-    if (uid) {
-      saveClinicalSession(uid, { formData, engineResult, sessionRef: ref, rawAnswers: answers }).catch(() => {});
+    const localSave = uid
+      ? saveClinicalSession(uid, { formData, engineResult, sessionRef: ref, rawAnswers: answers }).catch(() => null)
+      : Promise.resolve(null);
+    // Every completed session — kiosk, staff, or mobile QR scan — is also
+    // auto-pushed to the Turso database when configured.
+    if (isTursoConfigured()) {
+      setCloudStatus('saving');
+      localSave
+        .then((id) => pushSessions([{
+          id: id ?? ref,
+          sessionRef: ref,
+          createdAt: new Date().toISOString(),
+          formData,
+          engineResult,
+          rawAnswers: answers,
+        }]))
+        .then(() => setCloudStatus('saved'))
+        .catch(() => setCloudStatus('error'));
     }
     // Clinical mode always submits to REDCap — no consent gate needed for kiosk data
     submitToRedcap(formData, ref).catch(() => {});
   }
 
   function handleReset() {
-    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError(''); setSessionRef(null);
+    setAnswers({}); setMetricH(false); setMetricW(false); setResult(null); setAgeError(''); setSessionRef(null); setCloudStatus(null);
     setScreen('welcome');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -520,6 +538,7 @@ export default function ClinicalModeFlow() {
           answers={answers}
           formData={result.formData}
           sessionRef={sessionRef}
+          cloudStatus={cloudStatus}
           readOnly={false}
           onEditAnswers={handleEditAnswers}
           onStartOver={handleReset}
