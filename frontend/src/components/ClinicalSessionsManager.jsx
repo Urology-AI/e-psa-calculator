@@ -6,7 +6,7 @@ import {
   CloudUploadIcon, CloudDownloadIcon
 } from 'lucide-react';
 import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession, mergeSessions } from '../services/clinicalSessionService';
-import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey, markPendingDelete, getPendingDeleteCount } from '../services/tursoService';
+import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey, markPendingDelete, getPendingDeleteCount, isPushable } from '../services/tursoService';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import './ClinicalSessionsManager.css';
@@ -241,9 +241,11 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     setImportMsg(null);
     try {
       const { pushed, deleted } = await pushSessions(sessions);
+      const skipped = sessions.filter(s => !isPushable(s)).length;
       setSyncedKeys(getSyncedKeys());
       setPendingDeletes(getPendingDeleteCount());
       const parts = [`Pushed ${pushed} session${pushed !== 1 ? 's' : ''} to cloud`];
+      if (skipped) parts.push(`kept ${skipped} non-consented session${skipped !== 1 ? 's' : ''} local`);
       if (deleted) parts.push(`removed ${deleted} deleted case${deleted !== 1 ? 's' : ''}`);
       setImportMsg(`${parts.join('; ')}.`);
     } catch (err) {

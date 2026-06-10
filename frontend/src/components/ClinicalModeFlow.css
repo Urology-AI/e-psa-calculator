@@ -933,3 +933,59 @@
   padding: 0.25rem 0.5rem;
   margin-bottom: 0.5rem;
 }
+
+/* ─── Storage consent question ─── */
+.qef-consent-q {
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.qef-consent-q-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-50, #eff6ff);
+  color: var(--accent-600, #2563eb);
+}
+.qef-consent-q-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+.qef-consent-q-body {
+  font-size: 1rem;
+  margin: 0;
+}
+.qef-consent-q-note {
+  font-size: 0.85rem;
+  color: var(--ink-500, #6b7280);
+  margin: 0;
+}
+.qef-consent-q-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.qef-consent-q-local-btn {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--ink-200, #e5e7eb);
+  background: transparent;
+  color: var(--ink-600, #4b5563);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.qef-consent-q-local-btn:hover {
+  background: var(--ink-50, #f9fafb);
+}

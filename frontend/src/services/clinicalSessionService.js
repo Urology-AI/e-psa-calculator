@@ -73,6 +73,8 @@ export function normaliseSession(raw) {
     status,
     finalCategory: raw.finalCategory ?? null,
     rawAnswers: raw.rawAnswers ?? null,
+    // Patient consent to cloud storage: true | false | null (legacy, pre-consent).
+    consented: raw.consented ?? null,
   };
 }
 
