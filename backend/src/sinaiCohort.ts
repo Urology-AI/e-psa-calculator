@@ -256,7 +256,9 @@ export type AuditAction =
   | 'admin_mint_codes'
   | 'admin_revoke_code'
   | 'admin_toggle_flag'
-  | 'link_public_to_sinai';
+  | 'link_public_to_sinai'
+  | 'enroll_patient'
+  | 'manual_session_created';
 
 export type AuditOutcome =
   | CodeStatus

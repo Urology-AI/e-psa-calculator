@@ -1081,7 +1081,7 @@ function mintSingleCode(): string {
 
 export const adminEnrollPatient = functions.https.onCall(
   async (data: { participantId: string; notes?: string }, context) => {
-    const auth = requireAdmin(context);
+    const auth = await requireAdmin(context);
 
     const rawId: unknown = data?.participantId;
     if (typeof rawId !== 'string' || !PARTICIPANT_ID_RE.test(rawId)) {
@@ -1239,7 +1239,7 @@ interface AdminSessionPayload {
 
 export const adminCreateSinaiSessionForPatient = functions.https.onCall(
   async (data: AdminSessionPayload, context) => {
-    const auth = requireAdmin(context);
+    const auth = await requireAdmin(context);
 
     if (!data?.participantId || typeof data.participantId !== 'string') {
       throw new functions.https.HttpsError('invalid-argument', 'participantId is required.');
@@ -1327,19 +1327,17 @@ export const adminCreateSinaiSessionForPatient = functions.https.onCall(
 
     // Optionally push to REDCap if enabled.
     let redcapSubmitted = false;
-    let redcapRecordId: string | undefined;
     try {
       const redcapConfig = getSinaiRedcapConfig();
+      if (!redcapConfig) throw new Error('REDCap not configured');
       const payload = { clinicCode: normalized, step1: data.step1, result: data.result, step2: data.step2, finalCategory: data.finalCategory, finalScore: data.finalScore, pathwayMode };
       const redcapRecord = mapPayloadToRedcap(sessionId, payload as any);
-      const result = await postToRedcap(redcapConfig, redcapRecord);
-      redcapRecordId = result.recordId;
+      await postToRedcap(redcapConfig.apiUrl, redcapConfig.apiToken, [redcapRecord]);
       await sessionRef.update({
         status: 'submitted_redcap',
-        redcapRecordId,
         redcapSubmittedAt: admin.firestore.Timestamp.now(),
       });
-      await patientRef.update({ status: 'submitted_redcap', redcapRecordId });
+      await patientRef.update({ status: 'submitted_redcap' });
       redcapSubmitted = true;
     } catch (_) {
       // REDCap submission is best-effort; session stays 'pending' for manual retry.
@@ -1357,7 +1355,7 @@ export const adminCreateSinaiSessionForPatient = functions.https.onCall(
       metadata: { participantId: data.participantId },
     });
 
-    return { ok: true, sessionId, redcapSubmitted, redcapRecordId, ttlDays: SINAI_SESSION_TTL_DAYS };
+    return { ok: true, sessionId, redcapSubmitted, ttlDays: SINAI_SESSION_TTL_DAYS };
   }
 );
 
