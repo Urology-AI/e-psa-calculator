@@ -72,6 +72,7 @@ export function normaliseSession(raw) {
     postResult,
     status,
     finalCategory: raw.finalCategory ?? null,
+    rawAnswers: raw.rawAnswers ?? null,
   };
 }
 

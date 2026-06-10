@@ -377,7 +377,7 @@ export default function ClinicalModeFlow() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // auto-save session and push to REDCap in background
     if (uid) {
-      saveClinicalSession(uid, { formData, engineResult, sessionRef: ref }).catch(() => {});
+      saveClinicalSession(uid, { formData, engineResult, sessionRef: ref, rawAnswers: answers }).catch(() => {});
     }
     // Clinical mode always submits to REDCap — no consent gate needed for kiosk data
     submitToRedcap(formData, ref).catch(() => {});
@@ -465,8 +465,10 @@ export default function ClinicalModeFlow() {
         </div>
         <ClinicalModeResult
           result={result.engineResult}
+          answers={answers}
           formData={result.formData}
           sessionRef={sessionRef}
+          readOnly={false}
           onEditAnswers={handleEditAnswers}
           onStartOver={handleReset}
           onContinue={handleContinue}
