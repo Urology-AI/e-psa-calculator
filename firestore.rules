@@ -211,6 +211,14 @@ service cloud.firestore {
     }
 
     // ============================================
+    // ADMIN OTP CODES (written/deleted by Cloud Functions only)
+    // No client can read or write these — all access is via Admin SDK.
+    // ============================================
+    match /admin_otps/{email} {
+      allow read, write: if false;
+    }
+
+    // ============================================
     // DEFAULT: DENY ALL
     // ============================================
     match /{document=**} {

@@ -36,12 +36,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.submitToRedcap = exports.syncToRedcap = void 0;
+exports.verifyAdminOTP = exports.sendAdminOTP = exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.submitToRedcap = exports.syncToRedcap = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
 const https = __importStar(require("https"));
 const zod_1 = require("zod");
 const crypto_js_1 = __importDefault(require("crypto-js"));
+const nodemailer = __importStar(require("nodemailer"));
 // REDCap sync trigger (Firestore onWrite → REDCap API)
 // submitToRedcap: callable function for local-storage users to push directly
 var redcapSync_1 = require("./redcapSync");
@@ -83,7 +84,8 @@ const ConsentSchema = zod_1.z.object({
 });
 const PreDataSchema = zod_1.z.object({
     age: zod_1.z.union([zod_1.z.number().int().min(18).max(120), zod_1.z.string()]).transform(val => typeof val === 'string' ? parseInt(val, 10) : val),
-    race: zod_1.z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say']),
+    race: zod_1.z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say', 'african-american', 'american-indian', 'native-hawaiian', 'unknown']),
+    ethnicity: zod_1.z.enum(['hispanic-latino', 'not-hispanic-latino', 'unknown']).optional(),
     heightFt: zod_1.z.union([zod_1.z.number().int().min(1).max(9), zod_1.z.string(), zod_1.z.null()]).optional(),
     heightIn: zod_1.z.union([zod_1.z.number().int().min(0).max(11), zod_1.z.string(), zod_1.z.null()]).optional(),
     heightCm: zod_1.z.union([zod_1.z.number().positive(), zod_1.z.string(), zod_1.z.null()]).optional(),
@@ -401,7 +403,16 @@ exports.getUser = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
-    const userId = (data === null || data === void 0 ? void 0 : data.userId) || context.auth.uid;
+    const requestedId = data === null || data === void 0 ? void 0 : data.userId;
+    const callerId = context.auth.uid;
+    // IDOR fix: non-admin users may only fetch their own data
+    if (requestedId && requestedId !== callerId) {
+        const isAdmin = await isAdminUser(callerId);
+        if (!isAdmin) {
+            throw new functions.https.HttpsError('permission-denied', 'You may only access your own data');
+        }
+    }
+    const userId = requestedId || callerId;
     const userDoc = await db.collection('users').doc(userId).get();
     if (!userDoc.exists) {
         return null;
@@ -1363,6 +1374,7 @@ exports.exportSessionsCSV = functions.https.onCall(async (data, context) => {
             'Updated At',
             'Step1 - Age',
             'Step1 - Race',
+            'Step1 - Ethnicity',
             'Step1 - BMI',
             'Step1 - Family History',
             'Step1 - IPSS Total',
@@ -1390,6 +1402,7 @@ exports.exportSessionsCSV = functions.https.onCall(async (data, context) => {
                 session.updatedAt || 'N/A',
                 step1.age || 'N/A',
                 step1.race || 'N/A',
+                step1.ethnicity || 'N/A',
                 step1.bmi || 'N/A',
                 step1.familyHistory || 'N/A',
                 ipssTotal,
@@ -1463,7 +1476,7 @@ exports.cleanupInactiveAdmins = functions.pubsub.schedule('0 4 * * 0') // 4 AM e
 exports.cleanupOldAuditLogs = functions.pubsub.schedule('0 5 * * 0') // 5 AM every Sunday
     .timeZone('America/New_York')
     .onRun(async (_context) => {
-    const RETENTION_DAYS = 365; // Keep audit logs for 1 year
+    const RETENTION_DAYS = 2190; // Keep audit logs for 6 years (HIPAA 45 CFR §164.530(j))
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - RETENTION_DAYS);
     try {
@@ -1651,5 +1664,146 @@ exports.deleteUserData = functions.https.onCall(async (_data, context) => {
         deletedSessions,
         userDeleted: true,
     };
+});
+// ============================================
+// CLOUD FUNCTION: Submit to REDCap
+// ============================================
+// The REDCap API token is stored as a Firebase Functions secret.
+// Deploy with: firebase functions:secrets:set REDCAP_TOKEN
+// Then set REDCAP_API_URL in environment config.
+//
+// To deploy the secret: firebase functions:secrets:set REDCAP_TOKEN
+// To set the URL: firebase functions:config:set redcap.url="https://redcap.mountsinai.org/api/"
+exports.submitRedcap = functions.https.onCall(async (data, context) => {
+    var _a;
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
+    }
+    const record = data === null || data === void 0 ? void 0 : data.record;
+    if (!record || typeof record !== 'object') {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing record payload');
+    }
+    // Token and URL come from Firebase Functions secrets / environment config — never from client
+    const token = process.env.REDCAP_TOKEN;
+    const url = process.env.REDCAP_API_URL;
+    if (!token || !url) {
+        console.warn('REDCap not configured — REDCAP_TOKEN or REDCAP_API_URL missing');
+        throw new functions.https.HttpsError('failed-precondition', 'REDCap not configured on server');
+    }
+    const body = new URLSearchParams({
+        token,
+        content: 'record',
+        format: 'json',
+        type: 'flat',
+        data: JSON.stringify([record]),
+        returnContent: 'ids',
+    });
+    const fetch = (await Promise.resolve().then(() => __importStar(require('node-fetch')))).default;
+    const res = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        console.error('REDCap error:', res.status, text);
+        throw new functions.https.HttpsError('internal', `REDCap returned HTTP ${res.status}`);
+    }
+    await logAudit('REDCAP_SUBMIT', context.auth.uid, 'research', String((_a = record.record_id) !== null && _a !== void 0 ? _a : 'unknown'));
+    return { success: true };
+});
+// ── Admin OTP Authentication ──────────────────────────────────────────────────
+// Replaces magic-link login. Admins enter email → receive a 6-digit code →
+// enter the code → get a Firebase custom token to sign in with.
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_OTP_ATTEMPTS = 5;
+function makeTransport() {
+    var _a, _b;
+    const user = (_a = functions.config().otp) === null || _a === void 0 ? void 0 : _a.gmail_user;
+    const pass = (_b = functions.config().otp) === null || _b === void 0 ? void 0 : _b.gmail_pass;
+    if (!user || !pass)
+        throw new Error('OTP email not configured (otp.gmail_user / otp.gmail_pass)');
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass },
+    });
+}
+exports.sendAdminOTP = functions.https.onCall(async (data) => {
+    const email = (data.email || '').toLowerCase().trim();
+    if (!email)
+        throw new functions.https.HttpsError('invalid-argument', 'Email required');
+    // Only pre-registered admins can receive an OTP
+    const db = admin.firestore();
+    const adminsSnap = await db.collection('admins').where('email', '==', email).limit(1).get();
+    if (adminsSnap.empty) {
+        // Return success anyway to avoid email enumeration
+        return { success: true };
+    }
+    // Generate 6-digit code
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const hash = crypto_js_1.default.SHA256(code).toString();
+    const expiresAt = Date.now() + OTP_TTL_MS;
+    await db.collection('admin_otps').doc(email).set({
+        hash,
+        expiresAt,
+        attempts: 0,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await makeTransport().sendMail({
+        from: `"ePSA Admin" <${functions.config().otp.gmail_user}>`,
+        to: email,
+        subject: 'Your ePSA Admin Login Code',
+        text: `Your one-time login code is: ${code}\n\nThis code expires in 10 minutes. Do not share it.`,
+        html: `
+      <p>Your ePSA Admin one-time login code is:</p>
+      <h2 style="letter-spacing:4px;font-family:monospace">${code}</h2>
+      <p>This code expires in <strong>10 minutes</strong>. Do not share it.</p>
+    `,
+    });
+    return { success: true };
+});
+exports.verifyAdminOTP = functions.https.onCall(async (data) => {
+    const email = (data.email || '').toLowerCase().trim();
+    const code = (data.code || '').trim();
+    if (!email || !code)
+        throw new functions.https.HttpsError('invalid-argument', 'Email and code required');
+    const db = admin.firestore();
+    const otpRef = db.collection('admin_otps').doc(email);
+    const otpDoc = await otpRef.get();
+    if (!otpDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'No OTP found. Please request a new code.');
+    }
+    const { hash, expiresAt, attempts } = otpDoc.data();
+    if (Date.now() > expiresAt) {
+        await otpRef.delete();
+        throw new functions.https.HttpsError('deadline-exceeded', 'Code has expired. Please request a new one.');
+    }
+    if (attempts >= MAX_OTP_ATTEMPTS) {
+        await otpRef.delete();
+        throw new functions.https.HttpsError('resource-exhausted', 'Too many attempts. Please request a new code.');
+    }
+    const inputHash = crypto_js_1.default.SHA256(code).toString();
+    if (inputHash !== hash) {
+        await otpRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
+        throw new functions.https.HttpsError('unauthenticated', 'Invalid code.');
+    }
+    // Code correct — clean up and issue a custom token
+    await otpRef.delete();
+    // Look up the admin's Firebase Auth UID (or create one)
+    let uid;
+    try {
+        const userRecord = await admin.auth().getUserByEmail(email);
+        uid = userRecord.uid;
+    }
+    catch (_a) {
+        // Create a passwordless Firebase Auth user for this admin
+        const newUser = await admin.auth().createUser({ email, emailVerified: true });
+        uid = newUser.uid;
+    }
+    const customToken = await admin.auth().createCustomToken(uid, { isAdmin: true });
+    await admin.firestore().collection('admins').doc(uid).update({
+        lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+    }).catch(() => { }); // best-effort
+    return { success: true, customToken };
 });
 //# sourceMappingURL=index.js.map
