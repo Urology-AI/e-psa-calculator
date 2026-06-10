@@ -349,6 +349,27 @@
   font-weight: 700;
 }
 
+/* ── QR Code ── */
+.qef-qr-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--surface-alt, #f8f8f8);
+  border-radius: 12px;
+  border: 1px solid var(--line-200);
+}
+.qef-qr-block canvas {
+  border-radius: 6px;
+}
+.qef-qr-label {
+  font-size: 0.75rem;
+  color: var(--ink-500);
+  margin: 0;
+  text-align: center;
+}
+
 /* ── Progress bar (sticky) ── */
 .qef-progress-bar {
   position: sticky;

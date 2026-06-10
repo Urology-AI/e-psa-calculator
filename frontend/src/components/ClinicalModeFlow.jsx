@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 import { useTranslation } from 'react-i18next';
 import './ClinicalModeFlow.css';
 import InfoIcon from './InfoIcon.jsx';
@@ -193,6 +194,27 @@ function StaffPinModal({ onSuccess, onClose }) {
   );
 }
 
+/* ─── QR Code ─── */
+const APP_URL = 'https://epsa-30d0b.web.app';
+
+function AppQRCode() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    QRCode.toCanvas(canvasRef.current, APP_URL, {
+      width: 120,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+  }, []);
+  return (
+    <div className="qef-qr-block">
+      <canvas ref={canvasRef} />
+      <p className="qef-qr-label">Scan to open on your phone</p>
+    </div>
+  );
+}
+
 /* ─── Welcome screen ─── */
 function WelcomeScreen({ onStart, onStaffAccess }) {
   return (
@@ -288,6 +310,9 @@ function WelcomeScreen({ onStart, onStaffAccess }) {
           <br />
           Questions? Call <a href="tel:6465318092" className="qef-tel">646-531-8092</a>
         </p>
+
+        <AppQRCode />
+
         <button type="button" className="qef-staff-link" onClick={onStaffAccess}>
           Staff access
         </button>
