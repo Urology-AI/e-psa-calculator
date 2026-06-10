@@ -594,7 +594,7 @@ const QuickEPsaEntry = ({ calculatorConfig, onClose }) => {
                   <select className="qe-select" value={dietPattern} onChange={(e) => setDietPattern(e.target.value)}>
                     <option value="western">{t('part1.step4.diet.western')}</option>
                     <option value="mediterranean">{t('part1.step4.diet.mediterranean')}</option>
-                    <option value="indian">{t('part1.step4.diet.indian')}</option>
+                    <option value="asian">{t('part1.step4.diet.asian')}</option>
                     <option value="dash">{t('part1.step4.diet.dash')}</option>
                     <option value="plant-based">{t('part1.step4.diet.plantBased')}</option>
                     <option value="pescatarian">{t('part1.step4.diet.pescatarian')}</option>

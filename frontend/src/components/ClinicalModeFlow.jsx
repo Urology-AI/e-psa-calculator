@@ -696,7 +696,7 @@ export default function ClinicalModeFlow() {
             options={[
               { value: 'western',       label: t('part1.step4.diet.western') },
               { value: 'mediterranean', label: t('part1.step4.diet.mediterranean') },
-              { value: 'indian',        label: t('part1.step4.diet.indian') },
+              { value: 'asian',         label: t('part1.step4.diet.asian') },
               { value: 'dash',          label: t('part1.step4.diet.dash') },
               { value: 'plant-based',   label: t('part1.step4.diet.plantBased') },
               { value: 'pescatarian',   label: t('part1.step4.diet.pescatarian') },
