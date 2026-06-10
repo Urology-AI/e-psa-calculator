@@ -1,24 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import ShareQrCode from './ShareQrCode.jsx';
+import { generateClinicalFormPdf } from '../utils/generateClinicalPdfs';
 import './PrintableForm.css';
 
-const CLINICAL_MODE_URL = (() => {
-  if (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_PUBLIC_APP_URL) {
-    return `${import.meta.env.VITE_PUBLIC_APP_URL.replace(/\/$/, '')}/?mode=bus`;
-  }
-  if (typeof window !== 'undefined' && window?.location?.origin) {
-    const o = window.location.origin;
-    if (!o.includes('localhost') && !o.includes('127.0.0.1')) return `${o}/?mode=bus`;
-  }
-  return 'https://epsa.millionstrongmen.com/?mode=bus';
-})();
 
 const ClinicalModePrintForm = ({ onBack, answers = {} }) => {
-  const formRef = useRef(null);
   const { t } = useTranslation();
+  const [generating, setGenerating] = useState(false);
 
   const chk = (field, value) => {
     const v = answers[field];
@@ -28,58 +16,10 @@ const ClinicalModePrintForm = ({ onBack, answers = {} }) => {
 
   const val = (field, fallback = '') => answers[field] ?? fallback;
 
-  const handlePrint = async () => {
-    if (!formRef.current) return;
-    const btn = document.querySelector('.btn-print');
-    if (!btn) return;
-    const orig = btn.textContent;
-    btn.textContent = t('printableForm.generatingPdf');
-    btn.disabled = true;
-
-    try {
-      const canvas = await html2canvas(formRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: formRef.current.scrollWidth,
-        height: formRef.current.scrollHeight,
-        windowWidth: formRef.current.scrollWidth,
-        windowHeight: formRef.current.scrollHeight,
-      });
-
-      const pdf = new jsPDF('portrait', 'pt', 'letter');
-      const margin = 20;
-      const pw = pdf.internal.pageSize.getWidth();
-      const ph = pdf.internal.pageSize.getHeight();
-      const cw = pw - margin * 2;
-      const ch = ph - margin * 2;
-      const fullH = (canvas.height * cw) / canvas.width;
-
-      if (fullH <= ch) {
-        pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', margin, margin, cw, fullH, undefined, 'FAST');
-      } else {
-        const srcPH = Math.floor((ch * canvas.width) / cw);
-        let offsetY = 0, page = 0;
-        while (offsetY < canvas.height) {
-          const srcH = Math.min(srcPH, canvas.height - offsetY);
-          const pc = document.createElement('canvas');
-          pc.width = canvas.width; pc.height = srcH;
-          const ctx = pc.getContext('2d');
-          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, pc.width, pc.height);
-          ctx.drawImage(canvas, 0, offsetY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-          if (page > 0) pdf.addPage();
-          pdf.addImage(pc.toDataURL('image/png', 1.0), 'PNG', margin, margin, cw, (srcH * cw) / canvas.width, undefined, 'FAST');
-          offsetY += srcH; page++;
-        }
-      }
-      pdf.save('ePSA-Clinical-Screening.pdf');
-    } catch {
-      window.print();
-    }
-
-    btn.textContent = orig;
-    btn.disabled = false;
+  const handleDownload = async () => {
+    setGenerating(true);
+    try { await generateClinicalFormPdf(); }
+    finally { setGenerating(false); }
   };
 
   return (
@@ -90,12 +30,12 @@ const ClinicalModePrintForm = ({ onBack, answers = {} }) => {
             ← {t('printableForm.back')}
           </button>
         )}
-        <button className="btn-print" onClick={handlePrint}>
-          {t('printableForm.downloadPdf')}
+        <button className="btn-print" onClick={handleDownload} disabled={generating}>
+          {generating ? t('printableForm.generatingPdf') : t('printableForm.downloadPdf')}
         </button>
       </div>
 
-      <div className="printable-form-content" ref={formRef}>
+      <div className="printable-form-content">
         <div className="print-instructions">
           <strong>{t('printableForm.howToUseTitle')}</strong> {t('printableForm.howToUseText')}
         </div>
@@ -123,14 +63,6 @@ const ClinicalModePrintForm = ({ onBack, answers = {} }) => {
             <div className="phone-box">
               <label className="phone-label">{t('printableForm.phoneLabel')}</label>
               <input type="text" className="phone-input" placeholder={t('printableForm.phonePlaceholder')} />
-              <ShareQrCode
-                url={CLINICAL_MODE_URL}
-                title="Start screening"
-                subtitle="Scan to open on your device"
-                size={80}
-                clickable
-                className="cmf-qr"
-              />
             </div>
           </div>
         </div>

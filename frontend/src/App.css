@@ -245,6 +245,19 @@ body {
   --brand-100: rgba(6, 171, 235, 0.18);
   --brand-50:  rgba(6, 171, 235, 0.09);
 
+  /* Semantic status colors — dark variants */
+  --error-50:   rgba(192, 57,  43,  0.15);
+  --error-600:  #f87171;
+  --warning-50: rgba(201, 123,  0,  0.15);
+  --warning-600:#fbbf24;
+  --success-50: rgba( 27, 122, 74,  0.15);
+  --success-600:#34d399;
+
+  /* Utility surfaces */
+  --surface-alt: #11144a;
+  --surface-1:   #11144a;
+  --border-subtle: #2a2d7a;
+
   --app-bg: linear-gradient(160deg, #060823 0%, #0a0d2e 40%, #090c28 100%);
   --header-logo-bg: linear-gradient(180deg, #11144a 0%, #0a0d2e 100%);
 }
