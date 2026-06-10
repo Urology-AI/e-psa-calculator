@@ -590,7 +590,7 @@
       "diet": {
         "western": "पश्चिमी / मानक अमेरिकी",
         "mediterranean": "भूमध्यसागरीय",
-        "indian": "भारतीय",
+        "asian": "एशियाई",
         "dash": "DASH-शैली",
         "plantBased": "पौधे-आधारित (शाकाहारी / वीगन)",
         "pescatarian": "पेस्केटेरियन",
@@ -1250,12 +1250,12 @@
     "diet": {
       "western": "पश्चिमी / नियमित",
       "mediterranean": "भूमध्यसागरीय",
-      "indian": "भारतीय",
       "dash": "DASH-शैली",
       "plantBased": "पौधे-आधारित",
       "pescatarian": "पेस्केटेरियन",
       "lowCarbKeto": "कम-कार्ब / कीटो",
-      "other": "अन्य / बताना पसंद नहीं"
+      "other": "अन्य / बताना पसंद नहीं",
+      "asian": "एशियाई"
     },
     "brcaLabel": "आनुवंशिक उत्परिवर्तन",
     "inflammationLabel": "सूजन का इतिहास",

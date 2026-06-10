@@ -914,7 +914,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             {[
               { value: 'western', label: t('part1.step4.diet.western'), Icon: Beef },
               { value: 'mediterranean', label: t('part1.step4.diet.mediterranean'), Icon: Salad },
-              { value: 'indian', label: t('part1.step4.diet.indian'), Icon: Flame },
+              { value: 'asian', label: t('part1.step4.diet.asian'), Icon: Flame },
               { value: 'dash', label: t('part1.step4.diet.dash'), Icon: Heart },
               { value: 'plant-based', label: t('part1.step4.diet.plantBased'), Icon: Leaf },
               { value: 'pescatarian', label: t('part1.step4.diet.pescatarian'), Icon: Fish },

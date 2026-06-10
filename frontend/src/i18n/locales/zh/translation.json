@@ -647,7 +647,7 @@
       "diet": {
         "western": "西式/标准美式饮食",
         "mediterranean": "地中海饮食",
-        "indian": "印度饮食",
+        "asian": "亚洲饮食",
         "dash": "DASH饮食",
         "plantBased": "植物性饮食（素食/纯素）",
         "pescatarian": "鱼素饮食",
@@ -1262,12 +1262,12 @@
     "diet": {
       "western": "西式/普通",
       "mediterranean": "地中海",
-      "indian": "印度",
       "dash": "DASH风格",
       "plantBased": "植物性",
       "pescatarian": "鱼素",
       "lowCarbKeto": "低碳水/生酮",
-      "other": "其他/不愿说明"
+      "other": "其他/不愿说明",
+      "asian": "亚洲饮食"
     },
     "brcaLabel": "遗传突变",
     "inflammationLabel": "炎症史",
