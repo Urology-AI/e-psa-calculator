@@ -67,15 +67,10 @@ export class AdminAuthService {
   // Complete sign-in with email link
   async completeAdminSignIn(emailLink) {
     try {
-      let email = window.localStorage.getItem('adminEmailForSignIn');
-      
+      const email = window.localStorage.getItem('adminEmailForSignIn');
+
       if (!email) {
-        // If email not stored, try to extract from link
-        email = prompt('Please enter your email address for verification:');
-      }
-      
-      if (!email) {
-        throw new Error('Email address required');
+        throw new Error('Email address required. Please re-enter your email on the login page.');
       }
 
       const result = await signInWithEmailLink(adminAuth, email, emailLink);
