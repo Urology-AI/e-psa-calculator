@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
 import RiskGauge from './RiskGauge.jsx';
-import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon, PrinterIcon, CloudIcon } from 'lucide-react';
+import { ArrowRightIcon, RotateCcwIcon, EditIcon, TrendingUpIcon, ChevronDownIcon, ChevronUpIcon, PrinterIcon, CloudIcon, DownloadIcon } from 'lucide-react';
 import ClinicalModePrintForm from './ClinicalModePrintForm.jsx';
 import ClinicalModeResultPrint from './ClinicalModeResultPrint.jsx';
-import ShareQrCode from './ShareQrCode.jsx';
 import './ClinicalModeResult.css';
 
-const CLINICAL_MODE_URL = (() => {
-  if (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_PUBLIC_APP_URL) {
-    return `${import.meta.env.VITE_PUBLIC_APP_URL.replace(/\/$/, '')}/?mode=bus`;
-  }
-  if (typeof window !== 'undefined' && window?.location?.origin) {
-    const o = window.location.origin;
-    if (!o.includes('localhost') && !o.includes('127.0.0.1')) return `${o}/?mode=bus`;
-  }
-  return 'https://epsa.millionstrongmen.com/?mode=bus';
-})();
 
 const AUA_FACTORS = new Set(['Age', 'Black ancestry', 'Family history']);
 
@@ -32,6 +21,16 @@ const CATEGORIES = [
   { key: 'intermediate', label: 'Intermediate — Consider PSA Discussion', color: '#2563eb' },
   { key: 'elevated',     label: 'Strong Candidate for PSA Testing',      color: '#d97706' },
 ];
+
+function downloadJson(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef }) {
   const [showAll, setShowAll] = useState(false);
@@ -186,29 +185,6 @@ export default function ClinicalModeResult({ result, answers, formData, onEditAn
         Model trained on Grade Group ≥3 outcome (N=94 cohort). AUA/NCCN define clinically significant cancer as Grade Group ≥2. Validated variables: age, race, family history, PSA thresholds. Other factors are research-based.
       </p>
 
-      {onStudyConsent && (
-        <div className="qer-study-banner">
-          <div className="qer-study-banner-body">
-            <FlaskConicalIcon size={16} aria-hidden="true" />
-            <div>
-              <strong>Help advance prostate cancer research</strong>
-              <p>Would you like to add your anonymous data to an IRB-approved Mount Sinai study?</p>
-            </div>
-          </div>
-          <button type="button" className="qer-action-btn qer-action-btn--study" onClick={onStudyConsent}>
-            Add My Data to Research Study
-          </button>
-        </div>
-      )}
-
-      <ShareQrCode
-        url={CLINICAL_MODE_URL}
-        title="Start your screening"
-        subtitle="Scan to open the clinical screening form on your device"
-        size={100}
-        clickable
-        className="qer-qr"
-      />
 
       {!readOnly && (
         <div className="qer-actions">
@@ -223,6 +199,16 @@ export default function ClinicalModeResult({ result, answers, formData, onEditAn
           </button>
           <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={() => setShowPrintForm(true)}>
             <PrinterIcon size={14} aria-hidden="true" /> Print Blank Form
+          </button>
+          <button
+            type="button"
+            className="qer-action-btn qer-action-btn--secondary"
+            onClick={() => downloadJson(
+              { sessionRef, formData, result, rawAnswers: answers, exportedAt: new Date().toISOString() },
+              `epsa-results-${sessionRef || Date.now()}.json`
+            )}
+          >
+            <DownloadIcon size={14} aria-hidden="true" /> Export Results JSON
           </button>
           <button type="button" className="qer-action-btn qer-action-btn--ghost" onClick={onStartOver}>
             <RotateCcwIcon size={14} aria-hidden="true" /> Start Over

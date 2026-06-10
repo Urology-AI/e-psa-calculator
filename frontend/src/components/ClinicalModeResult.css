@@ -58,12 +58,12 @@
   background: rgba(255,255,255,0.28);
 }
 .qer-cloud-note {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--brand-50);
+  border: 1px solid var(--brand-400);
   border-radius: var(--radius-md, 0.75rem);
   padding: 0.75rem 1rem;
   font-size: 0.8125rem;
-  color: #1e40af;
+  color: var(--brand-700);
   line-height: 1.55;
   display: flex;
   flex-direction: column;
@@ -72,15 +72,15 @@
 .qer-cloud-note-close {
   align-self: flex-end;
   background: none;
-  border: 1px solid #93c5fd;
+  border: 1px solid var(--brand-400);
   border-radius: 6px;
-  color: #1e40af;
+  color: var(--brand-700);
   font-size: 0.75rem;
   padding: 3px 10px;
   cursor: pointer;
 }
 .qer-cloud-note-close:hover {
-  background: #dbeafe;
+  background: var(--brand-100);
 }
 
 /* ── Gauge + categories ── */
@@ -140,9 +140,13 @@
   border-radius: var(--radius-md, 0.75rem);
   padding: 0.75rem 0.875rem;
 }
-.qer-guideline-banner--high     { background: var(--error-50);   border-color: rgba(192,57,43,0.3); }
-.qer-guideline-banner--moderate { background: var(--warning-50); border-color: rgba(201,123,0,0.3); }
-.qer-guideline-banner--low      { background: var(--success-50); border-color: rgba(27,122,74,0.3); }
+.qer-guideline-banner--high     { background: var(--error-50);   border-color: rgba(192,57,43,0.35); }
+.qer-guideline-banner--moderate { background: var(--warning-50); border-color: rgba(201,123,0,0.35); }
+.qer-guideline-banner--low      { background: var(--success-50); border-color: rgba(27,122,74,0.35); }
+
+.theme-dark .qer-guideline-banner--high     { border-color: rgba(248,113,113,0.35); }
+.theme-dark .qer-guideline-banner--moderate { border-color: rgba(251,191, 36,0.35); }
+.theme-dark .qer-guideline-banner--low      { border-color: rgba( 52,211,153,0.35); }
 
 .qer-guideline-eyebrow {
   font-size: 0.625rem;
@@ -318,9 +322,9 @@
 .qer-qr {
   margin: 0.75rem 0 0;
   padding: 0.75rem;
-  border: 1px solid var(--border-subtle, #e5e7eb);
+  border: 1px solid var(--line-200);
   border-radius: var(--radius-md, 0.75rem);
-  background: var(--surface-1, #f8fafc);
+  background: var(--surface-subtle);
 }
 
 /* ── Actions ── */
