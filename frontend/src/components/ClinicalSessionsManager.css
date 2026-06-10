@@ -475,3 +475,12 @@
     overflow: auto;
   }
 }
+
+/* No-consent badge + mark-consented action */
+.csm-row-badge--noconsent {
+  color: #b45309;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+.csm-action-btn--consent { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+.csm-action-btn--consent:hover { background: #fef3c7; }
