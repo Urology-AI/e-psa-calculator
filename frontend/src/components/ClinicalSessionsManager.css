@@ -257,6 +257,14 @@
   background: #dcfce7;
   color: #15803d;
 }
+.csm-row-badge--synced {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+.csm-row-badge--unsynced {
+  background: #fef3c7;
+  color: #b45309;
+}
 
 /* ── Row body ── */
 .csm-row-body {
