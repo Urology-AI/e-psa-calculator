@@ -6,7 +6,7 @@ import {
   CloudUploadIcon, CloudDownloadIcon
 } from 'lucide-react';
 import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession, mergeSessions } from '../services/clinicalSessionService';
-import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey } from '../services/tursoService';
+import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey, markPendingDelete, getPendingDeleteCount } from '../services/tursoService';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import './ClinicalSessionsManager.css';
@@ -27,7 +27,7 @@ function formatDate(iso) {
   } catch { return iso; }
 }
 
-function SessionRow({ session, uid, onDelete, onRefresh, tursoReady, tursoSynced }) {
+function SessionRow({ session, uid, onDeleted, tursoReady, tursoSynced }) {
   const [expanded, setExpanded] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
@@ -49,7 +49,7 @@ function SessionRow({ session, uid, onDelete, onRefresh, tursoReady, tursoSynced
     if (!confirming) { setConfirming(true); return; }
     setConfirming(false);
     await deleteClinicalSession(uid, session);
-    onRefresh();
+    await onDeleted(session);
   }
 
   async function handlePushRedcap() {
@@ -184,6 +184,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [syncing, setSyncing] = useState(null); // 'push' | 'pull' | null
   const [syncedKeys, setSyncedKeys] = useState(() => getSyncedKeys());
+  const [pendingDeletes, setPendingDeletes] = useState(() => getPendingDeleteCount());
   const tursoReady = isTursoConfigured();
 
   // Check if there's a live ePSA session in sessionStorage to import
@@ -235,13 +236,16 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   }
 
   async function handlePushCloud() {
-    if (!sessions.length || syncing) return;
+    if ((!sessions.length && !pendingDeletes) || syncing) return;
     setSyncing('push');
     setImportMsg(null);
     try {
-      const count = await pushSessions(sessions);
+      const { pushed, deleted } = await pushSessions(sessions);
       setSyncedKeys(getSyncedKeys());
-      setImportMsg(`Pushed ${count} session${count !== 1 ? 's' : ''} to cloud.`);
+      setPendingDeletes(getPendingDeleteCount());
+      const parts = [`Pushed ${pushed} session${pushed !== 1 ? 's' : ''} to cloud`];
+      if (deleted) parts.push(`removed ${deleted} deleted case${deleted !== 1 ? 's' : ''}`);
+      setImportMsg(`${parts.join('; ')}.`);
     } catch (err) {
       setImportMsg(`Push failed: ${err.message}`);
     } finally {
@@ -257,6 +261,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
       const pulled = await pullSessions();
       const added = mergeSessions(pulled);
       setSyncedKeys(getSyncedKeys());
+      setPendingDeletes(getPendingDeleteCount());
       setImportMsg(`Pulled ${pulled.length} session${pulled.length !== 1 ? 's' : ''} from cloud (${added} new).`);
       await refresh();
     } catch (err) {
@@ -264,6 +269,17 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     } finally {
       setSyncing(null);
     }
+  }
+
+  async function handleSessionDeleted(session) {
+    if (tursoReady && (await markPendingDelete(session))) {
+      setSyncedKeys(getSyncedKeys());
+      setPendingDeletes(getPendingDeleteCount());
+      setImportMsg('Session deleted from this device. It will be removed from Turso on the next push.');
+    } else {
+      setImportMsg('Session deleted.');
+    }
+    await refresh();
   }
 
   async function handleImportBusflow() {
@@ -325,10 +341,13 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
               type="button"
               className={`csm-toolbar-btn${syncing === 'push' ? ' csm-toolbar-btn--loading' : ''}`}
               onClick={handlePushCloud}
-              disabled={!sessions.length || !!syncing}
-              title="Push all sessions to the Turso cloud database (de-identified)"
+              disabled={(!sessions.length && !pendingDeletes) || !!syncing}
+              title={pendingDeletes
+                ? `Push all sessions and remove ${pendingDeletes} deleted case${pendingDeletes !== 1 ? 's' : ''} from the Turso cloud database`
+                : 'Push all sessions to the Turso cloud database (de-identified)'}
             >
-              <CloudUploadIcon size={15} /> {syncing === 'push' ? 'Pushing…' : 'Push to Cloud'}
+              <CloudUploadIcon size={15} />
+              {syncing === 'push' ? 'Pushing…' : pendingDeletes ? `Push to Cloud (${pendingDeletes} to remove)` : 'Push to Cloud'}
             </button>
             <button
               type="button"
@@ -372,8 +391,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
               key={s.id}
               session={s}
               uid={uid}
-              onDelete={() => {}}
-              onRefresh={refresh}
+              onDeleted={handleSessionDeleted}
               tursoReady={tursoReady}
               tursoSynced={syncedKeys.has(syncKey(s))}
             />

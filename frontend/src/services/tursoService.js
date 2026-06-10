@@ -103,6 +103,58 @@ export function getSyncedKeys() {
   return new Set(Object.keys(loadSynced()));
 }
 
+// Tombstones: cases deleted locally whose Turso rows still need deleting.
+// Keyed by syncKey, holding every cloud row id the case may live under.
+const PENDING_DELETE_KEY = 'epsa_turso_pending_deletes';
+function loadPendingDeletes() {
+  try { return JSON.parse(localStorage.getItem(PENDING_DELETE_KEY) || '{}'); } catch { return {}; }
+}
+function savePendingDeletes(m) {
+  localStorage.setItem(PENDING_DELETE_KEY, JSON.stringify(m));
+}
+
+export function getPendingDeleteCount() {
+  return Object.keys(loadPendingDeletes()).length;
+}
+
+/**
+ * Record that a locally deleted case must also be removed from Turso.
+ * The actual DELETE runs on the next push or pull. Returns true if the
+ * case was synced (i.e. a cloud row exists to delete), false otherwise.
+ */
+export async function markPendingDelete(session) {
+  const key = syncKey(session);
+  const synced = loadSynced();
+  if (!(key in synced)) return false;
+
+  const ids = new Set([await sha256hex(key)]);
+  const idMap = loadIdMap();
+  if (idMap[session.id]) ids.add(idMap[session.id]);
+  delete idMap[session.id];
+  saveIdMap(idMap);
+
+  const pending = loadPendingDeletes();
+  pending[key] = [...ids];
+  savePendingDeletes(pending);
+
+  delete synced[key];
+  localStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
+  return true;
+}
+
+/** Delete all tombstoned rows from Turso; clears the ledger on success. */
+async function flushPendingDeletes(client) {
+  const pending = loadPendingDeletes();
+  const ids = [...new Set(Object.values(pending).flat())];
+  if (!ids.length) return 0;
+  await client.batch(
+    ids.map((id) => ({ sql: 'DELETE FROM clinical_sessions WHERE id = ?', args: [id] })),
+    'write'
+  );
+  localStorage.removeItem(PENDING_DELETE_KEY);
+  return Object.keys(pending).length;
+}
+
 /**
  * Strip identifiers before data leaves the browser (HIPAA Safe Harbor):
  *  - id        → cloud hash (set by caller)
@@ -161,11 +213,17 @@ function sessionColumns(session, cloudId) {
   };
 }
 
-/** Push sessions to Turso. Returns the number of rows written. */
+/**
+ * Push sessions to Turso. Also flushes pending deletions of locally
+ * deleted cases. Returns { pushed, deleted }.
+ */
 export async function pushSessions(sessions) {
-  if (!sessions.length) return 0;
+  if (!sessions.length && !getPendingDeleteCount()) return { pushed: 0, deleted: 0 };
   const client = getClient();
   await ensureSchema(client);
+
+  const deleted = await flushPendingDeletes(client);
+  if (!sessions.length) return { pushed: 0, deleted };
 
   // The cloud row id is a hash of the stable syncKey (sessionRef when
   // available), so the same case pushed twice — even after an export/import
@@ -189,7 +247,7 @@ export async function pushSessions(sessions) {
 
   await client.batch(stmts, 'write');
   markSynced(sessions);
-  return stmts.length;
+  return { pushed: stmts.length, deleted };
 }
 
 /**
@@ -200,6 +258,9 @@ export async function pushSessions(sessions) {
 export async function pullSessions() {
   const client = getClient();
   await ensureSchema(client);
+
+  // Apply pending deletions first so locally deleted cases don't resurrect.
+  await flushPendingDeletes(client);
 
   const result = await client.execute(
     'SELECT id, full_record FROM clinical_sessions ORDER BY created_at DESC'
