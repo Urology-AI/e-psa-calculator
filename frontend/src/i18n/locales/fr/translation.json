@@ -1158,7 +1158,7 @@
     "subtitle": "Téléchargez vos données d'évaluation ePSA précédentes pour continuer où vous vous êtes arrêté.",
     "loadFromCloud": "Charger depuis le cloud",
     "cloudDescription": "Entrez votre clé de session anonyme pour charger vos données d'évaluation sauvegardées",
-    "sessionPlaceholder": "ex. A1B2C3D4",
+    "sessionPlaceholder": "ex. A1B2C3D4 / EP-20260101-AB12",
     "loading": "Chargement...",
     "load": "Charger",
     "uploadJsonData": "Télécharger des données JSON",

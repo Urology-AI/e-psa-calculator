@@ -40,6 +40,7 @@ import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import ClinicalModeFlow from './components/ClinicalModeFlow.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
@@ -1024,7 +1025,31 @@ function App() {
   const handleImportSuccess = async (importedData, importType) => {
     console.log('Import successful:', importType, importedData);
     setImportedData(importedData);
-    
+
+    if (importType === 'clinical') {
+      // Clinical screening ref (EP-YYYYMMDD-XXXX): pull the session from Turso,
+      // then re-enter as a JSON import so it stays local until "Move to cloud".
+      try {
+        if (!isTursoConfigured()) {
+          throw new Error('Cloud sync is not configured on this deployment. Use Import for a JSON file instead.');
+        }
+        const sessionRef = (importedData?.sessionRef || '').toUpperCase().trim();
+        const record = await pullSessionByRef(sessionRef);
+        const formData = record?.formData ?? record?.step1;
+        if (!formData) {
+          throw new Error('No screening session found for that reference. Check the code on your results card.');
+        }
+        const asJson = record.step2
+          ? { version: record.version ?? 'epsa-session-v1', part: 'complete', part1Data: formData, part2Data: record.step2 }
+          : { version: record.version ?? 'epsa-session-v1', part: 'part1', formData };
+        return handleImportSuccess(asJson, 'json');
+      } catch (error) {
+        console.error('Clinical session import error:', error);
+        setImportError(error?.message || 'Failed to load the screening session.');
+        return;
+      }
+    }
+
     if (importType === 'session') {
       // Session ID restore requires Firebase
       if (!auth || !functions) {

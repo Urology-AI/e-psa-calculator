@@ -1158,7 +1158,7 @@
     "subtitle": "上传您之前的ePSA评估数据以从上次停止的地方继续。",
     "loadFromCloud": "从云端加载",
     "cloudDescription": "输入您的匿名会话密钥以加载已保存的评估数据",
-    "sessionPlaceholder": "例如 A1B2C3D4",
+    "sessionPlaceholder": "例如 A1B2C3D4 / EP-20260101-AB12",
     "loading": "加载中...",
     "load": "加载",
     "uploadJsonData": "上传JSON数据",

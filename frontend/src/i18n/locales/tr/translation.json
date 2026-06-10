@@ -1158,7 +1158,7 @@
     "subtitle": "Kaldığınız yerden devam etmek için önceki ePSA değerlendirme verilerinizi yükleyin.",
     "loadFromCloud": "Buluttan yükle",
     "cloudDescription": "Kaydedilmiş değerlendirme verilerinizi yüklemek için anonim oturum anahtarınızı girin",
-    "sessionPlaceholder": "ör. A1B2C3D4",
+    "sessionPlaceholder": "ör. A1B2C3D4 / EP-20260101-AB12",
     "loading": "Yükleniyor...",
     "load": "Yükle",
     "uploadJsonData": "JSON verisini yükle",
