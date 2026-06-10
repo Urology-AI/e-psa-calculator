@@ -468,7 +468,7 @@
       "diet": {
         "western": "غربي / أمريكي قياسي",
         "mediterranean": "متوسطي",
-        "indian": "هندي",
+        "asian": "آسيوي",
         "dash": "نمط DASH",
         "plantBased": "نباتي (خضري / نباتي صرف)",
         "pescatarian": "بيسكاتاري",
@@ -1118,12 +1118,12 @@
     "diet": {
       "western": "غربي / عادي",
       "mediterranean": "متوسطي",
-      "indian": "هندي",
       "dash": "نمط DASH",
       "plantBased": "نباتي",
       "pescatarian": "بيسكاتاري",
       "lowCarbKeto": "منخفض الكربوهيدرات / كيتو",
-      "other": "آخر / أفضل عدم الإجابة"
+      "other": "آخر / أفضل عدم الإجابة",
+      "asian": "آسيوي"
     },
     "brcaLabel": "الطفرة الجينية",
     "inflammationLabel": "تاريخ الالتهاب",

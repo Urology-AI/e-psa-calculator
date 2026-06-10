@@ -652,7 +652,7 @@
       "diet": {
         "western": "Western / Standard American",
         "mediterranean": "Mediterranean",
-        "indian": "Indian",
+        "asian": "Asian",
         "dash": "DASH-style",
         "plantBased": "Plant-based (Vegetarian / Vegan)",
         "pescatarian": "Pescatarian",
@@ -1269,12 +1269,12 @@
     "diet": {
       "western": "Western / Regular",
       "mediterranean": "Mediterranean",
-      "indian": "Indian",
       "dash": "DASH-style",
       "plantBased": "Plant-based",
       "pescatarian": "Pescatarian",
       "lowCarbKeto": "Low-carb / Keto",
-      "other": "Other / Prefer not to say"
+      "other": "Other / Prefer not to say",
+      "asian": "Asian"
     },
     "brcaLabel": "Genetic mutation",
     "inflammationLabel": "Inflammation history",

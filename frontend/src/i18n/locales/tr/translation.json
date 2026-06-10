@@ -647,7 +647,7 @@
       "diet": {
         "western": "Batı / Standart Amerikan",
         "mediterranean": "Akdeniz",
-        "indian": "Hint",
+        "asian": "Asya",
         "dash": "DASH tarzı",
         "plantBased": "Bitki bazlı (Vejetaryen / Vegan)",
         "pescatarian": "Pesketaryen",
@@ -1262,12 +1262,12 @@
     "diet": {
       "western": "Batı / Düzenli",
       "mediterranean": "Akdeniz",
-      "indian": "Hint",
       "dash": "DASH tarzı",
       "plantBased": "Bitki bazlı",
       "pescatarian": "Pesketaryen",
       "lowCarbKeto": "Düşük karbonhidrat / Keto",
-      "other": "Diğer / Söylemek istemiyorum"
+      "other": "Diğer / Söylemek istemiyorum",
+      "asian": "Asya"
     },
     "brcaLabel": "Genetik mutasyon",
     "inflammationLabel": "İltihaplanma öyküsü",
