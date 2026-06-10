@@ -4,7 +4,7 @@ import {
   ChevronDownIcon, ChevronUpIcon, ArrowLeftIcon,
   SendIcon, RefreshCwIcon, PlusIcon, ZapIcon
 } from 'lucide-react';
-import { getClinicalSessions, deleteClinicalSession, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession } from '../services/clinicalSessionService';
+import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession } from '../services/clinicalSessionService';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import './ClinicalSessionsManager.css';
@@ -37,13 +37,16 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
   const age = session.formData?.age || '—';
   const race = session.formData?.race || '—';
   const hasPost = !!(session.step2 || session.postResult);
+  const storage = session._storage || 'local';
+  const storageLabel = storage === 'both' ? 'Cloud + Local' : storage === 'cloud' ? 'Cloud' : 'Local';
   const psa = session.step2?.psa ?? null;
   const pirads = session.step2?.pirads ?? null;
   const ref = session.sessionRef ?? null;
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return; }
-    await deleteClinicalSession(uid, session.id);
+    setConfirming(false);
+    await deleteClinicalSession(uid, session);
     onRefresh();
   }
 
@@ -89,6 +92,9 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
           {tierLabel} ({scoreRange})
         </span>
         {hasPost && <span className="csm-row-badge csm-row-badge--full">Part 1+2</span>}
+        <span className={`csm-row-badge csm-row-badge--${storage}`} title={`Stored in ${storageLabel.toLowerCase()} storage`}>
+          {storageLabel}
+        </span>
         {expanded ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
       </button>
 
@@ -116,7 +122,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
               className={`csm-action-btn csm-action-btn--delete${confirming ? ' csm-action-btn--confirm' : ''}`}
               onClick={handleDelete}
               onBlur={() => setConfirming(false)}
-              title="Delete session"
+              title={`Delete session from ${storageLabel.toLowerCase()} storage`}
             >
               <TrashIcon size={14} />
               {confirming ? 'Confirm delete?' : 'Delete'}
@@ -165,6 +171,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   // Check if there's a live ePSA session in sessionStorage to import
   const busflow = (() => {
@@ -204,6 +211,14 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
   function handleExportAll() {
     if (!sessions.length) return;
     exportSessionsAsJson(sessions);
+  }
+
+  async function handleClearAll() {
+    if (!confirmClear) { setConfirmClear(true); return; }
+    setConfirmClear(false);
+    await clearAllClinicalSessions(uid);
+    setImportMsg('All locally stored sessions cleared.');
+    await refresh();
   }
 
   async function handleImportBusflow() {
@@ -259,6 +274,16 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
           <UploadIcon size={15} /> {importing ? 'Importing…' : 'Import JSON'}
           <input type="file" accept=".json" hidden onChange={handleImport} />
         </label>
+        <button
+          type="button"
+          className={`csm-toolbar-btn csm-toolbar-btn--danger${confirmClear ? ' csm-toolbar-btn--confirm' : ''}`}
+          onClick={handleClearAll}
+          onBlur={() => setConfirmClear(false)}
+          disabled={!sessions.length}
+          title="Delete all saved sessions from this device"
+        >
+          <TrashIcon size={15} /> {confirmClear ? 'Confirm clear all?' : 'Clear All'}
+        </button>
       </div>
 
       {importMsg && (
