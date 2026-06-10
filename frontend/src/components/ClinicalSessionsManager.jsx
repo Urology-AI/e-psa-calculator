@@ -128,6 +128,7 @@ function SessionRow({ session, uid, onDelete, onRefresh }) {
               <ClinicalModeResult
                 result={session.engineResult}
                 formData={session.formData}
+                answers={session.rawAnswers ?? session.formData}
                 sessionRef={ref}
                 onEditAnswers={null}
                 onStartOver={null}
