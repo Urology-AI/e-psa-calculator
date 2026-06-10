@@ -116,10 +116,13 @@ jobs:
         ADMIN_URLS: ${{ steps.admin_preview.outputs.urls }}
         EXPIRES: ${{ steps.app_preview.outputs.expire_time }}
       run: |
+        # outputs.urls is a JSON array string — flatten to space-separated links
+        APP=$(echo "$APP_URLS" | jq -r 'join(" ")' 2>/dev/null || echo "$APP_URLS")
+        ADMIN=$(echo "$ADMIN_URLS" | jq -r 'join(" ")' 2>/dev/null || echo "$ADMIN_URLS")
         BODY="Preview URLs for commit ${{ github.event.pull_request.head.sha }}:
 
-        - App: ${APP_URLS}
-        - Admin: ${ADMIN_URLS}
+        - App: ${APP}
+        - Admin: ${ADMIN}
 
         Expires: ${EXPIRES}"
         echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
