@@ -12,9 +12,11 @@ import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
 import { FH_MAP, DIET_MAP, deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
-import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, LockIcon } from 'lucide-react';
+import { ZapIcon, ChevronRightIcon, RotateCcwIcon, CheckIcon, FlaskConicalIcon, ArrowLeftIcon, ShieldCheckIcon, LockIcon, FileTextIcon, PrinterIcon } from 'lucide-react';
 import ClinicalSessionsManager from './ClinicalSessionsManager.jsx';
 import './ClinicalSessionsManager.css';
+import ClinicalModePrintForm from './ClinicalModePrintForm.jsx';
+import QrCodePoster from './QrCodePoster.jsx';
 import { getOrCreateUid, saveClinicalSession, generateSessionRef } from '../services/clinicalSessionService';
 
 /* ─── BMI helpers ─── */
@@ -216,7 +218,7 @@ function AppQRCode() {
 }
 
 /* ─── Welcome screen ─── */
-function WelcomeScreen({ onStart, onStaffAccess }) {
+function WelcomeScreen({ onStart, onStaffAccess, onPrintForm, onPrintQr }) {
   return (
     <div className="qef-welcome">
 
@@ -313,6 +315,17 @@ function WelcomeScreen({ onStart, onStaffAccess }) {
 
         <AppQRCode />
 
+        <div className="qef-welcome-actions">
+          <button type="button" className="qef-action-btn" onClick={onPrintForm}>
+            <FileTextIcon size={16} aria-hidden="true" />
+            Print PDF Form
+          </button>
+          <button type="button" className="qef-action-btn" onClick={onPrintQr}>
+            <PrinterIcon size={16} aria-hidden="true" />
+            Print QR Code
+          </button>
+        </div>
+
         <button type="button" className="qef-staff-link" onClick={onStaffAccess}>
           Staff access
         </button>
@@ -334,6 +347,8 @@ export default function ClinicalModeFlow() {
   const [uid, setUid] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [sessionRef, setSessionRef] = useState(null);
+  const [showPrintForm, setShowPrintForm] = useState(false);
+  const [showQrPoster, setShowQrPoster] = useState(false);
 
   useEffect(() => {
     getOrCreateUid().then(setUid).catch(() => {});
@@ -443,6 +458,14 @@ export default function ClinicalModeFlow() {
     saveBusflowAndNavigate(true);
   }
 
+  if (showPrintForm) {
+    return <ClinicalModePrintForm onBack={() => setShowPrintForm(false)} answers={{}} />;
+  }
+
+  if (showQrPoster) {
+    return <QrCodePoster onBack={() => setShowQrPoster(false)} />;
+  }
+
   if (screen === 'manage') {
     return (
       <ClinicalSessionsManager
@@ -459,6 +482,8 @@ export default function ClinicalModeFlow() {
         <WelcomeScreen
           onStart={() => { setScreen('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           onStaffAccess={() => setShowPinModal(true)}
+          onPrintForm={() => setShowPrintForm(true)}
+          onPrintQr={() => setShowQrPoster(true)}
         />
         {showPinModal && (
           <StaffPinModal
