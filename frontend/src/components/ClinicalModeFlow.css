@@ -647,6 +647,19 @@
   background: var(--surface);
   border-bottom: 1px solid var(--line-200);
 }
+.qef-logo-home-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  opacity: 0.9;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.qef-logo-home-btn:hover { opacity: 1; }
+
 .qef-result-header-title {
   font-size: 1rem;
   font-weight: 800;
