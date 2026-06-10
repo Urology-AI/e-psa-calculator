@@ -1158,7 +1158,7 @@
     "subtitle": "Upload your previous ePSA assessment data to continue where you left off.",
     "loadFromCloud": "Load from cloud",
     "cloudDescription": "Enter your anonymous session key to load your saved assessment data",
-    "sessionPlaceholder": "e.g. A1B2C3D4",
+    "sessionPlaceholder": "e.g. A1B2C3D4 / EP-20260101-AB12",
     "loading": "Loading...",
     "load": "Load",
     "uploadJsonData": "Upload JSON data",

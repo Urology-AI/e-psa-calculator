@@ -1036,7 +1036,7 @@
     "subtitle": "قم بتحميل بيانات تقييم ePSA السابقة الخاصة بك للمتابعة من حيث توقفت.",
     "loadFromCloud": "تحميل من السحابة",
     "cloudDescription": "أدخل مفتاح جلستك المجهولة لتحميل بيانات التقييم المحفوظة",
-    "sessionPlaceholder": "مثل A1B2C3D4",
+    "sessionPlaceholder": "مثل A1B2C3D4 / EP-20260101-AB12",
     "loading": "جارٍ التحميل...",
     "load": "تحميل",
     "uploadJsonData": "رفع بيانات JSON",
