@@ -88,19 +88,20 @@ export async function saveClinicalSession(uid, sessionData) {
   const sessionRef = sessionData.sessionRef ?? generateSessionRef();
   const record = { id, sessionRef, ...normaliseSession(sessionData) };
 
+  // Always persist to localStorage so sessions survive offline / Firebase outages
+  const sessions = getLocal();
+  sessions.unshift({ ...record, createdAt: new Date().toISOString() });
+  setLocal(sessions);
+
   if (isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
     try {
       const ref = doc(db, 'clinicalSessions', uid, 'records', id);
       await setDoc(ref, { ...record, createdAt: serverTimestamp() });
-      return id;
     } catch (e) {
-      console.warn('Firestore save failed, falling back to localStorage:', e);
+      console.warn('Firestore save failed, session already saved to localStorage:', e);
     }
   }
 
-  const sessions = getLocal();
-  sessions.unshift({ ...record, createdAt: new Date().toISOString() });
-  setLocal(sessions);
   return id;
 }
 
