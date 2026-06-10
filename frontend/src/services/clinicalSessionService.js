@@ -110,6 +110,23 @@ export async function saveClinicalSession(uid, sessionData) {
   return id;
 }
 
+/** Update the consent flag on a saved session (e.g. the patient signs the
+ *  form later, or a staff member confirms consent). Updates the local copy
+ *  and, when present, the Firestore copy. */
+export async function setSessionConsent(uid, session, consented) {
+  const keyOf = s => s.sessionRef ?? s.id;
+  setLocal(getLocal().map(s => (keyOf(s) === keyOf(session) ? { ...s, consented } : s)));
+
+  if (session._storage !== 'local' && isFirebaseConfigured() && uid && !uid.startsWith('dev_') && db) {
+    try {
+      const ref = doc(db, 'clinicalSessions', uid, 'records', session.id);
+      await setDoc(ref, { consented }, { merge: true });
+    } catch (e) {
+      console.warn('Firestore consent update failed; local copy updated:', e);
+    }
+  }
+}
+
 function toIso(ts) {
   if (!ts) return null;
   if (typeof ts.toDate === 'function') return ts.toDate().toISOString();
