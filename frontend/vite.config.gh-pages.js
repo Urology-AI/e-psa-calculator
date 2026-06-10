@@ -13,7 +13,6 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: './index.gh-pages.html',
-      external: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/analytics', 'firebase/functions'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom']
