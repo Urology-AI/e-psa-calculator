@@ -1,9 +1,13 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { defineSecret } from 'firebase-functions/params';
 import * as https from 'https';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
 import * as nodemailer from 'nodemailer';
+
+const OTP_GMAIL_USER = defineSecret('OTP_GMAIL_USER');
+const OTP_GMAIL_PASS = defineSecret('OTP_GMAIL_PASS');
 
 // REDCap sync trigger (Firestore onWrite → REDCap API)
 // submitToRedcap: callable function for local-storage users to push directly
@@ -2007,17 +2011,7 @@ export const submitRedcap = functions.https.onCall(async (data: { record?: Recor
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_OTP_ATTEMPTS = 5;
 
-function makeTransport() {
-  const user = functions.config().otp?.gmail_user;
-  const pass = functions.config().otp?.gmail_pass;
-  if (!user || !pass) throw new Error('OTP email not configured (otp.gmail_user / otp.gmail_pass)');
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user, pass },
-  });
-}
-
-export const sendAdminOTP = functions.https.onCall(async (data: { email: string }) => {
+export const sendAdminOTP = functions.runWith({ secrets: ['OTP_GMAIL_USER', 'OTP_GMAIL_PASS'] }).https.onCall(async (data: { email: string }) => {
   const email = (data.email || '').toLowerCase().trim();
   if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email required');
 
@@ -2041,8 +2035,13 @@ export const sendAdminOTP = functions.https.onCall(async (data: { email: string 
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
-  await makeTransport().sendMail({
-    from: `"ePSA Admin" <${functions.config().otp.gmail_user}>`,
+  const gmailUser = OTP_GMAIL_USER.value();
+  const gmailPass = OTP_GMAIL_PASS.value();
+  if (!gmailUser || !gmailPass) throw new functions.https.HttpsError('internal', 'OTP email not configured');
+  const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
+
+  await transport.sendMail({
+    from: `"ePSA Admin" <${gmailUser}>`,
     to: email,
     subject: 'Your ePSA Admin Login Code',
     text: `Your one-time login code is: ${code}\n\nThis code expires in 10 minutes. Do not share it.`,

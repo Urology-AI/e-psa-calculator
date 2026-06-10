@@ -39,10 +39,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyAdminOTP = exports.sendAdminOTP = exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.submitToRedcap = exports.syncToRedcap = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
+const params_1 = require("firebase-functions/params");
 const https = __importStar(require("https"));
 const zod_1 = require("zod");
 const crypto_js_1 = __importDefault(require("crypto-js"));
 const nodemailer = __importStar(require("nodemailer"));
+const OTP_GMAIL_USER = (0, params_1.defineSecret)('OTP_GMAIL_USER');
+const OTP_GMAIL_PASS = (0, params_1.defineSecret)('OTP_GMAIL_PASS');
 // REDCap sync trigger (Firestore onWrite → REDCap API)
 // submitToRedcap: callable function for local-storage users to push directly
 var redcapSync_1 = require("./redcapSync");
@@ -1717,18 +1720,7 @@ exports.submitRedcap = functions.https.onCall(async (data, context) => {
 // enter the code → get a Firebase custom token to sign in with.
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_OTP_ATTEMPTS = 5;
-function makeTransport() {
-    var _a, _b;
-    const user = (_a = functions.config().otp) === null || _a === void 0 ? void 0 : _a.gmail_user;
-    const pass = (_b = functions.config().otp) === null || _b === void 0 ? void 0 : _b.gmail_pass;
-    if (!user || !pass)
-        throw new Error('OTP email not configured (otp.gmail_user / otp.gmail_pass)');
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user, pass },
-    });
-}
-exports.sendAdminOTP = functions.https.onCall(async (data) => {
+exports.sendAdminOTP = functions.runWith({ secrets: ['OTP_GMAIL_USER', 'OTP_GMAIL_PASS'] }).https.onCall(async (data) => {
     const email = (data.email || '').toLowerCase().trim();
     if (!email)
         throw new functions.https.HttpsError('invalid-argument', 'Email required');
@@ -1749,8 +1741,13 @@ exports.sendAdminOTP = functions.https.onCall(async (data) => {
         attempts: 0,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-    await makeTransport().sendMail({
-        from: `"ePSA Admin" <${functions.config().otp.gmail_user}>`,
+    const gmailUser = OTP_GMAIL_USER.value();
+    const gmailPass = OTP_GMAIL_PASS.value();
+    if (!gmailUser || !gmailPass)
+        throw new functions.https.HttpsError('internal', 'OTP email not configured');
+    const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
+    await transport.sendMail({
+        from: `"ePSA Admin" <${gmailUser}>`,
         to: email,
         subject: 'Your ePSA Admin Login Code',
         text: `Your one-time login code is: ${code}\n\nThis code expires in 10 minutes. Do not share it.`,
