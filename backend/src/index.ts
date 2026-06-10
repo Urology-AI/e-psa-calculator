@@ -1,8 +1,13 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { defineSecret } from 'firebase-functions/params';
 import * as https from 'https';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
+import * as nodemailer from 'nodemailer';
+
+const OTP_GMAIL_USER = defineSecret('OTP_GMAIL_USER');
+const OTP_GMAIL_PASS = defineSecret('OTP_GMAIL_PASS');
 
 // REDCap sync trigger (Firestore onWrite → REDCap API)
 // submitToRedcap: callable function for local-storage users to push directly
@@ -1997,4 +2002,108 @@ export const submitRedcap = functions.https.onCall(async (data: { record?: Recor
 
   await logAudit('REDCAP_SUBMIT', context.auth.uid, 'research', String(record.record_id ?? 'unknown'));
   return { success: true };
+});
+
+// ── Admin OTP Authentication ──────────────────────────────────────────────────
+// Replaces magic-link login. Admins enter email → receive a 6-digit code →
+// enter the code → get a Firebase custom token to sign in with.
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_OTP_ATTEMPTS = 5;
+
+export const sendAdminOTP = functions.runWith({ secrets: ['OTP_GMAIL_USER', 'OTP_GMAIL_PASS'] }).https.onCall(async (data: { email: string }) => {
+  const email = (data.email || '').toLowerCase().trim();
+  if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email required');
+
+  // Only pre-registered admins can receive an OTP
+  const db = admin.firestore();
+  const adminsSnap = await db.collection('admins').where('email', '==', email).limit(1).get();
+  if (adminsSnap.empty) {
+    // Return success anyway to avoid email enumeration
+    return { success: true };
+  }
+
+  // Generate 6-digit code
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const hash = CryptoJS.SHA256(code).toString();
+  const expiresAt = Date.now() + OTP_TTL_MS;
+
+  await db.collection('admin_otps').doc(email).set({
+    hash,
+    expiresAt,
+    attempts: 0,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const gmailUser = OTP_GMAIL_USER.value();
+  const gmailPass = OTP_GMAIL_PASS.value();
+  if (!gmailUser || !gmailPass) throw new functions.https.HttpsError('internal', 'OTP email not configured');
+  const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
+
+  await transport.sendMail({
+    from: `"ePSA Admin" <${gmailUser}>`,
+    to: email,
+    subject: 'Your ePSA Admin Login Code',
+    text: `Your one-time login code is: ${code}\n\nThis code expires in 10 minutes. Do not share it.`,
+    html: `
+      <p>Your ePSA Admin one-time login code is:</p>
+      <h2 style="letter-spacing:4px;font-family:monospace">${code}</h2>
+      <p>This code expires in <strong>10 minutes</strong>. Do not share it.</p>
+    `,
+  });
+
+  return { success: true };
+});
+
+export const verifyAdminOTP = functions.https.onCall(async (data: { email: string; code: string }) => {
+  const email = (data.email || '').toLowerCase().trim();
+  const code = (data.code || '').trim();
+  if (!email || !code) throw new functions.https.HttpsError('invalid-argument', 'Email and code required');
+
+  const db = admin.firestore();
+  const otpRef = db.collection('admin_otps').doc(email);
+  const otpDoc = await otpRef.get();
+
+  if (!otpDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'No OTP found. Please request a new code.');
+  }
+
+  const { hash, expiresAt, attempts } = otpDoc.data()!;
+
+  if (Date.now() > expiresAt) {
+    await otpRef.delete();
+    throw new functions.https.HttpsError('deadline-exceeded', 'Code has expired. Please request a new one.');
+  }
+
+  if (attempts >= MAX_OTP_ATTEMPTS) {
+    await otpRef.delete();
+    throw new functions.https.HttpsError('resource-exhausted', 'Too many attempts. Please request a new code.');
+  }
+
+  const inputHash = CryptoJS.SHA256(code).toString();
+  if (inputHash !== hash) {
+    await otpRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
+    throw new functions.https.HttpsError('unauthenticated', 'Invalid code.');
+  }
+
+  // Code correct — clean up and issue a custom token
+  await otpRef.delete();
+
+  // Look up the admin's Firebase Auth UID (or create one)
+  let uid: string;
+  try {
+    const userRecord = await admin.auth().getUserByEmail(email);
+    uid = userRecord.uid;
+  } catch {
+    // Create a passwordless Firebase Auth user for this admin
+    const newUser = await admin.auth().createUser({ email, emailVerified: true });
+    uid = newUser.uid;
+  }
+
+  const customToken = await admin.auth().createCustomToken(uid, { isAdmin: true });
+  await admin.firestore().collection('admins').doc(uid).update({
+    lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+  }).catch(() => {}); // best-effort
+
+  return { success: true, customToken };
 });
