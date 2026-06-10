@@ -88,7 +88,7 @@ export async function saveClinicalSession(uid, sessionData) {
   const sessionRef = sessionData.sessionRef ?? generateSessionRef();
   const record = { id, sessionRef, ...normaliseSession(sessionData) };
 
-  // Always persist locally so sessions survive offline / device switches
+  // Always persist locally so sessions survive offline / Firebase outages
   const sessions = getLocal();
   sessions.unshift({ ...record, createdAt: new Date().toISOString() });
   setLocal(sessions);
