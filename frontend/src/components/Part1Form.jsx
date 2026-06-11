@@ -315,9 +315,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     if (!isSkipped('dietPattern') && !localData.dietPattern) {
       errors.push(t('part1.errors.validate.step4.dietInvalid'));
     }
-    if (!isSkipped('inflammationHistory') && (localData.inflammationHistory === null || localData.inflammationHistory === undefined)) {
-      errors.push(t('part1.errors.selectOption'));
-    }
+    // Inflammation history is optional — null treated as 0 by the engine
     // Chemical exposure is optional — null treated as 'unknown' by the engine
     if (!isSkipped('brcaStatus') && !localData.brcaStatus) {
       errors.push(t('part1.errors.validate.step1.brcaInvalid'));
@@ -337,7 +335,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     const hasBMI = localData.bmi > 0;
     const hasOrSkipped = (field, hasVal) => isSkipped(field) || hasVal;
     const hasFamilyHistory = hasOrSkipped('familyHistory', localData.familyHistory !== null && localData.familyHistory !== undefined);
-    const hasInflammationHistory = hasOrSkipped('inflammationHistory', localData.inflammationHistory !== null && localData.inflammationHistory !== undefined);
     const hasBrca = hasOrSkipped('brcaStatus', localData.brcaStatus !== null && localData.brcaStatus !== undefined);
     const hasExercise = hasOrSkipped('exercise', localData.exercise !== null && localData.exercise !== undefined);
     const hasSmoking = hasOrSkipped('smoking', localData.smoking !== null && localData.smoking !== undefined);
@@ -349,8 +346,8 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     const shimComplete = isSkipped('shim') ||
       (shimMode === 'quick' ? localData.shim[0] !== null && localData.shim[0] !== undefined
         : Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined));
-    // Chemical exposure is optional
-    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
+    // Chemical exposure and inflammation history are optional
+    return hasAge && hasRace && hasFamilyHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
   };
 
   const handleSubmit = () => {
@@ -363,9 +360,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     }
     setFormErrors([]);
     // Normalise optional fields before handing off to the engine
-    if (!localData.chemicalExposure) {
-      setLocalData(p => ({ ...p, chemicalExposure: 'unknown' }));
-    }
+    const patch = {};
+    if (!localData.chemicalExposure) patch.chemicalExposure = 'unknown';
+    if (localData.inflammationHistory === null || localData.inflammationHistory === undefined) patch.inflammationHistory = 0;
+    if (Object.keys(patch).length) setLocalData(p => ({ ...p, ...patch }));
     onNext();
   };
 
@@ -440,16 +438,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   ].filter(Boolean).length;
   const sectionADone = sectionAAnswered === sectionATotal;
 
-  // Section B: additional factors (height, weight, exercise, smoking, diet, inflammation, BRCA, comorbidities, SHIM)
-  // Chemical exposure is optional so it's counted toward progress but not required for sectionBDone
-  const sectionBTotal = 9;
+  // Section B: additional factors (height, weight, exercise, smoking, diet, BRCA, comorbidities, SHIM)
+  // Chemical exposure and inflammation history are optional — counted toward progress but not required for sectionBDone
+  const sectionBTotal = 8;
   const sectionBAnswered = [
     hasValidHeight(),
     hasValidWeight(),
     exerciseValid || isSkipped('exercise'),
     smokingValid || isSkipped('smoking'),
     dietValid || isSkipped('dietPattern'),
-    inflammationHistoryValid || isSkipped('inflammationHistory'),
     brcaValid || isSkipped('brcaStatus'),
     comorbiditiesValid || isSkipped('comorbidityScore'),
     shimComplete || isSkipped('shim'),
