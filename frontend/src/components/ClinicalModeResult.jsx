@@ -32,7 +32,7 @@ function downloadJson(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, readOnly = false, sessionRef, cloudStatus = null }) {
+export default function ClinicalModeResult({ result, answers, formData, onEditAnswers, onStartOver, onContinue, onStudyConsent, onConsentNow, readOnly = false, sessionRef, cloudStatus = null, consented = null }) {
   const [showAll, setShowAll] = useState(false);
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [showResultPrint, setShowResultPrint] = useState(false);
@@ -112,18 +112,30 @@ export default function ClinicalModeResult({ result, answers, formData, onEditAn
             title={cloudStatus === 'saved' ? 'Saved in the database'
               : cloudStatus === 'saving' ? 'Saving to the database…'
               : cloudStatus === 'error' ? 'Could not save to the database'
+              : cloudStatus === 'local' ? 'Saved on this device only'
               : 'About data storage'}
           >
             <CloudIcon size={15} />
             {cloudStatus === 'saved' && <span className="qer-cloud-label">Saved in database</span>}
             {cloudStatus === 'saving' && <span className="qer-cloud-label">Saving…</span>}
             {cloudStatus === 'error' && <span className="qer-cloud-label">Not saved</span>}
+            {cloudStatus === 'local' && <span className="qer-cloud-label">On this device only</span>}
           </button>
         </div>
       )}
       {showCloudNote && (
         <div className="qer-cloud-note">
-          {cloudStatus === 'saved' ? (
+          {cloudStatus === 'local' ? (
+            <>
+              <strong>Saved on this device only.</strong> You chose not to share your responses, so nothing was sent to the study database. If you have since signed a consent form, you can share them now.
+              {onConsentNow && (
+                <button type="button" className="qer-action-btn qer-action-btn--secondary qer-consent-now-btn"
+                  onClick={() => { setShowCloudNote(false); onConsentNow(); }}>
+                  <CloudIcon size={14} aria-hidden="true" /> I&apos;ve signed the consent form — save to database
+                </button>
+              )}
+            </>
+          ) : cloudStatus === 'saved' ? (
             <><strong>Saved in the database.</strong> This response was stored in the secure study database and will be transferred to the REDCap research registry. No personally identifiable information is collected.</>
           ) : cloudStatus === 'error' ? (
             <><strong>Could not reach the database.</strong> Your response is saved on this device and will be uploaded when staff sync sessions. No personally identifiable information is collected.</>
@@ -131,6 +143,19 @@ export default function ClinicalModeResult({ result, answers, formData, onEditAn
             <><strong>Saved temporarily to the cloud.</strong> This response is stored in a secure database and will be automatically transferred to the REDCap research registry. Once transferred, it is deleted from temporary storage. No personally identifiable information is collected.</>
           )}
           <button type="button" className="qer-cloud-note-close" onClick={() => setShowCloudNote(false)}>Dismiss</button>
+        </div>
+      )}
+
+      {/* ── Consent-later banner: results kept local, offer to share ── */}
+      {!readOnly && consented === false && cloudStatus === 'local' && onConsentNow && (
+        <div className="qer-consent-banner">
+          <p>
+            <strong>Your results are saved on this device only.</strong> Signed
+            a consent form? You can add this response to the study database.
+          </p>
+          <button type="button" className="qer-action-btn qer-action-btn--secondary" onClick={onConsentNow}>
+            <CloudIcon size={14} aria-hidden="true" /> Save to database
+          </button>
         </div>
       )}
 

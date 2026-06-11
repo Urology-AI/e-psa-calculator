@@ -465,3 +465,22 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(79,70,229,0.3);
 }
+
+/* ─── Consent-later banner (results kept local) ─── */
+.qer-consent-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--ink-200, #e5e7eb);
+  border-left: 4px solid #6b7280;
+  border-radius: 10px;
+  background: var(--ink-50, #f9fafb);
+  font-size: 0.85rem;
+}
+.qer-consent-banner p { margin: 0; }
+.qer-consent-now-btn {
+  display: inline-flex;
+  margin-top: 0.5rem;
+}
