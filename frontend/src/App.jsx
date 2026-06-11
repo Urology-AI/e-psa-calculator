@@ -69,7 +69,7 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'pathway', 'app'
 
   const [psaOverviewFrom, setPsaOverviewFrom] = useState('consent'); // tracks where overview was opened from
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
@@ -1542,6 +1542,9 @@ function App() {
         case 'psa_overview':
           setAuthStep('consent');
           break;
+        case 'pathway':
+          setAuthStep('psa_overview');
+          break;
         case 'welcome':
         default:
           // Can't go back from welcome
@@ -1682,9 +1685,25 @@ function App() {
       case 'psa_overview':
         return (
           <PSAOverviewScreen
-            onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
+            onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'pathway')}
             onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
             continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
+          />
+        );
+      case 'pathway':
+        return (
+          <PathwaySelector
+            onSelect={(mode) => {
+              if (mode === 'post_biopsy') {
+                window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
+                return;
+              }
+              setPathwayMode(mode);
+              setCurrentStep(1);
+              setPart1Step(0);
+              setAuthStep('app');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
         );
       default:
@@ -1694,23 +1713,10 @@ function App() {
 
   // Main app (after login and consent)
   const renderPreStage = () => {
-    // Show pathway selector only for fresh sessions (no calculated result yet).
-    // Session restores and file imports bypass this — they set preResult directly.
+    // If somehow pathway isn't set, send back to pathway selection screen.
     if (pathwayMode === null && !preResult) {
-      return (
-        <PathwaySelector
-          onSelect={(mode) => {
-            if (mode === 'post_biopsy') {
-              // No ePSA data yet — just tag source so AS tool knows origin
-              window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
-              return;
-            }
-            setPathwayMode(mode);
-            setCurrentStep(1);
-            setPart1Step(0);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
+      setAuthStep('pathway');
+      return null;
       );
     }
 
