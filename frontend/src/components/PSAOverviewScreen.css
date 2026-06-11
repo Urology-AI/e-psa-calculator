@@ -16,7 +16,7 @@
   border: 1px solid var(--ms-gray-200);
   border-radius: 1.25rem;
   padding: 1.75rem 1.75rem 1.25rem;
-  box-shadow: 0 0.75rem 2rem rgba(33, 32, 112, 0.09), 0 2px 8px rgba(33, 32, 112, 0.05);
+  box-shadow: 0 0.75rem 2rem rgba(26, 58, 82, 0.09), 0 2px 8px rgba(26, 58, 82, 0.05);
   animation: psa-overview-fade-in 0.35s ease both;
   /* border-top color set via inline style per step */
   border-top-left-radius: 1.25rem;
@@ -97,7 +97,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(33, 32, 112, 0.18);
+  box-shadow: 0 3px 10px rgba(26, 58, 82, 0.18);
 }
 
 .psa-overview-step-eyebrow {
@@ -603,3 +603,38 @@
 }
 
 .theme-dark .psa-src-modal-link:hover { color: var(--ms-cyan); }
+
+/* ─── Acknowledgment checkbox (last step) ─── */
+.psa-overview-ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: var(--ms-cyan-10);
+  border: 1px solid var(--ms-cyan-20);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin: 0.5rem 0 1rem;
+  cursor: pointer;
+}
+
+.psa-overview-ack-input {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1rem;
+  accent-color: var(--ms-cyan);
+  cursor: pointer;
+}
+
+.psa-overview-ack-text {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-800);
+}
+
+.theme-dark .psa-overview-ack {
+  background: rgba(2, 136, 209, 0.1);
+  border-color: rgba(2, 136, 209, 0.25);
+}
+
+.theme-dark .psa-overview-ack-text { color: var(--ink-700); }

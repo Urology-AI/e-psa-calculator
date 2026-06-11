@@ -20,13 +20,13 @@
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--ms-navy-20);
-  box-shadow: 0 4px 20px rgba(33, 32, 112, 0.10);
+  box-shadow: 0 4px 20px rgba(26, 58, 82, 0.10);
   margin-bottom: 1.125rem;
 }
 
-/* Card head — navy gradient */
+/* Card head — brand gradient */
 .ws-hero-card-head {
-  background: linear-gradient(140deg, var(--ms-navy) 0%, #18176b 100%);
+  background: linear-gradient(140deg, var(--ms-navy) 0%, #0d2a3e 100%);
   padding: 1.375rem 1.75rem 1.25rem;
 }
 
@@ -41,8 +41,8 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 8px;
-  background: rgba(6, 171, 235, 0.15);
-  border: 1px solid rgba(6, 171, 235, 0.35);
+  background: rgba(2, 136, 209, 0.15);
+  border: 1px solid rgba(2, 136, 209, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,7 +104,7 @@
 .ws-hero-card-body {
   background: var(--surface);
   padding: 1.5rem 1.75rem 1.375rem;
-  border-top: 1px solid rgba(33, 32, 112, 0.09);
+  border-top: 1px solid rgba(26, 58, 82, 0.09);
 }
 
 .ws-hero-title {
@@ -146,7 +146,7 @@
   cursor: pointer;
   letter-spacing: -0.01em;
   transition: background 0.16s, transform 0.13s, box-shadow 0.16s;
-  box-shadow: 0 3px 12px rgba(6, 171, 235, 0.28);
+  box-shadow: 0 3px 12px rgba(2, 136, 209, 0.28);
   margin-bottom: 0.625rem;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -163,7 +163,7 @@
 .ws-btn-primary:hover {
   background: #059fd8;
   transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(6, 171, 235, 0.38);
+  box-shadow: 0 5px 18px rgba(2, 136, 209, 0.38);
 }
 
 .ws-btn-primary:active { transform: translateY(0); }
@@ -264,7 +264,7 @@
 }
 
 .ws-flow-step:hover {
-  background: rgba(33, 32, 112, 0.04);
+  background: rgba(26, 58, 82, 0.04);
 }
 
 .ws-flow-step-text {
@@ -364,12 +364,12 @@
 }
 
 .theme-dark .ws-hero-card-head {
-  background: linear-gradient(140deg, #0f1040 0%, #090827 100%);
+  background: linear-gradient(140deg, #0f2030 0%, #0a1a28 100%);
 }
 
 .theme-dark .ws-brand-icon-wrap {
-  background: rgba(6, 171, 235, 0.10);
-  border-color: rgba(6, 171, 235, 0.22);
+  background: rgba(2, 136, 209, 0.10);
+  border-color: rgba(2, 136, 209, 0.22);
 }
 
 .theme-dark .ws-hero-card-body {
@@ -382,11 +382,11 @@
 
 .theme-dark .ws-btn-primary {
   background: var(--ms-cyan);
-  box-shadow: 0 3px 12px rgba(6, 171, 235, 0.18);
+  box-shadow: 0 3px 12px rgba(2, 136, 209, 0.18);
 }
 .theme-dark .ws-btn-primary:hover {
-  background: #059fd8;
-  box-shadow: 0 5px 18px rgba(6, 171, 235, 0.28);
+  background: #0277bd;
+  box-shadow: 0 5px 18px rgba(2, 136, 209, 0.28);
 }
 
 .theme-dark .ws-btn-ghost {
@@ -407,7 +407,7 @@
   background: var(--surface);
   border-color: var(--line-200);
 }
-.theme-dark .ws-flow-step:hover { background: rgba(6, 171, 235, 0.06); }
+.theme-dark .ws-flow-step:hover { background: rgba(2, 136, 209, 0.06); }
 .theme-dark .ws-flow-step strong { color: var(--ms-cyan); }
 .theme-dark .ws-flow-step span { color: var(--ink-500); }
 .theme-dark .ws-flow-num {
@@ -474,7 +474,7 @@
 }
 
 .theme-dark .gl-modal-header {
-  background: linear-gradient(135deg, rgba(6, 171, 235, 0.08) 0%, var(--surface) 70%);
+  background: linear-gradient(135deg, rgba(2, 136, 209, 0.08) 0%, var(--surface) 70%);
   border-bottom-color: var(--line-200);
 }
 
@@ -626,8 +626,8 @@
   margin-bottom: 1.15rem;
 }
 .theme-dark .gl-callout {
-  background: rgba(220, 41, 141, 0.08);
-  border-color: rgba(220, 41, 141, 0.28);
+  background: rgba(211, 47, 47, 0.08);
+  border-color: rgba(211, 47, 47, 0.28);
 }
 
 .gl-callout-title {
@@ -694,3 +694,78 @@
   .gl-modal-footer { padding: 0.85rem 1.1rem 1rem; }
   .gl-modal-title { font-size: 1.05rem; }
 }
+
+/* ─── Million Strong Men Banner ─── */
+.ws-msm-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  background: linear-gradient(100deg, #0d2a3e 0%, #1a3a52 100%);
+  border: 1px solid rgba(2, 136, 209, 0.35);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(2, 136, 209, 0.12);
+}
+
+.ws-msm-banner:hover {
+  border-color: rgba(2, 136, 209, 0.6);
+  box-shadow: 0 4px 18px rgba(2, 136, 209, 0.2);
+}
+
+.ws-msm-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background: rgba(2, 136, 209, 0.15);
+  border: 1px solid rgba(2, 136, 209, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4fc3f7;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.ws-msm-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-msm-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4fc3f7;
+  margin-bottom: 0.1rem;
+}
+
+.ws-msm-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.ws-msm-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.1rem;
+}
+
+.ws-msm-arrow {
+  flex-shrink: 0;
+  color: rgba(2, 136, 209, 0.7);
+}
+
+/* Light mode: slightly lighter */
+:not(.theme-dark) .ws-msm-banner {
+  background: linear-gradient(100deg, #1a3a52 0%, #1e4a68 100%);
+}
+
+/* Dark mode fits naturally — banner is always dark */

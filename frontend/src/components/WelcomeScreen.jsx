@@ -3,11 +3,9 @@ import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
 import {
   ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon,
-  BookOpenIcon, InfoIcon, ExternalLinkIcon, BuildingIcon, ShieldCheckIcon, ClipboardListIcon,
+  BookOpenIcon, InfoIcon, ExternalLinkIcon, ShieldCheckIcon, UsersIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-const GUIDELINES_SEEN_KEY = 'epsa.guidelinesModalSeen.v1';
 
 /* ─── Screening Guidelines Modal ─── */
 export const GuidelinesModal = ({ onClose }) => {
@@ -35,7 +33,7 @@ export const GuidelinesModal = ({ onClose }) => {
             <span>Before you begin</span>
           </div>
           <h2 id="gl-modal-title" className="gl-modal-title">Prostate Cancer Screening Guidelines</h2>
-          <p className="gl-modal-sub">ePSA is built on Mount Sinai patient data and aligns its recommendations with AUA/SUO and NCCN screening guidelines.</p>
+          <p className="gl-modal-sub">ePSA aligns its recommendations with AUA/SUO and NCCN screening guidelines and is available to anyone to use for prostate cancer screening guidance.</p>
           <button
             ref={closeRef}
             type="button"
@@ -128,27 +126,10 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, onBeginSinai, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
-  const [showGuidelines, setShowGuidelines] = useState(false);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
-
-  useEffect(() => {
-    try {
-      if (typeof window === 'undefined') return;
-      if (!window.localStorage.getItem(GUIDELINES_SEEN_KEY)) {
-        setShowGuidelines(true);
-      }
-    } catch {
-      /* localStorage unavailable — skip auto-open */
-    }
-  }, []);
-
-  const handleCloseGuidelines = () => {
-    setShowGuidelines(false);
-    try { window.localStorage.setItem(GUIDELINES_SEEN_KEY, '1'); } catch { /* noop */ }
-  };
 
   const handleBegin = () => {
     if (onBegin) return onBegin();
@@ -164,10 +145,28 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
 
   return (
     <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
-      {showGuidelines && <GuidelinesModal onClose={handleCloseGuidelines} />}
 
       {/* ── Accent bar ── */}
       <div className="ws-accent-bar" aria-hidden="true" />
+
+      {/* ── Million Strong Men Banner ── */}
+      <a
+        href="https://millionstrongmen.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ws-msm-banner"
+        aria-label="Million Strong Men initiative — prostate cancer screening for all men"
+      >
+        <div className="ws-msm-icon" aria-hidden="true">
+          <UsersIcon size={18} />
+        </div>
+        <div className="ws-msm-text">
+          <div className="ws-msm-label">Initiative</div>
+          <div className="ws-msm-title">Million Strong Men</div>
+          <div className="ws-msm-sub">Prostate cancer screening accessible to every man — millionstrongmen.com</div>
+        </div>
+        <ArrowRightIcon size={16} className="ws-msm-arrow" aria-hidden="true" />
+      </a>
 
       {/* ── Hero card ── */}
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
@@ -183,7 +182,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
             </div>
           </div>
           <div className="ws-trust-row">
-            <span className="ws-trust-inst">Icahn School of Medicine at Mount Sinai</span>
+            <span className="ws-trust-inst">Tewari Lab · Icahn School of Medicine at Mount Sinai</span>
             <div className="ws-badge-row">
               <span className="ws-trust-badge">AUA/SUO 2026</span>
               <span className="ws-trust-badge">NCCN v1.2024</span>
@@ -225,24 +224,14 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
           <div className="ws-utility-links">
             {onViewOverview && (
               <button type="button" className="ws-demo-link" onClick={onViewOverview}>
-                <InfoIcon size={13} aria-hidden="true" />
-                <span>What is ePSA?</span>
+                <BookOpenIcon size={13} aria-hidden="true" />
+                <span>What is PSA &amp; ePSA? · Screening guidelines</span>
               </button>
             )}
-            <button type="button" className="ws-demo-link" onClick={() => setShowGuidelines(true)}>
-              <BookOpenIcon size={13} aria-hidden="true" />
-              <span>Screening guidelines</span>
-            </button>
             <a href="/demo" className="ws-demo-link">
               <PlayIcon size={13} aria-hidden="true" />
               <span>Watch demo</span>
             </a>
-            {onBeginSinai && (
-              <button type="button" className="ws-demo-link" onClick={onBeginSinai}>
-                <ClipboardListIcon size={13} aria-hidden="true" />
-                <span>Enroll in study</span>
-              </button>
-            )}
           </div>
         </div>
       </section>
@@ -295,10 +284,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
           <FileTextIcon size={13} />
           <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
         </button>
-        <a href="?mode=bus" className="ws-btn-text" title="Mobile bus / clinical mode">
-          <BuildingIcon size={13} />
-          <span>Clinical Mode</span>
-        </a>
       </div>
     </div>
   );

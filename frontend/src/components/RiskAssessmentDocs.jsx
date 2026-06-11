@@ -299,10 +299,10 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
             </ul>
             <p className="reference-note" style={{marginTop: '0.75rem'}}>
               For questions about the risk assessment model, please contact the
-              Department of Urology, Mount Sinai Health System.
+              Tewari Lab, Department of Urology, Icahn School of Medicine at Mount Sinai.
             </p>
             <p className="reference-note">
-              This tool is documented as a non-validated educational instrument developed within the Mount Sinai Urology ecosystem.
+              This tool is documented as a non-validated educational instrument developed by the Tewari Lab at Icahn School of Medicine at Mount Sinai, available to any clinician or patient.
               It references AUA/SUO 2026 Early Detection of Prostate Cancer Guidelines for contextual framing only.
               Risk stratification outputs may recommend earlier evaluation than current guideline thresholds for high-risk demographic profiles.
               This divergence is intentional and should be discussed with a urologist or primary care provider.

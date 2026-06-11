@@ -96,13 +96,19 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
           <div className="consent-research-section">
             <div className="consent-research-header">
               <FlaskConicalIcon size={18} className="consent-research-icon" />
-              <span className="consent-research-title">Research Participation <span className="consent-research-optional">(Optional)</span></span>
+              <span className="consent-research-title">
+                Cloud Session &amp; Research Participation
+                <span className="consent-research-optional"> (Optional)</span>
+              </span>
             </div>
             <p className="consent-research-body">
-              Would you like your <strong>de-identified data</strong> to be included in the
-              ePSA prostate cancer research study at Mount Sinai? This helps improve the
-              tool for future patients. Your results are <strong>not affected</strong> by
-              your choice.
+              Choosing <strong>"Yes"</strong> saves your session to a secure cloud database
+              (Tewari Lab, Icahn School of Medicine at Mount Sinai / Million Strong Men initiative).
+              Your de-identified data may be used to improve ePSA for future patients.{' '}
+              <strong>Your results are not affected by your choice.</strong>
+            </p>
+            <p className="consent-research-body" style={{ marginTop: '0.4rem', fontSize: '0.8125rem', color: 'var(--ink-600)' }}>
+              Choosing <strong>"No"</strong> keeps everything on your device — nothing leaves your browser.
             </p>
             <div className="consent-research-options">
               <label className={`consent-research-option ${researchConsent === true ? 'consent-research-option--selected' : ''}`}>
@@ -114,7 +120,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
                   onChange={() => setResearchConsent(true)}
                 />
                 <CheckCircle2Icon size={16} className="consent-research-option-icon" />
-                <span>Yes, include my data for research</span>
+                <span>Yes — save my session to the cloud &amp; support research</span>
               </label>
               <label className={`consent-research-option ${researchConsent === false ? 'consent-research-option--selected consent-research-option--no' : ''}`}>
                 <input
@@ -124,7 +130,7 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
                   checked={researchConsent === false}
                   onChange={() => setResearchConsent(false)}
                 />
-                <span>No, keep my data private</span>
+                <span>No — device only, no cloud storage</span>
               </label>
             </div>
             {researchConsent === null && (

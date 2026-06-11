@@ -68,7 +68,7 @@
 }
 
 .pathway-card--pre:hover     { border-color: var(--ms-cyan); }
-.pathway-card--post:hover    { border-color: var(--ms-navy, #212070); }
+.pathway-card--post:hover    { border-color: var(--ms-navy); }
 .pathway-card--mri:hover     { border-color: var(--ms-magenta); }
 .pathway-card--biopsy:hover  { border-color: var(--warning-600); }
 

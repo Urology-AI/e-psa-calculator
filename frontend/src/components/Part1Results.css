@@ -1138,12 +1138,12 @@
   background: var(--ms-cyan);
   color: #fff;
   border: none;
-  box-shadow: 0 0.125rem 0.375rem rgba(6, 171, 235, 0.25);
+  box-shadow: 0 0.125rem 0.375rem rgba(2, 136, 209, 0.25);
 }
 
 .btn-results--solid:hover {
   background: var(--brand-600);
-  box-shadow: 0 0.25rem 0.75rem rgba(6, 171, 235, 0.35);
+  box-shadow: 0 0.25rem 0.75rem rgba(2, 136, 209, 0.35);
 }
 
 .btn-results--outline {
@@ -1393,9 +1393,9 @@
 .theme-dark .next-step-card--mri    { border-color: rgba(22, 163, 74, 0.3); }
 .theme-dark .next-step-card--biopsy { border-color: rgba(124, 58, 237, 0.3); }
 
-.theme-dark .next-step-card--psa:hover    { background: rgba(6, 171, 235, 0.10); border-color: var(--ms-cyan); }
+.theme-dark .next-step-card--psa:hover    { background: rgba(2, 136, 209, 0.10); border-color: var(--ms-cyan); }
 .theme-dark .next-step-card--mri:hover    { background: rgba(22, 163, 74, 0.08); border-color: #16a34a; }
-.theme-dark .next-step-card--biopsy:hover { background: rgba(220, 41, 141, 0.10); border-color: var(--ms-magenta); }
+.theme-dark .next-step-card--biopsy:hover { background: rgba(211, 47, 47, 0.10); border-color: var(--ms-magenta); }
 
 .theme-dark .nsc-title { color: var(--ink-200); }
 .theme-dark .nsc-desc  { color: var(--ink-400); }
