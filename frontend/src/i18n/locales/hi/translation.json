@@ -1158,7 +1158,7 @@
     "subtitle": "जहां आपने छोड़ा था वहां से जारी रखने के लिए अपना पिछला ePSA मूल्यांकन डेटा अपलोड करें।",
     "loadFromCloud": "क्लाउड से लोड करें",
     "cloudDescription": "अपना सहेजा हुआ मूल्यांकन डेटा लोड करने के लिए अपनी अनाम सत्र कुंजी दर्ज करें",
-    "sessionPlaceholder": "जैसे A1B2C3D4",
+    "sessionPlaceholder": "जैसे A1B2C3D4 / EP-20260101-AB12",
     "loading": "लोड हो रहा है...",
     "load": "लोड करें",
     "uploadJsonData": "JSON डेटा अपलोड करें",

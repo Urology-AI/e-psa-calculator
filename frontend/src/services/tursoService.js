@@ -305,3 +305,25 @@ export async function pullSessions() {
   markSynced(sessions);
   return sessions;
 }
+
+/**
+ * Fetch a single session by its human-readable ref (EP-YYYYMMDD-XXXX),
+ * e.g. to continue a community-screening session in the full app.
+ * Read-only: no local sync ledger or id-map side effects.
+ * Returns the session record, or null if no row matches.
+ */
+export async function pullSessionByRef(sessionRef) {
+  const client = getClient();
+  await ensureSchema(client);
+
+  const result = await client.execute({
+    sql: 'SELECT full_record FROM clinical_sessions WHERE session_ref = ? LIMIT 1',
+    args: [sessionRef],
+  });
+  const row = result.rows[0];
+  if (!row) return null;
+
+  const fullRecord = row[result.columns.indexOf('full_record')];
+  if (!fullRecord) return null;
+  try { return JSON.parse(fullRecord); } catch { return null; }
+}

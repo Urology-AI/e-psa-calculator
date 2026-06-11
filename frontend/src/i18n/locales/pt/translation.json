@@ -1158,7 +1158,7 @@
     "subtitle": "Faça upload de seus dados anteriores de avaliação ePSA para continuar de onde parou.",
     "loadFromCloud": "Carregar da nuvem",
     "cloudDescription": "Insira sua chave de sessão anônima para carregar seus dados de avaliação salvos",
-    "sessionPlaceholder": "ex. A1B2C3D4",
+    "sessionPlaceholder": "ex. A1B2C3D4 / EP-20260101-AB12",
     "loading": "Carregando...",
     "load": "Carregar",
     "uploadJsonData": "Fazer upload de dados JSON",

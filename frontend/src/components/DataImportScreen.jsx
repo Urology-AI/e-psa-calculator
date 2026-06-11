@@ -65,16 +65,16 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
     setError('');
 
     try {
-      // Validate session ID format (8 characters, alphanumeric)
       const normalizedSessionId = (sessionId || '').toUpperCase().trim();
-      if (!/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
+      if (/^EP-\d{8}-[A-Z0-9]{4}$/.test(normalizedSessionId)) {
+        // Clinical screening ref (EP-YYYYMMDD-XXXX) — resolved from Turso on the next screen.
+        onImportSuccess({ sessionRef: normalizedSessionId }, 'clinical');
+      } else if (/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
+        // 8-character cloud session key — resolved through backend on the next screen.
+        onImportSuccess({ sessionId: normalizedSessionId }, 'session');
+      } else {
         throw new Error(t('dataImport.errors.invalidSessionKey'));
       }
-
-      // Resolve session through backend on the next screen.
-      onImportSuccess({
-        sessionId: normalizedSessionId
-      }, 'session');
       } catch (err) {
         setError(err.message || t('dataImport.errors.loadCloudFailed'));
       } finally {
@@ -110,12 +110,12 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
                 onChange={(e) => setSessionId(e.target.value.toUpperCase())}
                 placeholder={t('dataImport.sessionPlaceholder')}
                 className="session-input"
-                maxLength={8}
+                maxLength={16}
                 style={{ textTransform: 'uppercase' }}
               />
-              <button 
-                type="submit" 
-                disabled={loadingSession || sessionId.length !== 8}
+              <button
+                type="submit"
+                disabled={loadingSession || sessionId.length < 8}
                 className="session-login-btn"
               >
                 {loadingSession ? t('dataImport.loading') : t('dataImport.load')}
