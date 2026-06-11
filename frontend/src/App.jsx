@@ -9,11 +9,6 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
-// Lazy-loaded — only needed for Sinai clinical flow
-const SinaiConsentScreen = React.lazy(() => import('./components/SinaiConsentScreen.jsx'));
-const SinaiResultsScreen = React.lazy(() => import('./components/SinaiResultsScreen.jsx'));
-import { readSinaiConfig } from './utils/sinaiSubmit.js';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
@@ -37,9 +32,9 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
-import ClinicalModeFlow from './components/ClinicalModeFlow.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
@@ -74,16 +69,8 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'sinai_gate', 'sinai_consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
 
-  // ── Mount Sinai clinic-cohort flow (IRB STUDY-14-00050) ──
-  // flowMode is 'sinai' when the patient entered via a clinic code; their
-  // data must not be persisted to Firestore. flowMode='public' is the
-  // default (existing public flow, untouched).
-  const [flowMode, setFlowMode] = useState('public');
-  const [sinaiClinicCode, setSinaiClinicCode] = useState(null);
-  const [sinaiRedcapEnabled, setSinaiRedcapEnabled] = useState(false);
-  const [sinaiSubmissionActive, setSinaiSubmissionActive] = useState(false);
   const [psaOverviewFrom, setPsaOverviewFrom] = useState('consent'); // tracks where overview was opened from
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
@@ -216,49 +203,6 @@ function App() {
   useEffect(() => {
     if (!auth) return () => {};
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // Bus flow import: pre-populate state from sessionStorage when the user
-      // returns from ?mode=bus by clicking "Continue to Full ePSA".
-      try {
-        const raw = sessionStorage.getItem('busflow_import');
-        if (raw) {
-          sessionStorage.removeItem('busflow_import');
-          const { formData, engineResult, studyConsent } = JSON.parse(raw);
-          if (formData && engineResult) {
-            const defaultShape = {
-              age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
-              familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
-              weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
-              exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-              inflammationHistory: 0, comorbidityScore: null, hypertension: null, hyperlipidemia: null,
-              coronaryArteryDisease: null, diabetes: null,
-            };
-            // Clear proxy IPSS/SHIM — user fills those fresh in the full form.
-            // All other fields (demographics, lifestyle, BRCA, etc.) transfer seamlessly.
-            setPreData({
-              ...defaultShape,
-              ...formData,
-              ipss: Array(7).fill(null),
-              ipssQol: null,
-              shim: Array(5).fill(null),
-            });
-            setPreResult(null);
-            setPathwayMode('pre_psa');
-            setStage('pre');
-            setCurrentStep(3);
-            setPart1Step(4);
-            // HIPAA: show consent screen before loading PHI from bus flow
-            pendingImportRef.current = { source: 'bus_flow', formData, engineResult, studyConsent };
-            setUser({ uid: 'local', isAnonymous: true });
-            setStorageMode('local');
-            setAppSessionId('Local');
-            if (studyConsent) setFlowMode('sinai');
-            // Route to consent screen — pendingImportRef will be processed in handleConsentComplete
-            setAuthStep('consent');
-            return;
-          }
-        }
-      } catch { /* ignore */ }
-
       if (currentUser) {
         setUser(currentUser);
         const phone = currentUser.phoneNumber;
@@ -800,27 +744,6 @@ function App() {
       const pending = pendingImportRef.current;
       pendingImportRef.current = null;
 
-      if (pending.source === 'bus_flow') {
-        const { formData, engineResult, studyConsent } = pending;
-        const defaultShape = {
-          age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
-          familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
-          weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
-          exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-          comorbidityScore: null, hypertension: null, hyperlipidemia: null,
-          coronaryArteryDisease: null, diabetes: null,
-        };
-        setPreData({ ...defaultShape, ...formData });
-        setPreResult(engineResult);
-        setPathwayMode('pre_psa');
-        setStage('pre');
-        setCurrentStep(3);
-        setPart1Step(4);
-        if (studyConsent) setFlowMode('sinai');
-        setAuthStep('app');
-        return;
-      }
-
       if (pending.source === 'file_import') {
         setStage(pending.targetStage);
         if (pending.hasPart1Result) {
@@ -1024,7 +947,31 @@ function App() {
   const handleImportSuccess = async (importedData, importType) => {
     console.log('Import successful:', importType, importedData);
     setImportedData(importedData);
-    
+
+    if (importType === 'clinical') {
+      // Clinical screening ref (EP-YYYYMMDD-XXXX): pull the session from Turso,
+      // then re-enter as a JSON import so it stays local until "Move to cloud".
+      try {
+        if (!isTursoConfigured()) {
+          throw new Error('Cloud sync is not configured on this deployment. Use Import for a JSON file instead.');
+        }
+        const sessionRef = (importedData?.sessionRef || '').toUpperCase().trim();
+        const record = await pullSessionByRef(sessionRef);
+        const formData = record?.formData ?? record?.step1;
+        if (!formData) {
+          throw new Error('No screening session found for that reference. Check the code on your results card.');
+        }
+        const asJson = record.step2
+          ? { version: record.version ?? 'epsa-session-v1', part: 'complete', part1Data: formData, part2Data: record.step2 }
+          : { version: record.version ?? 'epsa-session-v1', part: 'part1', formData };
+        return handleImportSuccess(asJson, 'json');
+      } catch (error) {
+        console.error('Clinical session import error:', error);
+        setImportError(error?.message || 'Failed to load the screening session.');
+        return;
+      }
+    }
+
     if (importType === 'session') {
       // Session ID restore requires Firebase
       if (!auth || !functions) {
@@ -1673,17 +1620,6 @@ function App() {
               }}
               onImport={() => setAuthStep('import')}
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
-              onBeginSinai={async () => {
-                // Pre-load the redcapEnabled flag so the consent screen can show
-                // the right messaging (live vs offline) before the patient commits.
-                try {
-                  const cfg = await readSinaiConfig();
-                  setSinaiRedcapEnabled(cfg.redcapEnabled);
-                } catch {
-                  setSinaiRedcapEnabled(false);
-                }
-                setAuthStep('sinai_gate');
-              }}
               formData={{}}
             />
             <footer className="app-footer">
@@ -1713,7 +1649,7 @@ function App() {
                 </button>
               </div>
               <div className="footer-inst">
-                Icahn School of Medicine at Mount Sinai · Urology Department · Developed by Ashutosh K. Tewari, MD
+                Developed by Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai
               </div>
             </footer>
           </>
@@ -1749,33 +1685,6 @@ function App() {
             onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
             onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
             continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
-          />
-        );
-      case 'sinai_gate':
-        return (
-          <MountSinaiGateScreen
-            onBack={() => setAuthStep('welcome')}
-            onValidated={({ clinicCode }) => {
-              setSinaiClinicCode(clinicCode);
-              setAuthStep('sinai_consent');
-            }}
-          />
-        );
-      case 'sinai_consent':
-        return (
-          <SinaiConsentScreen
-            clinicCode={sinaiClinicCode}
-            redcapEnabled={sinaiRedcapEnabled}
-            onBack={() => setAuthStep('sinai_gate')}
-            onConsent={(consent) => {
-              // Sinai cohort uses the local pipeline (no Firestore session writes).
-              setFlowMode('sinai');
-              setStorageMode('local');
-              setUser({ uid: 'sinai-local', isAnonymous: true });
-              setAppSessionId(`sinai-${sinaiClinicCode}`);
-              setConsentData(consent);
-              setAuthStep('app');
-            }}
           />
         );
       default:
@@ -1856,7 +1765,6 @@ function App() {
                 }}
                 onContinueToPostBiopsy={handleContinueToPostBiopsy}
                 onShowModelDocs={() => setShowModelDocs(true)}
-                flowMode={flowMode}
               />
             ) : (
               <div className="loading-results">
@@ -1936,15 +1844,6 @@ function App() {
                       }
                     : null
                 }
-                flowMode={flowMode}
-                onSubmitToSinai={
-                  flowMode === 'sinai'
-                    ? () => {
-                        setSinaiSubmissionActive(true);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    : null
-                }
               />
             )}
           </div>
@@ -1955,45 +1854,6 @@ function App() {
     }
   };
 
-  // Sinai cohort submission screen — short-circuits the normal app shell so
-  // the patient sees a focused single-page confirmation flow.
-  if (sinaiSubmissionActive && flowMode === 'sinai') {
-    return (
-      <div className="App">
-        <SinaiResultsScreen
-          payload={{
-            clinicCode: sinaiClinicCode,
-            sessionId: appSessionId || `sinai-${sinaiClinicCode}`,
-            step1: preData,
-            result: preResult,
-            step2: postData,
-            finalCategory: postResult?.riskCat,
-            finalScore: postResult?.totalPoints,
-            pathwayMode:
-              pathwayMode || postResult?.pathwayMode || preResult?.pathwayMode || 'post_psa',
-          }}
-          onStartOver={() => {
-            setSinaiSubmissionActive(false);
-          }}
-          onBackToHome={() => {
-            setSinaiSubmissionActive(false);
-            setFlowMode('public');
-            setSinaiClinicCode(null);
-            setConsentData(null);
-            setPathwayMode(null);
-            setUser(null);
-            setAuthStep('welcome');
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Bus mode: self-contained Quick ePSA flow, no existing state touched
-  if (new URLSearchParams(window.location.search).get('mode') === 'bus') {
-    return <ClinicalModeFlow />;
-  }
-
   return (
     <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
@@ -2001,19 +1861,6 @@ function App() {
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-brand">
-            <img
-              src="/sinai_light.png"
-              alt="Mount Sinai"
-              className="logo logo--light"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <img
-              src="/sinai_dark.png"
-              alt="Mount Sinai"
-              className="logo logo--dark"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <span className="header-brand-sep" aria-hidden="true" />
             <span className="header-product-name">ePSA</span>
           </div>
           <div className="header-actions">

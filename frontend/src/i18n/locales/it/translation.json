@@ -1158,7 +1158,7 @@
     "subtitle": "Carica i dati della tua precedente valutazione ePSA per continuare da dove ti eri fermato.",
     "loadFromCloud": "Carica dal cloud",
     "cloudDescription": "Inserisci la tua chiave di sessione anonima per caricare i dati di valutazione salvati",
-    "sessionPlaceholder": "es. A1B2C3D4",
+    "sessionPlaceholder": "es. A1B2C3D4 / EP-20260101-AB12",
     "loading": "Caricamento in corso...",
     "load": "Carica",
     "uploadJsonData": "Carica dati JSON",
