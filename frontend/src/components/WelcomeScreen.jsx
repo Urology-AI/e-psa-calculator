@@ -163,7 +163,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
         <div className="ws-msm-text">
           <div className="ws-msm-label">Initiative</div>
           <div className="ws-msm-title">Million Strong Men</div>
-          <div className="ws-msm-sub">Prostate cancer screening accessible to every man — millionstrongmen.com</div>
+          <div className="ws-msm-sub">Prostate cancer screening accessible to every man</div>
         </div>
         <ArrowRightIcon size={16} className="ws-msm-arrow" aria-hidden="true" />
       </a>
