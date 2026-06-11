@@ -904,12 +904,12 @@
   background: var(--ms-cyan);
   color: #fff;
   border: none;
-  box-shadow: 0 0.25rem 0.75rem rgba(6, 171, 235, 0.3);
+  box-shadow: 0 0.25rem 0.75rem rgba(2, 136, 209, 0.3);
 }
 
 .p2r-btn--solid:hover {
   background: var(--brand-600);
-  box-shadow: 0 0.5rem 1.125rem rgba(6, 171, 235, 0.4);
+  box-shadow: 0 0.5rem 1.125rem rgba(2, 136, 209, 0.4);
 }
 
 .p2r-btn--outline {
@@ -1636,13 +1636,13 @@
    out so patients see it is the "talk-with-your-doctor" pivot of the
    page rather than blending in with the other expandable sections. */
 .sdm-collapsible.collapsible-section {
-  background: linear-gradient(180deg, #f5f0ff 0%, #ffffff 100%);
-  border: 0.0625rem solid var(--ms-magenta-20);
-  border-left: 0.25rem solid var(--ms-magenta);
+  background: var(--ms-cyan-10);
+  border: 0.0625rem solid var(--ms-cyan-20);
+  border-left: 0.25rem solid var(--ms-cyan);
   border-radius: 0.5rem;
 }
 .sdm-collapsible .collapsible-toggle {
-  color: var(--ms-magenta);
+  color: var(--ms-navy);
   font-weight: 700;
 }
 .sdm-collapsible .collapsible-toggle::before {
@@ -1651,15 +1651,30 @@
   font-size: 1rem;
 }
 .sdm-collapsible .collapsible-body {
-  background: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  color: var(--ink-800);
+}
+.sdm-collapsible .collapsible-body p,
+.sdm-collapsible .collapsible-body li {
+  color: var(--ink-800);
+}
+.sdm-collapsible .collapsible-body strong {
+  color: var(--ink-900);
 }
 .theme-dark .sdm-collapsible.collapsible-section {
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.12) 0%, transparent 100%);
-  border-color: rgba(167, 139, 250, 0.4);
-  border-left-color: var(--ms-magenta-20);
+  background: rgba(2, 136, 209, 0.08);
+  border-color: rgba(2, 136, 209, 0.25);
+  border-left-color: var(--ms-cyan);
 }
 .theme-dark .sdm-collapsible .collapsible-toggle {
-  color: var(--ms-magenta-20);
+  color: var(--ms-cyan);
+}
+.theme-dark .sdm-collapsible .collapsible-body p,
+.theme-dark .sdm-collapsible .collapsible-body li {
+  color: var(--ink-500);
+}
+.theme-dark .sdm-collapsible .collapsible-body strong {
+  color: var(--ink-700);
 }
 
 /* ─── Multi-guideline support matrix ─── */
@@ -1673,7 +1688,7 @@
   padding: 0.625rem 0.75rem;
   border-radius: 0.5rem;
   border: 0.0625rem solid var(--ms-gray-200);
-  background: #ffffff;
+  background: var(--surface);
   text-align: center;
 }
 .guideline-matrix-card--supports {
@@ -1713,12 +1728,12 @@
   border-left: 4px solid;
 }
 .as-banner--strong {
-  background: var(--ms-navy-10, #e8e8f3);
-  border-color: var(--ms-navy, #212070);
+  background: var(--ms-navy-10);
+  border-color: var(--ms-navy);
 }
 .as-banner--possible {
-  background: var(--ms-cyan-10, #e8f7fd);
-  border-color: var(--ms-cyan, #06abeb);
+  background: var(--ms-cyan-10);
+  border-color: var(--ms-cyan);
 }
 .as-banner--mention {
   background: var(--risk-lower-bg);
@@ -1729,7 +1744,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ms-navy, #212070);
+  color: var(--ms-navy);
   margin-bottom: 0.25rem;
 }
 .as-banner--possible .as-banner-eyebrow { color: var(--brand-600); }
@@ -1760,7 +1775,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 1rem;
-  background: var(--ms-navy, #212070);
+  background: var(--ms-navy);
   color: #fff;
   border-radius: 6px;
   font-size: 0.8125rem;
@@ -1768,8 +1783,8 @@
   text-decoration: none;
   transition: background 0.15s;
 }
-.as-banner-btn:hover { background: var(--ms-navy); }
-.as-banner--possible .as-banner-btn { background: var(--ms-cyan, #06abeb); color: #fff; }
+.as-banner-btn:hover { background: var(--brand-700); }
+.as-banner--possible .as-banner-btn { background: var(--ms-cyan); color: #fff; }
 .as-banner--possible .as-banner-btn:hover { background: var(--brand-600); }
 .as-banner--mention  .as-banner-btn { background: var(--risk-lower); }
 .as-banner--mention  .as-banner-btn:hover { background: var(--risk-lower); }
@@ -1782,8 +1797,8 @@
   .as-banner { flex-direction: column; }
   .as-banner-cta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
-.theme-dark .as-banner--strong { background: rgba(33,32,112,0.25); border-color: var(--ms-navy); }
-.theme-dark .as-banner--possible { background: rgba(6,171,235,0.12); border-color: #06abeb; }
+.theme-dark .as-banner--strong  { background: rgba(26,58,82,0.35); border-color: var(--ms-navy); }
+.theme-dark .as-banner--possible { background: rgba(2,136,209,0.12); border-color: var(--ms-cyan); }
 .theme-dark .as-banner--mention { background: rgba(22,163,74,0.15); border-color: var(--risk-lower); }
 .theme-dark .as-banner-title { color: var(--ms-gray-200); }
 .theme-dark .as-banner-sub { color: var(--ms-gray-400); }

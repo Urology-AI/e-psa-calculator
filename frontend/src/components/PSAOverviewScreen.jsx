@@ -11,21 +11,21 @@ import { useTranslation } from 'react-i18next';
  * Each of the 4 steps gets its own color from the Mount Sinai palette.
  */
 const STEP_META = {
-  what:       { accent: '#06ABEB', iconBg: 'linear-gradient(135deg, #06ABEB 0%, #0590C7 100%)' },
-  why:        { accent: '#DC298D', iconBg: 'linear-gradient(135deg, #DC298D 0%, #AD1070 100%)' },
-  guidelines: { accent: '#212070', iconBg: 'linear-gradient(135deg, #212070 0%, #1a1960 100%)' },
-  epsa:       { accent: '#06ABEB', iconBg: 'linear-gradient(135deg, #06ABEB 30%, #DC298D 100%)' },
+  what:       { accent: '#0288d1', iconBg: 'linear-gradient(135deg, #0288d1 0%, #0277bd 100%)' },
+  why:        { accent: '#d32f2f', iconBg: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)' },
+  guidelines: { accent: '#1a3a52', iconBg: 'linear-gradient(135deg, #1a3a52 0%, #0d2a3e 100%)' },
+  epsa:       { accent: '#0288d1', iconBg: 'linear-gradient(135deg, #0288d1 30%, #1a3a52 100%)' },
 };
 
 /* Step 2 stat accent colors */
-const STAT_ACCENTS = ['#DC298D', '#1B7A4A', '#06ABEB'];
+const STAT_ACCENTS = ['#d32f2f', '#1B7A4A', '#0288d1'];
 
 /* Step 3 guideline org colors (AUA, NCCN, EAU) */
-const GL_ACCENT = ['#212070', '#DC298D', '#06ABEB'];
+const GL_ACCENT = ['#1a3a52', '#d32f2f', '#0288d1'];
 const GL_BG     = ['var(--ms-navy-10)', 'var(--ms-magenta-10)', 'var(--ms-cyan-10)'];
 
 /* Step 4 benefit accent colors */
-const BF_ACCENT = ['#06ABEB', '#212070', '#DC298D'];
+const BF_ACCENT = ['#0288d1', '#1a3a52', '#d32f2f'];
 const BF_BG     = ['var(--ms-cyan-10)', 'var(--ms-navy-10)', 'var(--ms-magenta-10)'];
 
 /* ─── Sources Modal ─── */
@@ -77,6 +77,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState('next');
   const [showSources, setShowSources] = useState(false);
+  const [understood, setUnderstood] = useState(false);
 
   const steps = [
     {
@@ -170,7 +171,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
       title: t('psaOverview.steps.epsa.title', 'How does ePSA help?'),
       body: t(
         'psaOverview.steps.epsa.body',
-        'ePSA is an educational decision aid built on Mount Sinai patient data and aligned with AUA, NCCN, and EAU guidelines. It does not replace clinical judgment. It helps you understand whether PSA testing is a reasonable conversation to have with your doctor — and once you have a PSA result, what the guideline-supported next steps look like.'
+        'ePSA is a free educational decision aid aligned with AUA, NCCN, and EAU guidelines, available to any clinician or patient. It does not replace clinical judgment. It helps you understand whether PSA testing is a reasonable conversation to have with your doctor — and once you have a PSA result, what the guideline-supported next steps look like.'
       ),
       benefits: [
         {
@@ -195,7 +196,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           ),
         },
       ],
-      source: t('psaOverview.steps.epsa.attribution', 'Developed at the Icahn School of Medicine at Mount Sinai'),
+      source: t('psaOverview.steps.epsa.attribution', 'Developed by the Tewari Lab · Icahn School of Medicine at Mount Sinai'),
     },
   ];
 
@@ -385,6 +386,21 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           )}
         </p>
 
+        {/* Acknowledgment checkbox — only on last step */}
+        {isLast && (
+          <label className="psa-overview-ack">
+            <input
+              type="checkbox"
+              checked={understood}
+              onChange={(e) => setUnderstood(e.target.checked)}
+              className="psa-overview-ack-input"
+            />
+            <span className="psa-overview-ack-text">
+              I have read and understood — ePSA is a <strong>free screening &amp; prevention aid</strong>, not a diagnostic tool or substitute for medical advice. I will discuss any concerns with a qualified healthcare provider.
+            </span>
+          </label>
+        )}
+
         <div className="psa-overview-actions">
           <button
             type="button"
@@ -397,11 +413,12 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           <button
             type="button"
             className="psa-overview-btn psa-overview-btn--primary"
-            style={{ background: meta.accent }}
+            style={{ background: meta.accent, opacity: isLast && !understood ? 0.45 : 1 }}
             onClick={next}
+            disabled={isLast && !understood}
             autoFocus
           >
-            <span>{isLast ? (continueLabel ?? t('psaOverview.begin', 'Begin')) : t('psaOverview.next', 'Next')}</span>
+            <span>{isLast ? (continueLabel ?? t('psaOverview.begin', 'Begin assessment')) : t('psaOverview.next', 'Next')}</span>
             <ArrowRightIcon size={16} aria-hidden="true" />
           </button>
         </div>
