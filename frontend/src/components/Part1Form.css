@@ -1045,3 +1045,37 @@
   background: rgba(34, 197, 94, 0.1);
   color: #86efac;
 }
+
+/* ── Quick/Full mode toggle ── */
+.mode-toggle {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mode-toggle-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1.5px solid var(--border, #E8ECF0);
+  background: transparent;
+  color: var(--ink-700, #374151);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.mode-toggle-btn--active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+.theme-dark .mode-toggle-btn {
+  color: var(--ink-300, #d1d5db);
+  border-color: rgba(255,255,255,0.15);
+}
+.theme-dark .mode-toggle-btn--active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
