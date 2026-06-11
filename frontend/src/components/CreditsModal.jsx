@@ -6,37 +6,37 @@ const TEAM = [
   {
     name: 'Ashutosh K. Tewari, MD',
     role: 'Original concept & clinical direction',
-    affiliation: 'Chair, Urology — Icahn School of Medicine at Mount Sinai',
+    affiliation: 'Chair, Urology · Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Aditya Dixit',
     role: 'Software, UI & model development',
-    affiliation: 'Mount Sinai Urology AI',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Daniel Ajabshir',
     role: 'Clinical analysis & model co-development',
-    affiliation: 'Mount Sinai Urology',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Hannah Sur',
     role: 'Literature framework',
-    affiliation: 'Mount Sinai Urology',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Yashaswini Agarwal',
     role: 'Data collection',
-    affiliation: 'Mount Sinai Urology',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Henry Walker Jodka',
     role: 'Data collection',
-    affiliation: 'Mount Sinai Urology',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
   {
     name: 'Chahat Arora',
     role: 'Data collection',
-    affiliation: 'Mount Sinai Urology',
+    affiliation: 'Tewari Lab, Icahn School of Medicine at Mount Sinai',
   },
 ];
 
@@ -51,7 +51,8 @@ const CreditsModal = ({ onClose }) => (
       <div className="model-docs-content">
         <section className="docs-section">
           <p className="credits-intro">
-            ePSA was developed at the Icahn School of Medicine at Mount Sinai.
+            ePSA was developed by the Tewari Lab at the Icahn School of Medicine at Mount Sinai.
+            It is available to any clinician or patient for prostate cancer screening guidance.
           </p>
           <ul className="credits-list">
             {TEAM.map(({ name, role, affiliation }) => (
@@ -66,8 +67,14 @@ const CreditsModal = ({ onClose }) => (
 
         <section className="docs-section">
           <div className="info-box info">
-            <strong>Disclosure:</strong> ePSA is a research and educational tool developed at
-            Mount Sinai. Technology disclosure filed with Mount Sinai Innovation Partners (MSIP).
+            <strong>Availability:</strong> ePSA is a free research and educational screening tool
+            open to all users — any doctor, patient, or individual may use it.
+            Technology disclosure filed with Mount Sinai Innovation Partners (MSIP).
+          </div>
+          <div className="info-box" style={{ marginTop: '0.75rem', background: 'var(--warning-50)', borderColor: 'var(--warning-600)', color: 'var(--warning-600)' }}>
+            <strong>Disclaimer:</strong> ePSA is not a medical device and does not provide a
+            diagnosis. Results are for educational and screening guidance only. Always consult
+            a qualified healthcare provider for medical decisions.
           </div>
         </section>
       </div>

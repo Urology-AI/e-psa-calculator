@@ -336,13 +336,13 @@
 .theme-dark .aua-fc__threshold--active{ background: #1e3a5f; color: #bfdbfe; border-color: #3b82f6; }
 .theme-dark .aua-fc__outcome          { background: #1e293b; border-color: #334155; color: #e2e8f0; }
 .theme-dark .aua-fc__outcome--biannual   { background: #14532d; border-color: #166534; color: #bbf7d0; }
-.theme-dark .aua-fc__outcome--resume     { background: #1e3a5f; border-color: var(--ms-cyan, #06abeb); color: #bfdbfe; }
+.theme-dark .aua-fc__outcome--resume     { background: #1e3a5f; border-color: var(--ms-cyan); color: #bfdbfe; }
 .theme-dark .aua-fc__outcome--urology    { background: #450a0a; border-color: #dc2626; color: #fca5a5; }
 .theme-dark .aua-fc__outcome--sdm        { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
 .theme-dark .aua-fc__outcome--discontinue{ background: #1e293b; border-color: #475569; color: #94a3b8; }
 .theme-dark .aua-fc__footnote           { background: #2d1b02; border-color: #92400e; color: #fcd34d; }
 .theme-dark .aua-fc__footnote-icon      { color: #fbbf24; }
-.theme-dark .aua-fc__position-callout   { background: #1e3a5f; border-color: var(--ms-cyan, #06abeb); color: #bfdbfe; }
+.theme-dark .aua-fc__position-callout   { background: #1e3a5f; border-color: var(--ms-cyan); color: #bfdbfe; }
 .theme-dark .aua-fc__position-callout--referral { background: #450a0a; border-color: #dc2626; color: #fca5a5; }
 .theme-dark .aua-fc__sdm-callout        { background: #2e1065; border-color: #7c3aed; color: #ddd6fe; }
 .theme-dark .aua-fc__col--active        { background: rgba(29,58,95,0.18); outline-color: rgba(96,165,250,0.3); }

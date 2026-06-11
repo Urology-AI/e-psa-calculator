@@ -579,8 +579,8 @@
 }
 
 .lesion-add-btn:hover {
-  border-color: var(--ms-navy, #212070);
-  color: var(--ms-navy, #212070);
+  border-color: var(--ms-navy);
+  color: var(--ms-navy);
 }
 
 .theme-dark .lesion-label { color: var(--ink-700); }
@@ -631,9 +631,9 @@
 }
 
 .pirads-btn.selected {
-  border-color: var(--ms-navy, #212070);
-  background: rgba(33, 32, 112, 0.06);
-  box-shadow: 0 0 0 3px rgba(33, 32, 112, 0.12);
+  border-color: var(--ms-navy);
+  background: rgba(26, 58, 82, 0.06);
+  box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.12);
   animation: option-selected-pop 0.22s ease;
 }
 
@@ -645,7 +645,7 @@
 }
 
 .pirads-btn.selected .pirads-btn-num {
-  color: var(--ms-navy, #212070);
+  color: var(--ms-navy);
 }
 
 .pirads-btn-desc {
@@ -657,7 +657,7 @@
 }
 
 .pirads-btn.selected .pirads-btn-desc {
-  color: var(--ms-navy, #212070);
+  color: var(--ms-navy);
 }
 
 @keyframes option-selected-pop {

@@ -112,7 +112,7 @@ export async function generateQrPosterPdf() {
 
   doc.setFontSize(9);
   doc.setTextColor(255, 255, 255, 0.65);
-  doc.text('Icahn School of Medicine at Mount Sinai', W / 2, 132, { align: 'center' });
+  doc.text('Tewari Lab · Icahn School of Medicine at Mount Sinai', W / 2, 132, { align: 'center' });
 
   // Thin accent line at bottom of header
   setColor(doc, CYAN, 'fill');
@@ -183,7 +183,7 @@ export async function generateQrPosterPdf() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.text(
-    'ePSA is a screening aid developed at Icahn School of Medicine at Mount Sinai. Not a diagnosis. Results should be discussed with a physician.',
+    'ePSA is a free screening aid developed by the Tewari Lab, Icahn School of Medicine at Mount Sinai. Available to all. Not a diagnosis — results should be discussed with a physician.',
     W / 2, FY + 50, { align: 'center', maxWidth: 480 },
   );
   doc.text('AUA/SUO 2026 · NCCN 2024 · Mount Sinai IRB Study STUDY-14-00050', W / 2, FY + 62, { align: 'center' });
@@ -194,7 +194,7 @@ export async function generateQrPosterPdf() {
   setColor(doc, WHITE, 'text');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text('Icahn School of Medicine at Mount Sinai — Urology Department', W / 2, H - 11, { align: 'center' });
+  doc.text('Developed by Dr. Ashutosh K. Tewari and team · Tewari Lab, Icahn School of Medicine at Mount Sinai', W / 2, H - 11, { align: 'center' });
 
   doc.save('ePSA-QR-Poster.pdf');
 }
@@ -232,7 +232,7 @@ export async function generateClinicalFormPdf() {
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Quick-Entry Prostate Cancer Risk Assessment · Icahn School of Medicine at Mount Sinai', W / 2, 52, { align: 'center' });
+  doc.text('Quick-Entry Prostate Cancer Risk Assessment · Tewari Lab, Icahn School of Medicine at Mount Sinai', W / 2, 52, { align: 'center' });
 
   // ── Patient info bar ──────────────────────────────────────────────────────
   const PIY = 78;

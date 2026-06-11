@@ -65,7 +65,7 @@
 
 .uf-zip-input:focus {
   border-color: var(--brand-500, #1d6ea3);
-  box-shadow: 0 0 0 3px rgba(6, 171, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.15);
 }
 
 .theme-dark .uf-zip-input {
@@ -76,7 +76,7 @@
 
 .theme-dark .uf-zip-input:focus {
   border-color: var(--brand-500);
-  box-shadow: 0 0 0 3px rgba(6, 171, 235, 0.2);
+  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.2);
 }
 
 /* ── Buttons ── */
@@ -217,7 +217,7 @@
 }
 
 .uf-card:hover {
-  box-shadow: 0 2px 12px rgba(6, 171, 235, 0.1);
+  box-shadow: 0 2px 12px rgba(2, 136, 209, 0.1);
 }
 
 .theme-dark .uf-card {
@@ -226,7 +226,7 @@
 }
 
 .theme-dark .uf-card:hover {
-  box-shadow: 0 2px 12px rgba(6, 171, 235, 0.15);
+  box-shadow: 0 2px 12px rgba(2, 136, 209, 0.15);
 }
 
 .uf-card-header {
@@ -265,7 +265,7 @@
 }
 
 .theme-dark .uf-card-dist {
-  background: rgba(6, 171, 235, 0.15);
+  background: rgba(2, 136, 209, 0.15);
   color: var(--brand-500);
 }
 
