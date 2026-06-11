@@ -89,7 +89,7 @@ export default function DemoShowcase() {
           <p className="ds-kicker">Live Demo</p>
           <h1 className="ds-hero-title">See ePSA in Action</h1>
           <p className="ds-hero-body">
-            ePSA is a prostate cancer risk stratification tool developed at Mount Sinai.
+            ePSA is a free prostate cancer screening aid developed by the Tewari Lab at Icahn School of Medicine at Mount Sinai, available to all clinicians and patients.
             Watch the three-part walkthrough below to see how it identifies which male patients
             should be screened and guides clinical decision-making.
           </p>
@@ -111,7 +111,7 @@ export default function DemoShowcase() {
           </a>
           <p className="ds-disclaimer">
             For educational and clinical decision-support use only. Does not replace physician judgment.
-            Developed at Mount Sinai Health System.
+            Developed by Dr. Ashutosh K. Tewari and team · Tewari Lab, Icahn School of Medicine at Mount Sinai.
           </p>
         </div>
       </main>

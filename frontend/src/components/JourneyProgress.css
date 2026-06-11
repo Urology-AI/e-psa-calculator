@@ -44,23 +44,23 @@
 
 /* Done — cyan fill */
 .journey-step--done .journey-step-dot {
-  background: var(--ms-cyan, #06ABEB);
-  border: 2px solid var(--ms-cyan, #06ABEB);
+  background: var(--ms-cyan);
+  border: 2px solid var(--ms-cyan);
   color: #ffffff;
 }
 
 /* Active — navy fill with pulse ring */
 .journey-step--active .journey-step-dot {
-  background: var(--ms-navy, #212070);
-  border: 2px solid var(--ms-navy, #212070);
+  background: var(--ms-navy);
+  border: 2px solid var(--ms-navy);
   color: #ffffff;
-  box-shadow: 0 0 0 3.5px rgba(33, 32, 112, 0.16);
+  box-shadow: 0 0 0 3.5px rgba(26, 58, 82, 0.16);
   animation: journey-pulse 2s ease-in-out infinite;
 }
 
 @keyframes journey-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(33, 32, 112, 0.16); }
-  50%       { box-shadow: 0 0 0 5px rgba(33, 32, 112, 0.08); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.16); }
+  50%       { box-shadow: 0 0 0 5px rgba(26, 58, 82, 0.08); }
 }
 
 /* Upcoming — ghost */
@@ -80,7 +80,7 @@
 }
 
 .journey-step--done .journey-step-label     { color: var(--ink-500, #6E6E77); }
-.journey-step--active .journey-step-label   { color: var(--ms-navy, #212070); font-weight: 700; }
+.journey-step--active .journey-step-label   { color: var(--ms-navy); font-weight: 700; }
 .journey-step--upcoming .journey-step-label { color: var(--ink-400, #AFAFB5); }
 
 /* ─── Connectors ─── */
@@ -97,38 +97,38 @@
 }
 
 .journey-connector--done {
-  background: var(--ms-cyan, #06ABEB);
+  background: var(--ms-cyan);
 }
 
 /* ─── Dark mode ─── */
 .theme-dark .journey-step--done .journey-step-dot {
-  background: var(--ms-cyan, #06ABEB);
-  border-color: var(--ms-cyan, #06ABEB);
+  background: var(--ms-cyan);
+  border-color: var(--ms-cyan);
 }
 
 .theme-dark .journey-step--active .journey-step-dot {
-  background: var(--ms-cyan, #06ABEB);
-  border-color: var(--ms-cyan, #06ABEB);
-  box-shadow: 0 0 0 3.5px rgba(6, 171, 235, 0.22);
+  background: var(--ms-cyan);
+  border-color: var(--ms-cyan);
+  box-shadow: 0 0 0 3.5px rgba(2, 136, 209, 0.22);
 }
 
 @keyframes journey-pulse-dark {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(6, 171, 235, 0.22); }
-  50%       { box-shadow: 0 0 0 5px rgba(6, 171, 235, 0.10); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.22); }
+  50%       { box-shadow: 0 0 0 5px rgba(2, 136, 209, 0.10); }
 }
 
 .theme-dark .journey-step--active .journey-step-dot {
   animation: journey-pulse-dark 2s ease-in-out infinite;
 }
 
-.theme-dark .journey-step--active .journey-step-label  { color: var(--ms-cyan, #06ABEB); }
+.theme-dark .journey-step--active .journey-step-label  { color: var(--ms-cyan); }
 .theme-dark .journey-step--done .journey-step-label    { color: var(--ink-500); }
 .theme-dark .journey-step--upcoming .journey-step-dot  {
   background: transparent;
   border-color: var(--line-200);
   color: var(--ink-400);
 }
-.theme-dark .journey-connector--done { background: var(--ms-cyan, #06ABEB); }
+.theme-dark .journey-connector--done { background: var(--ms-cyan); }
 
 /* ─── Responsive ─── */
 @media (max-width: 420px) {

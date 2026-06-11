@@ -1,46 +1,46 @@
-/* ─── ePSA Design System — Mount Sinai Brand ─── */
+/* ─── ePSA Design System — Tewari Lab / Million Strong Men ─── */
 :root {
-  /* ── Official Mount Sinai brand tokens (source of truth) ── */
-  --ms-cyan:       #06ABEB;   /* Primary CTA, links, active state */
-  --ms-cyan-10:    #E8F7FD;
-  --ms-cyan-20:    #C2EAFA;
-  --ms-magenta:    #DC298D;   /* Accent / High-Risk badge only */
-  --ms-magenta-10: #FCE9F4;
-  --ms-magenta-20: #F6C1E2;
-  --ms-navy:       #212070;   /* Headings, nav, dark surfaces */
-  --ms-navy-10:    #E8E8F3;
-  --ms-navy-20:    #C5C5DE;
-  --ms-black:      #00002D;   /* Body text */
+  /* ── Brand tokens — Tewari Lab palette (non-institution-specific) ── */
+  --ms-cyan:       #0288d1;   /* Primary CTA, links, active state */
+  --ms-cyan-10:    #e1f5fe;
+  --ms-cyan-20:    #b3e5fc;
+  --ms-magenta:    #d32f2f;   /* High-Risk badge / urgent alerts */
+  --ms-magenta-10: #ffebee;
+  --ms-magenta-20: #ffcdd2;
+  --ms-navy:       #1a3a52;   /* Headings, nav, dark surfaces */
+  --ms-navy-10:    #e8f0f5;
+  --ms-navy-20:    #b8ccd8;
+  --ms-black:      #0d1b26;   /* Body text */
   --ms-gray-100:   #F5F5F7;
   --ms-gray-200:   #E8E8EA;
   --ms-gray-400:   #AFAFB5;
   --ms-gray-600:   #6E6E77;
   --ms-gray-800:   #2D2D35;
 
-  /* ── Brand scale — remapped to MS palette ── */
-  --brand-950: #00002D;   /* ms-black */
-  --brand-900: #212070;   /* ms-navy */
-  --brand-800: #212070;   /* ms-navy (dark gradients) */
-  --brand-700: #212070;   /* ms-navy — headings, nav */
-  --brand-600: #0590C7;   /* cyan-700: hover / secondary interactive */
-  --brand-500: #06ABEB;   /* ms-cyan — primary accent */
-  --brand-400: #C2EAFA;   /* ms-cyan-20 */
-  --brand-100: #E8F7FD;   /* ms-cyan-10 */
-  --brand-50:  #E8F7FD;   /* ms-cyan-10 */
+  /* ── Brand scale ── */
+  --brand-950: #0d1b26;
+  --brand-900: #1a3a52;
+  --brand-800: #1a3a52;
+  --brand-700: #1a3a52;   /* primary — headings, nav */
+  --brand-600: #0277bd;   /* hover / secondary interactive */
+  --brand-500: #0288d1;   /* primary accent */
+  --brand-400: #b3e5fc;
+  --brand-100: #e1f5fe;
+  --brand-50:  #e1f5fe;
 
-  /* ── Magenta scale — aligned to ms-magenta ── */
-  --magenta-700: #8B0050;
-  --magenta-600: #AD1070;
-  --magenta-500: #DC298D;   /* ms-magenta */
-  --magenta-400: #E84DAB;
-  --magenta-100: #FCE9F4;   /* ms-magenta-10 */
-  --magenta-50:  #FFF0F8;
+  /* ── Alert/risk scale — red (replaces magenta) ── */
+  --magenta-700: #b71c1c;
+  --magenta-600: #c62828;
+  --magenta-500: #d32f2f;
+  --magenta-400: #ef5350;
+  --magenta-100: #ffebee;
+  --magenta-50:  #fff5f5;
 
-  /* ── Teal aliases → MS palette ── */
-  --teal-700: #212070;   /* ms-navy */
-  --teal-600: #0590C7;   /* cyan-700 */
-  --teal-400: #06ABEB;   /* ms-cyan */
-  --teal-50:  #E8F7FD;   /* ms-cyan-10 */
+  /* ── Teal aliases ── */
+  --teal-700: #1a3a52;
+  --teal-600: #0277bd;
+  --teal-400: #0288d1;
+  --teal-50:  #e1f5fe;
 
   /* ── Risk tier colors — exact brand spec ── */
   --risk-lower:       #1B7A4A;   /* ms-success: Low Risk */
@@ -59,8 +59,8 @@
   --error-50:    #FDECEA;
 
   /* ── Neutrals — MS true-neutral palette ── */
-  --ink-950: #00002D;   /* ms-black */
-  --ink-900: #00002D;   /* ms-black — primary body text */
+  --ink-950: #0d1b26;
+  --ink-900: #0d1b26;
   --ink-800: #2D2D35;   /* ms-gray-800 — strong secondary */
   --ink-700: #2D2D35;   /* ms-gray-800 */
   --ink-600: #6E6E77;   /* ms-gray-600 — muted */
@@ -83,11 +83,11 @@
   --gold-100: #fef3c7;
 
   /* ── Shadows — navy-tinted ── */
-  --shadow-xs:   0 0.0625rem 0.1875rem rgba(33, 32, 112, 0.07);
-  --shadow-sm:   0 0.25rem 0.625rem rgba(33, 32, 112, 0.08);
-  --shadow-md:   0 0.5rem 1.5rem rgba(33, 32, 112, 0.10);
-  --shadow-soft: 0 0.75rem 1.875rem rgba(33, 32, 112, 0.08);
-  --shadow-lg:   0 1.25rem 3rem rgba(33, 32, 112, 0.12);
+  --shadow-xs:   0 0.0625rem 0.1875rem rgba(26, 58, 82, 0.07);
+  --shadow-sm:   0 0.25rem 0.625rem rgba(26, 58, 82, 0.08);
+  --shadow-md:   0 0.5rem 1.5rem rgba(26, 58, 82, 0.10);
+  --shadow-soft: 0 0.75rem 1.875rem rgba(26, 58, 82, 0.08);
+  --shadow-lg:   0 1.25rem 3rem rgba(26, 58, 82, 0.12);
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -214,36 +214,36 @@ body {
 
 /* ─── Dark mode overrides ─── */
 .theme-dark {
-  /* Deep MS-navy dark surfaces */
-  --surface: #0a0d2e;
-  --surface-subtle: #11144a;
-  --surface-muted: #0d1040;
+  /* Deep teal-navy dark surfaces */
+  --surface: #0d1b26;
+  --surface-subtle: #12253a;
+  --surface-muted: #0f1f30;
 
-  /* Navy-tinted dividers */
-  --line-200: #2a2d7a;
-  --line-100: #1e2165;
-  --line-50:  #161954;
+  /* Teal-tinted dividers */
+  --line-200: #1e3a52;
+  --line-100: #162d40;
+  --line-50:  #112233;
 
   /* Text: light on dark */
   --ink-950: #FFFFFF;
   --ink-900: #FFFFFF;
-  --ink-800: #E8E8EA;   /* ms-gray-200 */
-  --ink-700: #AFAFB5;   /* ms-gray-400 */
-  --ink-600: #6E6E77;   /* ms-gray-600 */
-  --ink-500: #AFAFB5;   /* ms-gray-400 — readable on dark */
-  --ink-400: #6E6E77;   /* ms-gray-600 */
-  --ink-300: #2D2D35;   /* ms-gray-800 */
+  --ink-800: #E8E8EA;
+  --ink-700: #AFAFB5;
+  --ink-600: #6E6E77;
+  --ink-500: #AFAFB5;
+  --ink-400: #6E6E77;
+  --ink-300: #2D2D35;
 
-  /* Brand scale → MS cyan on dark (readable, on-brand) */
-  --brand-950: #00002D;
-  --brand-900: #212070;
-  --brand-800: #06ABEB;   /* ms-cyan — CTA on dark */
-  --brand-700: #06ABEB;   /* ms-cyan — headings/interactive on dark */
-  --brand-600: #06ABEB;   /* ms-cyan */
-  --brand-500: #C2EAFA;   /* ms-cyan-20 — lighter on dark */
-  --brand-400: #E8F7FD;   /* ms-cyan-10 */
-  --brand-100: rgba(6, 171, 235, 0.18);
-  --brand-50:  rgba(6, 171, 235, 0.09);
+  /* Brand scale → sky blue on dark */
+  --brand-950: #0d1b26;
+  --brand-900: #1a3a52;
+  --brand-800: #0288d1;   /* CTA on dark */
+  --brand-700: #0288d1;   /* headings/interactive on dark */
+  --brand-600: #0288d1;
+  --brand-500: #b3e5fc;   /* lighter on dark */
+  --brand-400: #e1f5fe;
+  --brand-100: rgba(2, 136, 209, 0.18);
+  --brand-50:  rgba(2, 136, 209, 0.09);
 
   /* Semantic status colors — dark variants */
   --error-50:   rgba(192, 57,  43,  0.15);
@@ -254,12 +254,12 @@ body {
   --success-600:#34d399;
 
   /* Utility surfaces */
-  --surface-alt: #11144a;
-  --surface-1:   #11144a;
-  --border-subtle: #2a2d7a;
+  --surface-alt: #12253a;
+  --surface-1:   #12253a;
+  --border-subtle: #1e3a52;
 
-  --app-bg: linear-gradient(160deg, #060823 0%, #0a0d2e 40%, #090c28 100%);
-  --header-logo-bg: linear-gradient(180deg, #11144a 0%, #0a0d2e 100%);
+  --app-bg: linear-gradient(160deg, #080f18 0%, #0d1b26 40%, #0a1820 100%);
+  --header-logo-bg: linear-gradient(180deg, #12253a 0%, #0d1b26 100%);
 }
 
 .theme-dark .stage-pre {
@@ -501,30 +501,30 @@ body {
 
 /* dark mode */
 .theme-dark .stage-nav {
-  background: var(--surface-subtle, #11144a);
-  border-color: var(--line-200, #2a2d7a);
+  background: var(--surface-subtle, #12253a);
+  border-color: var(--line-200, #1e3a52);
 }
 
 .theme-dark .stage-nav-sep {
-  background: var(--line-200, #2a2d7a);
+  background: var(--line-200, #1e3a52);
 }
 
 .theme-dark .stage-nav-item:not(:disabled):hover {
-  background: var(--surface-muted, #0d1040);
+  background: var(--surface-muted, #0f1f30);
 }
 
 .theme-dark .stage-nav-item--current {
-  background: var(--surface, #0a0d2e);
-  box-shadow: inset 0 0 0 1.5px var(--brand-700, #06ABEB);
+  background: var(--surface, #0d1b26);
+  box-shadow: inset 0 0 0 1.5px var(--brand-700, #0288d1);
 }
 
 .theme-dark .stage-nav-item--current .stage-nav-num {
-  background: var(--brand-700, #06ABEB);
+  background: var(--brand-700, #0288d1);
   color: #fff;
 }
 
-.theme-dark .stage-nav-item--current .stage-nav-label { color: var(--brand-700, #06ABEB); }
-.theme-dark .stage-nav-item--current .stage-nav-sub   { color: var(--brand-600, #06ABEB); }
+.theme-dark .stage-nav-item--current .stage-nav-label { color: var(--brand-700, #0288d1); }
+.theme-dark .stage-nav-item--current .stage-nav-sub   { color: var(--brand-600, #0288d1); }
 
 .theme-dark .stage-nav-label { color: var(--ink-800, #e8e8ea); }
 .theme-dark .stage-nav-sub   { color: var(--ink-500, #afafb5); }

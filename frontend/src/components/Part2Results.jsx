@@ -99,15 +99,15 @@ const GuardrailBanner = ({ alert }) => {
         <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
         <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor }}>{alert.title}</span>
       </div>
-      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>{alert.message}</p>
     </div>
   );
 };
 
 /* ─── Notice Item ─── */
 const NoticeItem = ({ label, children }) => (
-  <li style={{ marginBottom: '6px', fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>
-    <strong style={{ color: '#92400e' }}>{label}: </strong>
+  <li style={{ marginBottom: '6px', fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+    <strong style={{ color: 'var(--warning-600)' }}>{label}: </strong>
     {children}
   </li>
 );

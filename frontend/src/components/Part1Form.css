@@ -755,7 +755,7 @@
 
 .form-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--ms-cyan, #06ABEB) 0%, var(--ms-navy, #212070) 100%);
+  background: linear-gradient(90deg, var(--ms-cyan) 0%, var(--ms-navy) 100%);
   border-radius: 999px;
   transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   min-width: 4px;
@@ -790,22 +790,22 @@
 }
 
 .section-tab:hover {
-  border-color: var(--ms-cyan, #06ABEB);
+  border-color: var(--ms-cyan);
   background: var(--surface, #fff);
   color: var(--ink-800, #2D2D35);
 }
 
 .section-tab--active {
-  border-color: var(--ms-navy, #212070);
+  border-color: var(--ms-navy);
   background: var(--ms-navy-10, #E8E8F3);
-  color: var(--ms-navy, #212070);
-  box-shadow: 0 0 0 2.5px rgba(33, 32, 112, 0.10);
+  color: var(--ms-navy);
+  box-shadow: 0 0 0 2.5px rgba(26, 58, 82, 0.10);
 }
 
 .section-tab--done:not(.section-tab--active) {
-  border-color: var(--ms-cyan, #06ABEB);
+  border-color: var(--ms-cyan);
   background: var(--ms-cyan-10, #E8F7FD);
-  color: var(--ms-cyan, #06ABEB);
+  color: var(--ms-cyan);
 }
 
 .section-tab-letter {
@@ -825,9 +825,9 @@
 
 .section-tab-letter--b { background: #6b7280; }
 
-.section-tab--active .section-tab-letter     { background: var(--ms-navy, #212070); }
-.section-tab--done:not(.section-tab--active) .section-tab-letter { background: var(--ms-cyan, #06ABEB); }
-.section-tab--done:not(.section-tab--active) .section-tab-letter--b { background: var(--ms-cyan, #06ABEB); }
+.section-tab--active .section-tab-letter     { background: var(--ms-navy); }
+.section-tab--done:not(.section-tab--active) .section-tab-letter { background: var(--ms-cyan); }
+.section-tab--done:not(.section-tab--active) .section-tab-letter--b { background: var(--ms-cyan); }
 
 .section-tab-name {
   flex: 1;
@@ -860,18 +860,18 @@
 }
 .theme-dark .section-tab:hover {
   border-color: var(--ms-cyan);
-  background: rgba(6, 171, 235, 0.08);
+  background: rgba(2, 136, 209, 0.08);
   color: var(--ink-800);
 }
 .theme-dark .section-tab--active {
   border-color: var(--ms-cyan);
-  background: rgba(6, 171, 235, 0.12);
+  background: rgba(2, 136, 209, 0.12);
   color: var(--ms-cyan);
-  box-shadow: 0 0 0 2.5px rgba(6, 171, 235, 0.18);
+  box-shadow: 0 0 0 2.5px rgba(2, 136, 209, 0.18);
 }
 .theme-dark .section-tab--done:not(.section-tab--active) {
-  border-color: rgba(6, 171, 235, 0.5);
-  background: rgba(6, 171, 235, 0.08);
+  border-color: rgba(2, 136, 209, 0.5);
+  background: rgba(2, 136, 209, 0.08);
   color: var(--ms-cyan);
 }
 .theme-dark .section-tab--active .section-tab-letter     { background: var(--ms-cyan); color: #00002D; }
@@ -1013,7 +1013,7 @@
 .nav-section-chip:hover {
   border-color: var(--ms-cyan);
   color: var(--ms-cyan);
-  background: rgba(6, 171, 235, 0.06);
+  background: rgba(2, 136, 209, 0.06);
 }
 
 .nav-section-chip--done {
@@ -1037,7 +1037,7 @@
 .theme-dark .nav-section-chip:hover {
   border-color: var(--ms-cyan);
   color: var(--ms-cyan);
-  background: rgba(6, 171, 235, 0.08);
+  background: rgba(2, 136, 209, 0.08);
 }
 
 .theme-dark .nav-section-chip--done {

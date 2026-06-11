@@ -1628,7 +1628,7 @@ function App() {
                 <span className="footer-sep" aria-hidden="true">·</span>
                 <span>AUA/SUO 2026 · NCCN v1.2024 · EAU 2024</span>
                 <span className="footer-sep" aria-hidden="true">·</span>
-                <span>Educational use only — not a medical device or diagnosis</span>
+                <span>For educational &amp; screening use — not a medical device or diagnosis. Available to all clinicians and patients.</span>
               </div>
               <div className="footer-links">
                 <button className="btn-footer-link" onClick={() => setShowModelDocs(true)}>
@@ -1649,7 +1649,7 @@ function App() {
                 </button>
               </div>
               <div className="footer-inst">
-                Developed by Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai
+                Developed by Dr. Ashutosh K. Tewari and team · Tewari Lab, Icahn School of Medicine at Mount Sinai
               </div>
             </footer>
           </>
