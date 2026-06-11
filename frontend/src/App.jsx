@@ -37,7 +37,6 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
-import ClinicalModeFlow from './components/ClinicalModeFlow.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
@@ -217,49 +216,6 @@ function App() {
   useEffect(() => {
     if (!auth) return () => {};
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // Bus flow import: pre-populate state from sessionStorage when the user
-      // returns from ?mode=bus by clicking "Continue to Full ePSA".
-      try {
-        const raw = sessionStorage.getItem('busflow_import');
-        if (raw) {
-          sessionStorage.removeItem('busflow_import');
-          const { formData, engineResult, studyConsent } = JSON.parse(raw);
-          if (formData && engineResult) {
-            const defaultShape = {
-              age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
-              familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
-              weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
-              exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-              inflammationHistory: 0, comorbidityScore: null, hypertension: null, hyperlipidemia: null,
-              coronaryArteryDisease: null, diabetes: null,
-            };
-            // Clear proxy IPSS/SHIM — user fills those fresh in the full form.
-            // All other fields (demographics, lifestyle, BRCA, etc.) transfer seamlessly.
-            setPreData({
-              ...defaultShape,
-              ...formData,
-              ipss: Array(7).fill(null),
-              ipssQol: null,
-              shim: Array(5).fill(null),
-            });
-            setPreResult(null);
-            setPathwayMode('pre_psa');
-            setStage('pre');
-            setCurrentStep(3);
-            setPart1Step(4);
-            // HIPAA: show consent screen before loading PHI from bus flow
-            pendingImportRef.current = { source: 'bus_flow', formData, engineResult, studyConsent };
-            setUser({ uid: 'local', isAnonymous: true });
-            setStorageMode('local');
-            setAppSessionId('Local');
-            if (studyConsent) setFlowMode('sinai');
-            // Route to consent screen — pendingImportRef will be processed in handleConsentComplete
-            setAuthStep('consent');
-            return;
-          }
-        }
-      } catch { /* ignore */ }
-
       if (currentUser) {
         setUser(currentUser);
         const phone = currentUser.phoneNumber;
@@ -800,27 +756,6 @@ function App() {
     if (pendingImportRef.current) {
       const pending = pendingImportRef.current;
       pendingImportRef.current = null;
-
-      if (pending.source === 'bus_flow') {
-        const { formData, engineResult, studyConsent } = pending;
-        const defaultShape = {
-          age: '', race: null, heightFt: '', heightIn: '', weight: '', bmi: 0,
-          familyHistory: null, brcaStatus: null, heightUnit: 'imperial', heightCm: '',
-          weightUnit: 'lbs', weightKg: '', ipss: Array(7).fill(null), shim: Array(5).fill(null),
-          exercise: null, smoking: null, chemicalExposure: null, dietPattern: '',
-          comorbidityScore: null, hypertension: null, hyperlipidemia: null,
-          coronaryArteryDisease: null, diabetes: null,
-        };
-        setPreData({ ...defaultShape, ...formData });
-        setPreResult(engineResult);
-        setPathwayMode('pre_psa');
-        setStage('pre');
-        setCurrentStep(3);
-        setPart1Step(4);
-        if (studyConsent) setFlowMode('sinai');
-        setAuthStep('app');
-        return;
-      }
 
       if (pending.source === 'file_import') {
         setStage(pending.targetStage);
@@ -2012,11 +1947,6 @@ function App() {
         />
       </div>
     );
-  }
-
-  // Bus mode: self-contained Quick ePSA flow, no existing state touched
-  if (new URLSearchParams(window.location.search).get('mode') === 'bus') {
-    return <ClinicalModeFlow />;
   }
 
   return (

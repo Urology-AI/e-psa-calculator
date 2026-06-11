@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
 import './Part1Form.css';
 import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
@@ -132,6 +133,14 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const sectionARef = useRef(null);
   const sectionBRef = useRef(null);
   const [activeSectionTab, setActiveSectionTab] = useState('A');
+  // 'quick' = single proxy question; 'full' = all questions
+  // Infer initial mode from imported data: if all 7 ipss are non-null → full, else quick
+  const [ipssMode, setIpssMode] = useState(() =>
+    Array.isArray(formData.ipss) && formData.ipss.every(v => v !== null) ? 'full' : 'quick'
+  );
+  const [shimMode, setShimMode] = useState(() =>
+    Array.isArray(formData.shim) && formData.shim.length === 5 && formData.shim.every(v => v !== null) ? 'full' : 'quick'
+  );
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -291,7 +300,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     if (localData.bmi <= 0) {
       errors.push(t('part1.errors.validate.step2.bmiInvalid'));
     }
-    const ipssComplete = isSkipped('ipss') || (Array.isArray(localData.ipss) && localData.ipss.every(v => v !== null && v !== undefined));
+    const ipssComplete = isSkipped('ipss') ||
+      (ipssMode === 'quick' ? localData.ipssQol !== null && localData.ipssQol !== undefined
+        : Array.isArray(localData.ipss) && localData.ipss.every(v => v !== null && v !== undefined));
     if (!ipssComplete) {
       errors.push(t('part1.errors.validate.step5.ipssInvalid'));
     }
@@ -307,9 +318,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     if (!isSkipped('inflammationHistory') && (localData.inflammationHistory === null || localData.inflammationHistory === undefined)) {
       errors.push(t('part1.errors.selectOption'));
     }
-    if (!isSkipped('chemicalExposure') && !localData.chemicalExposure) {
-      errors.push(t('part1.errors.validate.step3.chemicalInvalid'));
-    }
+    // Chemical exposure is optional — null treated as 'unknown' by the engine
     if (!isSkipped('brcaStatus') && !localData.brcaStatus) {
       errors.push(t('part1.errors.validate.step1.brcaInvalid'));
     }
@@ -332,12 +341,16 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     const hasBrca = hasOrSkipped('brcaStatus', localData.brcaStatus !== null && localData.brcaStatus !== undefined);
     const hasExercise = hasOrSkipped('exercise', localData.exercise !== null && localData.exercise !== undefined);
     const hasSmoking = hasOrSkipped('smoking', localData.smoking !== null && localData.smoking !== undefined);
-    const hasChem = hasOrSkipped('chemicalExposure', localData.chemicalExposure !== null && localData.chemicalExposure !== undefined);
     const hasDiet = hasOrSkipped('dietPattern', localData.dietPattern !== '');
     const hasComorbidityScore = hasOrSkipped('comorbidityScore', localData.comorbidityScore !== null && localData.comorbidityScore !== undefined);
-    const ipssComplete = isSkipped('ipss') || (Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined));
-    const shimComplete = isSkipped('shim') || (Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined));
-    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasChem && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
+    const ipssComplete = isSkipped('ipss') ||
+      (ipssMode === 'quick' ? localData.ipssQol !== null && localData.ipssQol !== undefined
+        : Array.isArray(localData.ipss) && localData.ipss.length === 7 && localData.ipss.every(v => v !== null && v !== undefined));
+    const shimComplete = isSkipped('shim') ||
+      (shimMode === 'quick' ? localData.shim[0] !== null && localData.shim[0] !== undefined
+        : Array.isArray(localData.shim) && localData.shim.length === 5 && localData.shim.every(v => v !== null && v !== undefined));
+    // Chemical exposure is optional
+    return hasAge && hasRace && hasFamilyHistory && hasInflammationHistory && hasBrca && hasHeight && hasWeight && hasBMI && hasExercise && hasSmoking && hasDiet && hasComorbidityScore && ipssComplete && shimComplete;
   };
 
   const handleSubmit = () => {
@@ -349,6 +362,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       return;
     }
     setFormErrors([]);
+    // Normalise optional fields before handing off to the engine
+    if (!localData.chemicalExposure) {
+      setLocalData(p => ({ ...p, chemicalExposure: 'unknown' }));
+    }
     onNext();
   };
 
@@ -361,10 +378,18 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const heightValid = hasValidHeight();
   const weightValid = hasValidWeight();
   const bmiValid = localData.bmi > 0;
-  const ipssComplete = localData.ipss.every(v => v !== null && v !== undefined);
-  const ipssAnsweredCount = localData.ipss.filter(v => v !== null && v !== undefined).length;
-  const shimComplete = localData.shim.every(v => v !== null && v !== undefined);
-  const shimAnsweredCount = localData.shim.filter(v => v !== null && v !== undefined).length;
+  const ipssComplete = ipssMode === 'quick'
+    ? localData.ipssQol !== null && localData.ipssQol !== undefined
+    : localData.ipss.every(v => v !== null && v !== undefined);
+  const ipssAnsweredCount = ipssMode === 'quick'
+    ? (localData.ipssQol !== null ? 1 : 0)
+    : localData.ipss.filter(v => v !== null && v !== undefined).length;
+  const shimComplete = shimMode === 'quick'
+    ? localData.shim[0] !== null && localData.shim[0] !== undefined
+    : localData.shim.every(v => v !== null && v !== undefined);
+  const shimAnsweredCount = shimMode === 'quick'
+    ? (localData.shim[0] !== null ? 1 : 0)
+    : localData.shim.filter(v => v !== null && v !== undefined).length;
   const ipssQuestions = IPSS_QUESTION_KEYS.map(k => t(k));
   const ipssLabels = [0, 1, 2, 3, 4, 5].map(v => ({ value: v, label: t(IPSS_LABEL_KEY_BY_VALUE[v]) }));
 
@@ -415,8 +440,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   ].filter(Boolean).length;
   const sectionADone = sectionAAnswered === sectionATotal;
 
-  // Section B: additional factors (height, weight, exercise, smoking, diet, inflammation, chemical, BRCA, comorbidities, SHIM)
-  const sectionBTotal = 10;
+  // Section B: additional factors (height, weight, exercise, smoking, diet, inflammation, BRCA, comorbidities, SHIM)
+  // Chemical exposure is optional so it's counted toward progress but not required for sectionBDone
+  const sectionBTotal = 9;
   const sectionBAnswered = [
     hasValidHeight(),
     hasValidWeight(),
@@ -424,7 +450,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     smokingValid || isSkipped('smoking'),
     dietValid || isSkipped('dietPattern'),
     inflammationHistoryValid || isSkipped('inflammationHistory'),
-    chemicalValid || isSkipped('chemicalExposure'),
     brcaValid || isSkipped('brcaStatus'),
     comorbiditiesValid || isSkipped('comorbidityScore'),
     shimComplete || isSkipped('shim'),
@@ -669,73 +694,114 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             <div className="question-text" style={{ flex: 1 }}>{t('part1.steps.ipss.sectionTitle')} <GuidelineBadge /></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <InfoIcon {...fieldReferences.ipss} />
-              {ipssComplete ? (
-                <CheckIcon size={16} style={{ color: '#27AE60' }} />
-              ) : (
-                <span style={{ color: attemptedNext ? '#E74C3C' : '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                  {ipssAnsweredCount}/7
-                </span>
-              )}
+              {ipssComplete
+                ? <CheckIcon size={16} style={{ color: '#27AE60' }} />
+                : <span style={{ color: attemptedNext ? '#E74C3C' : '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                    {ipssMode === 'quick' ? (localData.ipssQol !== null ? '1/1' : '0/1') : `${ipssAnsweredCount}/7`}
+                  </span>
+              }
             </div>
           </div>
           <div className="question-body" style={{ marginTop: 0 }}>
-            <div className="question-note" style={{ marginBottom: 0, fontSize: '0.875rem' }}>
-              {t('part1.ipss.note')}
+            <div className="question-note" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>{t('part1.ipss.note')}</div>
+            <div className="mode-toggle" role="group" aria-label="IPSS detail level">
+              <button
+                type="button"
+                className={`mode-toggle-btn${ipssMode === 'quick' ? ' mode-toggle-btn--active' : ''}`}
+                onClick={() => {
+                  setIpssMode('quick');
+                  setLocalData(p => ({ ...p, ipss: Array(7).fill(null) }));
+                }}
+              >Quick — 1 question</button>
+              <button
+                type="button"
+                className={`mode-toggle-btn${ipssMode === 'full' ? ' mode-toggle-btn--active' : ''}`}
+                onClick={() => {
+                  setIpssMode('full');
+                  setLocalData(p => ({ ...p, ipssQol: null }));
+                }}
+              >Full IPSS — 8 questions</button>
             </div>
           </div>
         </div>
-        <div className="question-note" style={{ marginBottom: '16px', fontSize: '0.875rem' }}>
-          {t('part1.ipss.note')}
-        </div>
 
-        {ipssQuestions.map((q, index) => (
-          <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        {ipssMode === 'quick' ? (
+          /* Quick: just Q8 Quality of Life */
+          <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
             <div className="question-header">
-              <div className="question-number">{index + 1}</div>
-              <div className="question-text">{q}</div>
-              {localData.ipss[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+              <div className="question-number">Q8</div>
+              <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
+              {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
             </div>
             <div className="question-body">
-              <QuestionSubtext i18nKey="part1.ipss.helper" />
-              <div className="option-grid c3">
-                {ipssLabels.map(({ value, label }) => (
-                  <button key={value} className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`} onClick={() => updateIPSS(index, value)}>
-                    <span className="score">({value})</span> {label}
+              <div className="question-note" style={{ fontSize: '0.8rem', marginBottom: '8px' }}>Quality of Life — this single question estimates your overall urinary symptom burden.</div>
+              <div className="option-grid c2">
+                {[
+                  { value: 0, label: 'Delighted' }, { value: 1, label: 'Pleased' },
+                  { value: 2, label: 'Mostly satisfied' }, { value: 3, label: 'Mixed' },
+                  { value: 4, label: 'Mostly dissatisfied' }, { value: 5, label: 'Unhappy' },
+                  { value: 6, label: 'Terrible' },
+                ].map(opt => (
+                  <button key={opt.value} className={`option-btn ${localData.ipssQol === opt.value ? 'selected' : ''}`}
+                    onClick={() => {
+                      const derived = deriveIpssFromQol(opt.value);
+                      setLocalData(p => ({ ...p, ipssQol: opt.value, ipss: derived }));
+                    }}>
+                    <span className="score">({opt.value})</span> {opt.label}
                   </button>
                 ))}
               </div>
             </div>
           </div>
-        ))}
-        <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
-          {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
-        </div>
-
-        {/* IPSS Q8 — Quality of Life (separate scale, not added to total) */}
-        <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px', marginTop: '12px' }}>
-          <div className="question-header">
-            <div className="question-number">Q8</div>
-            <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
-            {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-          </div>
-          <div className="question-body">
-            <div className="option-grid c2">
-              {[
-                { value: 0, label: 'Delighted' },
-                { value: 1, label: 'Pleased' },
-                { value: 2, label: 'Mostly satisfied' },
-                { value: 3, label: 'Mixed' },
-                { value: 4, label: 'Mostly dissatisfied' },
-                { value: 5, label: 'Unhappy' },
-                { value: 6, label: 'Terrible' },
-              ].map(opt => (
-                <button key={opt.value} className={`option-btn ${localData.ipssQol === opt.value ? 'selected' : ''}`} onClick={() => updateField('ipssQol', opt.value)}>
-                  <span className="score">({opt.value})</span> {opt.label}
-                </button>
-              ))}
+        ) : (
+          /* Full: all 7 symptom questions + Q8 */
+          <>
+            {ipssQuestions.map((q, index) => (
+              <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+                <div className="question-header">
+                  <div className="question-number">{index + 1}</div>
+                  <div className="question-text">{q}</div>
+                  {localData.ipss[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+                </div>
+                <div className="question-body">
+                  <QuestionSubtext i18nKey="part1.ipss.helper" />
+                  <div className="option-grid c3">
+                    {ipssLabels.map(({ value, label }) => (
+                      <button key={value} className={`option-btn ${localData.ipss[index] === value ? 'selected' : ''}`} onClick={() => updateIPSS(index, value)}>
+                        <span className="score">({value})</span> {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div className="score-total" style={{ color: ipssComplete ? '#27AE60' : undefined }}>
+              {t('part1.ipss.totalLabel')}: {ipssComplete ? localData.ipss.reduce((a, b) => a + b, 0) : '—'} / 35
             </div>
-          </div>
-        </div>
+            {/* Q8 Quality of Life */}
+            <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px', marginTop: '12px' }}>
+              <div className="question-header">
+                <div className="question-number">Q8</div>
+                <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
+                {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+              </div>
+              <div className="question-body">
+                <div className="option-grid c2">
+                  {[
+                    { value: 0, label: 'Delighted' }, { value: 1, label: 'Pleased' },
+                    { value: 2, label: 'Mostly satisfied' }, { value: 3, label: 'Mixed' },
+                    { value: 4, label: 'Mostly dissatisfied' }, { value: 5, label: 'Unhappy' },
+                    { value: 6, label: 'Terrible' },
+                  ].map(opt => (
+                    <button key={opt.value} className={`option-btn ${localData.ipssQol === opt.value ? 'selected' : ''}`} onClick={() => updateField('ipssQol', opt.value)}>
+                      <span className="score">({opt.value})</span> {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -1089,65 +1155,16 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* SHIM */}
       {(() => {
         const SHIM_QUESTIONS = [
-          {
-            key: 'erection_confidence',
-            label: 'How do you rate your confidence that you could get and keep an erection?',
-            options: [
-              { value: 1, label: 'Very low' },
-              { value: 2, label: 'Low' },
-              { value: 3, label: 'Moderate' },
-              { value: 4, label: 'High' },
-              { value: 5, label: 'Very high' },
-            ],
-          },
-          {
-            key: 'erection_penetration',
-            label: 'When you had erections with sexual stimulation, how often were your erections hard enough for penetration?',
-            options: [
-              { value: 0, label: 'No sexual activity' },
-              { value: 1, label: 'Almost never' },
-              { value: 2, label: 'A few times' },
-              { value: 3, label: 'Sometimes' },
-              { value: 4, label: 'Most times' },
-              { value: 5, label: 'Almost always' },
-            ],
-          },
-          {
-            key: 'maintain_erection',
-            label: 'During sexual intercourse, how often were you able to maintain your erection after you had penetrated your partner?',
-            options: [
-              { value: 0, label: 'Did not attempt' },
-              { value: 1, label: 'Almost never' },
-              { value: 2, label: 'A few times' },
-              { value: 3, label: 'Sometimes' },
-              { value: 4, label: 'Most times' },
-              { value: 5, label: 'Almost always' },
-            ],
-          },
-          {
-            key: 'complete_erection',
-            label: 'During sexual intercourse, how difficult was it to maintain your erection to completion of intercourse?',
-            options: [
-              { value: 0, label: 'Did not attempt' },
-              { value: 1, label: 'Extremely difficult' },
-              { value: 2, label: 'Very difficult' },
-              { value: 3, label: 'Difficult' },
-              { value: 4, label: 'Slightly difficult' },
-              { value: 5, label: 'Not difficult' },
-            ],
-          },
-          {
-            key: 'satisfactory',
-            label: 'When you attempted sexual intercourse, how often was it satisfactory for you?',
-            options: [
-              { value: 0, label: 'Did not attempt' },
-              { value: 1, label: 'Almost never' },
-              { value: 2, label: 'A few times' },
-              { value: 3, label: 'Sometimes' },
-              { value: 4, label: 'Most times' },
-              { value: 5, label: 'Almost always' },
-            ],
-          },
+          { key: 'erection_confidence', label: 'How do you rate your confidence that you could get and keep an erection?',
+            options: [{ value: 1, label: 'Very low' }, { value: 2, label: 'Low' }, { value: 3, label: 'Moderate' }, { value: 4, label: 'High' }, { value: 5, label: 'Very high' }] },
+          { key: 'erection_penetration', label: 'When you had erections with sexual stimulation, how often were your erections hard enough for penetration?',
+            options: [{ value: 0, label: 'No sexual activity' }, { value: 1, label: 'Almost never' }, { value: 2, label: 'A few times' }, { value: 3, label: 'Sometimes' }, { value: 4, label: 'Most times' }, { value: 5, label: 'Almost always' }] },
+          { key: 'maintain_erection', label: 'During sexual intercourse, how often were you able to maintain your erection after you had penetrated your partner?',
+            options: [{ value: 0, label: 'Did not attempt' }, { value: 1, label: 'Almost never' }, { value: 2, label: 'A few times' }, { value: 3, label: 'Sometimes' }, { value: 4, label: 'Most times' }, { value: 5, label: 'Almost always' }] },
+          { key: 'complete_erection', label: 'During sexual intercourse, how difficult was it to maintain your erection to completion of intercourse?',
+            options: [{ value: 0, label: 'Did not attempt' }, { value: 1, label: 'Extremely difficult' }, { value: 2, label: 'Very difficult' }, { value: 3, label: 'Difficult' }, { value: 4, label: 'Slightly difficult' }, { value: 5, label: 'Not difficult' }] },
+          { key: 'satisfactory', label: 'When you attempted sexual intercourse, how often was it satisfactory for you?',
+            options: [{ value: 0, label: 'Did not attempt' }, { value: 1, label: 'Almost never' }, { value: 2, label: 'A few times' }, { value: 3, label: 'Sometimes' }, { value: 4, label: 'Most times' }, { value: 5, label: 'Almost always' }] },
         ];
         return (
           <div className="part1-step">
@@ -1156,43 +1173,89 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
                 <div className="question-number">14</div>
                 <div className="question-text" style={{ flex: 1 }}>SHIM — Sexual Health Inventory <NonGuidelineBadge /></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {shimComplete ? (
-                    <CheckIcon size={16} style={{ color: '#27AE60' }} />
-                  ) : (
-                    <span style={{ color: '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                      {shimAnsweredCount}/5
-                    </span>
-                  )}
+                  {shimComplete
+                    ? <CheckIcon size={16} style={{ color: '#27AE60' }} />
+                    : <span style={{ color: '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                        {shimMode === 'quick' ? (localData.shim[0] !== null ? '1/1' : '0/1') : `${shimAnsweredCount}/5`}
+                      </span>
+                  }
                 </div>
               </div>
               <div className="question-body" style={{ marginTop: 0 }}>
-                <div className="question-note" style={{ marginBottom: 0, fontSize: '0.875rem' }}>
+                <div className="question-note" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>
                   Over the past 6 months — select the answer that best describes your experience.
+                </div>
+                <div className="mode-toggle" role="group" aria-label="SHIM detail level">
+                  <button
+                    type="button"
+                    className={`mode-toggle-btn${shimMode === 'quick' ? ' mode-toggle-btn--active' : ''}`}
+                    onClick={() => {
+                      setShimMode('quick');
+                      setLocalData(p => ({ ...p, shim: Array(5).fill(null) }));
+                    }}
+                  >Quick — 1 question</button>
+                  <button
+                    type="button"
+                    className={`mode-toggle-btn${shimMode === 'full' ? ' mode-toggle-btn--active' : ''}`}
+                    onClick={() => {
+                      setShimMode('full');
+                      setLocalData(p => ({ ...p, shim: Array(5).fill(null) }));
+                    }}
+                  >Full SHIM — 5 questions</button>
                 </div>
               </div>
             </div>
-            {SHIM_QUESTIONS.map((q, index) => (
-              <div key={q.key} className="question-card" style={{ borderColor: localData.shim[index] !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
+
+            {shimMode === 'quick' ? (
+              /* Quick: just Q1 erection confidence */
+              <div className="question-card" style={{ borderColor: localData.shim[0] !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
                 <div className="question-header">
-                  <div className="question-number">{index + 1}</div>
-                  <div className="question-text">{q.label}</div>
-                  {localData.shim[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+                  <div className="question-number">1</div>
+                  <div className="question-text">{SHIM_QUESTIONS[0].label}</div>
+                  {localData.shim[0] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
                 </div>
                 <div className="question-body">
+                  <div className="question-note" style={{ fontSize: '0.8rem', marginBottom: '8px' }}>This single question estimates your overall erectile function score.</div>
                   <div className="option-grid c3">
-                    {q.options.map(opt => (
-                      <button key={opt.value} className={`option-btn ${localData.shim[index] === opt.value ? 'selected' : ''}`} onClick={() => updateSHIM(index, opt.value)}>
+                    {SHIM_QUESTIONS[0].options.map(opt => (
+                      <button key={opt.value} className={`option-btn ${localData.shim[0] === opt.value ? 'selected' : ''}`}
+                        onClick={() => {
+                          const derived = expandShimSingle(opt.value);
+                          setLocalData(p => ({ ...p, shim: derived }));
+                        }}>
                         <span className="score">({opt.value})</span> {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-            ))}
-            {shimComplete && (
-              <div className="score-total" style={{ color: '#27AE60' }}>
-                SHIM Total: {localData.shim.reduce((a, b) => a + b, 0)} / 25
-              </div>
+            ) : (
+              /* Full: all 5 questions */
+              <>
+                {SHIM_QUESTIONS.map((q, index) => (
+                  <div key={q.key} className="question-card" style={{ borderColor: localData.shim[index] !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
+                    <div className="question-header">
+                      <div className="question-number">{index + 1}</div>
+                      <div className="question-text">{q.label}</div>
+                      {localData.shim[index] !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+                    </div>
+                    <div className="question-body">
+                      <div className="option-grid c3">
+                        {q.options.map(opt => (
+                          <button key={opt.value} className={`option-btn ${localData.shim[index] === opt.value ? 'selected' : ''}`} onClick={() => updateSHIM(index, opt.value)}>
+                            <span className="score">({opt.value})</span> {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {shimComplete && (
+                  <div className="score-total" style={{ color: '#27AE60' }}>
+                    SHIM Total: {localData.shim.reduce((a, b) => a + b, 0)} / 25
+                  </div>
+                )}
+              </>
             )}
             <SkipLink field="shim" />
           </div>
