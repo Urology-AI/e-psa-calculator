@@ -9,11 +9,6 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import MountSinaiGateScreen from './components/MountSinaiGateScreen.jsx';
-// Lazy-loaded — only needed for Sinai clinical flow
-const SinaiConsentScreen = React.lazy(() => import('./components/SinaiConsentScreen.jsx'));
-const SinaiResultsScreen = React.lazy(() => import('./components/SinaiResultsScreen.jsx'));
-import { readSinaiConfig } from './utils/sinaiSubmit.js';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import VersionFooter from './components/VersionFooter.jsx';
@@ -74,16 +69,8 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState(null);
   const [sessionId, setSessionId] = useState(null);
-  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'sinai_gate', 'sinai_consent', 'app'
+  const [authStep, setAuthStep] = useState('welcome'); // 'welcome', 'import', 'login', 'consent', 'psa_overview', 'app'
 
-  // ── Mount Sinai clinic-cohort flow (IRB STUDY-14-00050) ──
-  // flowMode is 'sinai' when the patient entered via a clinic code; their
-  // data must not be persisted to Firestore. flowMode='public' is the
-  // default (existing public flow, untouched).
-  const [flowMode, setFlowMode] = useState('public');
-  const [sinaiClinicCode, setSinaiClinicCode] = useState(null);
-  const [sinaiRedcapEnabled, setSinaiRedcapEnabled] = useState(false);
-  const [sinaiSubmissionActive, setSinaiSubmissionActive] = useState(false);
   const [psaOverviewFrom, setPsaOverviewFrom] = useState('consent'); // tracks where overview was opened from
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
@@ -1633,17 +1620,6 @@ function App() {
               }}
               onImport={() => setAuthStep('import')}
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
-              onBeginSinai={async () => {
-                // Pre-load the redcapEnabled flag so the consent screen can show
-                // the right messaging (live vs offline) before the patient commits.
-                try {
-                  const cfg = await readSinaiConfig();
-                  setSinaiRedcapEnabled(cfg.redcapEnabled);
-                } catch {
-                  setSinaiRedcapEnabled(false);
-                }
-                setAuthStep('sinai_gate');
-              }}
               formData={{}}
             />
             <footer className="app-footer">
@@ -1673,7 +1649,7 @@ function App() {
                 </button>
               </div>
               <div className="footer-inst">
-                Icahn School of Medicine at Mount Sinai · Urology Department · Developed by Ashutosh K. Tewari, MD
+                Developed by Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai
               </div>
             </footer>
           </>
@@ -1709,33 +1685,6 @@ function App() {
             onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
             onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
             continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
-          />
-        );
-      case 'sinai_gate':
-        return (
-          <MountSinaiGateScreen
-            onBack={() => setAuthStep('welcome')}
-            onValidated={({ clinicCode }) => {
-              setSinaiClinicCode(clinicCode);
-              setAuthStep('sinai_consent');
-            }}
-          />
-        );
-      case 'sinai_consent':
-        return (
-          <SinaiConsentScreen
-            clinicCode={sinaiClinicCode}
-            redcapEnabled={sinaiRedcapEnabled}
-            onBack={() => setAuthStep('sinai_gate')}
-            onConsent={(consent) => {
-              // Sinai cohort uses the local pipeline (no Firestore session writes).
-              setFlowMode('sinai');
-              setStorageMode('local');
-              setUser({ uid: 'sinai-local', isAnonymous: true });
-              setAppSessionId(`sinai-${sinaiClinicCode}`);
-              setConsentData(consent);
-              setAuthStep('app');
-            }}
           />
         );
       default:
@@ -1816,7 +1765,6 @@ function App() {
                 }}
                 onContinueToPostBiopsy={handleContinueToPostBiopsy}
                 onShowModelDocs={() => setShowModelDocs(true)}
-                flowMode={flowMode}
               />
             ) : (
               <div className="loading-results">
@@ -1896,15 +1844,6 @@ function App() {
                       }
                     : null
                 }
-                flowMode={flowMode}
-                onSubmitToSinai={
-                  flowMode === 'sinai'
-                    ? () => {
-                        setSinaiSubmissionActive(true);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    : null
-                }
               />
             )}
           </div>
@@ -1915,40 +1854,6 @@ function App() {
     }
   };
 
-  // Sinai cohort submission screen — short-circuits the normal app shell so
-  // the patient sees a focused single-page confirmation flow.
-  if (sinaiSubmissionActive && flowMode === 'sinai') {
-    return (
-      <div className="App">
-        <SinaiResultsScreen
-          payload={{
-            clinicCode: sinaiClinicCode,
-            sessionId: appSessionId || `sinai-${sinaiClinicCode}`,
-            step1: preData,
-            result: preResult,
-            step2: postData,
-            finalCategory: postResult?.riskCat,
-            finalScore: postResult?.totalPoints,
-            pathwayMode:
-              pathwayMode || postResult?.pathwayMode || preResult?.pathwayMode || 'post_psa',
-          }}
-          onStartOver={() => {
-            setSinaiSubmissionActive(false);
-          }}
-          onBackToHome={() => {
-            setSinaiSubmissionActive(false);
-            setFlowMode('public');
-            setSinaiClinicCode(null);
-            setConsentData(null);
-            setPathwayMode(null);
-            setUser(null);
-            setAuthStep('welcome');
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
     <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
@@ -1956,19 +1861,6 @@ function App() {
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-brand">
-            <img
-              src="/sinai_light.png"
-              alt="Mount Sinai"
-              className="logo logo--light"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <img
-              src="/sinai_dark.png"
-              alt="Mount Sinai"
-              className="logo logo--dark"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <span className="header-brand-sep" aria-hidden="true" />
             <span className="header-product-name">ePSA</span>
           </div>
           <div className="header-actions">
