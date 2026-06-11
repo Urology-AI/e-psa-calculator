@@ -217,7 +217,14 @@ function sessionColumns(session, cloudId) {
  * Push sessions to Turso. Also flushes pending deletions of locally
  * deleted cases. Returns { pushed, deleted }.
  */
+/** Sessions the patient declined to share never leave the device.
+ *  Legacy sessions without the flag (consented == null) are still pushed. */
+export function isPushable(session) {
+  return session.consented !== false;
+}
+
 export async function pushSessions(sessions) {
+  sessions = sessions.filter(isPushable);
   if (!sessions.length && !getPendingDeleteCount()) return { pushed: 0, deleted: 0 };
   const client = getClient();
   await ensureSchema(client);

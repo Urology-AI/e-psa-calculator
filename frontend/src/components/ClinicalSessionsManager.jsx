@@ -5,8 +5,8 @@ import {
   SendIcon, RefreshCwIcon, PlusIcon, ZapIcon,
   CloudUploadIcon, CloudDownloadIcon
 } from 'lucide-react';
-import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession, mergeSessions } from '../services/clinicalSessionService';
-import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey, markPendingDelete, getPendingDeleteCount } from '../services/tursoService';
+import { getClinicalSessions, deleteClinicalSession, clearAllClinicalSessions, exportSessionsAsJson, importSessionsFromFile, saveClinicalSession, mergeSessions, setSessionConsent } from '../services/clinicalSessionService';
+import { isTursoConfigured, pushSessions, pullSessions, getSyncedKeys, syncKey, markPendingDelete, getPendingDeleteCount, isPushable } from '../services/tursoService';
 import { submitToRedcap } from '../utils/redcapSubmit';
 import ClinicalModeResult from './ClinicalModeResult.jsx';
 import './ClinicalSessionsManager.css';
@@ -27,11 +27,13 @@ function formatDate(iso) {
   } catch { return iso; }
 }
 
-function SessionRow({ session, uid, onDeleted, tursoReady, tursoSynced }) {
+function SessionRow({ session, uid, onDeleted, onConsented, tursoReady, tursoSynced }) {
   const [expanded, setExpanded] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  const [consenting, setConsenting] = useState(false); // false | 'confirm' | 'working' | 'err'
+  const noConsent = session.consented === false;
 
   const tier = session.engineResult?.epsaTierKey || 'unknown';
   const tierLabel = session.engineResult?.epsaTierLabel || tier;
@@ -70,6 +72,21 @@ function SessionRow({ session, uid, onDeleted, tursoReady, tursoSynced }) {
     window.print();
   }
 
+  // Patient signed the consent form after the fact (or staff confirm it):
+  // record consent and push the session to the cloud.
+  async function handleMarkConsented() {
+    if (consenting !== 'confirm') { setConsenting('confirm'); return; }
+    setConsenting('working');
+    try {
+      await setSessionConsent(uid, session, true);
+      if (tursoReady) await pushSessions([{ ...session, consented: true }]);
+      setConsenting(false);
+      await onConsented?.(session);
+    } catch {
+      setConsenting('err');
+    }
+  }
+
   function handleExportThis() {
     exportSessionsAsJson([session]);
   }
@@ -97,7 +114,12 @@ function SessionRow({ session, uid, onDeleted, tursoReady, tursoSynced }) {
         <span className={`csm-row-badge csm-row-badge--${storage}`} title={`Stored in ${storageLabel.toLowerCase()} storage`}>
           {storageLabel}
         </span>
-        {tursoReady && (
+        {noConsent && (
+          <span className="csm-row-badge csm-row-badge--noconsent" title="Patient declined cloud storage — this session is never pushed">
+            No consent
+          </span>
+        )}
+        {tursoReady && !noConsent && (
           <span
             className={`csm-row-badge csm-row-badge--${tursoSynced ? 'synced' : 'unsynced'}`}
             title={tursoSynced ? 'This case exists in the Turso cloud database' : 'Not yet pushed to the Turso cloud database'}
@@ -127,6 +149,22 @@ function SessionRow({ session, uid, onDeleted, tursoReady, tursoSynced }) {
               <SendIcon size={14} />
               {pushing ? 'Pushing…' : pushStatus === 'ok' ? 'Sent!' : pushStatus === 'err' ? 'Failed' : 'Push to REDCap'}
             </button>
+            {noConsent && (
+              <button
+                type="button"
+                className={`csm-action-btn csm-action-btn--consent${consenting === 'confirm' ? ' csm-action-btn--confirm' : ''}${consenting === 'err' ? ' csm-action-btn--err' : ''}`}
+                onClick={handleMarkConsented}
+                onBlur={() => { if (consenting === 'confirm') setConsenting(false); }}
+                disabled={consenting === 'working'}
+                title="Record that the patient has signed the consent form, then sync this session to the cloud"
+              >
+                <CloudUploadIcon size={14} />
+                {consenting === 'working' ? 'Syncing…'
+                  : consenting === 'confirm' ? 'Confirm consent signed?'
+                  : consenting === 'err' ? 'Failed — retry'
+                  : 'Mark consented & sync'}
+              </button>
+            )}
             <button
               type="button"
               className={`csm-action-btn csm-action-btn--delete${confirming ? ' csm-action-btn--confirm' : ''}`}
@@ -241,9 +279,11 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     setImportMsg(null);
     try {
       const { pushed, deleted } = await pushSessions(sessions);
+      const skipped = sessions.filter(s => !isPushable(s)).length;
       setSyncedKeys(getSyncedKeys());
       setPendingDeletes(getPendingDeleteCount());
       const parts = [`Pushed ${pushed} session${pushed !== 1 ? 's' : ''} to cloud`];
+      if (skipped) parts.push(`kept ${skipped} non-consented session${skipped !== 1 ? 's' : ''} local`);
       if (deleted) parts.push(`removed ${deleted} deleted case${deleted !== 1 ? 's' : ''}`);
       setImportMsg(`${parts.join('; ')}.`);
     } catch (err) {
@@ -279,6 +319,12 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
     } else {
       setImportMsg('Session deleted.');
     }
+    await refresh();
+  }
+
+  async function handleSessionConsented(session) {
+    setSyncedKeys(getSyncedKeys());
+    setImportMsg(`Consent recorded for ${session.sessionRef ?? session.id}${tursoReady ? ' — session synced to cloud' : ''}.`);
     await refresh();
   }
 
@@ -392,6 +438,7 @@ export default function ClinicalSessionsManager({ uid, onBack, onNewSession }) {
               session={s}
               uid={uid}
               onDeleted={handleSessionDeleted}
+              onConsented={handleSessionConsented}
               tursoReady={tursoReady}
               tursoSynced={syncedKeys.has(syncKey(s))}
             />
