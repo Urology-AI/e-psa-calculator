@@ -11,7 +11,6 @@ import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
-import VersionFooter from './components/VersionFooter.jsx';
 // Lazy-loaded modals/overlays — only shown on demand
 const ModelDocs = React.lazy(() => import('./components/ModelDocs.jsx'));
 const PrivacyPolicyPopup = React.lazy(() => import('./components/PrivacyPolicyPopup.jsx'));
@@ -1576,7 +1575,7 @@ function App() {
       case 'welcome':
         return (
           <>
-            <WelcomeScreen 
+            <WelcomeScreen
               onBegin={() => {
                 if (isFirebaseConfigured()) {
                   setStorageMode('cloud');
@@ -1622,37 +1621,6 @@ function App() {
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
               formData={{}}
             />
-            <footer className="app-footer">
-              <div className="footer-meta">
-                <span>ePSA v1.0.0</span>
-                <span className="footer-sep" aria-hidden="true">·</span>
-                <span>AUA/SUO 2026 · NCCN v1.2024 · EAU 2024</span>
-                <span className="footer-sep" aria-hidden="true">·</span>
-                <span>For educational &amp; screening use — not a medical device or diagnosis. Available to all clinicians and patients.</span>
-              </div>
-              <div className="footer-links">
-                <button className="btn-footer-link" onClick={() => setShowModelDocs(true)}>
-                  <BookIcon size={13} aria-hidden="true" />
-                  <span>{t('app.footer.modelDocs')}</span>
-                </button>
-                <button className="btn-footer-link" onClick={() => setShowPrivacyPolicy(true)}>
-                  <ShieldCheckIcon size={13} aria-hidden="true" />
-                  <span>{t('app.footer.privacyPolicy')}</span>
-                </button>
-                <button className="btn-footer-link" onClick={() => setShowTermsOfService(true)}>
-                  <FileTextIcon size={13} aria-hidden="true" />
-                  <span>{t('app.footer.termsOfService')}</span>
-                </button>
-                <button className="btn-footer-link" onClick={() => setShowCredits(true)}>
-                  <UsersIcon size={13} aria-hidden="true" />
-                  <span>Credits</span>
-                </button>
-              </div>
-              <div className="footer-inst">
-                Developed by Dr. Ashutosh K. Tewari and team · Tewari Lab, Icahn School of Medicine at Mount Sinai
-              </div>
-            </footer>
-          </>
         );
       case 'import':
         return (
@@ -2094,7 +2062,35 @@ function App() {
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
-      <VersionFooter />
+      <footer className="app-footer">
+        <div className="footer-links">
+          <button className="btn-footer-link" onClick={() => setShowModelDocs(true)}>
+            <BookIcon size={13} aria-hidden="true" />
+            <span>{t('app.footer.modelDocs')}</span>
+          </button>
+          <button className="btn-footer-link" onClick={() => setShowPrivacyPolicy(true)}>
+            <ShieldCheckIcon size={13} aria-hidden="true" />
+            <span>{t('app.footer.privacyPolicy')}</span>
+          </button>
+          <button className="btn-footer-link" onClick={() => setShowTermsOfService(true)}>
+            <FileTextIcon size={13} aria-hidden="true" />
+            <span>{t('app.footer.termsOfService')}</span>
+          </button>
+          <button className="btn-footer-link" onClick={() => setShowCredits(true)}>
+            <UsersIcon size={13} aria-hidden="true" />
+            <span>Credits</span>
+          </button>
+        </div>
+        <div className="footer-meta">
+          <span>ePSA v1.0.0</span>
+          <span className="footer-sep" aria-hidden="true">·</span>
+          <span>AUA/SUO 2026 · NCCN v1.2024 · EAU 2024</span>
+          <span className="footer-sep" aria-hidden="true">·</span>
+          <span>Tewari Lab · Icahn School of Medicine at Mount Sinai</span>
+          <span className="footer-sep" aria-hidden="true">·</span>
+          <span>Educational use only — not a medical device</span>
+        </div>
+      </footer>
     </div>
     </React.Suspense>
   );
