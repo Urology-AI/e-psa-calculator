@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
 import PrintableForm from './PrintableForm';
 import {
-  ArrowRightIcon, UploadIcon, FileTextIcon, PlayIcon, XIcon,
-  BookOpenIcon, InfoIcon, ExternalLinkIcon, ShieldCheckIcon, UsersIcon,
+  ArrowRightIcon, UploadIcon, FileTextIcon, XIcon,
+  InfoIcon, ExternalLinkIcon, ShieldCheckIcon, UsersIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -181,14 +181,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
               <div className="ws-brand-tagline">Prostate Cancer Screening Aid</div>
             </div>
           </div>
-          <div className="ws-trust-row">
-            <span className="ws-trust-inst">Tewari Lab · Icahn School of Medicine at Mount Sinai</span>
-            <div className="ws-badge-row">
-              <span className="ws-trust-badge">AUA/SUO 2026</span>
-              <span className="ws-trust-badge">NCCN v1.2024</span>
-              <span className="ws-trust-badge">EAU 2024</span>
-            </div>
-          </div>
         </div>
 
         {/* White body: title, description, CTA */}
@@ -221,18 +213,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
             {t('welcome.featureTime')} · {t('welcome.trustNoAccount')} · {t('welcome.featurePrivate')}
           </p>
 
-          <div className="ws-utility-links">
-            {onViewOverview && (
-              <button type="button" className="ws-demo-link" onClick={onViewOverview}>
-                <BookOpenIcon size={13} aria-hidden="true" />
-                <span>What is PSA &amp; ePSA? · Screening guidelines</span>
-              </button>
-            )}
-            <a href="/demo" className="ws-demo-link">
-              <PlayIcon size={13} aria-hidden="true" />
-              <span>Watch demo</span>
-            </a>
-          </div>
         </div>
       </section>
 
