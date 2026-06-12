@@ -149,6 +149,24 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
       {/* ── Accent bar ── */}
       <div className="ws-accent-bar" aria-hidden="true" />
 
+      {/* ── Million Strong Men Banner ── */}
+      <a
+        href="https://millionstrongmen.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ws-msm-banner"
+        aria-label="Million Strong Men initiative — prostate cancer screening for all men"
+      >
+        <div className="ws-msm-icon" aria-hidden="true">
+          <UsersIcon size={18} />
+        </div>
+        <div className="ws-msm-text">
+          <div className="ws-msm-label">Initiative</div>
+          <div className="ws-msm-title">Million Strong Men</div>
+          <div className="ws-msm-sub">Prostate cancer screening accessible to every man</div>
+        </div>
+        <ArrowRightIcon size={16} className="ws-msm-arrow" aria-hidden="true" />
+      </a>
 
       {/* ── Hero card ── */}
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
