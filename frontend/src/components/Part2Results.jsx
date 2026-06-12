@@ -515,6 +515,15 @@ const Part2Results = ({
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
+      {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px', fontWeight: 600 }}>
+          <UsersIcon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+          This tool supports shared decision-making — it does not replace your clinician.
+        </div>
+        <p style={{ margin: 0 }}>AUA/SUO 2026 (Statement 1) requires all prostate cancer screening decisions to involve: <strong>(1)</strong> both patient and clinician, <strong>(2)</strong> sharing of information by both parties, <strong>(3)</strong> building consensus on preferences, and <strong>(4)</strong> mutual agreement on the chosen action. Use these results as a starting point for that conversation.</p>
+      </div>
+
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
@@ -556,6 +565,14 @@ const Part2Results = ({
             </div>
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
             <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
+            {(() => {
+              const ageAdj = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
+              return parseFloat(psaValue) >= ageAdj && (
+                <div style={{ marginTop: '6px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
+                  A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
+                </div>
+              );
+            })()}
           </div>
 
           {postData?.knowPirads && piradsVal != null && piradsCtx && (
@@ -626,22 +643,61 @@ const Part2Results = ({
                 {lowPsaWarningText}
               </NoticeItem>
             )}
-            {psadFlag && (
-              <NoticeItem label="PSA Density Elevated">
-                Your PSA density (&gt;0.177 ng/mL/mL) suggests a higher proportion of PSA per prostate volume — this independently supports further evaluation.{' '}
-                <ModalInfoIcon
-                  title="Kadeer et al. 2025 — PSA Density (PSAD)"
-                  description="Kadeer et al. evaluated PSA derivatives in patients with low PSA levels (≤10 ng/mL) and reported strong diagnostic performance for PSA density."
-                  sources={fieldReferences.part2.psadKadeer.sources}
-                />
-              </NoticeItem>
-            )}
+            {psadFlag && (() => {
+              const psaNum = parseFloat(psaValue) || 0;
+              const volNum = parseFloat(postData?.prostateVolume) || 0;
+              const psad = volNum > 0 ? (psaNum / volNum) : null;
+              const psadDisplay = psad != null ? psad.toFixed(3) : null;
+              const psadTier = psad == null ? null
+                : psad < 0.10 ? { label: 'Low risk (with negative MRI)', color: '#16a34a', note: 'PSAD <0.10 ng/mL²: biopsy may be safely deferred in 48% of patients with negative MRI (NPV 94%).' }
+                : psad < 0.15 ? { label: 'Borderline', color: '#d97706', note: 'PSAD 0.10–0.15 ng/mL²: intermediate zone — consider MRI and clinical context before biopsy decision.' }
+                : { label: 'Elevated — supports biopsy', color: '#dc2626', note: 'PSAD ≥0.15 ng/mL²: guideline supports proceeding with systematic biopsy even with negative/equivocal MRI (AUA/SUO 2026, Statement 16).' };
+              return (
+                <NoticeItem label="PSA Density">
+                  {psadDisplay && <><strong style={{ color: psadTier?.color }}>{psadDisplay} ng/mL²</strong> — <span style={{ color: psadTier?.color, fontWeight: 600 }}>{psadTier?.label}</span>. </>}
+                  {psadTier?.note}{' '}
+                  <ModalInfoIcon
+                    title="PSA Density — AUA/SUO 2026 & Kadeer et al. 2025"
+                    description="AUA/SUO 2026 Statement 16: for patients with negative/equivocal MRI and elevated risk, PSA density guides biopsy decisions. PSAD <0.10 ng/mL² can avoid biopsy in ~48% of patients while maintaining 94% NPV. PSAD <0.15 ng/mL² avoids ~67% of biopsies."
+                    sources={fieldReferences.part2?.psadKadeer?.sources || []}
+                  />
+                </NoticeItem>
+              );
+            })()}
             {discordanceFlag && (
               <NoticeItem label="Risk Discordance">
                 {discordanceFlag.text}
               </NoticeItem>
             )}
           </ul>
+        </div>
+      )}
+
+      {/* ── Confirmatory PSA notice (AUA/SUO 2026 Statement 3) ── */}
+      {postData?.psaConfirmed === 'no' && (
+        <div role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fefce8', border: '0.5px solid #fde047', borderLeft: '3px solid #ca8a04', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#713f12', lineHeight: 1.55 }}>
+          <AlertTriangleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#ca8a04' }} />
+          <span><strong>Unconfirmed PSA — consider repeating before acting.</strong> AUA/SUO 2026 (Statement 3 — Expert Opinion): you indicated this PSA has not been confirmed with a repeat test. Up to 25–40% of elevated PSA values normalise on retesting. Before proceeding to MRI, biomarkers, or biopsy, discuss a repeat PSA with your clinician.</span>
+        </div>
+      )}
+      {postData?.psaConfirmed === 'not_sure' && (
+        <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '0.5px solid #fcd34d', borderLeft: '3px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.55 }}>
+          <AlertCircleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
+          <span><strong>PSA confirmation status unknown.</strong> AUA/SUO 2026 (Statement 3): a confirmatory PSA is recommended before initiating further workup. Ask your clinician whether a repeat test has been or should be performed.</span>
+        </div>
+      )}
+
+      {/* ── PSA Velocity Guardrail (AUA/SUO 2026 Statement 9) ── */}
+      <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#1e3a8a', lineHeight: 1.55 }}>
+        <AlertCircleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#2563eb' }} />
+        <span><strong>PSA velocity alone is not a guideline indication for biopsy.</strong> AUA/SUO 2026 (Statement 9 — Strong Recommendation; Grade B): a rising PSA trend should not by itself trigger imaging or biopsy. Always consider the full clinical picture.</span>
+      </div>
+
+      {/* ── Screening discontinuation signal for low-PSA 70+ patients (AUA/SUO 2026 Stmt 7) ── */}
+      {isAge70Plus && parseFloat(psaValue) < 3.0 && (
+        <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.55 }}>
+          <CheckCircle2Icon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#16a34a' }} />
+          <span><strong>Possible discontinuation candidate.</strong> AUA/SUO 2026 (Statement 7): for patients aged 70–74 with PSA &lt;3 ng/mL, discontinuing or significantly lengthening the re-screening interval is reasonable following SDM. ERSPC Rotterdam data: prostate cancer-specific mortality by age 85 is only 0.11% for PSA &lt;2 ng/mL and 0.85% for PSA 2–3 ng/mL. Discuss with your physician whether continued screening offers a net benefit for you.</span>
         </div>
       )}
 
@@ -701,6 +757,12 @@ const Part2Results = ({
             ) : null)}
           </div>
         </div>
+        {/* MRI-before-biopsy prompt for biopsy-naïve patients (Statement 13, Grade A) */}
+        {biopsyRecommended && pathwayMode === 'post_psa' && (
+          <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(255,255,255,0.15)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', fontSize: '12px', lineHeight: 1.6 }}>
+            <strong>Ask about MRI before biopsy.</strong> AUA/SUO 2026 Statement 13 (Conditional; Grade A) recommends prostate MRI prior to initial biopsy to increase detection of clinically significant cancer. PI-RADS 1–2 (no suspicious lesion) → systematic biopsy optional. PI-RADS ≥3 → targeted biopsy recommended.
+          </div>
+        )}
         <div className="v2-psa-hero-ctas">
           {showUrologyReferral ? (
             <>
@@ -773,7 +835,7 @@ const Part2Results = ({
             const ageForChart = preResult?.age ?? preData?.age;
             const isBlack = preData?.race === 'black' || preData?.race === 'african-american';
             const hasFamilyHx = Number(preData?.familyHistory) > 0;
-            const hasBrca = preData?.brcaStatus === 'yes';
+            const hasBrca = ['yes','lynch','other_elevated','other_unknown'].includes(preData?.brcaStatus);
             return (
               <>
                 <Part2GuidelineJourney
@@ -840,6 +902,53 @@ const Part2Results = ({
             </button>
           </div>
         )}
+
+        {/* ── Adjunctive Biomarkers (AUA/SUO 2026 Statement 17) ── */}
+        <CollapsibleSection title="Adjunctive biomarkers your urologist may consider">
+          <p style={{ fontSize: '13px', color: '#374151', margin: '0 0 10px', lineHeight: 1.6 }}>
+            AUA/SUO 2026 Statement 17 (Conditional; Grade C): when further risk stratification would influence the biopsy decision, adjunctive urine or serum markers may be used. These tests are not required for every patient — they are most useful when the biopsy decision is uncertain.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+            {[
+              { name: '4Kscore', type: 'Blood', use: 'Combines PSA isoforms + hK2; reduces unnecessary biopsies ~30%' },
+              { name: 'PHI (Prostate Health Index)', type: 'Blood', use: 'Combines p2PSA, fPSA, tPSA; validated for initial & repeat biopsy' },
+              { name: 'PCA3', type: 'Urine', use: 'Prostate-specific mRNA; predicts repeat biopsy outcome' },
+              { name: 'MPS2 / MyProstateScore 2.0', type: 'Urine', use: '18-gene panel; 95% NPV at threshold 40 for avoiding repeat biopsy' },
+              { name: 'STHLM-3', type: 'Blood', use: 'Multiplex (232 SNPs + PSA isoforms); AUC 0.74 vs PSA 0.56' },
+              { name: 'ExoDx Intelliscore', type: 'Urine', use: 'Exosome-based gene expression; initial & repeat biopsy' },
+              { name: 'SelectMDx', type: 'Urine', use: 'HOXC6/DLX1 mRNA; predicts high-grade cancer' },
+            ].map(b => (
+              <div key={b.name} style={{ background: 'var(--color-background-secondary,#f9f9f9)', border: '0.5px solid var(--color-border-tertiary,#e5e7eb)', borderRadius: '8px', padding: '10px 12px' }}>
+                <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary,#111)' }}>{b.name}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>{b.type}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary,#374151)', lineHeight: 1.5 }}>{b.use}</div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: '11px', color: '#9ca3af', margin: '10px 0 0', fontStyle: 'italic' }}>AUA/SUO 2026 Guideline Table · Statement 17 · Discuss with your urologist which test is appropriate for you.</p>
+        </CollapsibleSection>
+
+        {/* ── Validated Risk Calculators (AUA/SUO 2026 Statement 10) ── */}
+        <CollapsibleSection title="Cross-check with AUA-recommended risk calculators">
+          <p style={{ fontSize: '13px', color: '#374151', margin: '0 0 10px', lineHeight: 1.6 }}>
+            AUA/SUO 2026 Statement 10 (Conditional; Grade B): validated risk calculators help inform shared decision-making regarding prostate biopsy. Your urologist may use one of these to cross-check your risk:
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '10px' }}>
+            {[
+              { name: 'PCPT V2', url: 'https://riskcalc.org/PCPTRC/', inputs: 'Race, family history, age, PSA, free PSA %, DRE, prior biopsy' },
+              { name: 'PBCG', url: 'https://riskcalc.org/PBCG/', inputs: 'Age, PSA, DRE, Black race, first-degree family history, prior biopsy' },
+              { name: 'ERSPC', url: 'https://www.prostate-riskcalculator.com/', inputs: 'Age, PSA, DRE, prior biopsy, prostate volume, MRI PI-RADS' },
+            ].map(c => (
+              <a key={c.name} href={c.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: 'var(--color-background-secondary,#f9f9f9)', border: '0.5px solid var(--color-border-tertiary,#e5e7eb)', borderRadius: '8px', padding: '10px 12px', textDecoration: 'none' }}>
+                <div style={{ fontWeight: 600, fontSize: '13px', color: '#185FA5', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  {c.name} <ExternalLinkIcon size={11} aria-hidden="true" />
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary,#374151)', lineHeight: 1.5, marginTop: '3px' }}>{c.inputs}</div>
+              </a>
+            ))}
+          </div>
+          <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0', fontStyle: 'italic' }}>AUA/SUO 2026 Table 4 · Statement 10 · These calculators are population-level estimates; always combine with clinical judgment.</p>
+        </CollapsibleSection>
 
         {/* ── Urologist Finder ── */}
         <CollapsibleSection title="Find a Board-Certified Urologist Near You">
