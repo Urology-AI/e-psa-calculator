@@ -567,9 +567,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
                 <strong>Age under 40:</strong> PSA screening is not routinely recommended per AUA/NCCN guidelines. You can still complete the questionnaire — your clinician can review the results.
               </div>
             );
-            if (n > 75) return (
+            if (n >= 70) return (
               <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
-                <strong>Age over 75:</strong> Continued PSA screening requires individualized assessment based on health and life expectancy (AUA/NCCN). Discuss with your physician.
+                <strong>Age 70+:</strong> AUA/SUO 2026 (Statement 7) requires shared decision-making — screening benefit depends on life expectancy, PSA level, and personal values. Discuss with your physician whether to continue or stop screening.
               </div>
             );
             return null;
@@ -721,10 +721,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </div>
           </div>
         </div>
+<<<<<<< Updated upstream
 
         {ipssMode === 'quick' ? (
           /* Quick: just Q8 Quality of Life */
           <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+=======
+        {ipssQuestions.map((q, index) => (
+          <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+>>>>>>> Stashed changes
             <div className="question-header">
               <div className="question-number">Q8</div>
               <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
@@ -1074,21 +1079,26 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
-      {/* BRCA status */}
+      {/* Known pathogenic germline variant (AUA/SUO 2026 Statement 5) */}
       <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">12</div>
-          <div className="question-text">{t('part1.fields.brcaStatus.title')}</div>
-          <NonGuidelineBadge />
+          <div className="question-text">Do you have a known pathogenic germline variant (inherited gene mutation)?</div>
+          <GuidelineBadge />
           <InfoIcon {...fieldReferences.brcaStatus} />
           {brcaValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
         <div className="question-body">
-          <QuestionSubtext i18nKey="part1.fields.brcaStatus.helper" />
-          <div className="option-grid c3">
+          <QuestionSubtext>
+            AUA/SUO 2026 (Statement 5): BRCA1/2, Lynch syndrome genes (MLH1, MSH2, MSH6, PMS2), ATM, CHEK2, HOXB13, and NBS1 mutations are all associated with elevated prostate cancer risk and earlier screening starting at age 40–45.
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
             {[
-              { value: 'yes', label: 'Yes — confirmed mutation' },
-              { value: 'no', label: 'Tested — no mutation' },
+              { value: 'yes', label: 'Yes — BRCA1 or BRCA2' },
+              { value: 'lynch', label: 'Yes — Lynch syndrome (MLH1/MSH2/MSH6/PMS2)' },
+              { value: 'other_elevated', label: 'Yes — ATM, CHEK2, HOXB13, or NBS1' },
+              { value: 'other_unknown', label: 'Yes — other or unknown variant' },
+              { value: 'no', label: 'Tested — no pathogenic variant found' },
               { value: 'unknown', label: 'Never tested / unsure' },
             ].map(opt => (
               <button key={opt.value} className={`option-btn ${localData.brcaStatus === opt.value ? 'selected' : ''}`} onClick={() => updateField('brcaStatus', opt.value)}>
@@ -1096,6 +1106,11 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               </button>
             ))}
           </div>
+          {(localData.brcaStatus === 'yes' || localData.brcaStatus === 'lynch' || localData.brcaStatus === 'other_elevated' || localData.brcaStatus === 'other_unknown') && (
+            <div style={{ marginTop: '6px', padding: '8px 10px', background: '#fffbeb', border: '0.5px solid #fcd34d', borderRadius: '6px', fontSize: '12px', color: '#78350f', lineHeight: 1.6 }}>
+              Your germline variant qualifies you for earlier PSA screening starting at age 40–45 per AUA/SUO 2026 Statement 5 (Strong Recommendation; Grade B).
+            </div>
+          )}
           {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
             <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
               {t('part1.errors.selectOption')}

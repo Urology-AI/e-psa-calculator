@@ -162,7 +162,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           url: 'https://uroweb.org/guidelines/prostate-cancer',
         },
       ],
-      source: 'AUA/SUO 2023; NCCN v1.2024; EAU 2024',
+      source: 'AUA/SUO 2026 (amended Feb 2026); NCCN v1.2024; EAU 2024',
     },
     {
       key: 'epsa',

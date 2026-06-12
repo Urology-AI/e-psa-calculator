@@ -223,7 +223,7 @@ const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
     guidelineSays = 'AUA/NCCN do not recommend routine PSA screening before age 45 for average-risk men. High-risk individuals (Black ancestry, BRCA1/2, strong family history) may begin discussions at 40–45.';
     epsaAdds = 'ePSA is recommending a PSA test based on your individual risk score — which is above the model threshold. This goes beyond what AUA/NCCN currently endorse for your age group.';
   } else if (age < 50) {
-    guidelineSays = 'AUA/NCCN offer only an optional baseline PSA at ages 45–50 — not a strong recommendation.';
+    guidelineSays = 'AUA/SUO 2026 (Statement 2, Strong Recommendation; Grade A) recommends a baseline PSA discussion beginning at age 45 for average-risk men. Repeat screening is individualized until routine 2–4 year intervals begin at age 50.';
     epsaAdds = 'ePSA is recommending a PSA test with more urgency than the guideline. Your score exceeds the model threshold, driven partly by factors AUA/NCCN do not use for screening decisions.';
   } else if (age <= 69) {
     guidelineSays = 'AUA/NCCN already recommend regular PSA screening every 2–4 years at ages 50–69.';
@@ -813,6 +813,15 @@ const Part1Results = ({
         </div>
       )}
 
+      {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px', fontWeight: 600 }}>
+          <CheckCircle2Icon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+          This tool supports shared decision-making — it does not replace your clinician.
+        </div>
+        <p style={{ margin: 0 }}>AUA/SUO 2026 (Statement 1) requires all prostate cancer screening decisions to involve: <strong>(1)</strong> both patient and clinician, <strong>(2)</strong> sharing of information, <strong>(3)</strong> building consensus on preferences, and <strong>(4)</strong> mutual agreement on the action. Use these results as a starting point for that conversation.</p>
+      </div>
+
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">
         <div className="v2-res-eyebrow">
@@ -856,7 +865,7 @@ const Part1Results = ({
                   // (matches Part1Form's totalQuestions).
                   const skippedFields = Array.isArray(formData?.skippedFields) ? formData.skippedFields : [];
                   if (!skippedFields.length) return null;
-                  const total = 27;
+                  const total = 25;
                   let skipped = 0;
                   for (const f of skippedFields) {
                     if (f === 'ipss') skipped += 7;
@@ -912,6 +921,41 @@ const Part1Results = ({
         </div>
       )}
 
+      {/* ── Guideline-Recommended Next Step Card (AUA/SUO 2026 Stmts 4–6) ── */}
+      {!belowMinAge && !aboveMaxScreeningAge && (() => {
+        const ageNum = Number(age) || 0;
+        const isElevatedRisk = isHighRiskFlagged ||
+          formData?.race === 'black' || formData?.race === 'african-american' ||
+          Number(formData?.familyHistory) > 0 || ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
+        const startAge = isElevatedRisk ? 'age 40' : 'age 45';
+        const startAgeNum = isElevatedRisk ? 40 : 45;
+        const alreadyStarted = ageNum >= startAgeNum;
+        const inScreeningRange = ageNum >= 50 && ageNum <= 69;
+        return (
+          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#1e3a8a', lineHeight: 1.6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px', fontWeight: 600, fontSize: '14px' }}>
+              <AlertCircleIcon size={15} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
+              Your guideline-recommended next step (AUA/SUO 2026)
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 2 }}>
+              {!alreadyStarted && (
+                <li><strong>Start PSA screening at {startAge}</strong> — {isElevatedRisk ? 'you have risk factors that qualify for earlier screening (Black ancestry, germline mutation, or strong family history)' : 'recommended for average-risk individuals'} (Statement{isElevatedRisk ? ' 5' : ' 2'} — Strong Recommendation; Grade A).</li>
+              )}
+              {alreadyStarted && !inScreeningRange && ageNum < 50 && (
+                <li><strong>You are in the early-screening window.</strong> Discuss PSA with your clinician now if you haven&apos;t already (Statement {isElevatedRisk ? '5' : '4'}).</li>
+              )}
+              {inScreeningRange && (
+                <li><strong>Re-screen every 2–4 years</strong> while aged 50–69 (Statement 6 — Strong Recommendation; Grade A).</li>
+              )}
+              {ageNum >= 70 && (
+                <li><strong>Age 70+: shared decision-making required.</strong> Discuss life expectancy, PSA level, and personal values with your clinician before deciding to continue or stop screening (Statement 7).</li>
+              )}
+              <li>PSA is the recommended first-line screening test (Statement 2 — Strong Recommendation; Grade A).</li>
+            </ul>
+          </div>
+        );
+      })()}
+
       {/* ── Expandable sections ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '500ms' }}>
 
@@ -925,7 +969,7 @@ const Part1Results = ({
             const ageNum = Number(age);
             const isBlack = formData?.race === 'black' || formData?.race === 'african-american';
             const hasFamilyHistory = Number(formData?.familyHistory) > 0;
-            const hasBrca = formData?.brcaStatus === 'yes';
+            const hasBrca = ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
             const isHighRisk = isBlack || hasFamilyHistory || hasBrca;
             return (
               <Part1GuidelineJourney

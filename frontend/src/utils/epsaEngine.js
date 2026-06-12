@@ -648,7 +648,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // Literature: BRCA2 carriers OR ≈ 3.5–8.6× for PCa; BRCA1 OR ≈ 1.8–3.3× (Castro et al.
   // JCO 2013; Kote-Jarai et al. 2011). ATM, CHEK2, Lynch syndrome also elevated.
   // 16 pts = top of the scale (same as age 70+) — strongest individual modifiable risk anchor.
-  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
+  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive' || brcaStatus === 'lynch' || brcaStatus === 'other_elevated' || brcaStatus === 'other_unknown';
   const brcaLabel = brcaPositive ? 'Reported' : brcaStatus === 'no' ? 'None reported' : 'Not tested / Unknown';
   const BRCA_RATIONALE = brcaPositive
     ? { data: 'Not in training set (too few BRCA+ in cohort to model).', literature: 'BRCA2 OR ≈ 3.5–8.6×; BRCA1 OR ≈ 1.8–3.3× (Castro et al. JCO 2013; Kote-Jarai et al. 2011). ATM, CHEK2, Lynch syndrome also carry elevated risk.', decision: '16 pts — maximum on this scale, equal to age 70+. AUA/NCCN Grade A high-risk; screening offered from age 40.' }
@@ -1199,7 +1199,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   const fhBinary = preResult?.fhBinary ?? 0;
   const hasFamilyHistory = fhBinary === 1 || preResult?.familyHistory === 1;
   const brcaStatus = preResult?.brcaStatus;
-  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive';
+  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive' || brcaStatus === 'lynch' || brcaStatus === 'other_elevated' || brcaStatus === 'other_unknown';
   const hasHighRiskFeature =
     isBlack || hasFamilyHistory || brcaPositive || (piradsVal != null && piradsVal >= 3);
 
@@ -1355,6 +1355,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     biopsyRecommended = true;
     biopsyReason = 'pirads_5';
     biopsyMessage = 'Your MRI identified a PI-RADS 5 finding. AUA, NCCN, and EAU guidelines recommend prompt biopsy discussion with a urologist. Do not delay this conversation.';
+  } else if (piradsVal === 4) {
+    biopsyRecommended = true;
+    biopsyReason = 'pirads_4';
+    biopsyMessage = 'Your MRI identified a PI-RADS 4 finding ("likely to be present"). AUA/NCCN/EAU guidelines recommend a biopsy discussion with a urologist for PI-RADS 4 findings.';
   } else if (totalPoints >= 56) {
     biopsyRecommended = true;
     biopsyReason = 'combined_score_high';
@@ -1372,6 +1376,7 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   // ---------------------------------------------------------------------------
   const BIOPSY_GUIDELINE_SUPPORT = {
     pirads_5:                { aua: true,  nccn: true,  eau: true,  erspc: false },
+    pirads_4:                { aua: true,  nccn: true,  eau: true,  erspc: false },
     combined_score_high:     { aua: true,  nccn: true,  eau: true,  erspc: false },
     high_risk_discordance:   { aua: true,  nccn: false, eau: false, erspc: false }
   };
