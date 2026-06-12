@@ -563,12 +563,12 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             const n = parseInt(localData.age, 10);
             if (!Number.isFinite(n)) return null;
             if (n < 40) return (
-              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+              <div role="note" className="age-warning">
                 <strong>Age under 40:</strong> PSA screening is not routinely recommended per AUA/NCCN guidelines. You can still complete the questionnaire — your clinician can review the results.
               </div>
             );
             if (n >= 70) return (
-              <div role="note" style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', color: '#78350f' }}>
+              <div role="note" className="age-warning">
                 <strong>Age 70+:</strong> AUA/SUO 2026 (Statement 7) requires shared decision-making — screening benefit depends on life expectancy, PSA level, and personal values. Discuss with your physician whether to continue or stop screening.
               </div>
             );

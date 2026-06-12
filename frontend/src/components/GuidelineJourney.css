@@ -230,4 +230,5 @@
   .gj-step__icon-wrap { width: 30px; height: 30px; }
   .gj-step__label { font-size: 0.6875rem; }
   .gj-step__sublabel { font-size: 0.625rem; }
+  .gj-connector { margin-top: 12px; }
 }

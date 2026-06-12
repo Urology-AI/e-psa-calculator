@@ -11,6 +11,11 @@
   border-top: 1px solid rgba(0,0,0,0.07);
 }
 
+@media (max-width: 540px) {
+  .p2r-key-inputs { flex-direction: column; gap: 0.5rem; }
+  .p2r-key-input { min-width: 100%; }
+}
+
 .p2r-key-input {
   flex: 1;
   min-width: 7rem;

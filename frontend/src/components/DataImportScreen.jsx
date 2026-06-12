@@ -121,7 +121,7 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
                 {loadingSession ? t('dataImport.loading') : t('dataImport.load')}
               </button>
             </div>
-            {error && <div className="import-error">{error}</div>}
+            {error && !importing && <div className="import-error">{error}</div>}
           </form>
         </div>
         )}

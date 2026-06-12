@@ -50,7 +50,8 @@
 }
 
 .uf-zip-input {
-  width: 130px;
+  max-width: 130px;
+  width: 100%;
   padding: 9px 12px;
   border: 1.5px solid var(--ink-300, #aac4dc);
   border-radius: 8px;
@@ -366,6 +367,10 @@
   white-space: pre-wrap;
   font-family: inherit;
   margin: 0 0 10px;
+  overflow-x: auto;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ── Show more / AUA CTA ── */

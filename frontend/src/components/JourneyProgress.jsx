@@ -10,7 +10,7 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
   if (pathwayMode === null && !preResult) {
     activeIdx = 0;
   } else if (stage === 'pre') {
-    activeIdx = currentStep === 3 ? 2 : 1;
+    activeIdx = currentStep >= 3 ? 2 : currentStep <= 1 ? 1 : 1;
   } else {
     activeIdx = currentStep <= 2 ? 3 : 4;
   }

@@ -655,6 +655,11 @@
   gap: 0.625rem;
 }
 
+.collapsible-toggle:focus-visible {
+  outline: 2px solid var(--ms-cyan);
+  outline-offset: 2px;
+}
+
 .collapsible-toggle:hover {
   background: #f5f9ff;
 }

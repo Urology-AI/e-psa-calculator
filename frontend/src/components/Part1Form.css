@@ -348,7 +348,8 @@
 
 .input-field:focus {
   border-color: var(--brand-600);
-  box-shadow: 0 0 0 0.1875rem rgba(31, 110, 163, 0.15);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.18);
 }
 
 .input-sm { width: 4.25rem; text-align: center; }
@@ -485,6 +486,29 @@
 
   .question-body { margin-left: 0; margin-top: 0.25rem; }
   .question-header { flex-direction: row; }
+}
+
+@media (max-width: 380px) {
+  .option-grid.c2,
+  .option-grid.c3,
+  .option-grid.c4 { grid-template-columns: 1fr; }
+}
+
+/* ─── Age warning notes ─── */
+.age-warning {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  color: #78350f;
+  line-height: 1.5;
+}
+.theme-dark .age-warning {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(251, 191, 36, 0.35);
+  color: #fcd34d;
 }
 
 /* ─── Dark mode overrides ─── */
@@ -1066,8 +1090,8 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .mode-toggle-btn--active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: var(--ms-cyan);
+  border-color: var(--ms-cyan);
   color: #fff;
 }
 .theme-dark .mode-toggle-btn {
@@ -1075,7 +1099,7 @@
   border-color: rgba(255,255,255,0.15);
 }
 .theme-dark .mode-toggle-btn--active {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--ms-cyan);
+  border-color: var(--ms-cyan);
   color: #fff;
 }
