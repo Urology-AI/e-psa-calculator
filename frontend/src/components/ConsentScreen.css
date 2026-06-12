@@ -52,7 +52,7 @@
 
 .consent-reasons li {
   padding: 0.5rem 0;
-  color: #555;
+  color: var(--ink-600);
   font-size: 0.95rem;
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@
 
 .question-text {
   font-size: 1.1rem;
-  color: #333;
+  color: var(--ink-900);
   margin: 0;
 }
 

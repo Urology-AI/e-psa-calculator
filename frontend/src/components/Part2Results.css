@@ -177,9 +177,9 @@
 .p2r-alert-body { margin: 0; font-size: 0.8125rem; line-height: 1.5; }
 
 .theme-dark .p2r-alert--warning {
-  background: rgba(217,119,6,0.1);
-  border-color: rgba(217,119,6,0.6);
-  color: var(--gold-400);
+  background: rgba(217,119,6,0.18);
+  border-color: rgba(217,119,6,0.75);
+  color: var(--gold-100);
 }
 
 /* ─── Cloud row ─── */
@@ -1037,36 +1037,36 @@
 }
 
 .theme-dark .p2r-notices {
-  background: rgba(217, 119, 6, 0.1);
-  border-color: rgba(217, 119, 6, 0.35);
-  border-left-color: rgba(217, 119, 6, 0.6);
-  color: var(--warning-600);
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.45);
+  border-left-color: rgba(217, 119, 6, 0.75);
+  color: #fef3c7;
 }
 
 .theme-dark .p2r-notices-title {
-  color: var(--gold-400);
+  color: #fde68a;
 }
 
 .theme-dark .p2r-notice-item {
-  background: rgba(0, 0, 0, 0.15);
-  border-color: rgba(217, 119, 6, 0.25);
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(217, 119, 6, 0.35);
 }
 
 .theme-dark .p2r-notice-toggle {
-  color: var(--gold-400);
+  color: #fde68a;
 }
 
 .theme-dark .p2r-notice-toggle:hover {
-  background: rgba(217, 119, 6, 0.12);
+  background: rgba(217, 119, 6, 0.2);
 }
 
 .theme-dark .p2r-notice-toggle svg {
-  color: var(--gold-400);
+  color: #fde68a;
 }
 
 .theme-dark .p2r-notice-body {
-  border-top-color: rgba(217, 119, 6, 0.2);
-  color: var(--gold-100);
+  border-top-color: rgba(217, 119, 6, 0.3);
+  color: #fef3c7;
 }
 
 

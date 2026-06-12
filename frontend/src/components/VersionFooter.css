@@ -43,21 +43,21 @@
   .version-footer {
     background: rgba(255, 255, 255, 0.03);
     border-top-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.75);
   }
-  .version-footer__brand { color: rgba(255, 255, 255, 0.85); }
-  .version-footer__guidelines { color: rgba(255, 255, 255, 0.72); }
-  .version-footer__sep { color: rgba(255, 255, 255, 0.2); }
+  .version-footer__brand { color: rgba(255, 255, 255, 0.9); }
+  .version-footer__guidelines { color: rgba(255, 255, 255, 0.8); }
+  .version-footer__sep { color: rgba(255, 255, 255, 0.4); }
 }
 
 .theme-dark .version-footer {
   background: rgba(255, 255, 255, 0.03);
   border-top-color: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.75);
 }
-.theme-dark .version-footer__brand { color: rgba(255, 255, 255, 0.85); }
-.theme-dark .version-footer__guidelines { color: rgba(255, 255, 255, 0.72); }
-.theme-dark .version-footer__sep { color: rgba(255, 255, 255, 0.2); }
+.theme-dark .version-footer__brand { color: rgba(255, 255, 255, 0.9); }
+.theme-dark .version-footer__guidelines { color: rgba(255, 255, 255, 0.8); }
+.theme-dark .version-footer__sep { color: rgba(255, 255, 255, 0.4); }
 
 @media print {
   .version-footer {
