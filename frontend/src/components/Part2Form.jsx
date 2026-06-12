@@ -5,18 +5,26 @@ import { useTranslation } from 'react-i18next';
 import InfoIcon from './InfoIcon';
 import { fieldReferences } from '../utils/fieldReferences';
 
-const PSA_CONTEXT = [
-  { max: 2.5,  label: 'Below typical threshold', cls: 'psa-ctx--green',  note: 'PSA below 2.5 ng/mL is generally considered reassuring for most age groups.' },
-  { max: 4.0,  label: 'Low-normal range',         cls: 'psa-ctx--teal',   note: 'PSA 2.5–4.0 ng/mL sits at the lower edge of the guideline threshold. Context from your profile matters.' },
-  { max: 10.0, label: 'Gray zone',                cls: 'psa-ctx--amber',  note: 'PSA 4–10 ng/mL is the "gray zone." AUA/NCCN often recommend further evaluation at this level.' },
-  { max: 20.0, label: 'Elevated',                 cls: 'psa-ctx--orange', note: 'PSA > 10 ng/mL is considered elevated. Your urologist will evaluate further, often with MRI or biopsy.' },
-  { max: Infinity, label: 'Significantly elevated', cls: 'psa-ctx--red', note: 'PSA > 20 ng/mL warrants prompt urological evaluation.' },
-];
+// Age-adjusted PSA thresholds per AUA/SUO 2026 EDPC (p.11):
+// ~2.5 ng/mL (40s), ~3.5 ng/mL (50s), ~4.5 ng/mL (60s), ~6.5 ng/mL (70s+)
+const getAgeAdjustedThreshold = (age) => {
+  const a = Number(age) || 0;
+  if (a < 50) return { threshold: 2.5, band: '40s' };
+  if (a < 60) return { threshold: 3.5, band: '50s' };
+  if (a < 70) return { threshold: 4.5, band: '60s' };
+  return { threshold: 6.5, band: '70s+' };
+};
 
-const getPsaContext = (psa) => {
+const getPsaContext = (psa, age) => {
   const v = parseFloat(psa);
   if (!isFinite(v) || v <= 0) return null;
-  return PSA_CONTEXT.find(c => v < c.max) || PSA_CONTEXT[PSA_CONTEXT.length - 1];
+  const { threshold, band } = getAgeAdjustedThreshold(age);
+  const doubleThreshold = threshold * 2;
+  if (v < threshold * 0.625)   return { label: 'Below age-adjusted threshold', cls: 'psa-ctx--green',  note: `PSA below ${(threshold * 0.625).toFixed(1)} ng/mL is reassuring for your age group (${band}). Age-adjusted norm per AUA/SUO 2026: ~${threshold} ng/mL.` };
+  if (v < threshold)           return { label: 'Low-normal range',              cls: 'psa-ctx--teal',  note: `PSA ${(threshold * 0.625).toFixed(1)}–${threshold} ng/mL is within the lower range for your age group (${band}). AUA/SUO 2026 age-adjusted threshold: ~${threshold} ng/mL.` };
+  if (v < threshold * 2)       return { label: 'Gray zone — above age-adjusted threshold', cls: 'psa-ctx--amber', note: `PSA above ${threshold} ng/mL for your age group (${band}) is in the gray zone per AUA/SUO 2026. A confirmatory repeat PSA is recommended before any further workup.` };
+  if (v < threshold * 4.5)     return { label: 'Elevated',                      cls: 'psa-ctx--orange', note: `PSA above ${doubleThreshold} ng/mL for your age group (${band}) is considered elevated. Your urologist will likely recommend further evaluation.` };
+  return { label: 'Significantly elevated', cls: 'psa-ctx--red', note: `PSA at this level for your age warrants prompt urological evaluation.` };
 };
 
 const PIRADS_OPTIONS = [
@@ -39,6 +47,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
   const [localData, setLocalData] = useState({
     knowPsa: hasPsaPathway ? true : (formData.knowPsa || false),
+    psaConfirmed: formData.psaConfirmed || null,
     psa: formData.psa || '',
     prostateVolume: formData.prostateVolume || '',
     onHormonalTherapy: formData.onHormonalTherapy || false,
@@ -74,8 +83,9 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
         setLocalData(prev => ({ ...prev, [field]: '' }));
         return;
       }
+      // Allow partial typing — only reject clearly out-of-range complete values
       const volNum = parseFloat(value);
-      if (!Number.isNaN(volNum) && volNum >= 5 && volNum <= 200) {
+      if (Number.isNaN(volNum) || volNum <= 200) {
         setLocalData(prev => ({ ...prev, [field]: value }));
       }
       return;
@@ -177,7 +187,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
 
               {/* PSA contextual feedback */}
               {(() => {
-                const ctx = getPsaContext(localData.psa);
+                const ctx = getPsaContext(localData.psa, preResult?.age);
                 if (!ctx) return null;
                 const psaNum = parseFloat(localData.psa);
                 if (psaNum < 0.1 || psaNum > 100) return null;
@@ -185,6 +195,41 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, currentSt
                   <div className={`psa-ctx ${ctx.cls}`} role="status" aria-live="polite">
                     <span className="psa-ctx-label">{ctx.label}</span>
                     <span className="psa-ctx-note">{ctx.note}</span>
+                  </div>
+                );
+              })()}
+
+              {/* Confirmatory PSA — AUA/SUO 2026 Statement 3 (Expert Opinion) */}
+              {(() => {
+                const psaNum = parseFloat(localData.psa);
+                const { threshold } = getAgeAdjustedThreshold(preResult?.age);
+                if (!isFinite(psaNum) || psaNum < threshold) return null;
+                return (
+                  <div style={{ marginTop: '12px', background: '#fffbeb', border: '0.5px solid #fcd34d', borderLeft: '3px solid #d97706', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
+                    <strong>Has this PSA been confirmed with a second test?</strong>
+                    <p style={{ margin: '4px 0 8px' }}>AUA/SUO 2026 Statement 3 (Expert Opinion): for a newly elevated PSA, clinicians should repeat the test before proceeding to imaging, secondary biomarkers, or biopsy. PSA can normalise in 25–40% of cases on retesting.</p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {['yes', 'no', 'unknown'].map(v => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => updateField('psaConfirmed', v)}
+                          style={{
+                            padding: '5px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid',
+                            background: localData.psaConfirmed === v ? '#d97706' : 'transparent',
+                            color: localData.psaConfirmed === v ? '#fff' : '#92400e',
+                            borderColor: localData.psaConfirmed === v ? '#d97706' : '#fcd34d',
+                          }}
+                        >
+                          {v === 'yes' ? 'Yes, confirmed' : v === 'no' ? 'No, this is my first result' : 'Not sure'}
+                        </button>
+                      ))}
+                    </div>
+                    {localData.psaConfirmed === 'no' && (
+                      <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#92400e', fontStyle: 'italic' }}>
+                        Consider asking your clinician to repeat the PSA before any further workup. Proceed here to understand your risk profile, but discuss timing of next steps with your doctor.
+                      </p>
+                    )}
                   </div>
                 );
               })()}

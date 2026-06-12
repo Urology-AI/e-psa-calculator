@@ -59,9 +59,10 @@ const PATHWAYS = [
     mode: 'post_biopsy',
     Icon: BiopsyIcon,
     headline: "I've had a biopsy",
-    body: 'You have biopsy results in hand. Find out whether active surveillance or treatment is more appropriate for your profile.',
-    button: 'Evaluate My Results',
+    body: 'You have biopsy results in hand. The Active Surveillance decision tool will help determine whether monitoring or treatment is appropriate. Opens in a new tab.',
+    button: 'Open Active Surveillance Tool ↗',
     accentClass: 'pathway-card--biopsy',
+    isExternal: true,
   },
 ];
 
@@ -76,7 +77,7 @@ const PathwaySelector = ({ onSelect }) => (
       </p>
     </div>
     <div className="pathway-cards" role="list">
-      {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass }) => (
+      {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass, isExternal }) => (
         <div
           key={mode}
           className={`pathway-card ${accentClass}`}
@@ -87,8 +88,20 @@ const PathwaySelector = ({ onSelect }) => (
           <div className="pathway-card-icon-wrap" aria-hidden="true">
             <Icon />
           </div>
-          <h3 className="pathway-card-headline">{headline}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <h3 className="pathway-card-headline" style={{ margin: 0 }}>{headline}</h3>
+            {isExternal && (
+              <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', color: 'inherit', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                EXTERNAL TOOL
+              </span>
+            )}
+          </div>
           <p className="pathway-card-body">{body}</p>
+          {isExternal && (
+            <div style={{ fontSize: '11px', color: 'inherit', opacity: 0.75, marginBottom: '8px', lineHeight: 1.5 }}>
+              Per AUA/SUO 2026 (Statements 19–32): after a negative biopsy, screening should not be discontinued; continue at 2–4 year intervals and consider repeat biopsy based on risk reassessment.
+            </div>
+          )}
           <button
             type="button"
             className="pathway-card-btn"

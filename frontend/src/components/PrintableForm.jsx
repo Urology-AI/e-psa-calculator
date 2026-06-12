@@ -329,9 +329,12 @@ const PrintableForm = ({ onBack, formData }) => {
           <div className="form-field-inline">
             <label className="field-label-inline">
               <span className="field-number">5.</span> {t('part1.fields.brcaStatus.title')} <span className="pf-guideline-badge">{t('part1.guideline.badge')}</span>:
-              <label className="checkbox-inline"><input type="radio" name="brca" value="yes" defaultChecked={isChecked('brcaStatus', 'yes')} /> {t('part1.options.yes')}</label>
-              <label className="checkbox-inline"><input type="radio" name="brca" value="no" defaultChecked={isChecked('brcaStatus', 'no')} /> {t('part1.options.no')}</label>
-              <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" defaultChecked={isChecked('brcaStatus', 'unknown')} /> {t('part1.options.unknown')}</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="yes" defaultChecked={isChecked('brcaStatus', 'yes')} /> BRCA1/2</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="lynch" defaultChecked={isChecked('brcaStatus', 'lynch')} /> Lynch syndrome</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="other_elevated" defaultChecked={isChecked('brcaStatus', 'other_elevated')} /> ATM/CHEK2/HOXB13/NBS1</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="other_unknown" defaultChecked={isChecked('brcaStatus', 'other_unknown')} /> Other/unknown variant</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="no" defaultChecked={isChecked('brcaStatus', 'no')} /> Tested negative</label>
+              <label className="checkbox-inline"><input type="radio" name="brca" value="unknown" defaultChecked={isChecked('brcaStatus', 'unknown')} /> Never tested</label>
             </label>
           </div>
         </div>
