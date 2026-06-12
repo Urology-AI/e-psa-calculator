@@ -133,7 +133,7 @@ export const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => 
           }}
         >
           {Object.entries(GUIDELINE_LABELS).map(([k, label]) => (
-            <span key={k} style={{ display: 'block', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span key={k} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               {support[k]
                 ? <CheckIcon size={11} color="#4ade80" aria-hidden="true" />
                 : <span style={{ color: '#9ca3af', fontWeight: 700, fontSize: '11px' }}>—</span>}
