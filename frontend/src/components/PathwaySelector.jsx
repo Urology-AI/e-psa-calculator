@@ -83,6 +83,8 @@ const PathwaySelector = ({ onSelect }) => (
           className={`pathway-card ${accentClass}`}
           role="listitem"
           onClick={() => onSelect(mode)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(mode); } }}
+          tabIndex={0}
           style={{ cursor: 'pointer' }}
         >
           <div className="pathway-card-icon-wrap" aria-hidden="true">
@@ -108,6 +110,7 @@ const PathwaySelector = ({ onSelect }) => (
             onClick={(e) => { e.stopPropagation(); onSelect(mode); }}
             aria-label={`${button} — ${headline}`}
             tabIndex={-1}
+            aria-hidden="true"
           >
             {button}
           </button>

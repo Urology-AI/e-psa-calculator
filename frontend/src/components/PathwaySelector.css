@@ -62,9 +62,15 @@
   cursor: default;
 }
 
-.pathway-card:hover {
+.pathway-card:hover,
+.pathway-card:focus-visible {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md, 0 6px 18px rgba(30, 58, 95, 0.13));
+  outline: none;
+}
+
+.pathway-card:focus-visible {
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--ms-cyan);
 }
 
 .pathway-card--pre:hover     { border-color: var(--ms-cyan); }

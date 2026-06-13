@@ -1,5 +1,5 @@
 .global-back-btn {
-  background: white;
+  background: var(--surface, #fff);
   color: var(--ms-navy);
   border: 0.125rem solid var(--ms-navy);
   border-radius: 0.5rem;

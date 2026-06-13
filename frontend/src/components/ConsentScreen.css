@@ -52,7 +52,7 @@
 
 .consent-reasons li {
   padding: 0.5rem 0;
-  color: #555;
+  color: var(--ink-600);
   font-size: 0.95rem;
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@
 
 .question-text {
   font-size: 1.1rem;
-  color: #333;
+  color: var(--ink-900);
   margin: 0;
 }
 
@@ -123,8 +123,8 @@
 }
 
 .consent-disclaimer {
-  background: #fff3cd;
-  border-left: 0.25rem solid var(--ms-navy);
+  background: var(--warning-50);
+  border-left: 0.25rem solid var(--warning-600);
   padding: 1rem;
   border-radius: 0.375rem;
   font-size: 0.9rem;

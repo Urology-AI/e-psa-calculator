@@ -60,7 +60,7 @@
 
 .ws-brand-tagline {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
   margin-top: 0.2rem;
   letter-spacing: 0.01em;
@@ -377,7 +377,7 @@
   border-top-color: var(--line-200);
 }
 
-.theme-dark .ws-hero-title { color: var(--ms-cyan); }
+.theme-dark .ws-hero-title { color: #e1f5fe; }
 .theme-dark .ws-hero-body { color: var(--ink-500); }
 
 .theme-dark .ws-btn-primary {

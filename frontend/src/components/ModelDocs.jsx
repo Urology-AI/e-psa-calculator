@@ -11,6 +11,12 @@ import ValidationStudyModal from './ValidationStudyModal';
 const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const { t } = useTranslation();
   const [showValidationStudy, setShowValidationStudy] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
   const part1 = config?.part1 || DEFAULT_CALCULATOR_CONFIG.part1;
   const riskCutoffs = part1?.riskCutoffs || { lower: { threshold: 0.23 }, moderate: { threshold: 0.39 }, higher: { threshold: 1.0 } };
   const recommendThreshold = part1?.recommendThreshold ?? 0.09;
