@@ -729,13 +729,6 @@ const Part1Results = ({
 
       <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 1 · ePSA Baseline" />
 
-      {/* ── Top bar ── */}
-      <div className="results-top-links-row">
-        <a className="results-mobile-unit-pill" href="https://events.mountsinaihealth.org/search/events?event_types%5B%5D=37714143563487" target="_blank" rel="noopener noreferrer" aria-label="Find a screening event near you">
-          <MapPinIcon size={15} /><span>{t('part1Results.upcomingScreeningEvents')}</span>
-        </a>
-      </div>
-
       {/* ── Cloud row ── */}
       {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
         <div className="results-cloud-row">
@@ -765,11 +758,6 @@ const Part1Results = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* ── Research Participation ID (from main) ── */}
-      {sessionId && sessionId !== 'Local' && (
-        <ResearchIdCard sessionId={sessionId} />
       )}
 
       {/* ── Guardrail Alerts ── */}
@@ -900,7 +888,7 @@ const Part1Results = ({
           role="complementary"
           aria-label="Add PSA result"
         >
-          <div>
+          <div className="psa-cta-banner__text">
             <p className="psa-cta-banner__title">
               {t('part1Results.psaCtaTitle')}
             </p>
