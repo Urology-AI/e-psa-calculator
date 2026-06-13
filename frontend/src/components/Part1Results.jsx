@@ -814,12 +814,9 @@ const Part1Results = ({
       )}
 
       {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px', fontWeight: 600 }}>
-          <CheckCircle2Icon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-          This tool supports shared decision-making — it does not replace your clinician.
-        </div>
-        <p style={{ margin: 0 }}>AUA/SUO 2026 (Statement 1) requires all prostate cancer screening decisions to involve: <strong>(1)</strong> both patient and clinician, <strong>(2)</strong> sharing of information, <strong>(3)</strong> building consensus on preferences, and <strong>(4)</strong> mutual agreement on the action. Use these results as a starting point for that conversation.</p>
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+          <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
       </div>
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
@@ -921,37 +918,26 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Guideline-Recommended Next Step Card (AUA/SUO 2026 Stmts 4–6) ── */}
+      {/* ── Guideline-Recommended Next Step (compact strip) ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (() => {
         const ageNum = Number(age) || 0;
         const isElevatedRisk = isHighRiskFlagged ||
           formData?.race === 'black' || formData?.race === 'african-american' ||
           Number(formData?.familyHistory) > 0 || ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
-        const startAge = isElevatedRisk ? 'age 40' : 'age 45';
         const startAgeNum = isElevatedRisk ? 40 : 45;
         const alreadyStarted = ageNum >= startAgeNum;
         const inScreeningRange = ageNum >= 50 && ageNum <= 69;
+        const nextStep = !alreadyStarted
+          ? `Start PSA screening at age ${isElevatedRisk ? '40' : '45'} (AUA/SUO Stmt ${isElevatedRisk ? '5' : '2'})`
+          : ageNum < 50
+            ? `You are in the early-screening window — discuss with your clinician (AUA/SUO Stmt ${isElevatedRisk ? '5' : '4'})`
+            : inScreeningRange
+              ? 'Re-screen every 2–4 years while aged 50–69 (AUA/SUO Stmt 6)'
+              : 'Age 70+: shared decision-making required — discuss with your clinician (AUA/SUO Stmt 7)';
         return (
-          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#1e3a8a', lineHeight: 1.6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px', fontWeight: 600, fontSize: '14px' }}>
-              <AlertCircleIcon size={15} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
-              Your guideline-recommended next step (AUA/SUO 2026)
-            </div>
-            <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 2 }}>
-              {!alreadyStarted && (
-                <li><strong>Start PSA screening at {startAge}</strong> — {isElevatedRisk ? 'you have risk factors that qualify for earlier screening (Black ancestry, germline mutation, or strong family history)' : 'recommended for average-risk individuals'} (Statement{isElevatedRisk ? ' 5' : ' 2'} — Strong Recommendation; Grade A).</li>
-              )}
-              {alreadyStarted && !inScreeningRange && ageNum < 50 && (
-                <li><strong>You are in the early-screening window.</strong> Discuss PSA with your clinician now if you haven&apos;t already (Statement {isElevatedRisk ? '5' : '4'}).</li>
-              )}
-              {inScreeningRange && (
-                <li><strong>Re-screen every 2–4 years</strong> while aged 50–69 (Statement 6 — Strong Recommendation; Grade A).</li>
-              )}
-              {ageNum >= 70 && (
-                <li><strong>Age 70+: shared decision-making required.</strong> Discuss life expectancy, PSA level, and personal values with your clinician before deciding to continue or stop screening (Statement 7).</li>
-              )}
-              <li>PSA is the recommended first-line screening test (Statement 2 — Strong Recommendation; Grade A).</li>
-            </ul>
+          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <AlertCircleIcon size={14} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
+            <span><strong>Guideline next step:</strong> {nextStep}</span>
           </div>
         );
       })()}
@@ -962,7 +948,7 @@ const Part1Results = ({
         <CollapsibleSection
           id="screening-guidelines"
           title={t('part1Results.sectionScreeningGuidelines')}
-          defaultOpen={true}
+          defaultOpen={false}
           highlight={screeningGuidelineAutoOpen}
         >
           {(() => {
@@ -1002,7 +988,7 @@ const Part1Results = ({
           };
           return (
           <div ref={breakdownRef}>
-            <CollapsibleSection title={t('part1Results.sectionWhatDroveScore')} defaultOpen={true}>
+            <CollapsibleSection title={t('part1Results.sectionWhatDroveScore')} defaultOpen={false}>
               <p>{t('part1Results.scoreIntro')}</p>
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
                 {t('part1Results.factorBadgeExplanation.before')} <FactorSourceBadge itemName="Age" /> {t('part1Results.factorBadgeExplanation.middle')} <FactorSourceBadge itemName="Exercise" /> {t('part1Results.factorBadgeExplanation.after')}
@@ -1147,7 +1133,7 @@ const Part1Results = ({
       )}
 
       {/* ── Disclaimer (below buttons) ── */}
-      <CollapsibleSection title={t('part1Results.sectionDisclaimer')} defaultOpen={true}>
+      <CollapsibleSection title={t('part1Results.sectionDisclaimer')} defaultOpen={false}>
         <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
         <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
         <div className="detail-notice-box" style={{ borderLeft: '3px solid #d97706', background: '#fffbeb', marginBottom: '0.75rem' }}>

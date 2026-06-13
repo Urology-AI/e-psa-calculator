@@ -515,13 +515,10 @@ const Part2Results = ({
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
-      {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px', fontWeight: 600 }}>
-          <UsersIcon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-          This tool supports shared decision-making — it does not replace your clinician.
-        </div>
-        <p style={{ margin: 0 }}>AUA/SUO 2026 (Statement 1) requires all prostate cancer screening decisions to involve: <strong>(1)</strong> both patient and clinician, <strong>(2)</strong> sharing of information by both parties, <strong>(3)</strong> building consensus on preferences, and <strong>(4)</strong> mutual agreement on the chosen action. Use these results as a starting point for that conversation.</p>
+      {/* ── Shared Decision-Making Framing (compact strip) ── */}
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '7px' }}>
+        <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
       </div>
 
       {/* ── Risk Summary Card ── */}
@@ -688,16 +685,16 @@ const Part2Results = ({
       )}
 
       {/* ── PSA Velocity Guardrail (AUA/SUO 2026 Statement 9) ── */}
-      <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#1e3a8a', lineHeight: 1.55 }}>
-        <AlertCircleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#2563eb' }} />
-        <span><strong>PSA velocity alone is not a guideline indication for biopsy.</strong> AUA/SUO 2026 (Statement 9 — Strong Recommendation; Grade B): a rising PSA trend should not by itself trigger imaging or biopsy. Always consider the full clinical picture.</span>
+      <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a' }}>
+        <AlertCircleIcon size={14} aria-hidden="true" style={{ flexShrink: 0, color: '#2563eb' }} />
+        <span><strong>PSA velocity alone</strong> is not a guideline indication for biopsy (AUA/SUO Stmt 9). Always consider the full clinical picture.</span>
       </div>
 
       {/* ── Screening discontinuation signal for low-PSA 70+ patients (AUA/SUO 2026 Stmt 7) ── */}
       {isAge70Plus && parseFloat(psaValue) < 3.0 && (
-        <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#14532d', lineHeight: 1.55 }}>
-          <CheckCircle2Icon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#16a34a' }} />
-          <span><strong>Possible discontinuation candidate.</strong> AUA/SUO 2026 (Statement 7): for patients aged 70–74 with PSA &lt;3 ng/mL, discontinuing or significantly lengthening the re-screening interval is reasonable following SDM. ERSPC Rotterdam data: prostate cancer-specific mortality by age 85 is only 0.11% for PSA &lt;2 ng/mL and 0.85% for PSA 2–3 ng/mL. Discuss with your physician whether continued screening offers a net benefit for you.</span>
+        <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#14532d' }}>
+          <CheckCircle2Icon size={14} aria-hidden="true" style={{ flexShrink: 0, color: '#16a34a' }} />
+          <span><strong>Possible discontinuation candidate</strong> (AUA/SUO Stmt 7): PSA &lt;3 at age 70+ — discuss with your clinician whether continued screening offers a net benefit.</span>
         </div>
       )}
 
@@ -830,7 +827,7 @@ const Part2Results = ({
       {/* ── Expandable Sections ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '460ms' }}>
 
-        <CollapsibleSection title="AUA/SUO 2026 Guideline — PSA Pathway & Next Steps" defaultOpen>
+        <CollapsibleSection title="AUA/SUO 2026 Guideline — PSA Pathway & Next Steps" defaultOpen={false}>
           {(() => {
             const ageForChart = preResult?.age ?? preData?.age;
             const isBlack = preData?.race === 'black' || preData?.race === 'african-american';
@@ -1036,7 +1033,7 @@ const Part2Results = ({
       )}
 
       {/* ── Disclaimer (below buttons) ── */}
-      <CollapsibleSection title="Important Disclaimer" defaultOpen={true}>
+      <CollapsibleSection title="Important Disclaimer" defaultOpen={false}>
         <p className="detail-notice-box--amber detail-disclaimer">
           <strong>When ePSA and the guideline disagree, the guideline wins.</strong> ePSA is a supportive tool — your doctor and the published AUA/SUO, NCCN, and EAU guidance should drive the decision. Always discuss this result with your GP or urologist before acting on it.
         </p>
