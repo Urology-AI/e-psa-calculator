@@ -22,7 +22,7 @@ const STAGES = [
   {
     num: 3,
     label: 'MRI Added (Part 2 — MRI pathway)',
-    desc: 'Part 1 + PSA (adjusted) + PI-RADS score; logistic regression targeting GG3+ high-grade cancer',
+    desc: 'Part 1 + PSA (adjusted) + PI-RADS score; logistic regression targeting GG≥2 clinically significant prostate cancer (updated N=96, 2026-06-02)',
     model: 'Model 3',
     color: '#dc2626',
   },
@@ -450,7 +450,7 @@ const ModelDocumentation = ({ scope = 'part1', pathwayMode = null }) => {
       <div className="md-provenance">
         <strong>Data provenance:</strong> Models 1 &amp; 2 trained and validated on N=94
         biopsied referral patients (Mount Sinai / Icahn School of Medicine ePSA cohort; 23 csPCa
-        events, GG≥2). Model 3 trained on N=83 complete cases from the same cohort (subset with
+        events, GG≥3). Model 3 trained on N=83 complete cases from the same cohort (subset with
         PI-RADS + final pathology; 20 GG3+ events). <strong>All models are internally validated
         only — no external cohort has been used.</strong> AUCs are bootstrap 95% CIs unless noted.
         Model 4 is a separate logistic regression validated in the same cohort for post-biopsy
