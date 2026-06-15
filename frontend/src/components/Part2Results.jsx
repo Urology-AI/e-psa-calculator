@@ -18,11 +18,13 @@ import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
+import { generateResultsLetterPdf, generateSdmWorksheetPdf } from '../utils/generateClinicalPdfs';
 import {
   ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
   MapPinIcon, PillIcon, UsersIcon, UserIcon, XIcon, CheckIcon, CircleIcon,
+  ClipboardListIcon, LetterTextIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -194,6 +196,7 @@ const Part2Results = ({
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   const [confirmStartOver, setConfirmStartOver] = useState(false);
   const [exportError, setExportError] = useState(null);
+  const [pdfGenerating, setPdfGenerating] = useState(null); // 'letter' | 'sdm' | null
   // Hook must be before early returns — animates the PSA value on reveal
   const rawPsaForAnim = parseFloat(result?.psaValue) || 0;
   const psaDecimals = String(result?.psaValue || '').includes('.') ? String(result?.psaValue || '').split('.')[1].length : 1;
@@ -1021,6 +1024,32 @@ const Part2Results = ({
         <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>Print Results</span></button>
           <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>Printable Form</span></button>
+          <button
+            className="btn-results btn-results--outline"
+            disabled={pdfGenerating === 'letter'}
+            onClick={async () => {
+              setPdfGenerating('letter');
+              try { await generateResultsLetterPdf(preResult, result, preData, postData); }
+              catch { setExportError('PDF generation failed. Please try again.'); }
+              finally { setPdfGenerating(null); }
+            }}
+          >
+            <DownloadIcon size={16} />
+            <span>{pdfGenerating === 'letter' ? 'Generating…' : 'Clinical Letter PDF'}</span>
+          </button>
+          <button
+            className="btn-results btn-results--outline"
+            disabled={pdfGenerating === 'sdm'}
+            onClick={async () => {
+              setPdfGenerating('sdm');
+              try { await generateSdmWorksheetPdf(preResult, preData, result); }
+              catch { setExportError('PDF generation failed. Please try again.'); }
+              finally { setPdfGenerating(null); }
+            }}
+          >
+            <DownloadIcon size={16} />
+            <span>{pdfGenerating === 'sdm' ? 'Generating…' : 'SDM Worksheet PDF'}</span>
+          </button>
           {(storageMode === 'local' || storageMode === 'cloud') && (
             <>
               <button className="btn-results btn-results--outline" onClick={() => {
