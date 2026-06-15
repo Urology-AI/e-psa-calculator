@@ -581,7 +581,7 @@ const Part2Results = ({
                 </div>
               </div>
             )}
-            {parseFloat(psaValue) >= auaAgeThreshold && (
+            {parseFloat(psaAdjusted ?? psaValue) >= auaAgeThreshold && (
               <div style={{ marginTop: '4px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
                 A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
               </div>

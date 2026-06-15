@@ -662,16 +662,21 @@ function App() {
   const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score, engineVersion, modelVersion) => {
     if (!db) return;
     setCloudSyncStatus('saving');
-    await updateDoc(doc(db, 'sessions', sessionDocId), {
-      status: 'STEP2_COMPLETE',
-      step2: step2Data,
-      finalCategory: riskCat,
-      finalScore: score,
-      engineVersion: engineVersion ?? '1.0.0',
-      ...(modelVersion != null && { modelVersion }),
-      updatedAt: serverTimestamp(),
-    });
-    setCloudSyncStatus('saved');
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        status: 'STEP2_COMPLETE',
+        step2: step2Data,
+        finalCategory: riskCat,
+        finalScore: score,
+        engineVersion: engineVersion || '1.0.0',
+        ...(modelVersion ? { modelVersion } : {}),
+        updatedAt: serverTimestamp(),
+      });
+      setCloudSyncStatus('saved');
+    } catch (err) {
+      setCloudSyncStatus('error');
+      throw err;
+    }
   };
 
   const removeSession = async (uid, sessionDocId) => {

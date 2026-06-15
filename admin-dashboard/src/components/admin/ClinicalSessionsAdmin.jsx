@@ -41,7 +41,7 @@ function StatusChip({ status }) {
 
 const BIOPSY_INITIAL = { performed: '', cancerDetected: '', ggGroup: '', biopsyDate: '' };
 
-function SessionRow({ session }) {
+function SessionRow({ session, onSave }) {
   const [open, setOpen] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
@@ -74,8 +74,34 @@ function SessionRow({ session }) {
     }
   }
 
+  function openBiopsyForm() {
+    // Pre-populate from existing outcome so "Update biopsy" never overwrites good data with nulls
+    if (existingBiopsy) {
+      setBiopsy({
+        performed:      existingBiopsy.performed === true ? 'yes' : existingBiopsy.performed === false ? 'no' : '',
+        cancerDetected: existingBiopsy.cancerDetected === true ? 'yes' : existingBiopsy.cancerDetected === false ? 'no' : '',
+        ggGroup:        existingBiopsy.ggGroup != null ? String(existingBiopsy.ggGroup) : '',
+        biopsyDate:     existingBiopsy.biopsyDate ?? '',
+      });
+    } else {
+      setBiopsy(BIOPSY_INITIAL);
+    }
+    setBiopsySaved(false);
+    setBiopsyError(null);
+    setBiopsyOpen(true);
+  }
+
+  function cancelBiopsyForm() {
+    setBiopsy(BIOPSY_INITIAL);
+    setBiopsyOpen(false);
+  }
+
   async function saveBiopsyOutcome() {
     if (!session.id) return;
+    if (!session._firestorePath) {
+      setBiopsyError('Cannot save: session path is missing. Please refresh the list.');
+      return;
+    }
     setBiopsySaving(true);
     setBiopsyError(null);
     try {
@@ -87,16 +113,13 @@ function SessionRow({ session }) {
         recordedAt:     serverTimestamp(),
         recordedBy:     'admin',
       };
-      // clinicalSessions/{uid}/records/{id} — need the parent uid from the doc path
-      // session.id is the record id; _parentUid may be available, fall back to collectionGroup ref
-      const refPath = session._firestorePath
-        ?? `clinicalSessions/${session._parentUid ?? 'unknown'}/records/${session.id}`;
-      await updateDoc(doc(adminDb, refPath), {
+      await updateDoc(doc(adminDb, session._firestorePath), {
         biopsyOutcome: outcome,
         updatedAt: serverTimestamp(),
       });
       setBiopsySaved(true);
       setBiopsyOpen(false);
+      onSave?.();   // refresh parent list so detail table reflects new outcome immediately
     } catch (e) {
       setBiopsyError(e.message ?? 'Save failed');
     } finally {
@@ -151,7 +174,7 @@ function SessionRow({ session }) {
             <button
               type="button"
               className={`csa-act-btn${biopsySaved ? ' csa-act-btn--ok' : ''}`}
-              onClick={() => setBiopsyOpen(v => !v)}
+              onClick={biopsyOpen ? cancelBiopsyForm : openBiopsyForm}
             >
               <FlaskConical size={13} />
               {biopsySaved ? 'Biopsy recorded' : existingBiopsy ? 'Update biopsy' : 'Record biopsy'}
@@ -232,7 +255,7 @@ function SessionRow({ session }) {
               </div>
               {biopsyError && <p className="csa-biopsy-error"><AlertCircle size={13} /> {biopsyError}</p>}
               <div className="csa-biopsy-actions">
-                <button type="button" className="csa-act-btn" onClick={() => setBiopsyOpen(false)}>Cancel</button>
+                <button type="button" className="csa-act-btn" onClick={cancelBiopsyForm}>Cancel</button>
                 <button
                   type="button"
                   className="csa-act-btn csa-act-btn--primary"
@@ -384,7 +407,7 @@ export default function ClinicalSessionsAdmin() {
             <span>Score</span>
             <span />
           </div>
-          {filtered.map(s => <SessionRow key={s.id} session={s} />)}
+          {filtered.map(s => <SessionRow key={s.id} session={s} onSave={load} />)}
         </div>
       )}
     </div>
