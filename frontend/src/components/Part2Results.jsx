@@ -316,6 +316,10 @@ const Part2Results = ({
   const ageNum = Number(preResult?.age || preData?.age) || 0;
   const isAge70Plus = ageNum >= 70;
 
+  // AUA/SUO 2026 age-adjusted PSA thresholds
+  const auaAgeThreshold = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
+  const auaAgeLabel = ageNum < 50 ? '40–49' : ageNum < 60 ? '50–59' : ageNum < 70 ? '60–69' : '70+';
+
   /* SDM section only shown where clinically required: age 70+ (AUA/SUO 2026 mandate) or discordance */
   const showSDM = isAge70Plus || !!discordanceFlag;
 
@@ -562,14 +566,23 @@ const Part2Results = ({
             </div>
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
             <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
-            {(() => {
-              const ageAdj = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
-              return parseFloat(psaValue) >= ageAdj && (
-                <div style={{ marginTop: '6px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
-                  A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
+            {ageNum >= 40 && (
+              <div style={{ marginTop: '8px', fontSize: '11px', background: '#f8fafc', border: '0.5px solid #cbd5e1', borderRadius: '6px', padding: '6px 8px', lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: '2px' }}>AUA/SUO 2026 Age-Adjusted Threshold</div>
+                <div style={{ color: '#334155' }}>
+                  Age {auaAgeLabel}: <strong>{auaAgeThreshold} ng/mL</strong>
+                  {' · '}
+                  {parseFloat(psaAdjusted ?? psaValue) >= auaAgeThreshold
+                    ? <span style={{ color: '#b45309', fontWeight: 600 }}>Your PSA exceeds this threshold</span>
+                    : <span style={{ color: '#15803d', fontWeight: 600 }}>Your PSA is below this threshold</span>}
                 </div>
-              );
-            })()}
+              </div>
+            )}
+            {parseFloat(psaValue) >= auaAgeThreshold && (
+              <div style={{ marginTop: '4px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
+                A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
+              </div>
+            )}
           </div>
 
           {postData?.knowPirads && piradsVal != null && piradsCtx && (
