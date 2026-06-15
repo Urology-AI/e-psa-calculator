@@ -11,10 +11,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   collectionGroup, getDocs, query, orderBy, limit as fsLimit,
+  doc, updateDoc, serverTimestamp,
 } from 'firebase/firestore';
 import {
   RefreshCw, Download, ChevronDown, ChevronUp,
-  CheckCircle2, AlertCircle, Clock, Send, Search,
+  CheckCircle2, AlertCircle, Clock, Send, Search, FlaskConical,
 } from 'lucide-react';
 import { adminDb, adminFunctions } from '../../config/adminFirebase';
 import { httpsCallable } from 'firebase/functions';
@@ -38,10 +39,17 @@ function StatusChip({ status }) {
   return <span className="csa-chip csa-chip--amber"><Clock size={12} /> Pending</span>;
 }
 
+const BIOPSY_INITIAL = { performed: '', cancerDetected: '', ggGroup: '', biopsyDate: '' };
+
 function SessionRow({ session }) {
   const [open, setOpen] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
+  const [biopsyOpen, setBiopsyOpen] = useState(false);
+  const [biopsy, setBiopsy] = useState(BIOPSY_INITIAL);
+  const [biopsySaving, setBiopsySaving] = useState(false);
+  const [biopsySaved, setBiopsySaved] = useState(false);
+  const [biopsyError, setBiopsyError] = useState(null);
 
   const tier = session.engineResult?.epsaTierKey ?? 'unknown';
   const tierLabel = session.engineResult?.epsaTierLabel ?? tier;
@@ -49,6 +57,8 @@ function SessionRow({ session }) {
   const age = session.formData?.age ?? '—';
   const race = session.formData?.race ?? '—';
   const bmi = session.formData?.bmi ?? '—';
+  const engineVersion = session.engineVersion ?? session.postResult?.engineVersion ?? '—';
+  const existingBiopsy = session.biopsyOutcome;
 
   async function pushToRedcap() {
     if (!session.formData) return;
@@ -61,6 +71,36 @@ function SessionRow({ session }) {
       setPushStatus('err');
     } finally {
       setPushing(false);
+    }
+  }
+
+  async function saveBiopsyOutcome() {
+    if (!session.id) return;
+    setBiopsySaving(true);
+    setBiopsyError(null);
+    try {
+      const outcome = {
+        performed:      biopsy.performed === 'yes' ? true : biopsy.performed === 'no' ? false : null,
+        cancerDetected: biopsy.cancerDetected === 'yes' ? true : biopsy.cancerDetected === 'no' ? false : null,
+        ggGroup:        biopsy.ggGroup ? parseInt(biopsy.ggGroup, 10) : null,
+        biopsyDate:     biopsy.biopsyDate || null,
+        recordedAt:     serverTimestamp(),
+        recordedBy:     'admin',
+      };
+      // clinicalSessions/{uid}/records/{id} — need the parent uid from the doc path
+      // session.id is the record id; _parentUid may be available, fall back to collectionGroup ref
+      const refPath = session._firestorePath
+        ?? `clinicalSessions/${session._parentUid ?? 'unknown'}/records/${session.id}`;
+      await updateDoc(doc(adminDb, refPath), {
+        biopsyOutcome: outcome,
+        updatedAt: serverTimestamp(),
+      });
+      setBiopsySaved(true);
+      setBiopsyOpen(false);
+    } catch (e) {
+      setBiopsyError(e.message ?? 'Save failed');
+    } finally {
+      setBiopsySaving(false);
     }
   }
 
@@ -108,7 +148,16 @@ function SessionRow({ session }) {
               <Send size={13} />
               {pushing ? 'Pushing…' : pushStatus === 'ok' ? 'Sent to REDCap' : pushStatus === 'err' ? 'Push failed' : 'Push to REDCap'}
             </button>
+            <button
+              type="button"
+              className={`csa-act-btn${biopsySaved ? ' csa-act-btn--ok' : ''}`}
+              onClick={() => setBiopsyOpen(v => !v)}
+            >
+              <FlaskConical size={13} />
+              {biopsySaved ? 'Biopsy recorded' : existingBiopsy ? 'Update biopsy' : 'Record biopsy'}
+            </button>
           </div>
+
           <table className="csa-detail-table">
             <tbody>
               <tr><th>Session Ref</th><td>{session.sessionRef ?? session.id}</td></tr>
@@ -116,6 +165,7 @@ function SessionRow({ session }) {
               <tr><th>Age</th><td>{age}</td></tr>
               <tr><th>Race</th><td>{race}</td></tr>
               <tr><th>BMI</th><td>{bmi}</td></tr>
+              <tr><th>Engine version</th><td style={{ fontFamily: 'monospace', fontSize: '0.85em' }}>{engineVersion}</td></tr>
               <tr><th>Risk tier</th><td style={{ color: TIER_COLORS[tier] ?? undefined, fontWeight: 700 }}>{tierLabel} ({scoreRange})</td></tr>
               <tr><th>Family Hx</th><td>{session.formData?.familyHistory ?? '—'}</td></tr>
               <tr><th>BRCA</th><td>{session.formData?.brcaStatus ?? '—'}</td></tr>
@@ -127,8 +177,73 @@ function SessionRow({ session }) {
               <tr><th>SHIM Q1</th><td>{session.formData?.shim?.[0] ?? '—'}</td></tr>
               {session.step2?.psa && <tr><th>PSA</th><td>{session.step2.psa} ng/mL</td></tr>}
               {session.step2?.pirads && session.step2.pirads !== '0' && <tr><th>PI-RADS</th><td>{session.step2.pirads}</td></tr>}
+              {existingBiopsy && (
+                <>
+                  <tr><th>Biopsy performed</th><td>{existingBiopsy.performed === true ? 'Yes' : existingBiopsy.performed === false ? 'No' : '—'}</td></tr>
+                  {existingBiopsy.performed && <tr><th>Cancer detected</th><td>{existingBiopsy.cancerDetected === true ? 'Yes' : existingBiopsy.cancerDetected === false ? 'No' : '—'}</td></tr>}
+                  {existingBiopsy.ggGroup && <tr><th>GG group</th><td>GG{existingBiopsy.ggGroup}</td></tr>}
+                  {existingBiopsy.biopsyDate && <tr><th>Biopsy date</th><td>{existingBiopsy.biopsyDate}</td></tr>}
+                </>
+              )}
             </tbody>
           </table>
+
+          {biopsyOpen && (
+            <div className="csa-biopsy-form">
+              <h4 className="csa-biopsy-title"><FlaskConical size={14} /> Record Biopsy Outcome</h4>
+              <div className="csa-biopsy-fields">
+                <label className="csa-biopsy-label">
+                  Biopsy performed?
+                  <select value={biopsy.performed} onChange={e => setBiopsy(b => ({ ...b, performed: e.target.value }))} className="csa-biopsy-select">
+                    <option value="">— select —</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+                {biopsy.performed === 'yes' && (
+                  <>
+                    <label className="csa-biopsy-label">
+                      Cancer detected?
+                      <select value={biopsy.cancerDetected} onChange={e => setBiopsy(b => ({ ...b, cancerDetected: e.target.value }))} className="csa-biopsy-select">
+                        <option value="">— select —</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </label>
+                    {biopsy.cancerDetected === 'yes' && (
+                      <label className="csa-biopsy-label">
+                        Gleason Grade Group
+                        <select value={biopsy.ggGroup} onChange={e => setBiopsy(b => ({ ...b, ggGroup: e.target.value }))} className="csa-biopsy-select">
+                          <option value="">— select —</option>
+                          <option value="1">GG1 (Gleason 6)</option>
+                          <option value="2">GG2 (Gleason 3+4)</option>
+                          <option value="3">GG3 (Gleason 4+3)</option>
+                          <option value="4">GG4 (Gleason 8)</option>
+                          <option value="5">GG5 (Gleason 9-10)</option>
+                        </select>
+                      </label>
+                    )}
+                    <label className="csa-biopsy-label">
+                      Biopsy date
+                      <input type="date" value={biopsy.biopsyDate} onChange={e => setBiopsy(b => ({ ...b, biopsyDate: e.target.value }))} className="csa-biopsy-input" />
+                    </label>
+                  </>
+                )}
+              </div>
+              {biopsyError && <p className="csa-biopsy-error"><AlertCircle size={13} /> {biopsyError}</p>}
+              <div className="csa-biopsy-actions">
+                <button type="button" className="csa-act-btn" onClick={() => setBiopsyOpen(false)}>Cancel</button>
+                <button
+                  type="button"
+                  className="csa-act-btn csa-act-btn--primary"
+                  onClick={saveBiopsyOutcome}
+                  disabled={biopsySaving || !biopsy.performed}
+                >
+                  {biopsySaving ? 'Saving…' : 'Save outcome'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -158,6 +273,8 @@ export default function ClinicalSessionsAdmin() {
           id: d.id,
           ...d.data(),
           createdAt: d.data().createdAt,
+          _firestorePath: d.ref.path,
+          _parentUid: d.ref.parent.parent?.id ?? null,
         }));
       setSessions(docs);
     } catch (e) {
@@ -170,10 +287,11 @@ export default function ClinicalSessionsAdmin() {
   useEffect(() => { load(); }, [load]);
 
   function exportCsv() {
-    const headers = ['sessionRef', 'date', 'age', 'race', 'bmi', 'tier', 'scoreRange', 'familyHistory', 'brca', 'exercise', 'smoking', 'diet', 'comorbidities', 'ipssQol', 'shimQ1', 'psa', 'pirads'];
+    const headers = ['sessionRef', 'date', 'engineVersion', 'age', 'race', 'bmi', 'tier', 'scoreRange', 'familyHistory', 'brca', 'exercise', 'smoking', 'diet', 'comorbidities', 'ipssQol', 'shimQ1', 'psa', 'pirads', 'biopsyPerformed', 'cancerDetected', 'ggGroup', 'biopsyDate'];
     const rows = sessions.map(s => [
       s.sessionRef ?? s.id,
       s.createdAt?.toDate ? s.createdAt.toDate().toISOString() : (s.createdAt ?? ''),
+      s.engineVersion ?? s.postResult?.engineVersion ?? '',
       s.formData?.age ?? '',
       s.formData?.race ?? '',
       s.formData?.bmi ?? '',
@@ -189,6 +307,10 @@ export default function ClinicalSessionsAdmin() {
       s.formData?.shim?.[0] ?? '',
       s.step2?.psa ?? '',
       s.step2?.pirads ?? '',
+      s.biopsyOutcome?.performed != null ? (s.biopsyOutcome.performed ? 'yes' : 'no') : '',
+      s.biopsyOutcome?.cancerDetected != null ? (s.biopsyOutcome.cancerDetected ? 'yes' : 'no') : '',
+      s.biopsyOutcome?.ggGroup ?? '',
+      s.biopsyOutcome?.biopsyDate ?? '',
     ]);
     const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });

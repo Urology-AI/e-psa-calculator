@@ -233,6 +233,71 @@
   padding: 0.25rem 0;
 }
 
+.csa-act-btn--primary { background: #212070; border-color: #212070; color: #fff; }
+.csa-act-btn--primary:hover:not(:disabled) { background: #191860; }
+
+/* ── Biopsy outcome form ── */
+.csa-biopsy-form {
+  background: #f8faff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.csa-biopsy-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #212070;
+  margin: 0;
+}
+
+.csa-biopsy-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.csa-biopsy-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.csa-biopsy-select,
+.csa-biopsy-input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8125rem;
+  background: #fff;
+  color: #111827;
+  min-width: 200px;
+}
+
+.csa-biopsy-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.csa-biopsy-error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #991b1b;
+  margin: 0;
+}
+
 /* ── Status chips ── */
 .csa-chip {
   display: inline-flex;

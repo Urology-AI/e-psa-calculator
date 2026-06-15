@@ -177,3 +177,23 @@ export const updateFollowUpStatus = async (uid, status) => {
     updatedAt: serverTimestamp()
   });
 };
+
+/**
+ * Record biopsy outcome on a sessions/{sessionId} document.
+ * Fields: performed, cancerDetected, ggGroup (1-5), biopsyDate (ISO string),
+ *         recordedBy (staff UID or 'admin').
+ */
+export const recordBiopsyOutcome = async (sessionId, outcome, recordedBy = 'admin') => {
+  const sessionRef = doc(db, 'sessions', sessionId);
+  await updateDoc(sessionRef, {
+    biopsyOutcome: {
+      performed:       outcome.performed       ?? null,
+      cancerDetected:  outcome.cancerDetected  ?? null,
+      ggGroup:         outcome.ggGroup         ?? null,
+      biopsyDate:      outcome.biopsyDate      ?? null,
+      recordedAt:      serverTimestamp(),
+      recordedBy,
+    },
+    updatedAt: serverTimestamp(),
+  });
+};
