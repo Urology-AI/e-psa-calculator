@@ -659,17 +659,24 @@ function App() {
     }
   };
 
-  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score) => {
+  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score, engineVersion, modelVersion) => {
     if (!db) return;
     setCloudSyncStatus('saving');
-    await updateDoc(doc(db, 'sessions', sessionDocId), {
-      status: 'STEP2_COMPLETE',
-      step2: step2Data,
-      finalCategory: riskCat,
-      finalScore: score,
-      updatedAt: serverTimestamp(),
-    });
-    setCloudSyncStatus('saved');
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        status: 'STEP2_COMPLETE',
+        step2: step2Data,
+        finalCategory: riskCat,
+        finalScore: score,
+        engineVersion: engineVersion || '1.0.0',
+        ...(modelVersion ? { modelVersion } : {}),
+        updatedAt: serverTimestamp(),
+      });
+      setCloudSyncStatus('saved');
+    } catch (err) {
+      setCloudSyncStatus('error');
+      throw err;
+    }
   };
 
   const removeSession = async (uid, sessionDocId) => {
@@ -926,7 +933,7 @@ function App() {
         safeLS.set(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
       if (postData && postResult && newSessionId) {
-        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0);
+        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0, postResult.engineVersion, postResult.modelVersion);
       }
       setStorageMode('cloud');
     } catch (err) {
@@ -1453,7 +1460,7 @@ function App() {
       // Save Part 2 session to Firestore (cloud mode only)
       if (storageMode === 'cloud' && user && sessionId) {
         try {
-          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0);
+          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
         } catch (error) {
           console.error('Error saving step 2 to Firestore:', error);
         }

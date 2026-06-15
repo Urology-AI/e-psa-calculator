@@ -362,3 +362,218 @@ describe('calcHighGradeRisk — logistic regression PI-RADS × PSA', () => {
     expect(p4).toBeLessThan(p5);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Discordance detection
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — Discordance detection', () => {
+  it('yellow discordance: ePSA combined tier exceeds PSA tier by exactly 1', () => {
+    // score=25 → baseRawScore=20; psa=0.5 → psaPoints=0; total=20, tierIndex=1
+    // psaTierIndex=0 (psa<1.0); diff=1 → yellow epsa_higher
+    const pre = makePreResult({ score: 25 });
+    const post = makePart2Post({ psa: 0.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.discordanceFlag).not.toBeNull();
+    expect(r.discordanceFlag.direction).toBe('epsa_higher');
+    expect(r.discordanceFlag.severity).toBe('yellow');
+  });
+
+  it('orange discordance: ePSA combined tier exceeds PSA tier by 2', () => {
+    // score=50 → baseRawScore=40; psa=0.5 → psaPoints=0; total=40, tierIndex=2
+    // psaTierIndex=0 (psa<1.0); diff=2 → orange epsa_higher
+    const pre = makePreResult({ score: 50 });
+    const post = makePart2Post({ psa: 0.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.discordanceFlag).not.toBeNull();
+    expect(r.discordanceFlag.direction).toBe('epsa_higher');
+    expect(r.discordanceFlag.severity).toBe('orange');
+  });
+
+  it('psa_higher discordance: PSA tier exceeds ePSA combined tier', () => {
+    // score=0 → baseRawScore=0; psa=12 → psaPoints=45; total=45, tierIndex=2
+    // psaTierIndex=3 (psa≥10); diff=-1 → psa_higher
+    const pre = makePreResult({ score: 0 });
+    const post = makePart2Post({ psa: 12, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.discordanceFlag).not.toBeNull();
+    expect(r.discordanceFlag.direction).toBe('psa_higher');
+  });
+
+  it('no discordance: ePSA tier matches PSA tier', () => {
+    // score=12 → baseRawScore=10; psa=2.0 → psaPoints=10; total=20, tierIndex=1
+    // psaTierIndex=1 (1.0≤psa<3.5); diff=0 → null
+    const pre = makePreResult({ score: 12 });
+    const post = makePart2Post({ psa: 2.0, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.discordanceFlag).toBeNull();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MRI recommendation logic
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — MRI recommendation logic', () => {
+  it('recommends MRI when PSA ≥ 4.0 and no PI-RADS entered (psa_elevated)', () => {
+    const r = calculateDynamicEPsaPost(makePreResult(), makePart2Post({ psa: 5.0, knowPirads: false }));
+    expect(r.mriRecommended).toBe(true);
+    expect(r.mriRecommendReason).toBe('psa_elevated');
+  });
+
+  it('recommends MRI for combined elevated risk when PSA < 4.0 (combined_risk_elevated)', () => {
+    // score=75 → baseRawScore=60; psa=3.0 → psaPoints=10; total=70 ≥56, tier=3
+    // psa<4.0 so psa_elevated doesn't fire first; tier≥2 → combined_risk_elevated
+    const pre = makePreResult({ score: 75 });
+    const post = makePart2Post({ psa: 3.0, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.mriRecommended).toBe(true);
+    expect(r.mriRecommendReason).toBe('combined_risk_elevated');
+  });
+
+  it('recommends MRI for high-risk profile at PSA ≥ 2.5 when combined tier < 2 (high_risk_profile)', () => {
+    // score=5 → baseRawScore=4; psa=2.5 → psaPoints=10; total=14, tier=1 (<2)
+    // isBlack=true → hasHighRiskFeature=true; psa≥2.5 → high_risk_profile
+    const pre = makePreResult({ score: 5, isBlack: true });
+    const post = makePart2Post({ psa: 2.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.mriRecommended).toBe(true);
+    expect(r.mriRecommendReason).toBe('high_risk_profile');
+  });
+
+  it('does NOT recommend MRI when knowPirads is true (MRI already done)', () => {
+    const r = calculateDynamicEPsaPost(makePreResult(), makePart2Post({ psa: 5.0, knowPirads: true, pirads: 4 }));
+    expect(r.mriRecommended).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Low-PSA warning
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — Low-PSA warning', () => {
+  it('fires when PSA < 2.0 and patient has high-risk feature (Black ancestry)', () => {
+    const pre = makePreResult({ score: 25, isBlack: true });
+    const post = makePart2Post({ psa: 1.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.lowPsaWarning).toBe(true);
+    expect(r.lowPsaWarningText).toBeTruthy();
+  });
+
+  it('does NOT fire when PSA < 2.0 but no high-risk features present', () => {
+    const pre = makePreResult({ score: 25 }); // no isBlack, fhBinary=0, no BRCA
+    const post = makePart2Post({ psa: 1.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.lowPsaWarning).toBe(false);
+  });
+
+  it('does NOT fire at exactly PSA = 2.0 (boundary: condition is < 2.0, not ≤)', () => {
+    const pre = makePreResult({ score: 25, isBlack: true });
+    const post = makePart2Post({ psa: 2.0, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.lowPsaWarning).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PSAD boundary conditions
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — PSAD boundary conditions', () => {
+  it('PSAD exactly at 0.177 is NOT flagged but gets 10 pts (condition is > not ≥)', () => {
+    // psa=3.54, vol=20: PSAD = 3.54/20 = 0.177 exactly — above 0.10 but not above 0.177
+    const pre = makePreResult({ score: 30 });
+    const post = makePart2Post({ psa: 3.54, knowPirads: false, prostateVolume: 20 });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.psadFlag).toBe(false);
+    expect(r.psadPoints).toBe(10);
+    expect(r.psadValue).toBeCloseTo(0.177, 5);
+  });
+
+  it('PSAD just above 0.177 → flagged, 20 pts', () => {
+    // psa=3.6, vol=20: PSAD = 0.18 > 0.177
+    const pre = makePreResult({ score: 30 });
+    const post = makePart2Post({ psa: 3.6, knowPirads: false, prostateVolume: 20 });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.psadFlag).toBe(true);
+    expect(r.psadPoints).toBe(20);
+    expect(r.psadValue).toBeCloseTo(0.18, 5);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Biopsy recommendation triggers
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — Biopsy recommendation triggers', () => {
+  it('recommends biopsy for PI-RADS 5 (pirads_5)', () => {
+    const r = calculateDynamicEPsaPost(makePreResult(), makePart2Post({ psa: 5.0, knowPirads: true, pirads: 5 }));
+    expect(r.biopsyRecommended).toBe(true);
+    expect(r.biopsyReason).toBe('pirads_5');
+    expect(r.piradsOverridden).toBe(true);
+  });
+
+  it('recommends biopsy for PI-RADS 4 (pirads_4)', () => {
+    const r = calculateDynamicEPsaPost(makePreResult(), makePart2Post({ psa: 5.0, knowPirads: true, pirads: 4 }));
+    expect(r.biopsyRecommended).toBe(true);
+    expect(r.biopsyReason).toBe('pirads_4');
+  });
+
+  it('recommends biopsy when combined score ≥ 56 without PI-RADS (combined_score_high)', () => {
+    // score=75 → baseRawScore=60; psa=5.0 → psaPoints=25; total=85 ≥ 56
+    const pre = makePreResult({ score: 75 });
+    const post = makePart2Post({ psa: 5.0, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.biopsyRecommended).toBe(true);
+    expect(r.biopsyReason).toBe('combined_score_high');
+  });
+
+  it('does NOT recommend biopsy for PI-RADS 3 with low combined score', () => {
+    // score=25 → baseRawScore=20; psa=2.0 → psaPoints=10; pirads=3 → piradsPoints=15; total=45 < 56
+    const pre = makePreResult({ score: 25 });
+    const post = makePart2Post({ psa: 2.0, knowPirads: true, pirads: 3 });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.biopsyRecommended).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Golden patient regression fixtures
+// ─────────────────────────────────────────────────────────────────────────────
+describe('ePSA Engine — Golden patient regression fixtures', () => {
+  it('[GP-1] 52yo Black + family history + BRCA positive: high risk, PSA recommended', () => {
+    const form = makePart1Form({ age: 52, race: 'black', familyHistory: 1, brcaStatus: 'positive' });
+    const r = calculateDynamicEPsa(form);
+    expect(r.recommendPSA).toBe(true);
+    expect(r.score).toBeGreaterThanOrEqual(50);
+  });
+
+  it('[GP-2] 65yo average-risk white male: PSA recommended per age 50–69 guideline', () => {
+    const form = makePart1Form({ age: 65, race: 'white', familyHistory: 0 });
+    const r = calculateDynamicEPsa(form);
+    expect(r.recommendPSA).toBe(true);
+  });
+
+  it('[GP-3] 42yo non-Black no risk factors: returns a result, recommendation may vary', () => {
+    const form = makePart1Form({ age: 42, race: 'white', familyHistory: 0 });
+    const r = calculateDynamicEPsa(form);
+    expect(r).not.toBeNull();
+    expect([true, false, null]).toContain(r.recommendPSA);
+  });
+
+  it('[GP-4] 55yo post-PSA with PSA 5.5: combined_score_high biopsy + psa_elevated MRI both fire', () => {
+    // baseRawScore = Math.round(45/100 * 80) = 36; psaPoints=25; total=61 ≥ 56
+    const pre = makePreResult({ score: 45 });
+    const post = makePart2Post({ psa: 5.5, knowPirads: false });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.biopsyRecommended).toBe(true);
+    expect(r.biopsyReason).toBe('combined_score_high');
+    expect(r.mriRecommended).toBe(true);
+    expect(r.mriRecommendReason).toBe('psa_elevated');
+  });
+
+  it('[GP-5] 60yo PSA 8.0 + PI-RADS 5: immediate biopsy recommended, no MRI rec (already done)', () => {
+    const pre = makePreResult({ score: 50 });
+    const post = makePart2Post({ psa: 8.0, knowPirads: true, pirads: 5 });
+    const r = calculateDynamicEPsaPost(pre, post);
+    expect(r.biopsyRecommended).toBe(true);
+    expect(r.biopsyReason).toBe('pirads_5');
+    expect(r.mriRecommended).toBe(false);
+    expect(r.epsaTierIndex).toBe(3);
+  });
+});

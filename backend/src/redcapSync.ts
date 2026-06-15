@@ -71,6 +71,15 @@ interface Part1Result {
   [key: string]: unknown;
 }
 
+interface BiopsyOutcome {
+  performed?: boolean | null;
+  cancerDetected?: boolean | null;
+  ggGroup?: number | null;   // 1–5 (Gleason Grade Group)
+  biopsyDate?: string | null;
+  recordedAt?: admin.firestore.Timestamp;
+  recordedBy?: string | null;
+}
+
 interface SessionDocument {
   userId?: string;
   status?: string;
@@ -78,6 +87,9 @@ interface SessionDocument {
   step1?: Step1Data;
   step2?: Step2Data;
   createdAt?: admin.firestore.Timestamp;
+  engineVersion?: string;
+  modelVersion?: string;
+  biopsyOutcome?: BiopsyOutcome;
 }
 
 // REDCap record — all values must be string or number for the API
@@ -210,6 +222,16 @@ function mapSessionToRedcap(
     hormonal_therapy_type: s2.hormonalTherapyType || undefined,
     pirads:                s2.pirads ? parseInt(s2.pirads, 10) : undefined,
     prostate_volume:       s2.prostateVolume ? parseFloat(String(s2.prostateVolume)) : undefined,
+
+    // Algorithm provenance — required for SaMD audit-trail reproducibility
+    engine_version:        session.engineVersion || undefined,
+    model_version:         session.modelVersion  || undefined,
+
+    // Biopsy outcome (recorded post-procedure by clinical staff)
+    biopsy_performed:   session.biopsyOutcome?.performed  != null ? (session.biopsyOutcome.performed  ? 1 : 0) : undefined,
+    cancer_detected:    session.biopsyOutcome?.cancerDetected != null ? (session.biopsyOutcome.cancerDetected ? 1 : 0) : undefined,
+    gg_group:           session.biopsyOutcome?.ggGroup    ?? undefined,
+    biopsy_date:        session.biopsyOutcome?.biopsyDate ?? undefined,
   };
 
   // Strip undefined / null / empty-string values — REDCap rejects them

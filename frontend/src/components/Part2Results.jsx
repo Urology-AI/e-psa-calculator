@@ -18,11 +18,13 @@ import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
+import { generateResultsLetterPdf, generateSdmWorksheetPdf } from '../utils/generateClinicalPdfs';
 import {
   ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
   MapPinIcon, PillIcon, UsersIcon, UserIcon, XIcon, CheckIcon, CircleIcon,
+  ClipboardListIcon, LetterTextIcon,
 } from 'lucide-react';
 
 /* ─── Count-up hook for PSA value animation ─── */
@@ -194,6 +196,7 @@ const Part2Results = ({
   const [researchSubmitError, setResearchSubmitError] = useState(null);
   const [confirmStartOver, setConfirmStartOver] = useState(false);
   const [exportError, setExportError] = useState(null);
+  const [pdfGenerating, setPdfGenerating] = useState(null); // 'letter' | 'sdm' | null
   // Hook must be before early returns — animates the PSA value on reveal
   const rawPsaForAnim = parseFloat(result?.psaValue) || 0;
   const psaDecimals = String(result?.psaValue || '').includes('.') ? String(result?.psaValue || '').split('.')[1].length : 1;
@@ -315,6 +318,10 @@ const Part2Results = ({
 
   const ageNum = Number(preResult?.age || preData?.age) || 0;
   const isAge70Plus = ageNum >= 70;
+
+  // AUA/SUO 2026 age-adjusted PSA thresholds
+  const auaAgeThreshold = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
+  const auaAgeLabel = ageNum < 50 ? '40–49' : ageNum < 60 ? '50–59' : ageNum < 70 ? '60–69' : '70+';
 
   /* SDM section only shown where clinically required: age 70+ (AUA/SUO 2026 mandate) or discordance */
   const showSDM = isAge70Plus || !!discordanceFlag;
@@ -562,14 +569,23 @@ const Part2Results = ({
             </div>
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
             <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
-            {(() => {
-              const ageAdj = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
-              return parseFloat(psaValue) >= ageAdj && (
-                <div style={{ marginTop: '6px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
-                  A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
+            {ageNum >= 40 && (
+              <div style={{ marginTop: '8px', fontSize: '11px', background: '#f8fafc', border: '0.5px solid #cbd5e1', borderRadius: '6px', padding: '6px 8px', lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: '2px' }}>AUA/SUO 2026 Age-Adjusted Threshold</div>
+                <div style={{ color: '#334155' }}>
+                  Age {auaAgeLabel}: <strong>{auaAgeThreshold} ng/mL</strong>
+                  {' · '}
+                  {parseFloat(psaAdjusted ?? psaValue) >= auaAgeThreshold
+                    ? <span style={{ color: '#b45309', fontWeight: 600 }}>Your PSA exceeds this threshold</span>
+                    : <span style={{ color: '#15803d', fontWeight: 600 }}>Your PSA is below this threshold</span>}
                 </div>
-              );
-            })()}
+              </div>
+            )}
+            {parseFloat(psaAdjusted ?? psaValue) >= auaAgeThreshold && (
+              <div style={{ marginTop: '4px', fontSize: '11px', color: '#1e40af', background: '#eff6ff', border: '0.5px solid #93c5fd', borderRadius: '6px', padding: '4px 8px', lineHeight: 1.5 }}>
+                A digital rectal exam (DRE) alongside PSA may help assess risk — AUA/SUO 2026, Stmt 8 (Conditional; Grade C).
+              </div>
+            )}
           </div>
 
           {postData?.knowPirads && piradsVal != null && piradsCtx && (
@@ -1008,6 +1024,32 @@ const Part2Results = ({
         <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>Print Results</span></button>
           <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>Printable Form</span></button>
+          <button
+            className="btn-results btn-results--outline"
+            disabled={pdfGenerating === 'letter'}
+            onClick={async () => {
+              setPdfGenerating('letter');
+              try { await generateResultsLetterPdf(preResult, result, preData, postData); }
+              catch { setExportError('PDF generation failed. Please try again.'); }
+              finally { setPdfGenerating(null); }
+            }}
+          >
+            <DownloadIcon size={16} />
+            <span>{pdfGenerating === 'letter' ? 'Generating…' : 'Clinical Letter PDF'}</span>
+          </button>
+          <button
+            className="btn-results btn-results--outline"
+            disabled={pdfGenerating === 'sdm'}
+            onClick={async () => {
+              setPdfGenerating('sdm');
+              try { await generateSdmWorksheetPdf(preResult, preData, result); }
+              catch { setExportError('PDF generation failed. Please try again.'); }
+              finally { setPdfGenerating(null); }
+            }}
+          >
+            <DownloadIcon size={16} />
+            <span>{pdfGenerating === 'sdm' ? 'Generating…' : 'SDM Worksheet PDF'}</span>
+          </button>
           {(storageMode === 'local' || storageMode === 'cloud') && (
             <>
               <button className="btn-results btn-results--outline" onClick={() => {
