@@ -83,3 +83,5 @@ training_results_summary.txt
 
 # Firebase service account key (never commit)
 scripts/serviceAccount.json
+SOFTWARE_QUALITY.md
+AUDIT_REPORT.md
