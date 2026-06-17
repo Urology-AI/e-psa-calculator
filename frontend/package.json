@@ -11,12 +11,9 @@
     "test": "vitest run",
     "test:patients": "node src/runPatientTests.mjs",
     "test:watch": "vitest",
-    "dev:admin": "vite --config vite.config.admin.js",
     "build": "vite build",
-    "build:admin": "vite build --config vite.config.admin.js",
     "build:gh-pages": "vite build --config vite.config.gh-pages.js && cd ../docs && mv index.gh-pages.html index.html && echo 'GitHub Pages build completed in ../docs directory'",
     "preview": "vite preview",
-    "preview:admin": "vite preview --config vite.config.admin.js",
     "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d ../docs"
   },
