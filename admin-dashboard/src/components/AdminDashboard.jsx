@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Calculator, BarChart3, Settings, Users, Database, TrendingUp, 
+import {
+  Calculator, BarChart3, Settings, Users, Database, TrendingUp,
   AlertTriangle, CheckCircle, LogOut, Menu, X, Home, Activity,
-  Server, Clock, Shield, Zap
+  Server, Clock, Shield, ShieldCheck, Zap
 } from 'lucide-react';
 import CalculatorAdmin from './admin/CalculatorAdmin';
 import InsightsDashboard from './admin/InsightsDashboard';
@@ -16,6 +16,7 @@ import SystemStatus from './admin/SystemStatus';
 import AdminManagement from './admin/AdminManagement';
 import SinaiResearch from './admin/SinaiResearch';
 import ClinicalSessionsAdmin from './admin/ClinicalSessionsAdmin';
+import VVPanel from './admin/VVPanel';
 import { getCalculatorConfig, saveCalculatorConfig, refreshCalculatorConfig } from '../utils/dynamicCalculator';
 import { getAdminInsightsData } from '../services/adminAnalyticsService';
 import { trackAdminEvent } from '../services/adminAnalyticsService';
@@ -106,6 +107,8 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
         return <SinaiResearch />;
       case 'clinical':
         return <ClinicalSessionsAdmin />;
+      case 'vv':
+        return <VVPanel />;
       case 'system':
         return <SystemStatus insights={insights} />;
       default:
@@ -320,6 +323,14 @@ const AdminDashboard = ({ onLogout, adminUser }) => {
             >
               <Shield size={20} />
               <span>Mount Sinai Research</span>
+            </button>
+
+            <button
+              className={`nav-item ${activeTab === 'vv' ? 'active' : ''}`}
+              onClick={() => setActiveTab('vv')}
+            >
+              <ShieldCheck size={20} />
+              <span>Verification &amp; Validation</span>
             </button>
 
             <button

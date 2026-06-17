@@ -334,6 +334,33 @@
 
 .animate-spin { animation: spin 1s linear infinite; }
 
+/* ── Microsoft SSO button ── */
+.microsoft-btn {
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1.5px solid #d1d5db;
+  font-weight: 600;
+  gap: 0.625rem;
+  transition: background 150ms, border-color 150ms, box-shadow 150ms, transform 120ms;
+}
+
+.microsoft-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.microsoft-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.sso-note {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
 /* ── Responsive ── */
 @media (max-width: 520px) {
   .admin-login-container { padding: 12px; }

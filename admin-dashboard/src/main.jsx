@@ -1,39 +1,31 @@
 /**
  * Admin Dashboard - Standalone Entry Point
- * Completely separate from the main ePSA frontend app
+ * Auth: Microsoft SSO via MSAL (Azure AD / Mount Sinai identity)
  */
 
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import AdminDashboard from './components/AdminDashboard';
 import AdminLogin from './components/admin/AdminLogin';
-import { adminAuthService } from './services/adminAuthService';
+import { msalAuthService } from './services/msalAuthService';
 import './index.css';
 
-// Admin App with Email OTP Authentication
 const AdminApp = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [adminUser, setAdminUser] = useState(null);
+  const [isLoading, setIsLoading]             = useState(true);
+  const [adminUser, setAdminUser]             = useState(null);
 
   useEffect(() => {
-    checkAuthentication();
+    // Initialize MSAL once; it will pick up any returning redirect or
+    // restore the active account from sessionStorage (page reload).
+    msalAuthService.initializeMsal().then(() => {
+      if (msalAuthService.isAdminAuthenticated()) {
+        setAdminUser(msalAuthService.getCurrentAdmin());
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    });
   }, []);
-
-  const checkAuthentication = async () => {
-    setIsLoading(true);
-
-    // Email-link completion is handled inside AdminLogin behind an explicit
-    // user click, so that link-prefetching email scanners cannot consume the
-    // single-use oobCode before the real user arrives.
-    if (adminAuthService.isAdminAuthenticated()) {
-      const user = adminAuthService.getCurrentAdmin();
-      setAdminUser(user);
-      setIsAuthenticated(true);
-    }
-
-    setIsLoading(false);
-  };
 
   const handleLoginSuccess = (user) => {
     setAdminUser(user);
@@ -41,12 +33,10 @@ const AdminApp = () => {
   };
 
   const handleLogout = async () => {
-    const result = await adminAuthService.logoutAdmin();
+    const result = await msalAuthService.logoutAdmin();
     if (result.success) {
       setAdminUser(null);
       setIsAuthenticated(false);
-    } else {
-      console.error('Logout failed:', result.message);
     }
   };
 
@@ -55,7 +45,7 @@ const AdminApp = () => {
       <div className="admin-loading">
         <div className="loading-spinner">
           <div className="spinner"></div>
-          <p>Initializing admin dashboard...</p>
+          <p>Initializing admin dashboard…</p>
         </div>
       </div>
     );
@@ -68,7 +58,5 @@ const AdminApp = () => {
   return <AdminDashboard onLogout={handleLogout} adminUser={adminUser} />;
 };
 
-// Render the admin app
-const container = document.getElementById('root');
-const root = createRoot(container);
+const root = createRoot(document.getElementById('root'));
 root.render(<AdminApp />);
