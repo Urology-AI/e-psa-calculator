@@ -126,7 +126,7 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickEntry, onViewOverview, formData, cloudAvailable }) => {
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onViewOverview, formData, cloudAvailable }) => {
   const [showForm, setShowForm] = useState(false);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
@@ -252,12 +252,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onQuickE
           <button type="button" className="ws-btn-text" onClick={onImport}>
             <UploadIcon size={13} />
             <span>{t('welcome.importPreviousSession')}</span>
-          </button>
-        )}
-        {onQuickEntry && (
-          <button type="button" className="ws-btn-text" onClick={onQuickEntry}>
-            <UploadIcon size={13} />
-            <span>{t('welcome.quickEntry')}</span>
           </button>
         )}
         <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>

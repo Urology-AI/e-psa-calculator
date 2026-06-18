@@ -1599,6 +1599,7 @@
   line-height: 1.45;
 }
 
+.theme-dark .p2r-cohort-mri-note { background: rgba(217, 119, 6, 0.12); border-color: rgba(217, 119, 6, 0.35); color: #fde68a; }
 .theme-dark .p2r-cohort-card { background: rgba(15,108,191,0.1); border-color: rgba(37,99,235,0.3); }
 .theme-dark .p2r-cohort-rate--yellow { background: rgba(180,83,9,0.2);  color: var(--gold-400); }
 .theme-dark .p2r-cohort-rate--amber  { background: rgba(217,119,6,0.2); color: var(--gold-400); }
@@ -1904,3 +1905,123 @@
 
 .theme-dark .tier-journey-label { color: var(--ink-500); }
 .theme-dark .tier-journey-tier  { color: var(--ink-800); }
+
+/* ─── Sinai Research submission row ─── */
+.p2r-sinai-row {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.p2r-sinai-title {
+  display: block;
+  color: #1e3a8a;
+  font-size: 14px;
+  font-weight: 700;
+}
+.p2r-sinai-body {
+  color: #1e40af;
+  font-size: 13px;
+}
+.theme-dark .p2r-sinai-row {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(147, 197, 253, 0.3);
+}
+.theme-dark .p2r-sinai-title { color: #93c5fd; }
+.theme-dark .p2r-sinai-body  { color: #bfdbfe; }
+
+/* ─── Guardrail / inline alert banners ─── */
+.p2r-guardrail-banner {
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+}
+.p2r-guardrail-banner--critical {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+.p2r-guardrail-banner--warning {
+  background: #fffbeb;
+  border-color: #d97706;
+}
+.p2r-guardrail-banner--info {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+.p2r-guardrail-label--critical { font-weight: 700; font-size: 13px; color: #991b1b; }
+.p2r-guardrail-label--warning  { font-weight: 700; font-size: 13px; color: #92400e; }
+.p2r-guardrail-label--info     { font-weight: 700; font-size: 13px; color: #1e40af; }
+
+.theme-dark .p2r-guardrail-banner--critical {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.6);
+}
+.theme-dark .p2r-guardrail-banner--warning {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.6);
+}
+.theme-dark .p2r-guardrail-banner--info {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.6);
+}
+.theme-dark .p2r-guardrail-label--critical { color: #fca5a5; }
+.theme-dark .p2r-guardrail-label--warning  { color: #fde68a; }
+.theme-dark .p2r-guardrail-label--info     { color: #93c5fd; }
+
+/* ─── Error state banners (no-result / incomplete) ─── */
+.p2r-error-banner {
+  margin: 2rem auto;
+  max-width: 480px;
+  padding: 24px;
+  background: #fffbeb;
+  border: 1.5px solid #d97706;
+  border-radius: 12px;
+  text-align: center;
+}
+.p2r-error-banner__title {
+  color: #92400e;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.p2r-error-banner__body {
+  color: #78350f;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.p2r-error-banner__body--mb {
+  margin: 0 0 16px;
+}
+.theme-dark .p2r-error-banner {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.5);
+}
+.theme-dark .p2r-error-banner__title { color: #fde68a; }
+.theme-dark .p2r-error-banner__body  { color: #fef3c7; }
+
+/* ─── Cloud save error banner ─── */
+.p2r-cloud-save-error {
+  margin-top: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-left: 4px solid #d97706;
+  border-radius: 6px;
+  color: #78350f;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.theme-dark .p2r-cloud-save-error {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.4);
+  border-left-color: #d97706;
+  color: #fde68a;
+}
