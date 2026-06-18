@@ -95,11 +95,12 @@ const GUARDRAIL_CONFIG = {
 };
 const GuardrailBanner = ({ alert }) => {
   const cfg = GUARDRAIL_CONFIG[alert.level] || GUARDRAIL_CONFIG.info;
+  const level = alert.level || 'info';
   return (
-    <div role="alert" style={{ background: cfg.bg, borderLeft: `4px solid ${cfg.border}`, borderRadius: '8px', padding: '12px 14px', margin: '8px 0' }}>
+    <div role="alert" className={`p2r-guardrail-banner p2r-guardrail-banner--${level}`}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
         <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
-        <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor }}>{alert.title}</span>
+        <span className={`p2r-guardrail-label--${level}`}>{alert.title}</span>
       </div>
       <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>{alert.message}</p>
     </div>
@@ -254,10 +255,10 @@ const Part2Results = ({
 
   if (!result) return (
     <div className="p2r-container">
-      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+      <div role="alert" className="p2r-error-banner">
         <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
-        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>No Results Yet</h3>
-        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+        <h3 className="p2r-error-banner__title">No Results Yet</h3>
+        <p className="p2r-error-banner__body">
           Complete the Part 2 questionnaire to see your combined risk assessment.
         </p>
       </div>
@@ -272,12 +273,12 @@ const Part2Results = ({
   const _riskCatPresent = result?.riskCat != null || result?.epsaTierKey != null;
   if (!_psaValid || !_riskCatPresent) return (
     <div className="p2r-container">
-      <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
+      <div role="alert" className="p2r-error-banner">
         <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
-        <h3 style={{ color: '#92400e', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>
+        <h3 className="p2r-error-banner__title">
           Assessment Data Incomplete
         </h3>
-        <p style={{ color: '#78350f', fontSize: '14px', lineHeight: 1.6, margin: '0 0 16px' }}>
+        <p className="p2r-error-banner__body p2r-error-banner__body--mb">
           Your Part 2 results could not be computed — the PSA data or session record appears incomplete or corrupted.
           Please start a new assessment or return to Part 1 to re-enter your PSA value.
         </p>
@@ -459,21 +460,7 @@ const Part2Results = ({
             <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
           </button>
           {saveToCloudError && (
-            <div
-              role="alert"
-              aria-live="polite"
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.625rem 0.875rem',
-                background: 'rgba(217, 119, 6, 0.08)',
-                border: '1px solid rgba(217, 119, 6, 0.35)',
-                borderLeft: '4px solid #d97706',
-                borderRadius: '6px',
-                color: '#78350f',
-                fontSize: '0.8125rem',
-                lineHeight: 1.5,
-              }}
-            >
+            <div role="alert" aria-live="polite" className="p2r-cloud-save-error">
               <strong>Cloud save unavailable.</strong> {saveToCloudError}
             </div>
           )}
@@ -527,6 +514,16 @@ const Part2Results = ({
         <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
         <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
       </div>
+
+      {/* ── Base model warning: no MRI and no prostate volume ── */}
+      {pathwayMode === 'post_psa' && !piradsCtx && !(postData?.prostateVolume) && (
+        <div role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '1px solid #fcd34d', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
+          <AlertTriangleIcon size={16} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
+          <span>
+            <strong>PSA interpretation only — no MRI data provided.</strong> The combined risk estimate has limited precision without PI-RADS. Discuss with your physician before acting on this result.
+          </span>
+        </div>
+      )}
 
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
@@ -973,26 +970,12 @@ const Part2Results = ({
       {/* ── Action buttons ── */}
       <div className="results-actions res-reveal" style={{ '--delay': '660ms' }}>
         {flowMode === 'sinai' && onSubmitToSinai && (
-          <div
-            className="results-actions-row"
-            style={{
-              padding: '14px 16px',
-              marginBottom: '12px',
-              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-              border: '1px solid #93c5fd',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="results-actions-row p2r-sinai-row">
             <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-              <strong style={{ display: 'block', color: '#1e3a8a', fontSize: '14px' }}>
+              <strong className="p2r-sinai-title">
                 Mount Sinai Research Study
               </strong>
-              <span style={{ color: '#1e40af', fontSize: '13px' }}>
+              <span className="p2r-sinai-body">
                 Submit your responses to complete your participation in study STUDY-14-00050.
               </span>
             </div>

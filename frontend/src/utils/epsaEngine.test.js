@@ -577,3 +577,50 @@ describe('ePSA Engine — Golden patient regression fixtures', () => {
     expect(r.epsaTierIndex).toBe(3);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Model weight integrity
+// ─────────────────────────────────────────────────────────────────────────────
+import { DEFAULT_CALCULATOR_CONFIG, ASSUMPTIONS_REGISTER } from '../config/calculatorConfig';
+
+describe('Model weight integrity', () => {
+  const vars = DEFAULT_CALCULATOR_CONFIG.part1.variables;
+
+  it('variable count is 13', () => {
+    expect(vars.length).toBe(13);
+  });
+
+  it('expected variable IDs are present (order-independent)', () => {
+    const expectedIds = [
+      'age_50_59', 'age_60_69', 'age_70_plus',
+      'bmi_25_29_9', 'bmi_ge_30',
+      'ipss_moderate', 'ipss_severe',
+      'exercise_some', 'exercise_none',
+      'raceBlack', 'fhBinary',
+      'age60plus_x_ipss_moderate', 'age60plus_x_ipss_severe',
+    ];
+    const actualIds = vars.map(v => v.id);
+    for (const id of expectedIds) {
+      expect(actualIds).toContain(id);
+    }
+    expect(actualIds.length).toBe(expectedIds.length);
+  });
+
+  it('raceBlack weight is positive', () => {
+    const raceBlack = vars.find(v => v.id === 'raceBlack');
+    expect(raceBlack).toBeDefined();
+    expect(raceBlack.weight).toBeGreaterThan(0);
+  });
+
+  it('no variable has weight === 0 (within tolerance)', () => {
+    for (const v of vars) {
+      expect(Math.abs(v.weight)).toBeGreaterThan(0.001);
+    }
+  });
+
+  it('ASSUMPTIONS_REGISTER is exported and has 5 entries', () => {
+    expect(ASSUMPTIONS_REGISTER).toBeDefined();
+    expect(Array.isArray(ASSUMPTIONS_REGISTER.assumptions)).toBe(true);
+    expect(ASSUMPTIONS_REGISTER.assumptions.length).toBe(5);
+  });
+});

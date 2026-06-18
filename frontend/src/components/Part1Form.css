@@ -1103,3 +1103,21 @@
   border-color: var(--ms-cyan);
   color: #fff;
 }
+
+/* ─── Inline amber note (age range / BRCA warning) ─── */
+.p1-amber-note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+.theme-dark .p1-amber-note {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(253, 211, 77, 0.35);
+  color: #fde68a;
+}

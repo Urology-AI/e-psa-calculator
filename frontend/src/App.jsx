@@ -30,7 +30,6 @@ import JourneyProgress from './components/JourneyProgress.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
-import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
@@ -90,7 +89,6 @@ function App() {
   const [saveToCloudError, setSaveToCloudError] = useState(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
-  const [quickOpen, setQuickOpen] = useState(false);
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
 
   const hasCachedConsent = () => {
@@ -1604,7 +1602,6 @@ function App() {
                 }
               }}
               cloudAvailable={isFirebaseConfigured()}
-              onQuickEntry={() => setQuickOpen(true)}
               onBeginLocal={() => {
                 setStorageMode('local');
                 setUser({ uid: 'local', isAnonymous: true });
@@ -1961,12 +1958,7 @@ function App() {
           </div>
         </header>
 
-        {quickOpen ? (
-          <QuickEPsaEntry
-            calculatorConfig={calculatorConfig}
-            onClose={() => setQuickOpen(false)}
-          />
-        ) : authStep !== 'app' ? (
+        {authStep !== 'app' ? (
           renderAuthScreen()
         ) : (
           <>
