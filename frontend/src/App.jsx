@@ -606,7 +606,7 @@ function App() {
     if (!db) return null;
     setCloudSyncStatus('saving');
     const sessionRef = doc(collection(db, 'sessions'));
-    const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    const expiresAt = Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000));
     await setDoc(sessionRef, {
       userId: uid,
       status: 'STEP1_COMPLETE',
@@ -629,7 +629,7 @@ function App() {
     try {
       if (!sessionId) {
         const sessionRef = doc(collection(db, 'sessions'));
-        const expiresAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+        const expiresAt = Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000));
         await setDoc(sessionRef, {
           userId: user.uid,
           status: 'IN_PROGRESS',
@@ -649,6 +649,7 @@ function App() {
         await updateDoc(doc(db, 'sessions', sessionId), {
           step1Partial: partialData,
           part1Step: step,
+          expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
           updatedAt: serverTimestamp(),
         });
       }
@@ -667,6 +668,7 @@ function App() {
       step2: step2Data,
       finalCategory: riskCat,
       finalScore: score,
+      expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
       updatedAt: serverTimestamp(),
     });
     setCloudSyncStatus('saved');
@@ -1372,6 +1374,7 @@ function App() {
               step1: preData,
               step1Partial: deleteField(),
               part1Step: deleteField(),
+              expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
               updatedAt: serverTimestamp(),
             });
             setCloudSyncStatus('saved');

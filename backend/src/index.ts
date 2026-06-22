@@ -15,7 +15,7 @@ export { syncToRedcap, submitToRedcap } from './redcapSync';
 
 // Sinai clinic cohort — IRB STUDY-14-00050.
 // Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
-// after 30 days via Firestore TTL) and optionally pushed to Sinai REDCap.
+// after 90 days of inactivity via Firestore TTL) and optionally pushed to Sinai REDCap.
 // All Sinai data is keyed only by clinic code — never tied to PII.
 export {
   validateClinicCode,
@@ -273,16 +273,16 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
     }
   }
 
-  // Create session document with 30-day expiry
+  // Create session document with 90-day expiry (rolling — reset on each update)
   const sessionRef = db.collection('sessions').doc();
-  const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const ninetyDaysFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
   const sessionData = {
     userId,
     status: 'STEP1_COMPLETE',
     pathwayMode: data.pathwayMode || null,
     step1: stripUndefined(step1Data),
     result: data.result || null,
-    expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
+    expiresAt: admin.firestore.Timestamp.fromDate(ninetyDaysFromNow),
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
@@ -564,9 +564,9 @@ export const loginAnonymousBySessionId = functions.https.onCall(async (data: Ano
     const userCreatedAt = matchedData?.createdAt as admin.firestore.Timestamp | undefined;
     const lastActivity = userUpdatedAt || userCreatedAt;
     if (lastActivity) {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      if (lastActivity.toDate() < thirtyDaysAgo) {
-        throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days. Please start a new session.');
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      if (lastActivity.toDate() < ninetyDaysAgo) {
+        throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 90 days of inactivity. Please start a new session.');
       }
     }
 
@@ -871,7 +871,7 @@ export const getSession = functions.https.onCall(async (data: { sessionId: strin
   if (sessionData?.expiresAt) {
     const expiresAt = sessionData.expiresAt as admin.firestore.Timestamp;
     if (expiresAt.toDate() < new Date()) {
-      throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days.');
+      throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 90 days of inactivity.');
     }
   }
 
@@ -895,7 +895,7 @@ export const cleanupOldSessions = functions.pubsub.schedule('0 2 * * *') // 2 AM
     let deletedCount = 0;
     const batchOps: admin.firestore.WriteBatch[] = [];
 
-    // 1. Delete sessions that have passed their explicit expiresAt timestamp (30-day anonymous sessions)
+    // 1. Delete sessions that have passed their explicit expiresAt timestamp (90-day inactivity TTL)
     const expiredQuery = await db.collection('sessions')
       .where('expiresAt', '<', now)
       .limit(500)
@@ -1774,13 +1774,13 @@ export const optimizeDatabase = functions.pubsub.schedule('0 6 * * 0') // 6 AM e
           .limit(1)
           .get();
 
-        // Remove users with no sessions and older than 30 days
+        // Remove users with no sessions and older than 90 days
         if (userSessions.empty && userDoc.data().createdAt) {
           const createdAt = userDoc.data().createdAt.toDate();
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          const ninetyDaysAgo = new Date();
+          ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-          if (createdAt < thirtyDaysAgo) {
+          if (createdAt < ninetyDaysAgo) {
             await userDoc.ref.delete();
             optimizedCount++;
             console.log(`Removed abandoned user: ${userDoc.id}`);
