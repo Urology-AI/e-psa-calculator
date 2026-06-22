@@ -73,6 +73,10 @@ export function normaliseSession(raw) {
     status,
     finalCategory: raw.finalCategory ?? null,
     rawAnswers: raw.rawAnswers ?? null,
+    // Promoted to top-level for SaMD audit-trail reproducibility
+    engineVersion: raw.engineVersion ?? postResult?.engineVersion ?? engineResult?.engineVersion ?? null,
+    modelVersion:  raw.modelVersion  ?? postResult?.modelVersion  ?? engineResult?.modelVersion  ?? null,
+    biopsyOutcome: raw.biopsyOutcome ?? null,
     // Patient consent to cloud storage: true | false | null (legacy, pre-consent).
     consented: raw.consented ?? null,
   };

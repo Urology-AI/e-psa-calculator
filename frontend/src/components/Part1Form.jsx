@@ -1102,7 +1102,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             ))}
           </div>
           {(localData.brcaStatus === 'yes' || localData.brcaStatus === 'lynch' || localData.brcaStatus === 'other_elevated' || localData.brcaStatus === 'other_unknown') && (
-            <div style={{ marginTop: '6px', padding: '8px 10px', background: '#fffbeb', border: '0.5px solid #fcd34d', borderRadius: '6px', fontSize: '12px', color: '#78350f', lineHeight: 1.6 }}>
+            <div className="p1-amber-note">
               Your germline variant qualifies you for earlier PSA screening starting at age 40–45 per AUA/SUO 2026 Statement 5 (Strong Recommendation; Grade B).
             </div>
           )}

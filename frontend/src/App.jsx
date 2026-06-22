@@ -30,7 +30,6 @@ import JourneyProgress from './components/JourneyProgress.jsx';
 import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
-import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
@@ -90,7 +89,6 @@ function App() {
   const [saveToCloudError, setSaveToCloudError] = useState(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
-  const [quickOpen, setQuickOpen] = useState(false);
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
 
   const hasCachedConsent = () => {
@@ -660,18 +658,25 @@ function App() {
     }
   };
 
-  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score) => {
+  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score, engineVersion, modelVersion) => {
     if (!db) return;
     setCloudSyncStatus('saving');
-    await updateDoc(doc(db, 'sessions', sessionDocId), {
-      status: 'STEP2_COMPLETE',
-      step2: step2Data,
-      finalCategory: riskCat,
-      finalScore: score,
-      expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
-      updatedAt: serverTimestamp(),
-    });
-    setCloudSyncStatus('saved');
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        status: 'STEP2_COMPLETE',
+        step2: step2Data,
+        finalCategory: riskCat,
+        finalScore: score,
+        engineVersion: engineVersion || '1.0.0',
+        ...(modelVersion ? { modelVersion } : {}),
+        expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
+        updatedAt: serverTimestamp(),
+      });
+      setCloudSyncStatus('saved');
+    } catch (err) {
+      setCloudSyncStatus('error');
+      throw err;
+    }
   };
 
   const removeSession = async (uid, sessionDocId) => {
@@ -928,7 +933,7 @@ function App() {
         safeLS.set(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
       if (postData && postResult && newSessionId) {
-        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0);
+        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0, postResult.engineVersion, postResult.modelVersion);
       }
       setStorageMode('cloud');
     } catch (err) {
@@ -1456,7 +1461,7 @@ function App() {
       // Save Part 2 session to Firestore (cloud mode only)
       if (storageMode === 'cloud' && user && sessionId) {
         try {
-          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0);
+          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
         } catch (error) {
           console.error('Error saving step 2 to Firestore:', error);
         }
@@ -1600,7 +1605,6 @@ function App() {
                 }
               }}
               cloudAvailable={isFirebaseConfigured()}
-              onQuickEntry={() => setQuickOpen(true)}
               onBeginLocal={() => {
                 setStorageMode('local');
                 setUser({ uid: 'local', isAnonymous: true });
@@ -1957,12 +1961,7 @@ function App() {
           </div>
         </header>
 
-        {quickOpen ? (
-          <QuickEPsaEntry
-            calculatorConfig={calculatorConfig}
-            onClose={() => setQuickOpen(false)}
-          />
-        ) : authStep !== 'app' ? (
+        {authStep !== 'app' ? (
           renderAuthScreen()
         ) : (
           <>

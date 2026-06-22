@@ -95,39 +95,58 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   }
 };
 
-export const ALTERNATIVE_MODELS = {
-  'conservative': {
-    name: 'Conservative Model',
-    description: 'Lower weights for screening hesitancy',
-    part1: {
-      intercept: -4.5,
-      variables: [
-        { id: 'age', weight: 0.04 },
-        { id: 'raceBlack', weight: 0.02 },
-        { id: 'bmi', weight: 0.015 },
-        { id: 'ipssTotal', weight: 0.02 },
-        { id: 'exerciseCode', weight: 0.5 },
-        { id: 'fhBinary', weight: 0.7 },
-        { id: 'shimTotal', weight: 0.03 }
-      ]
-    }
-  },
-  'aggressive': {
-    name: 'Aggressive Detection Model',
-    description: 'Higher sensitivity for early detection',
-    part1: {
-      intercept: -3.2,
-      variables: [
-        { id: 'age', weight: 0.05 },
-        { id: 'raceBlack', weight: 0.035 },
-        { id: 'bmi', weight: 0.025 },
-        { id: 'ipssTotal', weight: 0.035 },
-        { id: 'exerciseCode', weight: 0.65 },
-        { id: 'fhBinary', weight: 1.0 },
-        { id: 'shimTotal', weight: 0.04 }
-      ]
-    }
-  }
+// ALTERNATIVE_MODELS — REMOVED 2026-06
+// These used pre-binned variable names (age continuous, shimTotal, ipssTotal)
+// that are incompatible with the current binned_v1 encoding in DEFAULT_CALCULATOR_CONFIG.
+// Do not restore without updating to match the current variable schema.
+export const ALTERNATIVE_MODELS = {};
+
+export const ASSUMPTIONS_REGISTER = {
+  version: '1.0.1',
+  lastUpdated: '2026-06',
+  variablesHash: null,   // TODO: populate with SHA-256 of variables array after refit
+  assumptions: [
+    {
+      id: 'A1',
+      variable: 'brcaStatus',
+      assumption: 'BRCA+ receives hardcoded 16 points — maximum on scale, equal to age 70+.',
+      evidence: 'BRCA2 OR 3.5–8.6x (Castro et al. JCO 2013). Not in N=94 training set — too few BRCA+ cases.',
+      risk: 'CRITICAL: If cohort expands with BRCA+ cases, refit may assign different weight. Current hardcode will be wrong.',
+      mitigations: 'Audit BRCA+ N at each refit. Remove hardcode once N≥10 BRCA+ cases available.',
+    },
+    {
+      id: 'A2',
+      variable: 'fhBinary',
+      assumption: 'Family history weight is negative (−0.647) in current fit — clinically counterintuitive.',
+      evidence: 'Likely overfitting artifact at N=94, EPV≈1.8. AUA/SUO 2026 lists FH as Grade A risk factor.',
+      risk: 'HIGH: May underestimate risk for men with strong family history. Engine applies AUA override (always recommends PSA if FH=1 and age≥40).',
+      mitigations: 'Weight will self-correct when N≥600. AUA override is the safety net until then.',
+    },
+    {
+      id: 'A3',
+      variable: 'ipss_moderate / ipss_severe',
+      assumption: 'IPSS moderate and severe weights are negative in current fit.',
+      evidence: 'Likely reflects high IPSS in non-cancer BPH men in training cohort — confounding, not causal reversal.',
+      risk: 'MODERATE: May underweight urinary symptoms. Engine adds AUA display tag regardless of model weight.',
+      mitigations: 'Monitor IPSS coefficient direction at each refit. Flag if still negative at N=300.',
+    },
+    {
+      id: 'A4',
+      variable: 'chemicalExposure',
+      assumption: 'Chemical/occupational exposure is collected but has no model weight (0 contribution to score).',
+      evidence: 'Insufficient N in training set for reliable estimate. Agent Orange, WTC exposure — no large-scale PCa OR published.',
+      risk: 'LOW: Variable collected correctly for future refit. Current zero weight means exposure does not inflate scores.',
+      mitigations: 'Add to model once N≥50 exposed cases available. Disclose in Paper 1 limitations.',
+    },
+    {
+      id: 'A5',
+      variable: 'Part 2 base model (logPSA only)',
+      assumption: 'Base model (no MRI) uses intercept −1.439 and logPSA +0.188 trained on GG≥3 outcome. AUC 0.378 on GG≥2 — below chance.',
+      evidence: 'Model was trained on prior GG≥3 outcome, not current GG≥2. Should not be used for GG≥2 prediction without refit.',
+      risk: 'CRITICAL: If Part 2 base model is shown to users without MRI data, predictions are misleading.',
+      mitigations: 'Gate Part 2 results: show base model output only when prostate volume OR PI-RADS is available. Add in-UI warning if base model is active and MRI data is absent.',
+    },
+  ],
 };
 
 export const COHORT_ANALYSIS_FIELDS = [

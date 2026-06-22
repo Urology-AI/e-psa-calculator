@@ -169,8 +169,11 @@ function deidentifySession(session, cloudId) {
   };
   const clean = normaliseSession(session);
   const formData = capAge(clean.formData);
+  // biopsyOutcome is PHI (cancer status, GG group) — never leave the device
+  // eslint-disable-next-line no-unused-vars
+  const { biopsyOutcome: _bx, ...safeClean } = clean;
   return {
-    ...clean,
+    ...safeClean,
     formData,
     step1: formData,
     id: cloudId,
