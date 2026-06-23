@@ -314,7 +314,7 @@ const Part2Results = ({
     pathwayMode = 'post_psa',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
-    psadFlag,
+    psadFlag, highGradeRisk,
   } = result;
 
   const ageNum = Number(preResult?.age || preData?.age) || 0;
@@ -597,6 +597,29 @@ const Part2Results = ({
               </div>
               <div className="p2r-key-input-tier" style={{ color: piradsCtx.color }}>{piradsCtx.label}</div>
               {piradsCtx.detail && <div className="p2r-key-input-detail">{piradsCtx.detail}</div>}
+            </div>
+          )}
+
+          {highGradeRisk != null && postData?.knowPirads && (
+            <div className="p2r-key-input">
+              <div className="p2r-key-input-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                GG≥2 Cancer Risk
+                <InfoIcon
+                  title="Clinically Significant Cancer Risk (GG≥2)"
+                  description={`Estimated probability of Gleason Grade Group ≥2 (clinically significant) prostate cancer, based on a logistic regression model (PI-RADS × PSA, N=96 Mount Sinai biopsy registry). AUA 2026 guideline detection rate for PI-RADS ${postData.pirads || '—'}: ${highGradeRisk.guidelineRate || '—'}. This is an educational estimate — it does not replace clinical judgement or a formal biopsy decision.`}
+                  sources={[]}
+                />
+              </div>
+              <div className="p2r-key-input-value" style={{ color: highGradeRisk.percent >= 70 ? '#dc2626' : highGradeRisk.percent >= 37 ? '#d97706' : '#16a34a' }}>
+                {highGradeRisk.percent}
+                <span className="p2r-key-input-unit">%</span>
+              </div>
+              <div className="p2r-key-input-tier" style={{ color: highGradeRisk.percent >= 70 ? '#dc2626' : highGradeRisk.percent >= 37 ? '#d97706' : '#16a34a' }}>
+                {highGradeRisk.interpretation}
+              </div>
+              {highGradeRisk.guidelineRate && (
+                <div className="p2r-key-input-detail">AUA 2026 guideline rate: {highGradeRisk.guidelineRate}</div>
+              )}
             </div>
           )}
 

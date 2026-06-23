@@ -117,18 +117,17 @@ export const MODEL_ACCURACY = {
     note: 'AUC gain over PSA alone (+0.021) not yet significant at N=94 (p=0.725)'
   },
   model3: {
-    auc: 0.694,
-    auc_ci_lo: 0.593,
-    auc_ci_hi: 0.714,
-    auc_cv: 0.687,
-    auc_cv_sd: 0.109,
-    n: 83,
-    events: 20,
-    outcome: 'GG3+ (high-grade PCa)',
-    note: 'Logistic regression trained on N=83 patients with PI-RADS + biopsy outcome. ' +
-          'GG2+ base rate 85.5% — not discriminable in this selected cohort. ' +
-          'GG3+ AUC 0.694 validated by 5-fold CV. ' +
-          'No prostate volume in dataset; PSAD pending data collection.'
+    auc: 0.591,
+    auc_cv: 0.591,
+    auc_cv_sd: null,
+    n: 96,
+    events: 71,
+    outcome: 'GG≥2 (clinically significant PCa)',
+    note: 'Dummy-variable logistic regression trained on N=96 Mount Sinai biopsy registry patients ' +
+          '(prevalence 74% GG≥2, run 2026-06-02). PIRADS 4 and 5 properly separated as dummy variables. ' +
+          'GG≥2 AUC 0.591 (5-fold CV × 100 repeats). ' +
+          'No prostate volume in dataset; PSAD pending data collection. ' +
+          'Replaces prior GG3+ linear-PIRADS model from PR #60 (N=83, AUC 0.694).'
   },
   model4: {
     auc_gg1: 0.624, auc_psa_gg1: 0.513,
