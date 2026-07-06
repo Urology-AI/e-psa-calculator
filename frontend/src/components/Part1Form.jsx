@@ -721,15 +721,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </div>
           </div>
         </div>
-<<<<<<< Updated upstream
 
         {ipssMode === 'quick' ? (
           /* Quick: just Q8 Quality of Life */
           <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-=======
-        {ipssQuestions.map((q, index) => (
-          <div key={index} className="question-card" style={{ borderColor: localData.ipss[index] !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
->>>>>>> Stashed changes
             <div className="question-header">
               <div className="question-number">Q8</div>
               <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
