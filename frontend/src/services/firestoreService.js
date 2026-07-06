@@ -38,6 +38,10 @@ export const createOrUpdateUser = async (uid, phone, consentData) => {
     consentToContact: consentToContact,
     consentTimestamp: consentData.consentTimestamp || serverTimestamp(),
     followUpStatus: consentToContact ? 'PENDING' : 'DECLINED',
+    followUpSurveyDisclosureShown: consentData.followUpSurveyDisclosureShown || false,
+    followUpSurveyDisclosureTimestamp: consentData.followUpSurveyDisclosureTimestamp || null,
+    emrLinkageConsent: consentData.emrLinkageConsent || false,
+    emrLinkageConsentTimestamp: consentData.emrLinkageConsentTimestamp || null,
     updatedAt: serverTimestamp()
   };
 
@@ -51,6 +55,10 @@ export const createOrUpdateUser = async (uid, phone, consentData) => {
       consentToContact: consentToContact,
       consentTimestamp: consentData.consentTimestamp || serverTimestamp(),
       followUpStatus: consentToContact ? 'PENDING' : 'DECLINED',
+      followUpSurveyDisclosureShown: consentData.followUpSurveyDisclosureShown || false,
+      followUpSurveyDisclosureTimestamp: consentData.followUpSurveyDisclosureTimestamp || null,
+      emrLinkageConsent: consentData.emrLinkageConsent || false,
+      emrLinkageConsentTimestamp: consentData.emrLinkageConsentTimestamp || null,
       updatedAt: serverTimestamp()
     });
   } else {

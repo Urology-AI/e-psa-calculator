@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 const ConsentScreen = ({ phone, email, onConsentComplete }) => {
   const { t } = useTranslation();
   const [researchConsent, setResearchConsent] = useState(null); // null = not answered yet
+  const [emrLinkageConsent, setEmrLinkageConsent] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,6 +24,10 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
       consentTimestamp: new Date().toISOString(),
       researchConsent: researchConsent === true,
       researchTimestamp: new Date().toISOString(),
+      followUpSurveyDisclosureShown: true,
+      followUpSurveyDisclosureTimestamp: new Date().toISOString(),
+      emrLinkageConsent: emrLinkageConsent,
+      emrLinkageConsentTimestamp: new Date().toISOString(),
     };
 
     onConsentComplete(consentData);
@@ -90,6 +95,31 @@ const ConsentScreen = ({ phone, email, onConsentComplete }) => {
               <strong>{t('consent.researcherContactTitle')}:</strong>{' '}
               {t('consent.researcherContactBody')}
             </p>
+          </div>
+
+          <div className="consent-followup-notice">
+            As part of the study protocol (IRB STUDY-14-00050), you may be contacted
+            by text message or email at approximately 3, 6, 12, and 36 months after
+            completing this questionnaire. We will ask only whether you received a PSA
+            test and any results. This follow-up is completely optional — you may opt
+            out at any time by replying STOP to any text message.
+          </div>
+
+          <div className="consent-emr-section">
+            <label className="consent-emr-label">
+              <input
+                type="checkbox"
+                checked={emrLinkageConsent}
+                onChange={(e) => setEmrLinkageConsent(e.target.checked)}
+                className="consent-emr-checkbox"
+              />
+              <span>
+                <strong>[Optional] Medical record linkage</strong> — I agree that the
+                research team may verify clinical outcomes (PSA results, biopsy findings,
+                treatments received) from my medical record to improve the ePSA model.
+                This is completely optional and does not affect my questionnaire or results.
+              </span>
+            </label>
           </div>
 
           {/* ── Research Consent — separate, optional ── */}
