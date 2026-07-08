@@ -6,7 +6,7 @@ export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './sh
 import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
-import './Part2Results.css';
+import './Part3Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
@@ -20,7 +20,7 @@ import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import { generateResultsLetterPdf, generateSdmWorksheetPdf } from '../utils/generateClinicalPdfs';
 import {
-  ArrowLeftIcon, ArrowRightIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
+  ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
   CheckCircle2Icon, AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon,
   MapPinIcon, PillIcon, UsersIcon, UserIcon, XIcon, CheckIcon, CircleIcon,
@@ -179,13 +179,11 @@ const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' }
 
 
 /* ─── Main Component ─── */
-const Part2Results = ({
+const Part3Results = ({
   result, preResult, preData, onEditAnswers, onStartOver, storageMode,
   postData, sessionId = null, userEmail = null, userPhone = null,
-  onSaveToCloud = null, cloudAvailable = false,
-  saveToCloudPending = false, saveToCloudError = null,
   researchConsent = false,
-  onShowModelDocs = null, onContinueToMRI = null,
+  onShowModelDocs = null,
   flowMode = 'public',
   onSubmitToSinai = null,
 }) => {
@@ -241,7 +239,7 @@ const Part2Results = ({
 
   const handleExportCsv = () => {
     const rows = buildPart2CsvRows(postData, preResult, result, {});
-    downloadCsv(`ePSA_Part2_Results_${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    downloadCsv(`ePSA_Part3_Results_${new Date().toISOString().slice(0, 10)}.csv`, rows);
   };
 
   if (showPrintableForm) {
@@ -259,7 +257,7 @@ const Part2Results = ({
         <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
         <h3 className="p2r-error-banner__title">No Results Yet</h3>
         <p className="p2r-error-banner__body">
-          Complete the Part 2 questionnaire to see your combined risk assessment.
+          Complete the Part 3 (MRI) questionnaire to see your biopsy risk assessment.
         </p>
       </div>
     </div>
@@ -279,7 +277,7 @@ const Part2Results = ({
           Assessment Data Incomplete
         </h3>
         <p className="p2r-error-banner__body p2r-error-banner__body--mb">
-          Your Part 2 results could not be computed — the PSA data or session record appears incomplete or corrupted.
+          Your Part 3 results could not be computed — the PSA data or session record appears incomplete or corrupted.
           Please start a new assessment or return to Part 1 to re-enter your PSA value.
         </p>
         <button
@@ -296,8 +294,8 @@ const Part2Results = ({
   if (isLoading) return (
     <div className="p2r-container">
       <ResultsLoading
-        label="ePSA · Part 2"
-        message="Reviewing guidelines for your PSA…"
+        label="ePSA · Part 3"
+        message="Reviewing your PSA and MRI results…"
         steps={PART2_LOADING_STEPS}
         onComplete={() => setIsLoading(false)}
         storageKey={LOADING_SEEN_KEY_P2}
@@ -310,8 +308,7 @@ const Part2Results = ({
     isOtherHormonal, psaTier, biopsyRecommended, biopsyReason, biopsyMessage,
     biopsyGuidelineSupport, biopsyGuidelineSupportCount,
     tierGuidelineSupport, tierGuidelineSupportCount,
-    mriRecommended, mriRecommendMessage,
-    pathwayMode = 'post_psa',
+    pathwayMode = 'post_mri',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadFlag, highGradeRisk, apiPrediction = null,
@@ -451,19 +448,13 @@ const Part2Results = ({
   return (
     <div className="p2r-container" role="main">
 
-      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 2 · ePSA Combined Risk" />
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 3 · ePSA MRI & Biopsy Risk" />
 
-      {/* ── Cloud row ── */}
-      {(storageMode === 'local' && cloudAvailable && onSaveToCloud) && (
-        <div className="p2r-cloud-row">
-          <button type="button" className="p2r-btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
-            <CloudIcon size={16} />{saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
-          </button>
-          {saveToCloudError && (
-            <div role="alert" aria-live="polite" className="p2r-cloud-save-error">
-              <strong>Cloud save unavailable.</strong> {saveToCloudError}
-            </div>
-          )}
+      {/* ── Prediction-service fallback notice ── */}
+      {result?.apiPredictionFailed && (
+        <div role="status" className="p2r-cloud-save-error" style={{ marginBottom: '12px' }}>
+          <strong>We had an issue reaching the biopsy prediction model.</strong>{' '}
+          Showing your results from our validated local model instead.
         </div>
       )}
 
@@ -515,16 +506,6 @@ const Part2Results = ({
         <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
       </div>
 
-      {/* ── Base model warning: no MRI and no prostate volume ── */}
-      {pathwayMode === 'post_psa' && !piradsCtx && !(postData?.prostateVolume) && (
-        <div role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '1px solid #fcd34d', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '12px 14px', margin: '8px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
-          <AlertTriangleIcon size={16} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
-          <span>
-            <strong>PSA interpretation only — no MRI data provided.</strong> The combined risk estimate has limited precision without PI-RADS. Discuss with your physician before acting on this result.
-          </span>
-        </div>
-      )}
-
       {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
       {apiPrediction && (
         <div
@@ -565,7 +546,7 @@ const Part2Results = ({
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Guideline-Based Next Steps · {pathwayMode === 'post_mri' ? 'Part 3 · PSA + MRI' : 'Part 2 · PSA Only'}</span>
+          <span>ePSA Guideline-Based Next Steps · Part 3 · PSA + MRI</span>
           <span>Assessed today</span>
         </div>
 
@@ -580,7 +561,7 @@ const Part2Results = ({
 
         {/* ── Tier journey: Part 1 → Part 2 ── */}
         {preResult?.epsaTierLabel && (
-          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 2">
+          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 3">
             <div className="tier-journey-step">
               <span className="tier-journey-label">Part 1 Baseline</span>
               <span className="tier-journey-tier">{preResult.epsaTierLabel}</span>
@@ -784,28 +765,6 @@ const Part2Results = ({
         </div>
       )}
 
-      {/* ── MRI CTA — styled like Part 1 PSA CTA ── */}
-      {pathwayMode === 'post_psa' && mriRecommended && (
-        <div
-          className="psa-cta-banner res-reveal"
-          style={{ '--delay': '200ms' }}
-          role="complementary"
-          aria-label="Add MRI result"
-        >
-          <div>
-            <p className="psa-cta-banner__title">Know your MRI? Add it for a more complete picture.</p>
-            <p className="psa-cta-banner__desc">
-              {mriRecommendMessage || 'Adding your MRI result gives you a full ePSA assessment — including whether a biopsy is recommended.'}
-            </p>
-          </div>
-          {onContinueToMRI && (
-            <button type="button" onClick={onContinueToMRI} className="psa-cta-banner__btn">
-              Add MRI result <ArrowRightIcon size={15} />
-            </button>
-          )}
-        </div>
-      )}
-
       {/* ── Main Recommendation Hero ── */}
       <div className={`v2-psa-hero v2-psa-hero--${heroVariant} res-reveal`} style={{ '--delay': '340ms' }}>
         <div className="v2-psa-hero-top">
@@ -827,12 +786,6 @@ const Part2Results = ({
             ) : null)}
           </div>
         </div>
-        {/* MRI-before-biopsy prompt for biopsy-naïve patients (Statement 13, Grade A) */}
-        {biopsyRecommended && pathwayMode === 'post_psa' && (
-          <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(255,255,255,0.15)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', fontSize: '12px', lineHeight: 1.6 }}>
-            <strong>Ask about MRI before biopsy.</strong> AUA/SUO 2026 Statement 13 (Conditional; Grade A) recommends prostate MRI prior to initial biopsy to increase detection of clinically significant cancer. PI-RADS 1–2 (no suspicious lesion) → systematic biopsy optional. PI-RADS ≥3 → targeted biopsy recommended.
-          </div>
-        )}
         <div className="v2-psa-hero-ctas">
           {showUrologyReferral ? (
             <>
@@ -1138,4 +1091,4 @@ const Part2Results = ({
   );
 };
 
-export default Part2Results;
+export default Part3Results;

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WelcomeScreen.css';
-import PrintableForm from './PrintableForm';
 import {
-  ArrowRightIcon, UploadIcon, FileTextIcon, XIcon,
-  InfoIcon, ExternalLinkIcon, ShieldCheckIcon, UsersIcon,
+  ArrowRightIcon, XIcon,
+  InfoIcon, ExternalLinkIcon, UsersIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -126,8 +125,7 @@ export const GuidelinesModal = ({ onClose }) => {
   );
 };
 
-const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onViewOverview, formData, cloudAvailable }) => {
-  const [showForm, setShowForm] = useState(false);
+const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cloudAvailable }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
 
@@ -138,10 +136,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onViewOv
   };
 
   const showStorageChoice = cloudAvailable && onBeginLocal && onBeginCloud;
-
-  if (showForm) {
-    return <PrintableForm onBack={() => setShowForm(false)} formData={formData} />;
-  }
 
   return (
     <div className="ws-root" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -170,19 +164,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onViewOv
 
       {/* ── Hero card ── */}
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
-        {/* Navy header: brand identity + trust signals */}
-        <div className="ws-hero-card-head">
-          <div className="ws-brand-lockup">
-            <div className="ws-brand-icon-wrap" aria-hidden="true">
-              <ShieldCheckIcon size={20} />
-            </div>
-            <div>
-              <div className="ws-brand-name">ePSA</div>
-              <div className="ws-brand-tagline">Prostate Cancer Screening Aid</div>
-            </div>
-          </div>
-        </div>
-
         {/* White body: title, description, CTA */}
         <div className="ws-hero-card-body">
           <h1 className="ws-hero-title">{t('welcome.heroTitle')}</h1>
@@ -245,20 +226,6 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onImport, onViewOv
           </div>
         </div>
       </section>
-
-      {/* ── Secondary / utility actions ── */}
-      <div className="ws-secondary">
-        {onImport && (
-          <button type="button" className="ws-btn-text" onClick={onImport}>
-            <UploadIcon size={13} />
-            <span>{t('welcome.importPreviousSession')}</span>
-          </button>
-        )}
-        <button type="button" className="ws-btn-text" onClick={() => setShowForm(true)}>
-          <FileTextIcon size={13} />
-          <span title={t('welcome.viewPrintableFormTitle')}>{t('welcome.viewPrintableForm')}</span>
-        </button>
-      </div>
     </div>
   );
 };

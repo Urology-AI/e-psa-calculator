@@ -72,7 +72,7 @@
     "heroBadge": "Ferramenta de Suporte Clínico Educacional",
     "heroTitle": "Conheça seu risco básico antes da sua próxima consulta urológica",
     "heroDescription": "Complete um breve questionário baseado em evidências para gerar uma estimativa ePSA personalizada para discussão com seu médico.",
-    "featureGuidedQuestions": "27 perguntas guiadas",
+    "featureGuidedQuestions": "Perguntas guiadas",
     "featureTime": "~5 minutos",
     "featurePrivate": "Privado por design",
     "storageChoiceTitle": "Escolha como salvar seu progresso",
@@ -90,7 +90,7 @@
     "trustClearRiskSummary": "Resumo claro de risco",
     "flow": {
       "step1Title": "Perfil de Risco",
-      "step1Body": "27 perguntas guiadas cobrindo dados demográficos, estilo de vida, histórico familiar e sintomas urinários.",
+      "step1Body": "Perguntas guiadas cobrindo dados demográficos, estilo de vida, histórico familiar e sintomas urinários.",
       "step2Title": "Dados Clínicos",
       "step2Body": "Adicione opcionalmente seu nível de PSA e pontuação de IRM PI-RADS para refinar a estimativa.",
       "step3Title": "Resultados Personalizados",
