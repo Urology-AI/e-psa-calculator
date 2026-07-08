@@ -24,8 +24,9 @@ import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig.js';
 //     Pathway: post_mri — "I had a PSA and an MRI"
 //     Input:   Part 1 result + PSA + PI-RADS + optional prostate volume
 //     Output:  combined tier, biopsy recommendation banner
-//     Note:    PI-RADS scoring guideline-based (AUA/NCCN/EAU); PI-RADS
-//              not yet in validation dataset — Model 3 unvalidated empirically
+//     Note:    high-grade risk sub-calculation is calcHighGradeRisk() below —
+//              N=96 logistic regression, AUC 0.591 OOF (see its docstring
+//              and MODEL_ACCURACY.model3 below, which reflect the same model).
 //
 //   Model 4 — calculateActiveSurveillance() — MOVED to standalone AS Tool repo
 //     See: as.millionstrongmen.com
@@ -57,7 +58,7 @@ const COMBINED_TIER_CALIBRATION = {
 };
 
 // ---------------------------------------------------------------------------
-// AUA_PSA_THRESHOLDS — canonical PSA thresholds from AUA/SUO 2023 (amended 2026)
+// AUA_PSA_THRESHOLDS — canonical PSA thresholds from AUA/SUO 2026
 // Source: AUA/SUO Early Detection of Prostate Cancer Guideline 2023, amended 2026
 // These are the authoritative values used by AUAFlowchart.jsx and the engine.
 // Do NOT change without updating both this block and the flowchart component.
@@ -116,6 +117,8 @@ export const MODEL_ACCURACY = {
     n: 94, events: 23,
     note: 'AUC gain over PSA alone (+0.021) not yet significant at N=94 (p=0.725)'
   },
+  // Legacy N=83 GG3+ model — superseded by calcHighGradeRisk() (N=96, GG≥2, AUC 0.591 OOF).
+  // Kept for historical reference in ModelDocumentation.jsx; not used in any live calculation.
   model3: {
     auc: 0.591,
     auc_cv: 0.591,
@@ -147,7 +150,7 @@ export const MODEL_ACCURACY = {
  *               + 0.967766    × [PIRADS=4]
  *               + 1.255289    × [PIRADS=5]
  *
- * Outcome:   GG≥2 — AUA/SUO 2023/2026 definition of clinically significant PCa (p.4)
+ * Outcome:   GG≥2 — AUA/SUO 2026 definition of clinically significant PCa (p.4)
  * Cohort:    N=96, Mount Sinai biopsy registry, prevalence 74% GG≥2, run 2026-06-02
  * AUC OOF:  0.591 (5-fold CV × 100 repeats)
  * Weights:   calculatorConfig.js → part2.models.mri
@@ -222,7 +225,7 @@ export function checkGuardrails(formData, pathwayMode) {
 
   // 1. PSA > 100: outside model range, refer immediately.
   // Rationale: PSMA PET staging data show 87.5% probability of any metastatic disease at
-  // PSA > 100 ng/mL (Luining et al. Eur Urol Open Sci. 2023). EAU 2024 and NCCN guidelines
+  // PSA > 100 ng/mL (Luining et al. Eur Urol Open Sci. 2024;59:1-8, epub 2023). EAU 2024 and NCCN guidelines
   // both recommend staging imaging (bone scan or PSMA-PET) for high- and very-high-risk PCa
   // regardless of PSA level; PSA > 100 virtually always meets that threshold. The ePSA model
   // was derived on PSA ≤ ~40 ng/mL — extrapolating beyond that range produces unreliable scores.
@@ -566,7 +569,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // chronic inflammation. Data sign reversal is a clear referral-bias artifact.
   // Decision: use literature value (8 pts), overriding negative data coefficient.
   const IPSS_RATIONALE = ipssTotal >= 8
-    ? { data: `β=−0.562 for IPSS moderate (NEGATIVE). Patients referred to urology for LUTS had PSA measured as part of that workup — not because they had cancer. High IPSS predicts referral, not cancer independently in this already-referred cohort.`, literature: 'OR ≈ 1.6–2× for PCa at biopsy in screening populations (Ørsted & Bojesen, Nat Rev Urol 2015; ERSPC subgroup). Mechanism: shared androgenic pathway and chronic prostatic inflammation.', decision: `8 pts. Data sign is reversed due to referral bias. Literature value used — IPSS is a valid risk marker in a general screening population.` }
+    ? { data: `β=−0.562 for IPSS moderate (NEGATIVE). Patients referred to urology for LUTS had PSA measured as part of that workup — not because they had cancer. High IPSS predicts referral, not cancer independently in this already-referred cohort.`, literature: 'OR ≈ 1.6–2× for PCa at biopsy in screening populations (Ørsted & Bojesen, Nat Rev Urol 2013; ERSPC subgroup). Mechanism: shared androgenic pathway and chronic prostatic inflammation.', decision: `8 pts. Data sign is reversed due to referral bias. Literature value used — IPSS is a valid risk marker in a general screening population.` }
     : { data: `β not applicable (IPSS ${ipssTotal}/35 < 8; below moderate threshold).`, literature: 'LUTS risk contribution applies only to moderate–severe burden (IPSS ≥8).', decision: '0 pts. Mild symptoms do not add risk in this model.' };
   if (ipssTotal >= 8) addImpact('IPSS total', `${ipssTotal}/35`, 8, 'ipss', IPSS_RATIONALE);
   else addImpact('IPSS total', `${ipssTotal}/35`, 0, 'ipss', IPSS_RATIONALE);
@@ -574,16 +577,17 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // ── Exercise ─────────────────────────────────────────────────────────────────
   // Data (N=100): exercise_none β=+0.419 (OR≈1.52×), exercise_some β=+0.021.
   // exercise_none is one of the most reliable data-derived values — direction and magnitude
-  // are consistent across data and literature. Raised from 4→6 pts to better match the
-  // observed OR (~1.5×), which is slightly higher than the Liu 2011 meta-analysis (1.2–1.3×).
+  // are consistent across data and literature. Data OR (~1.5×) is slightly higher than the
+  // Liu 2011 meta-analysis (1.2–1.3×); the conservative literature-anchored value (4 pts) is
+  // kept rather than scaling up to the data's own estimate.
   // exercise_some β≈0 in data (N too small to calibrate). 2 pts kept as clinical judgment.
-  // Literature: Liu Y et al. Eur Urol. 2011;60(5):1029–44 [corrected from prior "EJCA"] OR ≈ 1.2–1.3×. Data here stronger (1.5×).
+  // Literature: Liu Y et al. Eur Urol. 2011;60(5):1029–44 OR ≈ 1.2–1.3×. Data here stronger (1.5×).
   // Decision: 4 pts for none (literature-anchored), 2 pts for some (clinical judgment).
   // Note: data β=+0.419 for exercise_none is directionally consistent but the cohort is
   // an already-referred urology population (81% PSA>4) — not a screening population.
   // Changing points based on this biased cohort would be inappropriate; literature value kept.
   const EX_RATIONALE = exerciseCode === 2
-    ? { data: 'β=+0.419 (OR≈1.52×, N=100). Directionally consistent with literature — one of the more stable signals in the data. Cohort bias noted but direction is reliable.', literature: 'OR ≈ 1.2–1.3× for sedentary behaviour vs. active (Liu et al. EJCA 2011 meta-analysis).', decision: '4 pts. Literature value used; data OR is slightly higher but cohort is biased toward referred patients, so conservative literature estimate preferred.' }
+    ? { data: 'β=+0.419 (OR≈1.52×, N=100). Directionally consistent with literature — one of the more stable signals in the data. Cohort bias noted but direction is reliable.', literature: 'OR ≈ 1.2–1.3× for sedentary behaviour vs. active (Liu et al. Eur Urol 2011 meta-analysis).', decision: '4 pts. Literature value used; data OR is slightly higher but cohort is biased toward referred patients, so conservative literature estimate preferred.' }
     : exerciseCode === 1
     ? { data: 'β=+0.021 (near-zero, N=100). Too small to calibrate this mid-tier reliably.', literature: 'No strong signal for "some" vs. "regular" exercise in meta-analyses.', decision: '2 pts. Clinical judgment: partial benefit between sedentary and active. Data does not contradict this.' }
     : { data: 'Reference category (regular exercise).', literature: 'Regular exercise associated with lower PCa risk in observational studies.', decision: '0 pts. Baseline category.' };
@@ -637,7 +641,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // most robustly replicated PCa risk factors.
   // Decision: use literature (10 pts). Data coefficient is unreliable and clinically implausible.
   const FH_RATIONALE = fhBinary === 1
-    ? { data: 'β=−0.328 (NEGATIVE — sanity check flagged this). Sparse positives in N=100 caused a random sign flip. Clinically implausible; this is a pure small-sample artifact.', literature: 'OR ≈ 2.5× for first-degree family history (Carter et al. JAMA 1993; Bruner et al. meta-analysis). AUA/SUO 2026 and NCCN Grade A high-risk classification. Among the most robustly replicated PCa risk factors.', decision: '10 pts. Literature overrides data. The negative data coefficient is an artifact — not a finding.' }
+    ? { data: 'β=−0.328 (NEGATIVE — sanity check flagged this). Sparse positives in N=100 caused a random sign flip. Clinically implausible; this is a pure small-sample artifact.', literature: 'OR ≈ 2.5× for first-degree family history (Carter et al. J Urol 1993; Bruner et al. meta-analysis). AUA/SUO 2026 and NCCN Grade A high-risk classification. Among the most robustly replicated PCa risk factors.', decision: '10 pts. Literature overrides data. The negative data coefficient is an artifact — not a finding.' }
     : familyHistory === 'unknown'
     ? { data: 'N/A.', literature: 'Unknown status cannot be scored.', decision: '0 pts. Conservative default — unknown family history does not add risk in this model.' }
     : { data: 'N/A.', literature: 'No first-degree family history.', decision: '0 pts.' };
@@ -687,7 +691,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : _ce === 'unknown' ? 'Unknown'
     : 'No';
   const CE_RATIONALE = _ceStrong
-    ? { data: 'Not in training set.', literature: `Agent Orange/dioxin OR ≈ 1.5–2× (VA/IARC; Pavuk et al. 2018). 9/11 WTC responder cohort shows elevated PCa incidence (Zeig-Owens et al. JAMA 2011).`, decision: `4 pts for ${_ceLabel}. Strong epidemiologic evidence — literature-only.` }
+    ? { data: 'Not in training set.', literature: `Agent Orange/dioxin OR ≈ 1.5–2× (VA/IARC; Pavuk et al. 2018). 9/11 WTC responder cohort shows elevated PCa incidence (Zeig-Owens et al. Lancet 2011).`, decision: `4 pts for ${_ceLabel}. Strong epidemiologic evidence — literature-only.` }
     : _ceWeak
     ? { data: 'Not in training set.', literature: 'Weaker or heterogeneous evidence for other chemical exposures.', decision: `2 pts for ${_ceLabel}. Precautionary partial credit — evidence is uncertain but plausible.` }
     : { data: 'N/A.', literature: 'No reported chemical exposure.', decision: '0 pts.' };
