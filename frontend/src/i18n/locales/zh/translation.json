@@ -78,7 +78,7 @@
       "body": "前列腺特异性抗原（PSA）是前列腺产生的一种蛋白质，通过一次简单的血液检查即可检测。数值偏高可能提示——但不能证明——前列腺癌或其他前列腺问题。ePSA 会结合您的年龄、家族史、族裔背景和症状，估算 PSA 检测目前对您的相关程度，让您与医生的交流从有据可依的角度开始。",
       "seeDoctorNudge": "如果您已经出现排尿症状或已知有前列腺癌家族史，请直接咨询医生，不要依赖本工具等待。"
     },
-    "featureGuidedQuestions": "27个引导式问题",
+    "featureGuidedQuestions": "引导式问题",
     "featureTime": "约5分钟",
     "featurePrivate": "以隐私为核心设计",
     "storageChoiceTitle": "选择如何保存您的进度",
@@ -96,7 +96,7 @@
     "trustClearRiskSummary": "清晰的风险摘要输出",
     "flow": {
       "step1Title": "风险档案",
-      "step1Body": "27个关于人口统计、生活方式、家族史和泌尿系统症状的引导式问题。",
+      "step1Body": "关于人口统计、生活方式、家族史和泌尿系统症状的引导式问题。",
       "step2Title": "临床数据",
       "step2Body": "可选择添加您的PSA水平和MRI PI-RADS评分来优化估计值。",
       "step3Title": "个性化结果",

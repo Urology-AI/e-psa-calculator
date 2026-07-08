@@ -78,7 +78,7 @@
       "body": "Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.",
       "seeDoctorNudge": "If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don't wait on this tool."
     },
-    "featureGuidedQuestions": "27 guided questions",
+    "featureGuidedQuestions": "Guided questions",
     "featureTime": "~5 minutes",
     "featurePrivate": "Private by design",
     "storageChoiceTitle": "Choose how to save your progress",
@@ -96,7 +96,7 @@
     "trustClearRiskSummary": "Clear risk summary output",
     "flow": {
       "step1Title": "Risk Profile",
-      "step1Body": "27 guided questions covering demographics, lifestyle, family history, and urinary symptoms.",
+      "step1Body": "Guided questions covering demographics, lifestyle, family history, and urinary symptoms.",
       "step2Title": "Clinical Data",
       "step2Body": "Optionally add your PSA level and MRI PI-RADS score to refine the estimate.",
       "step3Title": "Personalised Results",

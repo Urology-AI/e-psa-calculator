@@ -78,7 +78,7 @@
       "body": "El antígeno prostático específico (PSA) es una proteína que produce la próstata y que se mide con un simple análisis de sangre. Niveles más altos pueden ser una pista —aunque no una prueba— de cáncer de próstata u otras afecciones prostáticas. ePSA tiene en cuenta su edad, antecedentes familiares, ascendencia y síntomas para estimar qué tan relevante es una prueba de PSA para usted en este momento, de modo que la conversación con su médico parta de un contexto claro.",
       "seeDoctorNudge": "Si ya tiene síntomas urinarios o antecedentes familiares conocidos de cáncer de próstata, hable con su médico — no espere a usar esta herramienta."
     },
-    "featureGuidedQuestions": "27 preguntas guiadas",
+    "featureGuidedQuestions": "Preguntas guiadas",
     "featureTime": "~5 minutos",
     "featurePrivate": "Privado por diseño",
     "storageChoiceTitle": "Elija cómo guardar su progreso",
@@ -96,7 +96,7 @@
     "trustClearRiskSummary": "Salida clara del resumen de riesgo",
     "flow": {
       "step1Title": "Perfil de Riesgo",
-      "step1Body": "27 preguntas guiadas sobre datos demográficos, estilo de vida, historia familiar y síntomas urinarios.",
+      "step1Body": "Preguntas guiadas sobre datos demográficos, estilo de vida, historia familiar y síntomas urinarios.",
       "step2Title": "Datos Clínicos",
       "step2Body": "Opcionalmente añada su nivel de PSA y la puntuación PI-RADS de la RM para refinar la estimación.",
       "step3Title": "Resultados Personalizados",

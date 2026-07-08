@@ -613,7 +613,6 @@ const GuardrailBanner = ({ alert }) => {
 const Part1Results = ({
   result, onEditAnswers, onStartOver, formData, storageMode,
   hideBackButton = false, sessionId = null, userEmail = null, userPhone = null,
-  onSaveToCloud = null, cloudAvailable = false, saveToCloudPending = false, saveToCloudError = null,
   onContinueToPostPSA = null, onContinueToMRI = null, onContinueToPostBiopsy = null,
   researchConsent = false,
   onShowModelDocs = null,
@@ -798,37 +797,6 @@ const Part1Results = ({
     <div className="results-container" role="main">
 
       <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 1 · ePSA Baseline" />
-
-      {/* ── Cloud row ── */}
-      {storageMode === 'local' && cloudAvailable && onSaveToCloud && (
-        <div className="results-cloud-row">
-          {storageMode === 'cloud' && <div className="cloud-saved-badge"><CloudIcon size={13} /><span>{t('part1Results.cloudSavedBadge')}</span></div>}
-          <div className="cloud-move-row">
-            <button type="button" className="btn-move-cloud" onClick={onSaveToCloud} disabled={saveToCloudPending}>
-              <CloudIcon size={16} />{saveToCloudPending ? t('part1Results.cloudSaving') : t('part1Results.cloudSaveButton')}
-            </button>
-          </div>
-          {saveToCloudError && (
-            <div
-              role="alert"
-              aria-live="polite"
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.625rem 0.875rem',
-                background: 'rgba(217, 119, 6, 0.08)',
-                border: '1px solid rgba(217, 119, 6, 0.35)',
-                borderLeft: '4px solid #d97706',
-                borderRadius: '6px',
-                color: '#78350f',
-                fontSize: '0.8125rem',
-                lineHeight: 1.5,
-              }}
-            >
-              <strong>{t('part1Results.cloudSaveUnavailable')}</strong> {saveToCloudError}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── Guardrail Alerts ── */}
       {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (

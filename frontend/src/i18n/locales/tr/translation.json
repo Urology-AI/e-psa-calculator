@@ -78,7 +78,7 @@
       "body": "Prostata özgü antijen (PSA), prostatınız tarafından üretilen ve basit bir kan testinde görülen bir proteindir. Daha yüksek düzeyler — kanıt olmamakla birlikte — prostat kanseri veya diğer prostat sorunlarının bir ipucu olabilir. ePSA; yaşınızı, aile öykünüzü, soyunuzu ve belirtilerinizi inceleyerek bir PSA testinin şu anda sizin için ne kadar uygun olduğunu tahmin eder, böylece doktorunuzla görüşmeniz bir bağlamla başlar.",
       "seeDoctorNudge": "Halihazırda idrar şikâyetleriniz veya bilinen bir aile prostat kanseri öykünüz varsa lütfen doktorunuzla görüşün — bu aracı beklemeyin."
     },
-    "featureGuidedQuestions": "27 rehberli soru",
+    "featureGuidedQuestions": "Rehberli sorular",
     "featureTime": "~5 dakika",
     "featurePrivate": "Tasarım gereği gizli",
     "storageChoiceTitle": "İlerlemenizi nasıl kaydedeceğinizi seçin",
@@ -96,7 +96,7 @@
     "trustClearRiskSummary": "Anlaşılır risk özeti çıktısı",
     "flow": {
       "step1Title": "Risk Profili",
-      "step1Body": "Demografi, yaşam tarzı, aile öyküsü ve idrar belirtilerini kapsayan 27 rehberli soru.",
+      "step1Body": "Demografi, yaşam tarzı, aile öyküsü ve idrar belirtilerini kapsayan rehberli sorular.",
       "step2Title": "Klinik Veriler",
       "step2Body": "Tahmini iyileştirmek için isteğe bağlı olarak PSA düzeyinizi ve MRI PI-RADS skorunuzu ekleyin.",
       "step3Title": "Kişiselleştirilmiş Sonuçlar",

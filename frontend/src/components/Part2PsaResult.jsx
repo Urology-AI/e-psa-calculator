@@ -28,7 +28,7 @@ const getPsaContext = (psa, age) => {
  * combined-risk, guideline, and biopsy-recommendation detail all belongs on
  * the Part 3 results screen once MRI data is available.
  */
-const Part2PsaResult = ({ postData, preResult, onContinueToMRI, onBack }) => {
+const Part2PsaResult = ({ postData, preResult, onContinueToMRI, onBack, onStartOver }) => {
   const psaCtx = getPsaContext(postData?.psa, preResult?.age);
   const psaVal = parseFloat(postData?.psa);
 
@@ -73,6 +73,11 @@ const Part2PsaResult = ({ postData, preResult, onContinueToMRI, onBack }) => {
             Continue to MRI Assessment (Part 3) →
           </button>
         </div>
+        {typeof onStartOver === 'function' && (
+          <div className="form-navigation-inner" style={{ marginTop: '8px', justifyContent: 'center' }}>
+            <button className="btn-back" onClick={onStartOver}>Start Over</button>
+          </div>
+        )}
       </div>
     </div>
   );

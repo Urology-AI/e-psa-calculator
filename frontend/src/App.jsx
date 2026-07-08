@@ -9,8 +9,9 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
+import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
 // Lazy-loaded modals/overlays — only shown on demand
 const ModelDocs = React.lazy(() => import('./components/ModelDocs.jsx'));
 const PrivacyPolicyPopup = React.lazy(() => import('./components/PrivacyPolicyPopup.jsx'));
@@ -23,8 +24,8 @@ import Part1Results from './components/Part1Results.jsx';
 const Part2Form = React.lazy(() => import('./components/Part2Form.jsx'));
 const Part2PsaResult = React.lazy(() => import('./components/Part2PsaResult.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
-const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
-import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLoading.jsx';
+const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
+import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
@@ -79,6 +80,7 @@ function App() {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [showSaveToCloudConsent, setShowSaveToCloudConsent] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
   const [currentStep, setCurrentStep] = useState(1);
@@ -173,6 +175,9 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+  // True while Part 3 is waiting on the biopsy-prediction API call, so a loading
+  // screen can be shown instead of a blank step between the MRI form and results.
+  const [isCalculatingPart3, setIsCalculatingPart3] = useState(false);
   // Shows a lightweight PSA-only interim result between Part 2 (PSA form) and
   // Part 3 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
   const [showPart2Interim, setShowPart2Interim] = useState(false);
@@ -1462,6 +1467,7 @@ function App() {
         const piradsNum = parseInt(postData.pirads, 10);
         const volumeNum = parseFloat(postData.prostateVolume);
         if (Number.isFinite(psaNum) && Number.isFinite(piradsNum)) {
+          setIsCalculatingPart3(true);
           try {
             const apiPrediction = await fetchBiopsyPrediction({
               psa: psaNum,
@@ -1472,6 +1478,9 @@ function App() {
           } catch (err) {
             console.error('Biopsy prediction service unavailable, using local model:', err);
             result.apiPrediction = null;
+            result.apiPredictionFailed = true;
+          } finally {
+            setIsCalculatingPart3(false);
           }
         }
       }
@@ -1563,7 +1572,7 @@ function App() {
           setCurrentStep(3);
           setStage('pre');
         } else if (currentStep === 3) {
-          // From Part2Results, go back to Part2Form
+          // From Part3Results / Part2PsaResult, go back to Part2Form
           setCurrentStep(1);
         }
       }
@@ -1657,9 +1666,7 @@ function App() {
                 setStorageMode('cloud');
                 setAuthStep('login');
               }}
-              onImport={() => setAuthStep('import')}
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
-              formData={{}}
             />
           </>
         );
@@ -1744,10 +1751,6 @@ function App() {
                 sessionId={appSessionId}
                 userEmail={userEmail}
                 userPhone={userPhone}
-                onSaveToCloud={handleSaveLocalToCloud}
-                cloudAvailable={isFirebaseConfigured()}
-                saveToCloudPending={saveToCloudPending}
-                saveToCloudError={saveToCloudError}
                 researchConsent={consentData?.researchConsent ?? false}
                 onEditAnswers={() => {
                   setPart1Step(0);
@@ -1842,8 +1845,16 @@ function App() {
       case 3:
         return (
           <div className="post-results-step">
-            {postResult && (
-              <Part2Results
+            {!postResult && isCalculatingPart3 && (
+              <ResultsLoading
+                label="ePSA · Part 3"
+                message="Analyzing your PSA and MRI data…"
+                steps={PART2_LOADING_STEPS}
+                storageKey={LOADING_SEEN_KEY_P2}
+              />
+            )}
+            {postResult && (postResult.pathwayMode === 'post_mri' ? (
+              <Part3Results
                 result={postResult}
                 preData={{ ...preData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 preResult={preResult}
@@ -1852,10 +1863,6 @@ function App() {
                 sessionId={appSessionId}
                 userEmail={userEmail}
                 userPhone={userPhone}
-                onSaveToCloud={handleSaveLocalToCloud}
-                cloudAvailable={isFirebaseConfigured()}
-                saveToCloudPending={saveToCloudPending}
-                saveToCloudError={saveToCloudError}
                 researchConsent={consentData?.researchConsent ?? false}
                 onEditAnswers={() => {
                   setCurrentStep(1);
@@ -1863,17 +1870,25 @@ function App() {
                 }}
                 onStartOver={handleClearData}
                 onShowModelDocs={() => setShowModelDocs(true)}
-                onContinueToMRI={
-                  (pathwayMode === 'post_psa' || postResult?.pathwayMode === 'post_psa')
-                    ? () => {
-                        setPathwayMode('post_mri');
-                        setCurrentStep(2);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    : null
-                }
               />
-            )}
+            ) : (
+              // Stopped after Part 2 (PSA only, no MRI) — final screen stays PSA-focused;
+              // combined-risk/biopsy detail is deferred to Part 3 once MRI is added.
+              <Part2PsaResult
+                postData={postData}
+                preResult={preResult}
+                onBack={() => {
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onContinueToMRI={() => {
+                  setPathwayMode('post_mri');
+                  setCurrentStep(2);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onStartOver={handleClearData}
+              />
+            ))}
           </div>
         );
 
@@ -1895,6 +1910,16 @@ function App() {
             <TextScaleControl />
             <ThemeSwitcher />
             <LanguageSwitcher />
+            {authStep !== 'app' && authStep !== 'import' && (
+              <button
+                type="button"
+                className="ws-btn-text header-import-btn"
+                onClick={() => setAuthStep('import')}
+              >
+                <UploadIcon size={13} />
+                <span>Import Previous Session</span>
+              </button>
+            )}
             {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
               <button
                 type="button"
@@ -1925,6 +1950,25 @@ function App() {
                   >
                     <CloudIcon size={14} />
                     {cloudSyncStatus !== 'idle' && <span className="cloud-icon-dot" aria-hidden="true" />}
+                  </span>
+                )}
+                {storageMode === 'local' && isFirebaseConfigured() && preResult && (
+                  <button
+                    type="button"
+                    className="cloud-icon-badge header-save-cloud-btn"
+                    onClick={() => setShowSaveToCloudConsent(true)}
+                    disabled={saveToCloudPending}
+                    title={saveToCloudError || 'Saved on this device only — click to save a copy to the cloud'}
+                  >
+                    <HardDriveIcon size={14} />
+                    <span className="header-save-cloud-label">
+                      {saveToCloudPending ? 'Saving…' : 'Save to Cloud'}
+                    </span>
+                  </button>
+                )}
+                {storageMode === 'local' && (!isFirebaseConfigured() || !preResult) && (
+                  <span className="cloud-icon-badge" title="Saved on this device only">
+                    <HardDriveIcon size={14} />
                   </span>
                 )}
                 {(() => {
@@ -2008,6 +2052,13 @@ function App() {
           </div>
         </header>
 
+        {authStep === 'app' && saveToCloudError && (
+          <div role="alert" aria-live="polite" className="header-save-cloud-error">
+            <strong>Cloud save unavailable.</strong> {saveToCloudError}
+            <button type="button" aria-label="Dismiss" onClick={() => setSaveToCloudError(null)}>×</button>
+          </div>
+        )}
+
         {authStep !== 'app' ? (
           renderAuthScreen()
         ) : (
@@ -2024,32 +2075,57 @@ function App() {
             {(pathwayMode !== null || preResult) && (
               <nav className="stage-nav" aria-label="Assessment stages">
                 {(() => {
-                  const part2Label = pathwayMode === 'post_mri' || postResult?.pathwayMode === 'post_mri'
-                    ? 'PSA & MRI' : 'PSA Assessment';
+                  const isPostMri = postResult?.pathwayMode === 'post_mri';
+                  // Has the user reached (or passed) the MRI form this session?
+                  const mriReached = stage === 'post' && currentStep >= 2;
 
                   const part1Sub = stage === 'pre'
                     ? (currentStep === 3 ? 'Results' : `Step ${Math.min(part1Step + 1, 7)} of 7`)
                     : 'Complete';
-                  const part2Sub = !preResult
+                  const psaSub = !preResult
                     ? 'Complete Part 1 first'
-                    : stage === 'post'
-                      ? (currentStep === 3
+                    : (stage === 'post' && currentStep === 1)
+                      ? 'Step 1 of 1'
+                      : (postResult ? 'Complete' : 'Ready');
+                  const mriSub = !preResult
+                    ? 'Complete Part 1 first'
+                    : !postResult && !mriReached
+                      ? 'Complete PSA first'
+                      : (stage === 'post' && currentStep === 2)
+                        ? 'Step 1 of 1'
+                        : isPostMri
                           ? 'Results'
-                          : `Step ${currentStep} of ${pathwayMode === 'post_mri' ? 2 : 1}`)
-                      : (postResult ? 'Results available' : 'Ready');
+                          : 'Optional';
 
                   const part1Status = stage === 'pre' ? 'current' : 'done';
-                  const part2Status = !preResult ? 'locked' : stage === 'post' ? 'current' : (postResult ? 'done' : 'available');
+                  const psaStatus = !preResult
+                    ? 'locked'
+                    : (stage === 'post' && currentStep === 1)
+                      ? 'current'
+                      : (postResult ? 'done' : 'available');
+                  const mriStatus = !preResult
+                    ? 'locked'
+                    : (stage === 'post' && currentStep === 2)
+                      ? 'current'
+                      : isPostMri
+                        ? 'done'
+                        : (postResult || mriReached ? 'available' : 'locked');
 
                   const goToPart1 = () => {
                     setStage('pre');
                     setCurrentStep(preResult ? 3 : 1);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   };
-                  const goToPart2 = () => {
+                  const goToPsa = () => {
                     if (!preResult) return;
                     setStage('post');
-                    setCurrentStep(postResult ? 3 : 1);
+                    setCurrentStep(1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
+                  const goToMri = () => {
+                    if (!preResult || (!postResult && !mriReached)) return;
+                    setStage('post');
+                    setCurrentStep(isPostMri ? 3 : 2);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   };
 
@@ -2072,17 +2148,33 @@ function App() {
                       <span className="stage-nav-sep" aria-hidden="true" />
                       <button
                         type="button"
-                        className={`stage-nav-item stage-nav-item--${part2Status}`}
-                        onClick={goToPart2}
+                        className={`stage-nav-item stage-nav-item--${psaStatus}`}
+                        onClick={goToPsa}
                         disabled={!preResult}
-                        aria-current={part2Status === 'current' ? 'step' : undefined}
+                        aria-current={psaStatus === 'current' ? 'step' : undefined}
                       >
                         <span className="stage-nav-num" aria-hidden="true">
-                          {part2Status === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '2'}
+                          {psaStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '2'}
                         </span>
                         <span className="stage-nav-body">
-                          <span className="stage-nav-label">{part2Label}</span>
-                          <span className="stage-nav-sub">{part2Sub}</span>
+                          <span className="stage-nav-label">PSA</span>
+                          <span className="stage-nav-sub">{psaSub}</span>
+                        </span>
+                      </button>
+                      <span className="stage-nav-sep" aria-hidden="true" />
+                      <button
+                        type="button"
+                        className={`stage-nav-item stage-nav-item--${mriStatus}`}
+                        onClick={goToMri}
+                        disabled={mriStatus === 'locked'}
+                        aria-current={mriStatus === 'current' ? 'step' : undefined}
+                      >
+                        <span className="stage-nav-num" aria-hidden="true">
+                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '3'}
+                        </span>
+                        <span className="stage-nav-body">
+                          <span className="stage-nav-label">MRI</span>
+                          <span className="stage-nav-sub">{mriSub}</span>
                         </span>
                       </button>
                     </>
@@ -2111,6 +2203,15 @@ function App() {
       )}
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
+      )}
+      {showSaveToCloudConsent && (
+        <SaveToCloudConsentModal
+          onCancel={() => setShowSaveToCloudConsent(false)}
+          onConfirm={() => {
+            setShowSaveToCloudConsent(false);
+            handleSaveLocalToCloud();
+          }}
+        />
       )}
       <footer className="app-footer">
         <div className="footer-links">
