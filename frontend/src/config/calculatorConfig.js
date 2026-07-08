@@ -19,7 +19,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
     encodings: {
       raceBlackValues: ['black', 'african american', 'black or african american', 'black/aa', 'black/african american', 'african-american'],
       ageBins: [
-        { min: 18, max: 49, label: '40-49' },
+        { min: 18, max: 49, label: '<50' },
         { min: 50, max: 59, label: '50-59' },
         { min: 60, max: 69, label: '60-69' },
         { min: 70, max: 120, label: '70+' }
@@ -58,7 +58,7 @@ export const DEFAULT_CALCULATOR_CONFIG = {
   },
   part2: {
     modelType: 'unified_logistic_v1',
-    // Outcome: GG≥2 (AUA/SUO 2023/2026 definition of clinically significant PCa, p.4)
+    // Outcome: GG≥2 (AUA/SUO 2026 definition of clinically significant PCa, p.4)
     targetLabel: 'Clinically significant cancer risk (GG≥2)',
     calibration: { slope: 1.0, interceptShift: 0.0 },
 
@@ -170,7 +170,18 @@ export const COHORT_ANALYSIS_FIELDS = [
   'medications',
   'previousBiopsy',
   'mriFindings',
-  'piradsScore'
+  'piradsScore',
+  'previousBiopsyResult',
+  'polygenicrisk',
+  'polygenicScore',
+  'urineBiomarker',
+  'urineBiomarkerResult',
+  'bloodBiomarker',
+  'bloodBiomarkerResult',
+  'genomicTest',
+  'genomicResult',
+  'exactvuDone',
+  'exactvuPrecise'
 ];
 
 /* ─── PSA Recommendation Banner Config ───────────────────────────────────────

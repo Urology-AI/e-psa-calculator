@@ -314,7 +314,7 @@ const Part2Results = ({
     pathwayMode = 'post_psa',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
-    psadFlag, highGradeRisk,
+    psadFlag, highGradeRisk, apiPrediction = null,
   } = result;
 
   const ageNum = Number(preResult?.age || preData?.age) || 0;
@@ -525,10 +525,47 @@ const Part2Results = ({
         </div>
       )}
 
+      {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
+      {apiPrediction && (
+        <div
+          role="region"
+          aria-label="Biopsy prediction model result"
+          style={{
+            margin: '1rem 0',
+            padding: '1rem 1.125rem',
+            background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
+            border: '1.5px solid #c7d2fe',
+            borderLeft: '4px solid #6366F1',
+            borderRadius: '10px',
+          }}
+        >
+          <h4 style={{ margin: '0 0 4px', fontSize: '0.9375rem', fontWeight: 700, color: '#312e81' }}>
+            Validated Biopsy Prediction Model
+          </h4>
+          <p style={{ margin: '0 0 10px', fontSize: '0.8125rem', color: '#4338ca', lineHeight: 1.5 }}>
+            {apiPrediction.model_version} — clinically significant cancer (GG≥2) probability, trained on the Mount Sinai biopsy registry.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '6px' }}>
+            <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#312e81' }}>{apiPrediction.percent.toFixed(1)}%</span>
+            <span style={{ fontSize: '0.8125rem', color: '#4b5563' }}>{apiPrediction.interpretation}</span>
+          </div>
+          {apiPrediction.psad != null && (
+            <div style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '4px' }}>
+              PSA density (PSAD): <strong>{apiPrediction.psad}</strong> {apiPrediction.psad_tier ? `(${apiPrediction.psad_tier})` : ''}
+            </div>
+          )}
+          {!apiPrediction.reliable && (
+            <div style={{ fontSize: '0.75rem', color: '#92400e', marginTop: '6px' }}>
+              Inputs fall outside the model's well-supported range — treat this estimate with extra caution.
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Guideline-Based Next Steps · Part 2 {pathwayMode === 'post_mri' ? 'PSA + MRI' : 'PSA Only'}</span>
+          <span>ePSA Guideline-Based Next Steps · {pathwayMode === 'post_mri' ? 'Part 3 · PSA + MRI' : 'Part 2 · PSA Only'}</span>
           <span>Assessed today</span>
         </div>
 

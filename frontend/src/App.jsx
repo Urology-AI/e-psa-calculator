@@ -21,6 +21,8 @@ import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 // Lazy-loaded — only shown after Part 1 is complete
 const Part2Form = React.lazy(() => import('./components/Part2Form.jsx'));
+const Part2PsaResult = React.lazy(() => import('./components/Part2PsaResult.jsx'));
+const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 import { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2 } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
@@ -34,6 +36,7 @@ import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp,
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
+import { fetchBiopsyPrediction } from './utils/biopsyApi';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
 // Increment this string whenever the consent text changes to force re-consent for returning users.
@@ -170,6 +173,9 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
+  // Shows a lightweight PSA-only interim result between Part 2 (PSA form) and
+  // Part 3 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
+  const [showPart2Interim, setShowPart2Interim] = useState(false);
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
 
@@ -1423,7 +1429,11 @@ function App() {
     // MRI is now optional Step 2 for all post pathways
     const part2TotalSteps = 2;
 
-    if (currentStep < part2TotalSteps) {
+    if (currentStep === 1) {
+      // Show the lightweight PSA-only interim result before moving to Part 3 (MRI).
+      setShowPart2Interim(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (currentStep < part2TotalSteps) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === part2TotalSteps) {
@@ -1443,8 +1453,31 @@ function App() {
         return;
       }
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
+
+      // Part 3 (MRI/PI-RADS present): attempt the validated biopsy-prediction service
+      // (log(PSA) + PSAD + PI-RADS, N=120 Mount Sinai registry, OOF AUC 0.703).
+      // On any failure, fall back silently to the local calculateDynamicEPsaPost result above.
+      if (hasMriData) {
+        const psaNum = parseFloat(postData.psa);
+        const piradsNum = parseInt(postData.pirads, 10);
+        const volumeNum = parseFloat(postData.prostateVolume);
+        if (Number.isFinite(psaNum) && Number.isFinite(piradsNum)) {
+          try {
+            const apiPrediction = await fetchBiopsyPrediction({
+              psa: psaNum,
+              pirads: piradsNum,
+              prostateVolume: Number.isFinite(volumeNum) && volumeNum > 0 ? volumeNum : null,
+            });
+            result.apiPrediction = apiPrediction;
+          } catch (err) {
+            console.error('Biopsy prediction service unavailable, using local model:', err);
+            result.apiPrediction = null;
+          }
+        }
+      }
+
       setPostResult(result);
-      
+
       // Track only in cloud mode
       if (shouldTrackAnalytics) {
         trackCalculatorUsage(user?.uid || 'anonymous', ANALYTICS_EVENTS.PART2_COMPLETED, {
@@ -1676,11 +1709,6 @@ function App() {
       return (
         <PathwaySelector
           onSelect={(mode) => {
-            if (mode === 'post_biopsy') {
-              // No ePSA data yet — just tag source so AS tool knows origin
-              window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
-              return;
-            }
             setPathwayMode(mode);
             setCurrentStep(1);
             setPart1Step(0);
@@ -1769,20 +1797,44 @@ function App() {
         );
       
       case 1:
-      case 2:
-        // Use new Part2Form component with consistent styling
+        // Part 2 — PSA only
+        if (showPart2Interim) {
+          return (
+            <Part2PsaResult
+              postData={postData}
+              preResult={preResult}
+              onContinueToMRI={() => {
+                setShowPart2Interim(false);
+                setCurrentStep(2);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onBack={() => setShowPart2Interim(false)}
+            />
+          );
+        }
         return (
           <Part2Form
             formData={postData}
             setFormData={setPostData}
             preResult={preResult}
             onNext={handlePostNext}
-            onBack={currentStep === 1 ? () => {
+            onBack={() => {
               setStage('pre');
               setCurrentStep(3);
-            } : () => setCurrentStep(currentStep - 1)}
-            currentStep={currentStep}
-            totalSteps={2}
+            }}
+            pathwayMode={pathwayMode}
+          />
+        );
+
+      case 2:
+        // Part 3 — MRI / PI-RADS, feeds the biopsy prediction model
+        return (
+          <Part3Form
+            formData={postData}
+            setFormData={setPostData}
+            preResult={preResult}
+            onNext={handlePostNext}
+            onBack={() => setCurrentStep(currentStep - 1)}
             pathwayMode={pathwayMode}
           />
         );
@@ -1883,7 +1935,6 @@ function App() {
                     { mode: 'pre_psa',     label: 'Pre-PSA Screening',    shortLabel: 'Pre-PSA',   desc: "Haven't had a PSA test yet",       cls: 'pathway-opt--pre'    },
                     { mode: 'post_psa',    label: 'PSA Assessment',        shortLabel: 'PSA',       desc: 'I have a PSA result',               cls: 'pathway-opt--psa'    },
                     { mode: 'post_mri',    label: 'PSA + MRI Assessment',  shortLabel: 'PSA + MRI', desc: 'I have a PSA and an MRI (PI-RADS)', cls: 'pathway-opt--mri'    },
-                    { mode: 'post_biopsy', label: "I've Had a Biopsy",     shortLabel: 'Biopsy',    desc: 'Opens the biopsy evaluator →',      cls: 'pathway-opt--biopsy', external: true },
                   ];
 
                   const BADGE_CLS = {
@@ -1897,10 +1948,6 @@ function App() {
 
                   const switchToPathway = (mode) => {
                     setShowPathwayDropdown(false);
-                    if (mode === 'post_biopsy') {
-                      window.open('https://as.millionstrongmen.com?source=epsa', '_blank');
-                      return;
-                    }
                     setPathwayMode(mode);
                     if ((mode === 'post_psa' || mode === 'post_mri') && preResult) {
                       setStage('post');

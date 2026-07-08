@@ -21,15 +21,6 @@ const LayersIcon = () => (
   </svg>
 );
 
-const BiopsyIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pathway-card-icon-svg" aria-hidden="true">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="9" y1="13" x2="15" y2="13" />
-    <line x1="9" y1="17" x2="12" y2="17" />
-  </svg>
-);
-
 const PATHWAYS = [
   {
     mode: 'pre_psa',
@@ -55,15 +46,6 @@ const PATHWAYS = [
     button: 'Enter My Results',
     accentClass: 'pathway-card--mri',
   },
-  {
-    mode: 'post_biopsy',
-    Icon: BiopsyIcon,
-    headline: "I've had a biopsy",
-    body: 'You have biopsy results in hand. The Active Surveillance decision tool will help determine whether monitoring or treatment is appropriate. Opens in a new tab.',
-    button: 'Open Active Surveillance Tool ↗',
-    accentClass: 'pathway-card--biopsy',
-    isExternal: true,
-  },
 ];
 
 const PathwaySelector = ({ onSelect }) => (
@@ -77,7 +59,7 @@ const PathwaySelector = ({ onSelect }) => (
       </p>
     </div>
     <div className="pathway-cards" role="list">
-      {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass, isExternal }) => (
+      {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass }) => (
         <div
           key={mode}
           className={`pathway-card ${accentClass}`}
@@ -92,18 +74,8 @@ const PathwaySelector = ({ onSelect }) => (
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <h3 className="pathway-card-headline" style={{ margin: 0 }}>{headline}</h3>
-            {isExternal && (
-              <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px', background: 'rgba(0,0,0,0.08)', color: 'inherit', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                EXTERNAL TOOL
-              </span>
-            )}
           </div>
           <p className="pathway-card-body">{body}</p>
-          {isExternal && (
-            <div style={{ fontSize: '11px', color: 'inherit', opacity: 0.75, marginBottom: '8px', lineHeight: 1.5 }}>
-              Per AUA/SUO 2026 (Statements 19–32): after a negative biopsy, screening should not be discontinued; continue at 2–4 year intervals and consider repeat biopsy based on risk reassessment.
-            </div>
-          )}
           <button
             type="button"
             className="pathway-card-btn"
