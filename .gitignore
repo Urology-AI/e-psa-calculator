@@ -34,6 +34,9 @@ frontend/.env.production.local
 *.swo
 *~
 
+# Claude Code local config
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
