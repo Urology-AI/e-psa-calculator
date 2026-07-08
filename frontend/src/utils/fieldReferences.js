@@ -228,4 +228,103 @@ export const fieldReferences = {
   },
 };
 
+// ─── Section C — Advanced Biomarkers (Part 1) ───────────────────────────────
+// These are research/adjunct tests, not part of AUA/NCCN average-risk screening
+// criteria. Citations point to the primary validation studies for each assay.
+// Not independently re-verified against live abstracts — treat as a starting
+// point for clinical review, not a substitute for it.
+export const biomarkerReferences = {
+  previousBiopsy: {
+    title: 'Previous Prostate Biopsy',
+    description: 'A prior negative biopsy does not rule out clinically significant cancer, and AUA/SUO guidance supports continued PSA-based surveillance rather than discontinuing screening. A prior Grade Group finding is one of the strongest predictors of future risk.',
+    sources: [
+      auaScreeningGuideline,
+      { name: 'Cohen MS, et al. — repeat biopsy after negative initial biopsy', url: pubmedSearch('repeat prostate biopsy negative initial biopsy risk') },
+    ],
+  },
+  polygenicRiskScore: {
+    title: 'Polygenic Risk Score (PRS)',
+    description: 'PRS aggregates hundreds to thousands of common genetic variants (SNPs) into a single inherited-risk estimate, independent of PSA or family history. Validated primarily in the PRACTICAL consortium cohorts; clinical utility for individualized screening decisions is still an active area of research.',
+    sources: [
+      { name: 'Conti DV, et al., Nat Genet. 2021 (PRACTICAL consortium, trans-ancestry GWAS meta-analysis)', url: pubmedSearch('Conti DV Nat Genet 2021 prostate cancer polygenic risk trans-ancestry') },
+      { name: 'Chen H, et al., Eur Urol. 2021 (genetic risk score validation)', url: pubmedSearch('Chen H Eur Urol 2021 genetic score prostate cancer risk') },
+      { name: 'Pashayan N, et al., Nat Rev Clin Oncol. 2020 (polygenic risk in cancer screening)', url: pubmedSearch('Pashayan N Nat Rev Clin Oncol 2020 polygenic risk screening') },
+    ],
+  },
+  mps2: {
+    title: 'MyProstateScore 2.0 (MPS2)',
+    description: '18-gene urine RNA panel (expanded from the original PCA3-based MyProstateScore) designed to reduce unnecessary biopsies by predicting clinically significant (Grade Group ≥2) cancer.',
+    sources: [
+      { name: 'Tosoian JJ, et al. — MyProstateScore 2.0 validation', url: pubmedSearch('Tosoian MyProstateScore 2.0 validation clinically significant prostate cancer') },
+      { name: 'Tomlins SA, et al., Eur Urol. 2016 (original MyProstateScore / Mi-Prostate Score)', url: pubmedSearch('Tomlins SA Eur Urol 2016 MiPS urine biomarker') },
+    ],
+  },
+  pca3: {
+    title: 'PCA3',
+    description: 'Urine-based non-coding RNA biomarker measured after digital rectal exam; used as an adjunct to PSA to help decide whether a repeat biopsy is warranted.',
+    sources: [
+      { name: 'Groskopf J, et al., Clin Chem. 2006 (PCA3 assay development)', url: pubmedSearch('Groskopf J Clin Chem 2006 PCA3 assay') },
+      { name: 'Marks LS, et al., Urology. 2007 (PCA3 clinical validation before biopsy)', url: pubmedSearch('Marks LS Urology 2007 PCA3 clinical validation') },
+    ],
+  },
+  selectMdx: {
+    title: 'SelectMDx',
+    description: 'Urinary mRNA biomarker panel (HOXC6, DLX1) combined with clinical risk factors to estimate risk of high-grade prostate cancer and reduce unnecessary MRI/biopsy referrals.',
+    sources: [
+      { name: 'Van Neste L, et al., Eur Urol. 2016 (SelectMDx development and validation)', url: pubmedSearch('Van Neste L Eur Urol 2016 SelectMDx urinary biomarker') },
+    ],
+  },
+  stockholm3: {
+    title: 'Stockholm3 (STHLM3)',
+    description: 'Blood test combining protein biomarkers, genetic variants, and clinical data into a single risk score for clinically significant prostate cancer; developed to reduce biopsies driven by PSA alone.',
+    sources: [
+      { name: 'Grönberg H, et al., Lancet Oncol. 2015 (STHLM3 prospective validation)', url: pubmedSearch('Gronberg H Lancet Oncol 2015 STHLM3 prostate cancer screening') },
+    ],
+  },
+  phi: {
+    title: 'Prostate Health Index (PHI)',
+    description: 'FDA-approved blood test combining total PSA, free PSA, and [-2]proPSA into a single index; improves specificity for clinically significant cancer over PSA alone in the 2-10 ng/mL "gray zone".',
+    sources: [
+      { name: 'Catalona WJ, et al., J Urol. 2011 ([-2]proPSA + PHI multicenter study)', url: pubmedSearch('Catalona WJ J Urol 2011 proPSA prostate health index') },
+    ],
+  },
+  fourKScore: {
+    title: '4Kscore',
+    description: 'Blood test combining total PSA, free PSA, intact PSA, and human kallikrein 2 (hK2) with clinical factors to estimate the probability of high-grade (Gleason ≥7) prostate cancer on biopsy.',
+    sources: [
+      { name: 'Parekh DJ, et al., Eur Urol. 2015 (4Kscore multi-institutional prospective trial)', url: pubmedSearch('Parekh DJ Eur Urol 2015 4Kscore prospective trial') },
+    ],
+  },
+  decipher: {
+    title: 'Decipher Genomic Classifier',
+    description: 'Tissue-based 22-gene expression assay run on biopsy or prostatectomy specimen; predicts risk of metastasis and prostate-cancer-specific mortality, used to guide adjuvant/salvage treatment decisions.',
+    sources: [
+      { name: 'Erho N, et al., PLoS One. 2013 (Decipher discovery and validation)', url: pubmedSearch('Erho N PLoS One 2013 Decipher genomic classifier') },
+      { name: 'Klein EA, et al., Eur Urol. 2015 (Decipher validation, post-prostatectomy)', url: pubmedSearch('Klein EA Eur Urol 2015 Decipher genomic classifier validation') },
+    ],
+  },
+  exodx: {
+    title: 'ExoDx Prostate (EPI)',
+    description: 'Non-invasive urine exosome RNA assay (PCA3, ERG, SPDEF) obtained without a preceding digital rectal exam; used prior to initial biopsy to help identify high-grade disease.',
+    sources: [
+      { name: 'McKiernan J, et al., JAMA Oncol. 2016 (ExoDx Prostate IntelliScore validation)', url: pubmedSearch('McKiernan J JAMA Oncol 2016 exosome gene expression prostate biopsy') },
+    ],
+  },
+  oncodx: {
+    title: 'Oncotype DX Genomic Prostate Score (GPS)',
+    description: '17-gene RT-PCR assay run directly on biopsy tissue; estimates likelihood of adverse pathology to help distinguish candidates for active surveillance from those who need immediate treatment.',
+    sources: [
+      { name: 'Klein EA, et al., Eur Urol. 2014 (17-gene Genomic Prostate Score validation)', url: pubmedSearch('Klein EA Eur Urol 2014 17-gene assay genomic prostate score') },
+    ],
+  },
+  exactvu: {
+    title: 'ExactVu Micro-Ultrasound / PRECISE Score',
+    description: '29 MHz high-resolution transrectal micro-ultrasound (~3x standard TRUS resolution) with the PRECISE 1-5 scoring protocol for lesion suspicion, used for real-time targeted biopsy guidance.',
+    sources: [
+      { name: 'Ghai S, et al., J Urol. 2016 (Micro-Ultrasound Protocol for Prostate Risk Identification / PRECISE)', url: pubmedSearch('Ghai S J Urol 2016 micro-ultrasound PRECISE prostate risk identification') },
+      { name: 'Lughezzani G, et al. — prospective micro-ultrasound-guided biopsy study', url: pubmedSearch('Lughezzani G micro-ultrasound guided prostate biopsy prospective') },
+    ],
+  },
+};
+
 export default fieldReferences;

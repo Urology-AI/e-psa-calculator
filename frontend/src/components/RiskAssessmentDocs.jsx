@@ -8,8 +8,14 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
   const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
   const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
   const validation = activeConfig.validation || DEFAULT_CALCULATOR_CONFIG.validation;
-  const useLogistic = part2.modelType === 'logistic_v1';
-  const part2Vars = part2.variables || [];
+  // Current config uses modelType 'unified_logistic_v1' with separate base/mri
+  // sub-models (part2.models.base / part2.models.mri) rather than a flat
+  // `part2.variables` array — the MRI model is the fuller one (logPSA + PI-RADS
+  // dummies) and is what this docs page has always described below.
+  const useLogistic = part2.modelType === 'unified_logistic_v1' || part2.modelType === 'logistic_v1';
+  const activeModel = part2.models?.mri || part2.models?.base || { intercept: part2.intercept, variables: part2.variables };
+  const part2Vars = activeModel.variables || [];
+  const modelIntercept = activeModel.intercept ?? part2.intercept ?? 0;
   const thresholds = part2.thresholds || { low: 0.10, moderate: 0.25, high: 0.50 };
 
   const preRanges = part2.preScoreToPoints?.ranges || [];
@@ -55,10 +61,10 @@ const RiskAssessmentDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => 
             <h3>{t('riskDocs.formulaTitle')}</h3>
             {useLogistic ? (
               <>
-                <p className="formula-note">Model type: <strong>logistic_v1</strong>. Logit = intercept + log(PSA) × weight + PI-RADS dummies.</p>
+                <p className="formula-note">Model type: <strong>{part2.modelType || 'unified_logistic_v1'}</strong>. Logit = intercept + log(PSA) × weight + PI-RADS dummies.</p>
                 <div className="formula-box">
                   <code>
-                    logit = {Number(part2.intercept ?? 0).toFixed(4)}
+                    logit = {Number(modelIntercept).toFixed(4)}
                     {part2Vars.map((v) => {
                       const wv = Number(v.weight ?? 0);
                       return <React.Fragment key={v.id}><br/>&nbsp;&nbsp;{(wv >= 0 ? '+' : '') + wv.toFixed(4)} × {v.id}</React.Fragment>;

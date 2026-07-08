@@ -404,6 +404,76 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
 };
 
 /* ─── Next Step Cards ─── */
+const BIOMARKER_RESULT_LABEL = { low: 'Low risk', intermediate: 'Intermediate', high: 'High risk' };
+const BIOMARKER_RESULT_NOTE = {
+  low: 'suggests lower likelihood of clinically significant disease than PSA alone.',
+  intermediate: 'suggests a mixed signal — discuss alongside your ePSA score with your clinician.',
+  high: 'suggests elevated concern that may warrant closer follow-up regardless of your ePSA score.',
+};
+
+const BiomarkerContextSection = ({ formData }) => {
+  if (!formData) return null;
+  const items = [];
+  if (formData.previousBiopsy === 'yes' && formData.previousBiopsyResult) {
+    const label = { negative: 'Negative (no cancer)', gg1: 'Grade Group 1 (GG1)', gg2plus: 'Grade Group 2 or higher (GG2+)' }[formData.previousBiopsyResult];
+    items.push({ name: 'Previous Biopsy', value: label, note: 'Prior biopsy history is an important input for your clinician\'s next-step decision.' });
+  }
+  if (formData.polygenicrisk && formData.polygenicrisk !== 'not_tested') {
+    const label = { average: 'Average risk', elevated: 'Elevated risk (>75th percentile)', high: 'High risk (>90th percentile)' }[formData.polygenicrisk];
+    items.push({ name: 'Polygenic Risk Score', value: label, note: 'Reflects inherited genetic risk independent of PSA and lifestyle factors.' });
+  }
+  if (formData.urineBiomarker && formData.urineBiomarker !== 'none' && formData.urineBiomarkerResult) {
+    const testLabel = { mps2: 'MPS2 (MyProstateScore 2.0)', pca3: 'PCA3', selectmdx: 'SelectMDx' }[formData.urineBiomarker];
+    items.push({ name: testLabel, value: BIOMARKER_RESULT_LABEL[formData.urineBiomarkerResult], note: `Urine biomarker result — ${BIOMARKER_RESULT_NOTE[formData.urineBiomarkerResult]}` });
+  }
+  if (formData.bloodBiomarker && formData.bloodBiomarker !== 'none' && formData.bloodBiomarkerResult) {
+    const testLabel = { stockholm3: 'Stockholm 3 (STHLM3)', phi: 'Prostate Health Index (PHI)', '4k': '4Kscore' }[formData.bloodBiomarker];
+    items.push({ name: testLabel, value: BIOMARKER_RESULT_LABEL[formData.bloodBiomarkerResult], note: `Blood biomarker result — ${BIOMARKER_RESULT_NOTE[formData.bloodBiomarkerResult]}` });
+  }
+  if (formData.genomicTest && formData.genomicTest !== 'none' && formData.genomicResult) {
+    const testLabel = { decipher: 'Decipher', exodx: 'ExoDx', oncodx: 'OncoDx' }[formData.genomicTest];
+    items.push({ name: testLabel, value: BIOMARKER_RESULT_LABEL[formData.genomicResult], note: `Tissue genomic result — ${BIOMARKER_RESULT_NOTE[formData.genomicResult]}` });
+  }
+  if (formData.exactvuDone === 'yes' && formData.exactvuPrecise) {
+    items.push({ name: 'ExactVu Micro-Ultrasound', value: `PRECISE ${formData.exactvuPrecise}/5`, note: 'PRECISE score reflects lesion suspicion on high-resolution micro-ultrasound.' });
+  }
+  if (items.length === 0) return null;
+
+  return (
+    <div
+      role="region"
+      aria-label="Biomarker context"
+      style={{
+        margin: '1rem 0',
+        padding: '1rem 1.125rem',
+        background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
+        border: '1.5px solid #c7d2fe',
+        borderLeft: '4px solid #6366F1',
+        borderRadius: '10px',
+      }}
+    >
+      <h4 style={{ margin: '0 0 4px', fontSize: '0.9375rem', fontWeight: 700, color: '#312e81' }}>Biomarker Context</h4>
+      <p style={{ margin: '0 0 12px', fontSize: '0.8125rem', color: '#4338ca', lineHeight: 1.5 }}>
+        Additional test results you reported, shown alongside your ePSA score for clinical context.
+      </p>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        {items.map((item, idx) => (
+          <div key={idx} style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid #e0e7ff', borderRadius: '8px', padding: '10px 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', fontSize: '0.8125rem' }}>
+              <strong style={{ color: '#312e81' }}>{item.name}</strong>
+              <span style={{ fontWeight: 700, color: '#4338ca' }}>{item.value}</span>
+            </div>
+            <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#4b5563', lineHeight: 1.5 }}>{item.note}</p>
+          </div>
+        ))}
+      </div>
+      <p style={{ margin: '12px 0 0', fontSize: '0.75rem', color: '#4338ca', fontStyle: 'italic', lineHeight: 1.5 }}>
+        These results are displayed for clinical context. The ePSA multimodal model incorporating all biomarker inputs is in active development.
+      </p>
+    </div>
+  );
+};
+
 const NextStepsSection = ({ onContinueToPSA, onContinueToBiopsy }) => (
   <div className="next-steps-section">
     <div className="next-steps-heading">Continue Your Assessment</div>
@@ -1096,6 +1166,9 @@ const Part1Results = ({
         )}
 
       </div>
+
+      {/* ── Biomarker Context (Section C optional inputs) ── */}
+      <BiomarkerContextSection formData={formData} />
 
       {/* ── Urologist Finder ── */}
       <CollapsibleSection title="Find a Board-Certified Urologist Near You">
