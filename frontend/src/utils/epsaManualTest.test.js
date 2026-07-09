@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDynamicEPsa } from './epsaEngine';
+import { calculateDynamicEPsa } from '@epsa/engine';
 
 const patients = [
   {

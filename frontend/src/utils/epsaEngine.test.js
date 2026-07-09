@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, validateInputs } from './epsaEngine';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost, validateInputs } from '@epsa/engine';
 import { makePart1Form, makePreResult, makePart2Post } from './testPatientHelpers';
 
 describe('ePSA Engine — Part 1 (many patient types)', () => {
@@ -255,7 +255,7 @@ describe('ePSA Engine — Part 2 (many patient types)', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Clinical Safety Tests — 5-ARI correction & calcHighGradeRisk
 // ─────────────────────────────────────────────────────────────────────────────
-import { calcHighGradeRisk } from './epsaEngine';
+import { calcHighGradeRisk } from '@epsa/engine';
 
 describe('5-ARI PSA correction (REDUCE trial — ×2 for finasteride/dutasteride)', () => {
   it('doubles PSA for finasteride and sets psaAdjustedFlag', () => {
@@ -581,7 +581,7 @@ describe('ePSA Engine — Golden patient regression fixtures', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Model weight integrity
 // ─────────────────────────────────────────────────────────────────────────────
-import { DEFAULT_CALCULATOR_CONFIG, ASSUMPTIONS_REGISTER } from '../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG, ASSUMPTIONS_REGISTER } from '@epsa/engine';
 
 describe('Model weight integrity', () => {
   const vars = DEFAULT_CALCULATOR_CONFIG.part1.variables;

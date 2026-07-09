@@ -9,7 +9,7 @@ import './epsa-v2-layout.css';
 import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
-import { PSA_BANNER_CONFIG_DATA } from '../config/calculatorConfig';
+import { PSA_BANNER_CONFIG_DATA } from '@epsa/engine';
 import PrintableForm from './PrintableForm';
 import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';

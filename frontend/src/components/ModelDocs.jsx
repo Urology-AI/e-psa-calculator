@@ -1,6 +1,6 @@
 import React from 'react';
 import './ModelDocs.css';
-import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG } from '@epsa/engine';
 import { useTranslation } from 'react-i18next';
 import ValidationStudyModal from './ValidationStudyModal';
 

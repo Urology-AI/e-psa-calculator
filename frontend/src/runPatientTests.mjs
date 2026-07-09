@@ -2,7 +2,7 @@
  * Run many patient profiles through Part 1 and Part 2 and print results.
  * Run from frontend: node src/runPatientTests.mjs
  */
-import { calculateDynamicEPsa, calculateDynamicEPsaPost } from './utils/epsaEngine.js';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost } from '@epsa/engine';
 import { makePart1Form, makePreResult, makePart2Post } from './utils/testPatientHelpers.js';
 
 const part1Profiles = [
