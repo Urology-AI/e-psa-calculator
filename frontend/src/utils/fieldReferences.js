@@ -234,14 +234,6 @@ export const fieldReferences = {
 // Not independently re-verified against live abstracts — treat as a starting
 // point for clinical review, not a substitute for it.
 export const biomarkerReferences = {
-  previousBiopsy: {
-    title: 'Previous Prostate Biopsy',
-    description: 'A prior negative biopsy does not rule out clinically significant cancer, and AUA/SUO guidance supports continued PSA-based surveillance rather than discontinuing screening. A prior Grade Group finding is one of the strongest predictors of future risk.',
-    sources: [
-      auaScreeningGuideline,
-      { name: 'Cohen MS, et al. — repeat biopsy after negative initial biopsy', url: pubmedSearch('repeat prostate biopsy negative initial biopsy risk') },
-    ],
-  },
   polygenicRiskScore: {
     title: 'Polygenic Risk Score (PRS)',
     description: 'PRS aggregates hundreds to thousands of common genetic variants (SNPs) into a single inherited-risk estimate, independent of PSA or family history. Validated primarily in the PRACTICAL consortium cohorts; clinical utility for individualized screening decisions is still an active area of research.',
@@ -315,6 +307,14 @@ export const biomarkerReferences = {
     description: '17-gene RT-PCR assay run directly on biopsy tissue; estimates likelihood of adverse pathology to help distinguish candidates for active surveillance from those who need immediate treatment.',
     sources: [
       { name: 'Klein EA, et al., Eur Urol. 2014 (17-gene Genomic Prostate Score validation)', url: pubmedSearch('Klein EA Eur Urol 2014 17-gene assay genomic prostate score') },
+    ],
+  },
+  prolaris: {
+    title: 'Prolaris (Myriad Genetics)',
+    description: '46-gene cell cycle progression (CCP) RT-PCR assay run on biopsy or prostatectomy tissue; predicts 10-year prostate-cancer-specific mortality and metastasis risk to guide active surveillance vs. treatment decisions.',
+    sources: [
+      { name: 'Cuzick J, et al., Br J Cancer. 2012 (CCP score validation, conservatively managed cohort)', url: pubmedSearch('Cuzick J Br J Cancer 2012 cell cycle progression prostate biopsy') },
+      { name: 'Bishoff JT, et al., J Urol. 2014 (Prolaris CCP score, biopsy validation)', url: pubmedSearch('Bishoff JT J Urol 2014 Prolaris cell cycle progression biopsy') },
     ],
   },
   exactvu: {

@@ -22,7 +22,8 @@ import Part1Form from './components/Part1Form.jsx';
 import Part1Results from './components/Part1Results.jsx';
 // Lazy-loaded — only shown after Part 1 is complete
 const Part2Form = React.lazy(() => import('./components/Part2Form.jsx'));
-const Part2PsaResult = React.lazy(() => import('./components/Part2PsaResult.jsx'));
+const Part2BiomarkersForm = React.lazy(() => import('./components/Part2BiomarkersForm.jsx'));
+const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
 import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
@@ -60,8 +61,9 @@ const safeLS = {
 
 const POST_STEPS = [
   { id: 1, label: 'PSA', title: 'PSA Level', description: 'Enter your PSA test result' },
-  { id: 2, label: 'MRI', title: 'MRI Results (Optional)', description: 'Share your PIRADS score if available' },
-  { id: 3, label: 'Risk', title: 'Risk Assessment', description: 'View your personalized risk assessment' }
+  { id: 2, label: 'Biomarkers', title: 'Advanced Biomarkers (Optional)', description: 'Enter any advanced biomarker test results' },
+  { id: 3, label: 'MRI', title: 'MRI Results (Optional)', description: 'Share your PIRADS score if available' },
+  { id: 4, label: 'Risk', title: 'Risk Assessment', description: 'View your personalized risk assessment' }
 ];
 
 function App() {
@@ -175,11 +177,11 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
-  // True while Part 3 is waiting on the biopsy-prediction API call, so a loading
+  // True while Part 4 is waiting on the biopsy-prediction API call, so a loading
   // screen can be shown instead of a blank step between the MRI form and results.
   const [isCalculatingPart3, setIsCalculatingPart3] = useState(false);
   // Shows a lightweight PSA-only interim result between Part 2 (PSA form) and
-  // Part 3 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
+  // Part 4 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
   const [showPart2Interim, setShowPart2Interim] = useState(false);
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
@@ -298,7 +300,7 @@ function App() {
                         }
                       }
                       // Set step to 3 AFTER results are calculated
-                      setCurrentStep(3);
+                      setCurrentStep(4);
                     } else if (session.status === 'STEP1_COMPLETE') {
                       // Stage 1 completed - show stage 1 results, ready for stage 2
                       setStage('pre');
@@ -372,7 +374,7 @@ function App() {
                       // Restore state based on session status (same logic as above)
                       if (session.status === 'STEP2_COMPLETE') {
                         setStage('post');
-                        setCurrentStep(3);
+                        setCurrentStep(4);
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
@@ -459,7 +461,7 @@ function App() {
                           console.error('Error recalculating results:', calcErr);
                         }
                       }
-                      setCurrentStep(3);
+                      setCurrentStep(4);
                     } else if (session.status === 'STEP1_COMPLETE') {
                       setStage('pre');
                       if (session.step1) {
@@ -489,7 +491,7 @@ function App() {
                     if (session) {
                       if (session.status === 'STEP2_COMPLETE') {
                         setStage('post');
-                        setCurrentStep(3);
+                        setCurrentStep(4);
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
@@ -765,7 +767,7 @@ function App() {
         setStage(pending.targetStage);
         if (pending.hasPart1Result) {
           if (pending.targetStage === 'pre') { setCurrentStep(3); setPart1Step(4); }
-          else { setCurrentStep(3); }
+          else { setCurrentStep(4); }
         } else {
           setCurrentStep(1); setPart1Step(0);
         }
@@ -1055,10 +1057,11 @@ function App() {
                   if (recalcPost) setPostResult(recalcPost);
                 }
                 setStage('post');
+                setCurrentStep(4);
               } else {
                 setStage('pre');
+                setCurrentStep(3);
               }
-              setCurrentStep(3);
               setStorageMode('cloud');
             }
           } catch (loadErr) {
@@ -1431,15 +1434,19 @@ function App() {
       return;
     }
     
-    // MRI is now optional Step 2 for all post pathways
-    const part2TotalSteps = 2;
+    // 3 form steps: 1 PSA, 2 Biomarkers, 3 MRI (optional)
+    const part2TotalSteps = 3;
 
     if (currentStep === 1) {
-      // Show the lightweight PSA-only interim result before moving to Part 3 (MRI).
-      setShowPart2Interim(true);
+      // PSA entered — advance to the biomarkers step (no calculation yet).
+      setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep < part2TotalSteps) {
-      setCurrentStep(currentStep + 1);
+    } else if (currentStep === 2) {
+      // Biomarkers entered — compute the Part 2 result (ePSA score from
+      // PSA + baseline, no MRI yet) and show it before moving to Part 4 (MRI).
+      const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
+      setPostResult(interimResult);
+      setShowPart2Interim(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === part2TotalSteps) {
       // Calculate Post results using DYNAMIC calculator.
@@ -1459,9 +1466,10 @@ function App() {
       }
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
 
-      // Part 3 (MRI/PI-RADS present): attempt the validated biopsy-prediction service
-      // (log(PSA) + PSAD + PI-RADS, N=120 Mount Sinai registry, OOF AUC 0.703).
-      // On any failure, fall back silently to the local calculateDynamicEPsaPost result above.
+      // Part 4 (MRI/PI-RADS present): the validated biopsy-prediction service is the
+      // sole source of the biopsy risk estimate (log(PSA) + PSAD + PI-RADS,
+      // N=120 Mount Sinai registry, OOF AUC 0.703). No local fallback model —
+      // on failure we show an "unavailable" notice instead (see Part3Results.jsx).
       if (hasMriData) {
         const psaNum = parseFloat(postData.psa);
         const piradsNum = parseInt(postData.pirads, 10);
@@ -1476,7 +1484,7 @@ function App() {
             });
             result.apiPrediction = apiPrediction;
           } catch (err) {
-            console.error('Biopsy prediction service unavailable, using local model:', err);
+            console.error('Biopsy prediction service unavailable:', err);
             result.apiPrediction = null;
             result.apiPredictionFailed = true;
           } finally {
@@ -1508,10 +1516,10 @@ function App() {
           console.error('Error saving step 2 to Firestore:', error);
         }
       }
-      
-      setCurrentStep(3);
+
+      setCurrentStep(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
     }
   };
 
@@ -1567,12 +1575,8 @@ function App() {
           // From Stage 2 welcome, go back to Part 1 results
           setCurrentStep(3);
           setStage('pre');
-        } else if (currentStep === 1) {
-          // From Part2Form, go back to Part1Results
-          setCurrentStep(3);
-          setStage('pre');
-        } else if (currentStep === 3) {
-          // From Part3Results / Part2PsaResult, go back to Part2Form
+        } else if (currentStep === 4) {
+          // From Part3Results / Part2Results, go back to Part2Form
           setCurrentStep(1);
         }
       }
@@ -1612,7 +1616,7 @@ function App() {
       const onPart1Form = stage === 'pre' && (currentStep === 1 || currentStep === 2);
       if (onPart1Form && part1Step > 0) return false;
 
-      const onPart2Form = stage === 'post' && (currentStep === 1 || currentStep === 2);
+      const onPart2Form = stage === 'post' && (currentStep === 1 || currentStep === 2 || currentStep === 3);
       if (onPart2Form) return false;
     }
 
@@ -1801,20 +1805,6 @@ function App() {
       
       case 1:
         // Part 2 — PSA only
-        if (showPart2Interim) {
-          return (
-            <Part2PsaResult
-              postData={postData}
-              preResult={preResult}
-              onContinueToMRI={() => {
-                setShowPart2Interim(false);
-                setCurrentStep(2);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onBack={() => setShowPart2Interim(false)}
-            />
-          );
-        }
         return (
           <Part2Form
             formData={postData}
@@ -1830,7 +1820,34 @@ function App() {
         );
 
       case 2:
-        // Part 3 — MRI / PI-RADS, feeds the biopsy prediction model
+        // Part 3 — Advanced Biomarkers, then the Parts 2 & 3 results interim
+        if (showPart2Interim) {
+          return (
+            <Part2Results
+              result={postResult}
+              postData={postData}
+              preResult={preResult}
+              onContinueToMRI={() => {
+                setShowPart2Interim(false);
+                setCurrentStep(3);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onBack={() => setShowPart2Interim(false)}
+            />
+          );
+        }
+        return (
+          <Part2BiomarkersForm
+            formData={postData}
+            setFormData={setPostData}
+            preResult={preResult}
+            onNext={handlePostNext}
+            onBack={() => setCurrentStep(1)}
+          />
+        );
+
+      case 3:
+        // Part 4 — MRI / PI-RADS, feeds the biopsy prediction model
         return (
           <Part3Form
             formData={postData}
@@ -1842,12 +1859,12 @@ function App() {
           />
         );
 
-      case 3:
+      case 4:
         return (
           <div className="post-results-step">
             {!postResult && isCalculatingPart3 && (
               <ResultsLoading
-                label="ePSA · Part 3"
+                label="ePSA · Part 4"
                 message="Analyzing your PSA and MRI data…"
                 steps={PART2_LOADING_STEPS}
                 storageKey={LOADING_SEEN_KEY_P2}
@@ -1872,9 +1889,10 @@ function App() {
                 onShowModelDocs={() => setShowModelDocs(true)}
               />
             ) : (
-              // Stopped after Part 2 (PSA only, no MRI) — final screen stays PSA-focused;
-              // combined-risk/biopsy detail is deferred to Part 3 once MRI is added.
-              <Part2PsaResult
+              // Stopped after Part 2 (PSA + biomarkers, no MRI) — final screen stays
+              // PSA-focused; combined-risk/biopsy detail is deferred to Part 4 once MRI is added.
+              <Part2Results
+                result={postResult}
                 postData={postData}
                 preResult={preResult}
                 onBack={() => {
@@ -1883,7 +1901,7 @@ function App() {
                 }}
                 onContinueToMRI={() => {
                   setPathwayMode('post_mri');
-                  setCurrentStep(2);
+                  setCurrentStep(3);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onStartOver={handleClearData}
@@ -2076,8 +2094,9 @@ function App() {
               <nav className="stage-nav" aria-label="Assessment stages">
                 {(() => {
                   const isPostMri = postResult?.pathwayMode === 'post_mri';
-                  // Has the user reached (or passed) the MRI form this session?
-                  const mriReached = stage === 'post' && currentStep >= 2;
+                  // Has the user reached (or passed) the biomarkers / MRI forms this session?
+                  const biomarkersReached = stage === 'post' && currentStep >= 2;
+                  const mriReached = stage === 'post' && currentStep >= 3;
 
                   const part1Sub = stage === 'pre'
                     ? (currentStep === 3 ? 'Results' : `Step ${Math.min(part1Step + 1, 7)} of 7`)
@@ -2086,12 +2105,19 @@ function App() {
                     ? 'Complete Part 1 first'
                     : (stage === 'post' && currentStep === 1)
                       ? 'Step 1 of 1'
-                      : (postResult ? 'Complete' : 'Ready');
+                      : 'Complete';
+                  const biomarkersSub = !preResult
+                    ? 'Complete Part 1 first'
+                    : !biomarkersReached
+                      ? 'Complete PSA first'
+                      : (stage === 'post' && currentStep === 2)
+                        ? 'Step 1 of 1'
+                        : 'Complete';
                   const mriSub = !preResult
                     ? 'Complete Part 1 first'
                     : !postResult && !mriReached
-                      ? 'Complete PSA first'
-                      : (stage === 'post' && currentStep === 2)
+                      ? 'Complete Biomarkers first'
+                      : (stage === 'post' && currentStep === 3)
                         ? 'Step 1 of 1'
                         : isPostMri
                           ? 'Results'
@@ -2102,10 +2128,17 @@ function App() {
                     ? 'locked'
                     : (stage === 'post' && currentStep === 1)
                       ? 'current'
-                      : (postResult ? 'done' : 'available');
-                  const mriStatus = !preResult
+                      : 'done';
+                  const biomarkersStatus = !preResult
                     ? 'locked'
                     : (stage === 'post' && currentStep === 2)
+                      ? 'current'
+                      : biomarkersReached
+                        ? 'done'
+                        : 'available';
+                  const mriStatus = !preResult
+                    ? 'locked'
+                    : (stage === 'post' && currentStep === 3)
                       ? 'current'
                       : isPostMri
                         ? 'done'
@@ -2122,10 +2155,16 @@ function App() {
                     setCurrentStep(1);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   };
+                  const goToBiomarkers = () => {
+                    if (!preResult || !biomarkersReached) return;
+                    setStage('post');
+                    setCurrentStep(2);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
                   const goToMri = () => {
                     if (!preResult || (!postResult && !mriReached)) return;
                     setStage('post');
-                    setCurrentStep(isPostMri ? 3 : 2);
+                    setCurrentStep(isPostMri ? 4 : 3);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   };
 
@@ -2164,13 +2203,29 @@ function App() {
                       <span className="stage-nav-sep" aria-hidden="true" />
                       <button
                         type="button"
+                        className={`stage-nav-item stage-nav-item--${biomarkersStatus}`}
+                        onClick={goToBiomarkers}
+                        disabled={biomarkersStatus === 'locked'}
+                        aria-current={biomarkersStatus === 'current' ? 'step' : undefined}
+                      >
+                        <span className="stage-nav-num" aria-hidden="true">
+                          {biomarkersStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '3'}
+                        </span>
+                        <span className="stage-nav-body">
+                          <span className="stage-nav-label">Biomarkers</span>
+                          <span className="stage-nav-sub">{biomarkersSub}</span>
+                        </span>
+                      </button>
+                      <span className="stage-nav-sep" aria-hidden="true" />
+                      <button
+                        type="button"
                         className={`stage-nav-item stage-nav-item--${mriStatus}`}
                         onClick={goToMri}
                         disabled={mriStatus === 'locked'}
                         aria-current={mriStatus === 'current' ? 'step' : undefined}
                       >
                         <span className="stage-nav-num" aria-hidden="true">
-                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '3'}
+                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '4'}
                         </span>
                         <span className="stage-nav-body">
                           <span className="stage-nav-label">MRI</span>

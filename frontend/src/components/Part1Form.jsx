@@ -3,7 +3,7 @@ import { deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
 import './Part1Form.css';
 import './epsa-v2-layout.css';
 import InfoIcon from './InfoIcon';
-import { fieldReferences, biomarkerReferences } from '../utils/fieldReferences';
+import { fieldReferences } from '../utils/fieldReferences';
 import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -34,39 +34,6 @@ const SectionABadge = () => (
 const SectionBBadge = () => (
   <span className="section-b-badge">Research-based</span>
 );
-
-const SectionCBadge = () => (
-  <span className="section-c-badge">Research · Optional</span>
-);
-
-// Merged source lists for Section C questions that cover multiple tests at once.
-const urineBiomarkerRef = {
-  title: 'Urine-Based Biomarker Tests',
-  description: 'MPS2, PCA3, and SelectMDx are non-invasive urine tests used as an adjunct to PSA to help decide whether a biopsy or MRI referral is warranted.',
-  sources: [
-    ...biomarkerReferences.mps2.sources,
-    ...biomarkerReferences.pca3.sources,
-    ...biomarkerReferences.selectMdx.sources,
-  ],
-};
-const bloodBiomarkerRef = {
-  title: 'Blood-Based Biomarker Tests (beyond PSA)',
-  description: 'Stockholm3, PHI, and 4Kscore each combine multiple blood analytes into a single risk score to improve specificity over PSA alone.',
-  sources: [
-    ...biomarkerReferences.stockholm3.sources,
-    ...biomarkerReferences.phi.sources,
-    ...biomarkerReferences.fourKScore.sources,
-  ],
-};
-const genomicTestRef = {
-  title: 'Tissue-Based Genomic Tests',
-  description: 'Decipher, ExoDx, and Oncotype DX (OncoDx) are tissue or urine molecular assays that estimate aggressiveness or metastatic risk to guide treatment vs. active surveillance decisions.',
-  sources: [
-    ...biomarkerReferences.decipher.sources,
-    ...biomarkerReferences.exodx.sources,
-    ...biomarkerReferences.oncodx.sources,
-  ],
-};
 
 const Part1Form = ({ formData, setFormData, onNext }) => {
   const { t } = useTranslation();
@@ -159,27 +126,12 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     shim: formData.shim || Array(5).fill(null),
     guidelineRegion: formData.guidelineRegion || 'us',
     skippedFields: Array.isArray(formData.skippedFields) ? [...formData.skippedFields] : [],
-
-    // Section C — Advanced Biomarkers (all optional)
-    previousBiopsy: formData.previousBiopsy ?? null,
-    previousBiopsyResult: formData.previousBiopsyResult || '',
-    polygenicrisk: formData.polygenicrisk ?? null,
-    polygenicScore: formData.polygenicScore || '',
-    urineBiomarker: formData.urineBiomarker ?? null,
-    urineBiomarkerResult: formData.urineBiomarkerResult ?? null,
-    bloodBiomarker: formData.bloodBiomarker ?? null,
-    bloodBiomarkerResult: formData.bloodBiomarkerResult ?? null,
-    genomicTest: formData.genomicTest ?? null,
-    genomicResult: formData.genomicResult ?? null,
-    exactvuDone: formData.exactvuDone ?? null,
-    exactvuPrecise: formData.exactvuPrecise ?? null,
   });
 
   const [formErrors, setFormErrors] = useState([]);
   const [attemptedNext, setAttemptedNext] = useState(false);
   const sectionARef = useRef(null);
   const sectionBRef = useRef(null);
-  const sectionCRef = useRef(null);
   const [activeSectionTab, setActiveSectionTab] = useState('A');
   // 'quick' = single proxy question; 'full' = all questions
   // Infer initial mode from imported data: if all 7 ipss are non-null → full, else quick
@@ -203,7 +155,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     );
     if (sectionARef.current) observer.observe(sectionARef.current);
     if (sectionBRef.current) observer.observe(sectionBRef.current);
-    if (sectionCRef.current) observer.observe(sectionCRef.current);
     return () => observer.disconnect();
   }, []);
 
@@ -269,12 +220,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     comorbidityScore: 0,
     ipss: Array(7).fill(0),
     shim: Array(5).fill(0),
-    previousBiopsy: 'no',
-    polygenicrisk: 'not_tested',
-    urineBiomarker: 'none',
-    bloodBiomarker: 'none',
-    genomicTest: 'none',
-    exactvuDone: 'no',
   };
 
   const skipField = (field) => {
@@ -454,7 +399,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const brcaValid = !!localData.brcaStatus;
   const comorbiditiesValid = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
 
-  const totalQuestions = 31; // 12 core + 7 IPSS + 1 QoL + 5 SHIM + 6 Section C (optional)
+  const totalQuestions = 25; // 12 core + 7 IPSS + 1 QoL + 5 SHIM
   const countAnswered = () => {
     let count = 0;
     const skipped = (f) => isSkipped(f);
@@ -477,12 +422,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     if (!skipped('shim')) {
       localData.shim.forEach(v => { if (v !== null && v !== undefined) count++; });
     }
-    if (localData.previousBiopsy !== null) count++;
-    if (localData.polygenicrisk !== null) count++;
-    if (localData.urineBiomarker !== null) count++;
-    if (localData.bloodBiomarker !== null) count++;
-    if (localData.genomicTest !== null) count++;
-    if (localData.exactvuDone !== null) count++;
     return count;
   };
 
@@ -513,18 +452,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     shimComplete || isSkipped('shim'),
   ].filter(Boolean).length;
   const sectionBDone = sectionBAnswered === sectionBTotal;
-
-  // Section C: advanced biomarkers — entirely optional, never gates submission
-  const sectionCTotal = 6;
-  const sectionCAnswered = [
-    localData.previousBiopsy !== null,
-    localData.polygenicrisk !== null,
-    localData.urineBiomarker !== null,
-    localData.bloodBiomarker !== null,
-    localData.genomicTest !== null,
-    localData.exactvuDone !== null,
-  ].filter(Boolean).length;
-  const sectionCDone = sectionCAnswered === sectionCTotal;
 
   const progressPct = Math.round((answeredCount / totalQuestions) * 100);
 
@@ -574,19 +501,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             <span className="section-tab-name">Lifestyle Factors</span>
             <span className={`section-tab-count ${sectionBDone ? 'section-tab-count--done' : ''}`}>
               {sectionBAnswered}/{sectionBTotal}
-            </span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeSectionTab === 'C'}
-            className={`section-tab section-tab--c ${activeSectionTab === 'C' ? 'section-tab--active' : ''} ${sectionCDone ? 'section-tab--done' : ''}`}
-            onClick={() => scrollToSection(sectionCRef)}
-          >
-            <span className="section-tab-letter section-tab-letter--c">C</span>
-            <span className="section-tab-name">Biomarkers</span>
-            <span className={`section-tab-count ${sectionCDone ? 'section-tab-count--done' : ''}`}>
-              {sectionCAnswered}/{sectionCTotal}
             </span>
           </button>
         </div>
@@ -1355,277 +1269,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         );
       })()}
 
-      {/* ═══════════════════════════════════════════════════════════
-          Section divider
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="part1-section-divider" aria-hidden="true" />
-
-      {/* ═══════════════════════════════════════════════════════════
-          SECTION C — Advanced Biomarkers (optional)
-          ═══════════════════════════════════════════════════════════ */}
-      <div ref={sectionCRef} data-section="C" className="part1-section-header part1-section-header--c">
-        <div className="part1-section-header-top">
-          <span className="part1-section-letter part1-section-letter--c">C</span>
-          <h4 className="part1-section-title">
-            Advanced Biomarkers
-            <SectionCBadge />
-          </h4>
-        </div>
-        <p className="part1-section-subtitle part1-section-subtitle--c">
-          If you've had any of these tests, enter the results. All optional — skip anything you haven't had. These data points improve future model accuracy and personalize your result context.
-        </p>
-      </div>
-
-      {/* C1: Previous biopsy */}
-      <div className="question-card" style={{ borderColor: localData.previousBiopsy !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">15</div>
-          <div className="question-text">Have you had a prostate biopsy before?</div>
-          <InfoIcon {...biomarkerReferences.previousBiopsy} />
-          {localData.previousBiopsy !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <div className="option-grid c2">
-            {[
-              { value: 'no', label: 'No' },
-              { value: 'yes', label: 'Yes' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.previousBiopsy === opt.value ? 'selected' : ''}`} onClick={() => updateField('previousBiopsy', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.previousBiopsy === 'yes' && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>What was the result?</div>
-              <div className="option-grid c3">
-                {[
-                  { value: 'negative', label: 'Negative (no cancer)' },
-                  { value: 'gg1', label: 'Grade Group 1 (GG1)' },
-                  { value: 'gg2plus', label: 'Grade Group 2 or higher (GG2+)' },
-                ].map(opt => (
-                  <button key={opt.value} type="button" className={`option-btn ${localData.previousBiopsyResult === opt.value ? 'selected' : ''}`} onClick={() => updateField('previousBiopsyResult', opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <SkipLink field="previousBiopsy" />
-        </div>
-      </div>
-
-      {/* C2: Polygenic risk score */}
-      <div className="question-card" style={{ borderColor: localData.polygenicrisk !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">16</div>
-          <div className="question-text">Have you had a polygenic risk score (PRS) test for prostate cancer?</div>
-          <InfoIcon {...biomarkerReferences.polygenicRiskScore} />
-          {localData.polygenicrisk !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext style={{ marginBottom: '10px' }}>
-            PRS tests (e.g., Polygenic Health, Ambry Genetics, Color) assess inherited DNA risk across hundreds of genetic variants.
-          </QuestionSubtext>
-          <div className="option-grid c2">
-            {[
-              { value: 'not_tested', label: 'Not tested' },
-              { value: 'average', label: 'Average risk (near population median)' },
-              { value: 'elevated', label: 'Elevated risk (>75th percentile)' },
-              { value: 'high', label: 'High risk (>90th percentile)' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.polygenicrisk === opt.value ? 'selected' : ''}`} onClick={() => updateField('polygenicrisk', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.polygenicrisk && localData.polygenicrisk !== 'not_tested' && (
-            <div style={{ marginTop: '12px' }}>
-              <label htmlFor="field-prs-score" className="sr-only">PRS score (if known)</label>
-              <input
-                id="field-prs-score"
-                type="number"
-                className="input-field"
-                placeholder="Numeric PRS score, if known (optional)"
-                value={localData.polygenicScore}
-                onChange={(e) => updateField('polygenicScore', e.target.value)}
-              />
-            </div>
-          )}
-          <SkipLink field="polygenicrisk" />
-        </div>
-      </div>
-
-      {/* C3: Urine biomarker */}
-      <div className="question-card" style={{ borderColor: localData.urineBiomarker !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">17</div>
-          <div className="question-text">Have you had a urine-based prostate biomarker test?</div>
-          <InfoIcon {...urineBiomarkerRef} />
-          {localData.urineBiomarker !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext style={{ marginBottom: '10px' }}>
-            e.g., MyProstateScore 2.0 (MPS2 / 18-gene), PCA3, SelectMDx
-          </QuestionSubtext>
-          <div className="option-grid c2">
-            {[
-              { value: 'none', label: 'None / Not tested' },
-              { value: 'mps2', label: 'MPS2 (MyProstateScore 2.0)' },
-              { value: 'pca3', label: 'PCA3' },
-              { value: 'selectmdx', label: 'SelectMDx' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.urineBiomarker === opt.value ? 'selected' : ''}`} onClick={() => updateField('urineBiomarker', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.urineBiomarker && localData.urineBiomarker !== 'none' && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>What was the result?</div>
-              <div className="option-grid c3">
-                {[
-                  { value: 'low', label: 'Low risk' },
-                  { value: 'intermediate', label: 'Intermediate' },
-                  { value: 'high', label: 'High risk' },
-                ].map(opt => (
-                  <button key={opt.value} type="button" className={`option-btn ${localData.urineBiomarkerResult === opt.value ? 'selected' : ''}`} onClick={() => updateField('urineBiomarkerResult', opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <SkipLink field="urineBiomarker" />
-        </div>
-      </div>
-
-      {/* C4: Blood biomarker */}
-      <div className="question-card" style={{ borderColor: localData.bloodBiomarker !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">18</div>
-          <div className="question-text">Have you had a blood-based prostate biomarker test beyond standard PSA?</div>
-          <InfoIcon {...bloodBiomarkerRef} />
-          {localData.bloodBiomarker !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext style={{ marginBottom: '10px' }}>
-            e.g., Stockholm 3 (STHLM3), Prostate Health Index (PHI), 4Kscore
-          </QuestionSubtext>
-          <div className="option-grid c2">
-            {[
-              { value: 'none', label: 'None / Not tested' },
-              { value: 'stockholm3', label: 'Stockholm 3 (STHLM3)' },
-              { value: 'phi', label: 'Prostate Health Index (PHI)' },
-              { value: '4k', label: '4Kscore' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.bloodBiomarker === opt.value ? 'selected' : ''}`} onClick={() => updateField('bloodBiomarker', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.bloodBiomarker && localData.bloodBiomarker !== 'none' && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>What was the result category?</div>
-              <div className="option-grid c3">
-                {[
-                  { value: 'low', label: 'Low risk' },
-                  { value: 'intermediate', label: 'Intermediate' },
-                  { value: 'high', label: 'High risk' },
-                ].map(opt => (
-                  <button key={opt.value} type="button" className={`option-btn ${localData.bloodBiomarkerResult === opt.value ? 'selected' : ''}`} onClick={() => updateField('bloodBiomarkerResult', opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <SkipLink field="bloodBiomarker" />
-        </div>
-      </div>
-
-      {/* C5: Genomic / tissue test */}
-      <div className="question-card" style={{ borderColor: localData.genomicTest !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">19</div>
-          <div className="question-text">Have you had a prostate genomic test (tissue-based)?</div>
-          <InfoIcon {...genomicTestRef} />
-          {localData.genomicTest !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext style={{ marginBottom: '10px' }}>
-            e.g., Decipher Genomics (post-biopsy), ExoDx Prostate, OncoDx
-          </QuestionSubtext>
-          <div className="option-grid c2">
-            {[
-              { value: 'none', label: 'None / Not tested' },
-              { value: 'decipher', label: 'Decipher' },
-              { value: 'exodx', label: 'ExoDx' },
-              { value: 'oncodx', label: 'OncoDx' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.genomicTest === opt.value ? 'selected' : ''}`} onClick={() => updateField('genomicTest', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.genomicTest && localData.genomicTest !== 'none' && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>What was the result?</div>
-              <div className="option-grid c3">
-                {[
-                  { value: 'low', label: 'Low risk' },
-                  { value: 'intermediate', label: 'Intermediate' },
-                  { value: 'high', label: 'High risk' },
-                ].map(opt => (
-                  <button key={opt.value} type="button" className={`option-btn ${localData.genomicResult === opt.value ? 'selected' : ''}`} onClick={() => updateField('genomicResult', opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <SkipLink field="genomicTest" />
-        </div>
-      </div>
-
-      {/* C6: ExactVu micro-ultrasound */}
-      <div className="question-card" style={{ borderColor: localData.exactvuDone !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">20</div>
-          <div className="question-text">Have you had an ExactVu micro-ultrasound (high-resolution transrectal ultrasound)?</div>
-          <InfoIcon {...biomarkerReferences.exactvu} />
-          {localData.exactvuDone !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext style={{ marginBottom: '10px' }}>
-            ExactVu operates at 29 MHz — approximately 3× the resolution of standard TRUS. Used for targeted biopsy and lesion characterization.
-          </QuestionSubtext>
-          <div className="option-grid c2">
-            {[
-              { value: 'no', label: 'No / Not available' },
-              { value: 'yes', label: 'Yes' },
-            ].map(opt => (
-              <button key={opt.value} type="button" className={`option-btn ${localData.exactvuDone === opt.value ? 'selected' : ''}`} onClick={() => updateField('exactvuDone', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {localData.exactvuDone === 'yes' && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.875rem' }}>What was the PRECISE score? (1–5)</div>
-              <div className="option-grid c3">
-                {[1, 2, 3, 4, 5].map(v => (
-                  <button key={v} type="button" className={`option-btn ${localData.exactvuPrecise === v ? 'selected' : ''}`} onClick={() => updateField('exactvuPrecise', v)}>
-                    {v} {v === 1 ? '(very low suspicion)' : v === 5 ? '(very high suspicion)' : ''}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <SkipLink field="exactvuDone" />
-        </div>
-      </div>
-
       {/* Submit */}
       <div className="v2-form-nav">
         <div className="v2-form-nav-inner">
@@ -1645,14 +1288,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               aria-label={`Section B: ${sectionBAnswered} of ${sectionBTotal} answered`}
             >
               B {sectionBDone ? <CheckIcon size={12} aria-hidden="true" /> : `${sectionBAnswered}/${sectionBTotal}`}
-            </button>
-            <button
-              type="button"
-              className={`nav-section-chip ${sectionCDone ? 'nav-section-chip--done' : ''}`}
-              onClick={() => scrollToSection(sectionCRef)}
-              aria-label={`Section C: ${sectionCAnswered} of ${sectionCTotal} answered`}
-            >
-              C {sectionCDone ? <CheckIcon size={12} aria-hidden="true" /> : `${sectionCAnswered}/${sectionCTotal}`}
             </button>
           </div>
           <div className="v2-form-nav-btns">

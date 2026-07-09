@@ -41,8 +41,8 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     prostateVolume: formData.prostateVolume || '',
     onHormonalTherapy: formData.onHormonalTherapy || false,
     hormonalTherapyType: formData.hormonalTherapyType || '',
-    // PI-RADS fields belong to Part 3 (MRI) but are carried through here so the
-    // full-object-replace `setFormData` pattern doesn't drop them if Part 3 was
+    // PI-RADS fields belong to Part 4 (MRI) but are carried through here so the
+    // full-object-replace `setFormData` pattern doesn't drop them if Part 4 was
     // already visited (e.g. navigating back and forth).
     knowPirads: formData.knowPirads || false,
     pirads: formData.pirads || '0',
@@ -50,7 +50,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
   });
 
   useEffect(() => {
-    setFormData(localData);
+    setFormData(prev => ({ ...prev, ...localData }));
   }, [localData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateField = (field, value) => {
@@ -296,6 +296,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
               )}
             </div>
           </div>
+
         </>
       )}
     </div>
@@ -312,7 +313,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     );
   }
 
-  const stepChipLabel = 'Step 1 of 2 — Your PSA Result';
+  const stepChipLabel = 'Part 2 — Your PSA Result';
   const stepTitle = hasPsaPathway ? 'Enter your PSA level' : t('part2.steps.psa.sectionTitle');
   const stepNote = hasPsaPathway
     ? 'Enter your PSA level. You\'ll add your MRI / PI-RADS results next.'
@@ -326,7 +327,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
         <p className="flow-step-note">{stepNote}</p>
       </div>
       <div className="progress-bar">
-        <div className="progress-fill" style={{ width: '50%' }} />
+        <div className="progress-fill" style={{ width: '33%' }} />
       </div>
 
       <div className="v2-p2-layout">

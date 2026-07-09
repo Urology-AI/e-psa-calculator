@@ -177,7 +177,6 @@ const PIRADS_COLORS = ['#16a34a', '#16a34a', '#16a34a', '#2563eb', '#d97706', '#
 /* ─── Gauge tier colors for Part 2 ─── */
 const P2_GAUGE_COLORS = { low: '#16a34a', moderate: '#d97706', high: '#dc2626' };
 
-
 /* ─── Main Component ─── */
 const Part3Results = ({
   result, preResult, preData, onEditAnswers, onStartOver, storageMode,
@@ -257,7 +256,7 @@ const Part3Results = ({
         <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
         <h3 className="p2r-error-banner__title">No Results Yet</h3>
         <p className="p2r-error-banner__body">
-          Complete the Part 3 (MRI) questionnaire to see your biopsy risk assessment.
+          Complete the Part 4 (MRI) questionnaire to see your biopsy risk assessment.
         </p>
       </div>
     </div>
@@ -277,7 +276,7 @@ const Part3Results = ({
           Assessment Data Incomplete
         </h3>
         <p className="p2r-error-banner__body p2r-error-banner__body--mb">
-          Your Part 3 results could not be computed — the PSA data or session record appears incomplete or corrupted.
+          Your Part 4 results could not be computed — the PSA data or session record appears incomplete or corrupted.
           Please start a new assessment or return to Part 1 to re-enter your PSA value.
         </p>
         <button
@@ -294,7 +293,7 @@ const Part3Results = ({
   if (isLoading) return (
     <div className="p2r-container">
       <ResultsLoading
-        label="ePSA · Part 3"
+        label="ePSA · Part 4"
         message="Reviewing your PSA and MRI results…"
         steps={PART2_LOADING_STEPS}
         onComplete={() => setIsLoading(false)}
@@ -311,7 +310,7 @@ const Part3Results = ({
     pathwayMode = 'post_mri',
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
-    psadFlag, highGradeRisk, apiPrediction = null,
+    psadFlag, apiPrediction = null,
   } = result;
 
   const ageNum = Number(preResult?.age || preData?.age) || 0;
@@ -448,13 +447,13 @@ const Part3Results = ({
   return (
     <div className="p2r-container" role="main">
 
-      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 3 · ePSA MRI & Biopsy Risk" />
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 4 · ePSA MRI & Biopsy Risk" />
 
       {/* ── Prediction-service fallback notice ── */}
       {result?.apiPredictionFailed && (
         <div role="status" className="p2r-cloud-save-error" style={{ marginBottom: '12px' }}>
           <strong>We had an issue reaching the biopsy prediction model.</strong>{' '}
-          Showing your results from our validated local model instead.
+          Please try again shortly — this estimate is temporarily unavailable.
         </div>
       )}
 
@@ -506,7 +505,7 @@ const Part3Results = ({
         <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
       </div>
 
-      {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
+      {/* ── Validated Biopsy Prediction Model (Part 4 — PSA + PSAD + PI-RADS) ── */}
       {apiPrediction && (
         <div
           role="region"
@@ -546,7 +545,7 @@ const Part3Results = ({
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Guideline-Based Next Steps · Part 3 · PSA + MRI</span>
+          <span>ePSA Guideline-Based Next Steps · Part 4 · PSA + MRI</span>
           <span>Assessed today</span>
         </div>
 
@@ -561,7 +560,7 @@ const Part3Results = ({
 
         {/* ── Tier journey: Part 1 → Part 2 ── */}
         {preResult?.epsaTierLabel && (
-          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 3">
+          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 4">
             <div className="tier-journey-step">
               <span className="tier-journey-label">Part 1 Baseline</span>
               <span className="tier-journey-tier">{preResult.epsaTierLabel}</span>
@@ -615,29 +614,6 @@ const Part3Results = ({
               </div>
               <div className="p2r-key-input-tier" style={{ color: piradsCtx.color }}>{piradsCtx.label}</div>
               {piradsCtx.detail && <div className="p2r-key-input-detail">{piradsCtx.detail}</div>}
-            </div>
-          )}
-
-          {highGradeRisk != null && postData?.knowPirads && (
-            <div className="p2r-key-input">
-              <div className="p2r-key-input-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                GG≥2 Cancer Risk
-                <InfoIcon
-                  title="Clinically Significant Cancer Risk (GG≥2)"
-                  description={`Estimated probability of Gleason Grade Group ≥2 (clinically significant) prostate cancer, based on a logistic regression model (PI-RADS × PSA, N=96 Mount Sinai biopsy registry). AUA 2026 guideline detection rate for PI-RADS ${postData.pirads || '—'}: ${highGradeRisk.guidelineRate || '—'}. This is an educational estimate — it does not replace clinical judgement or a formal biopsy decision.`}
-                  sources={[]}
-                />
-              </div>
-              <div className="p2r-key-input-value" style={{ color: highGradeRisk.percent >= 70 ? '#dc2626' : highGradeRisk.percent >= 37 ? '#d97706' : '#16a34a' }}>
-                {highGradeRisk.percent}
-                <span className="p2r-key-input-unit">%</span>
-              </div>
-              <div className="p2r-key-input-tier" style={{ color: highGradeRisk.percent >= 70 ? '#dc2626' : highGradeRisk.percent >= 37 ? '#d97706' : '#16a34a' }}>
-                {highGradeRisk.interpretation}
-              </div>
-              {highGradeRisk.guidelineRate && (
-                <div className="p2r-key-input-detail">AUA 2026 guideline rate: {highGradeRisk.guidelineRate}</div>
-              )}
             </div>
           )}
 

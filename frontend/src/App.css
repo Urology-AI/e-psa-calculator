@@ -214,6 +214,11 @@ body {
 
 /* ─── Dark mode overrides ─── */
 .theme-dark {
+  /* Body text — was left as the light-mode navy (#0d1b26), making any element
+     that relies on inherited body color (no explicit color rule) invisible
+     against dark surfaces. Mirror --ink-900's dark value. */
+  --ms-black: #FFFFFF;
+
   /* Deep teal-navy dark surfaces */
   --surface: #0d1b26;
   --surface-subtle: #12253a;
