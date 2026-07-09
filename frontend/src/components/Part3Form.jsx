@@ -21,21 +21,33 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
   const hasMriPathway = pathwayMode === 'post_mri';
 
   const [localData, setLocalData] = useState({
-    // PSA fields carried through from Part 2 — preserved because `setFormData`
-    // replaces the whole shared postData object on every change.
+    // PSA + biomarker fields carried through from Part 2 — preserved because
+    // `setFormData` replaces the whole shared postData object on every change.
     knowPsa: formData.knowPsa ?? true,
     psaConfirmed: formData.psaConfirmed || null,
     psa: formData.psa || '',
     prostateVolume: formData.prostateVolume || '',
     onHormonalTherapy: formData.onHormonalTherapy || false,
     hormonalTherapyType: formData.hormonalTherapyType || '',
+    polygenicrisk: formData.polygenicrisk ?? null,
+    polygenicScore: formData.polygenicScore || '',
+    urineBiomarker: formData.urineBiomarker ?? null,
+    urineBiomarkerResult: formData.urineBiomarkerResult ?? null,
+    urineBiomarkerScore: formData.urineBiomarkerScore || '',
+    bloodBiomarker: formData.bloodBiomarker ?? null,
+    bloodBiomarkerResult: formData.bloodBiomarkerResult ?? null,
+    bloodBiomarkerScore: formData.bloodBiomarkerScore || '',
+    genomicTest: formData.genomicTest ?? null,
+    genomicResult: formData.genomicResult ?? null,
+    exactvuDone: formData.exactvuDone ?? null,
+    exactvuPrecise: formData.exactvuPrecise ?? null,
     knowPirads: hasMriPathway ? true : (formData.knowPirads || false),
     pirads: formData.pirads || '0',
     piradsLesions: Array.isArray(formData.piradsLesions) ? formData.piradsLesions : [],
   });
 
   useEffect(() => {
-    setFormData(localData);
+    setFormData(prev => ({ ...prev, ...localData }));
   }, [localData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateField = (field, value) => {
@@ -52,7 +64,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     return true;
   };
 
-  // Ensure Part 2 (PSA) is complete before showing Part 3
+  // Ensure Part 1 is complete before showing Part 4
   if (!preResult) {
     return (
       <div className="part2-form-container">
@@ -63,7 +75,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     );
   }
 
-  const stepChipLabel = hasMriPathway ? 'Step 2 of 2 — MRI Results' : 'Step 2 of 2 — MRI Results (Optional)';
+  const stepChipLabel = hasMriPathway ? 'Part 4 — MRI Results' : 'Part 4 — MRI Results (Optional)';
   const stepTitle = hasMriPathway ? 'Your MRI Results' : 'MRI Results (Optional)';
   const stepNote = hasMriPathway
     ? 'Enter the PI-RADS score from your MRI report. Your radiologist or urologist will have this.'
@@ -96,7 +108,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
                   <div className="question-text">{t('part2.mri.q1')}</div>
                   <InfoIcon
                     title="MRI PI-RADS — evidence sources"
-                    description="PI-RADS scoring is used in Part 3 (when provided) to run the validated biopsy prediction model."
+                    description="PI-RADS scoring is used in Part 4 (when provided) to run the validated biopsy prediction model."
                     sources={fieldReferences.part2.pirads.sources}
                   />
                 </div>

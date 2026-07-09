@@ -12,7 +12,7 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
   } else if (stage === 'pre') {
     activeIdx = currentStep >= 3 ? 2 : currentStep <= 1 ? 1 : 1;
   } else {
-    activeIdx = currentStep >= 3 ? 5 : currentStep === 2 ? 4 : 3;
+    activeIdx = currentStep >= 4 ? 6 : currentStep === 3 ? 5 : currentStep === 2 ? 4 : 3;
   }
 
   const steps = [
@@ -22,6 +22,7 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
     ...(isPostPathway
       ? [
           { label: 'PSA' },
+          { label: 'Biomarkers' },
           { label: 'MRI' },
           { label: 'Final Score' },
         ]

@@ -63,7 +63,7 @@
 .results-loading-message {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   margin-bottom: 1.125rem;
   line-height: 1.4;
 }
@@ -127,7 +127,7 @@
 .results-loading-step-text {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   margin-bottom: 0.375rem;
   animation: rl-text-in 0.35s ease both;
 }

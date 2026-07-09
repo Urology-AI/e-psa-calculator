@@ -123,7 +123,7 @@
   text-decoration: none;
   font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--ms-navy);
+  color: var(--brand-700);
 }
 
 .p2r-mobile-unit-pill:hover {
@@ -143,7 +143,7 @@
   text-decoration: none;
   font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--ms-navy);
+  color: var(--brand-700);
 }
 
 .p2r-video-pill:hover {
@@ -248,7 +248,7 @@
   padding: 0.5rem 1rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   background: var(--ms-cyan-10);
   border: 0.0625rem solid var(--ms-cyan-20);
   border-radius: 6px;
@@ -289,7 +289,7 @@
   gap: 0.4375rem;
   padding: 0.4375rem 0.875rem;
   background: #fff;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   border: 0.09375rem solid var(--ms-navy);
   border-radius: 6px;
   font-size: 0.8125rem;
@@ -553,7 +553,7 @@
 }
 
 .p2r-risk-card-note strong {
-  color: var(--ms-navy);
+  color: var(--brand-700);
 }
 
 /* ─── Footer disclaimer ─── */
@@ -581,7 +581,7 @@
 }
 
 .p2r-footer-disclaimer strong {
-  color: var(--ms-navy);
+  color: var(--brand-700);
 }
 
 .theme-dark .p2r-footer-disclaimer {
@@ -664,7 +664,7 @@
 .p2r-part1-ref-val {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   letter-spacing: -0.01em;
 }
 
@@ -716,7 +716,7 @@
   align-items: flex-start;
   gap: 0.5rem;
   font-size: 0.90625rem;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   line-height: 1.6;
 }
 
@@ -736,7 +736,7 @@
   align-items: center;
   padding: 0.1875rem 0.4375rem;
   border-radius: 0.375rem;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   background: var(--ms-cyan-10);
   border: 0.0625rem solid var(--ms-navy-10);
   text-decoration: none;
@@ -777,7 +777,7 @@
 .p2r-clinical-val {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
@@ -823,7 +823,7 @@
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   text-align: left;
   transition: background 0.15s ease;
   gap: 0.625rem;
@@ -846,7 +846,7 @@
 .p2r-collapsible-body p {
   margin: 0.75rem 0 0;
   font-size: 0.84375rem;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   line-height: 1.7;
 }
 
@@ -919,7 +919,7 @@
 
 .p2r-btn--outline {
   background: #fff;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   border: 0.09375rem solid var(--ms-gray-200);
 }
 
@@ -1267,7 +1267,7 @@
   padding: 0.3125rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1300,7 +1300,7 @@
 .p2r-profile-pill-val {
   font-size: 0.9375rem;
   font-weight: 800;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
@@ -1358,7 +1358,7 @@
 .p2r-profile-row-val {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   text-align: right;
 }
 
@@ -1391,7 +1391,7 @@
 
 .p2r-profile-tier-note {
   font-size: 0.8125rem;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   padding: 0.5rem 0.625rem;
   background: var(--ms-cyan-10);
   border-radius: 0.5rem;
@@ -1508,7 +1508,7 @@
   gap: 0.4rem;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1547,7 +1547,7 @@
 .p2r-cohort-row--active td {
   background: var(--ms-cyan-10);
   font-weight: 600;
-  color: var(--ms-navy);
+  color: var(--brand-700);
 }
 
 .p2r-cohort-na {
@@ -1584,7 +1584,7 @@
   min-width: 6rem;
 }
 
-.p2r-cohort-model-val { font-size: 1.1rem; font-weight: 700; color: var(--ms-navy); }
+.p2r-cohort-model-val { font-size: 1.1rem; font-weight: 700; color: var(--brand-700); }
 .p2r-cohort-model-key { font-size: 0.75rem; color: var(--ms-gray-600); line-height: 1.35; }
 .p2r-cohort-model-ci  { font-size: 0.7rem; color: var(--ms-gray-600); display: block; }
 
@@ -1648,7 +1648,7 @@
   border-radius: 0.5rem;
 }
 .sdm-collapsible .collapsible-toggle {
-  color: var(--ms-navy);
+  color: var(--brand-700);
   font-weight: 700;
 }
 .sdm-collapsible .collapsible-toggle::before {
@@ -1750,7 +1750,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   margin-bottom: 0.25rem;
 }
 .as-banner--possible .as-banner-eyebrow { color: var(--brand-600); }
@@ -1759,7 +1759,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--ms-navy);
+  color: var(--brand-700);
   margin: 0 0 0.375rem;
 }
 .as-banner--mention .as-banner-title { color: var(--risk-lower); }

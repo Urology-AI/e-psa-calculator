@@ -36,14 +36,8 @@
 
 .pathway-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .pathway-cards {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ─── Individual card ─── */
