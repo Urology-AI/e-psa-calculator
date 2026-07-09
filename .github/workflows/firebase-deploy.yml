@@ -31,6 +31,7 @@ jobs:
     - name: Authorize private @epsa/engine clone
       run: |
         git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "ssh://git@github.com/"
       env:
         EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
 
