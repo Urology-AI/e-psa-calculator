@@ -3,10 +3,10 @@
  * Mirrors the Claude Code verification checklist for the three-pathway ePSA flow.
  */
 import { describe, it, expect } from 'vitest';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost } from './epsaEngine';
+import { calculateDynamicEPsa, calculateDynamicEPsaPost } from '@epsa/engine';
 import { makePart1Form, makePreResult, makePart2Post } from './testPatientHelpers';
 import { buildPart1CsvRows, buildPart2CsvRows } from './exportCsv';
-import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG } from '@epsa/engine';
 
 describe('Pathway mode — Part 1 engine', () => {
   it('defaults pathwayMode to pre_psa when omitted', () => {

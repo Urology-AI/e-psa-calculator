@@ -28,6 +28,14 @@ jobs:
         cache: npm
         cache-dependency-path: frontend/package-lock.json
 
+    - name: Authorize private @epsa/engine clone
+      run: |
+        git config --local --unset-all http.https://github.com/.extraheader || true
+        git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "ssh://git@github.com/"
+      env:
+        EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
+
     - name: Install dependencies
       run: npm ci
       working-directory: frontend

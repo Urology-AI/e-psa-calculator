@@ -1,5 +1,5 @@
 import React from 'react';
-import { MODEL_ACCURACY } from '../utils/epsaEngine';
+import { MODEL_ACCURACY } from '@epsa/engine';
 import './ModelDocumentation.css';
 import { AlertTriangleIcon } from 'lucide-react';
 

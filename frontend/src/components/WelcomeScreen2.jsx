@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './WelcomeScreen2.css';
 import RiskAssessmentDocs from './RiskAssessmentDocs';
 import { EyeIcon, EyeOffIcon, FlaskConicalIcon, HospitalIcon, DnaIcon } from 'lucide-react';
-import { DEFAULT_CALCULATOR_CONFIG } from '../config/calculatorConfig';
+import { DEFAULT_CALCULATOR_CONFIG } from '@epsa/engine';
 import { useTranslation } from 'react-i18next';
 
 const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG }) => {

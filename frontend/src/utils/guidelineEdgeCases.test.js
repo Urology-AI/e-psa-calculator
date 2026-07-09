@@ -9,7 +9,7 @@
  * or vice versa — or the score is unexpectedly high/low for the profile.
  */
 import { describe, it, expect } from 'vitest';
-import { calculateDynamicEPsa } from './epsaEngine';
+import { calculateDynamicEPsa } from '@epsa/engine';
 import { makePart1Form } from './testPatientHelpers';
 
 describe('30 patient examples — potential guideline edge cases', () => {
