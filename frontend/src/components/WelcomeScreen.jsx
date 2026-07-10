@@ -166,8 +166,25 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
         {/* White body: title, description, CTA */}
         <div className="ws-hero-card-body">
-          <h1 className="ws-hero-title">{t('welcome.heroTitle')}</h1>
-          <p className="ws-hero-body">{t('welcome.heroDescription')}</p>
+          <h1 className="ws-hero-title">ePSA — Prostate Cancer Risk Intelligence</h1>
+          <p className="ws-hero-body">
+            A multimodal risk assessment combining clinical history, lifestyle, biomarkers,
+            imaging, and genetics — to predict not just whether you need a biopsy, but what
+            they're likely to find.
+          </p>
+
+          <div className="ws-capability-chips" role="list" aria-label="ePSA capability outputs">
+            <span className="ws-capability-chip" role="listitem">🧬 Significant Cancer Risk</span>
+            <span className="ws-capability-chip" role="listitem">🔬 ECE Probability</span>
+            <span className="ws-capability-chip" role="listitem">🎯 Organ-Confined</span>
+            <span className="ws-capability-chip" role="listitem">📅 Follow-Up Timing</span>
+          </div>
+
+          <p className="ws-vs-psa-note">
+            Standard PSA misses up to 50% of aggressive cancers at PSA &lt; 3 ng/mL.
+            ePSA integrates 14+ clinical and biological signals to find the cancers
+            PSA alone cannot.
+          </p>
 
           {showStorageChoice ? (
             <div className="ws-storage-choice">

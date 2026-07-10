@@ -449,6 +449,42 @@ const Part3Results = ({
 
       <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 4 · ePSA MRI & Biopsy Risk" />
 
+      {/* ── Multimodal Output Cards ── */}
+      <div className="multimodal-output-grid" role="region" aria-label="ePSA multimodal risk outputs">
+        <div className="mo-card" style={{ border: '2px solid #16a34a' }}>
+          <div className="mo-card-header">Clinically Significant Cancer Risk</div>
+          <span className="mo-card-badge mo-card-badge--live">LIVE — GG≥2 Model</span>
+          <div className="mo-card-live-value" style={{ color: riskColor }}>{p2GaugeScore}%</div>
+          <div className="mo-card-body">{cleanRiskCat}</div>
+          <div className="mo-card-lock-note">Grade Group ≥2 (Gleason ≥3+4). AUA/SUO 2026 definition of clinically significant prostate cancer.</div>
+        </div>
+
+        <div className="mo-card" style={{ border: '2px solid #fbbf24', opacity: 0.75 }}>
+          <div className="mo-card-header">Extracapsular Extension (ECE) Risk</div>
+          <span className="mo-card-badge mo-card-badge--dev">In Development</span>
+          <div className="mo-card-body mo-card-body--locked">Probability of pT3a disease at radical prostatectomy. Guides nerve-sparing surgical decisions.</div>
+          <div className="mo-card-lock-note">Requires MSDW prostatectomy cohort data (N=10,000+). Available Q4 2026.</div>
+        </div>
+
+        <div className="mo-card" style={{ border: '2px solid #fbbf24', opacity: 0.75 }}>
+          <div className="mo-card-header">Organ-Confined Disease (pT2)</div>
+          <span className="mo-card-badge mo-card-badge--dev">In Development</span>
+          <div className="mo-card-body mo-card-body--locked">Probability that cancer is confined to the prostate. Supports Active Surveillance candidacy decisions.</div>
+          <div className="mo-card-lock-note">Model training in progress.</div>
+        </div>
+
+        <div className="mo-card" style={{ border: '2px dashed #d1d5db', opacity: 0.65 }}>
+          <div className="mo-card-header">Personalized Follow-Up Interval</div>
+          <span className="mo-card-badge mo-card-badge--dev">In Development</span>
+          <div className="mo-card-body mo-card-body--locked">
+            <div>Next PSA: __ months</div>
+            <div>Next MRI: __ months</div>
+            <div>Next biopsy: __ months</div>
+          </div>
+          <div className="mo-card-lock-note">Requires longitudinal cohort. Active Surveillance tool in development.</div>
+        </div>
+      </div>
+
       {/* ── Prediction-service fallback notice ── */}
       {result?.apiPredictionFailed && (
         <div role="status" className="p2r-cloud-save-error" style={{ marginBottom: '12px' }}>

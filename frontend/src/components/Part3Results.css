@@ -2025,3 +2025,70 @@
   border-left-color: #d97706;
   color: #fde68a;
 }
+
+/* ─── Multimodal Output Cards ─── */
+.multimodal-output-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mo-card {
+  border-radius: 10px;
+  padding: 14px;
+  position: relative;
+  background: white;
+}
+
+.mo-card-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.mo-card-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mo-card-badge--live { background: #dcfce7; color: #15803d; }
+.mo-card-badge--dev  { background: #fffbeb; color: #b45309; }
+
+.mo-card-body { font-size: 0.7rem; color: #374151; line-height: 1.5; }
+.mo-card-body--locked { color: #9ca3af; font-style: italic; }
+
+.mo-card-lock-note {
+  font-size: 0.6rem;
+  color: #9ca3af;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.mo-card-live-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 4px 0 6px;
+}
+
+.theme-dark .mo-card {
+  background: var(--surface);
+}
+.theme-dark .mo-card-header { color: var(--ink-900); }
+.theme-dark .mo-card-body { color: var(--ink-600); }
+.theme-dark .mo-card-lock-note { border-top-color: var(--line-100); }
+
+@media (max-width: 480px) {
+  .multimodal-output-grid {
+    grid-template-columns: 1fr;
+  }
+}

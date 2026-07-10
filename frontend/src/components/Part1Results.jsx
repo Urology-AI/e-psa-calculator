@@ -25,6 +25,7 @@ import {
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, CheckIcon, CircleIcon, XIcon,
+  DnaIcon,
 } from 'lucide-react';
 
 /* ─── Count-up animation hook ─── */
@@ -1037,6 +1038,36 @@ const Part1Results = ({
           </div>
         )}
 
+      </div>
+
+      {/* ── Multimodal Roadmap Banner ── */}
+      <div
+        role="note"
+        aria-label="ePSA multimodal roadmap"
+        style={{
+          background: 'linear-gradient(135deg, #1a1a2e 0%, #212070 100%)',
+          borderRadius: '10px',
+          padding: '16px 20px',
+          color: '#fff',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <DnaIcon size={20} color="#a5b4fc" aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>ePSA is becoming a multimodal AI</div>
+            <p style={{ fontSize: '0.72rem', color: '#c7d2fe', marginTop: '6px', lineHeight: 1.6 }}>
+              Your baseline score is Part 1 of a 4-output risk system. As you add PSA, imaging, and biomarker data,
+              ePSA calculates: significant cancer risk (GG≥2), ECE probability, organ-confined status, and your
+              personalized follow-up interval. No other free tool does this.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+              <span style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', fontSize: '0.62rem', padding: '3px 10px', borderRadius: '20px' }}>GG≥2 Risk ✓ Live</span>
+              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#a5b4fc', fontSize: '0.62rem', padding: '3px 10px', borderRadius: '20px' }}>ECE Risk — Coming</span>
+              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#a5b4fc', fontSize: '0.62rem', padding: '3px 10px', borderRadius: '20px' }}>Organ-Confined — Coming</span>
+              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#a5b4fc', fontSize: '0.62rem', padding: '3px 10px', borderRadius: '20px' }}>Follow-Up Timing — Coming</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Urologist Finder ── */}
