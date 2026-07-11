@@ -754,7 +754,7 @@
   },
   "part2": {
     "form": {
-      "errorPreResult": "Please complete Part 1 (Screening Priority) before proceeding to Risk Assessment."
+      "errorPreResult": "Please complete the Pre-PSA (Screening Priority) step before proceeding to Risk Assessment."
     },
     "piradsInfo": {
       "title": "About PI-RADS and the ePSA risk estimate",
@@ -812,7 +812,7 @@
   },
   "part1Results": {
     "noResults": "No results available.",
-    "eyebrow": "ePSA Screening Recommendation · Part 1 Baseline",
+    "eyebrow": "ePSA Screening Recommendation · Pre-PSA Baseline",
     "assessedToday": "Assessed today",
     "underFortyStrong": "Age under 40 — PSA screening is not routinely recommended per AUA/NCCN guidelines.",
     "underFortyBody": "Shared Decision Making (SDM) is recommended — consult with your GP or urologist, particularly if you have high-risk factors such as Black ancestry, a family history of prostate cancer, or known genetic mutations. See Screening Guidelines below for full guidance.",
@@ -1101,7 +1101,7 @@
       "contextNote": {
         "lowPsa": "Note: Even with a low PSA, your background risk factors (race, family history, or genetic mutation) mean closer monitoring is warranted per AUA/NCCN guidelines.",
         "discordancePsaHigher": "Note: Your PSA level is in a higher range than your combined tier alone suggests. Your PSA result is an independent signal — discuss it with your physician regardless of your overall profile.",
-        "discordanceProfile": "Note: Your Part 1 risk profile raises your combined tier above what PSA alone would suggest. Both factors matter for your overall risk."
+        "discordanceProfile": "Note: Your Pre-PSA risk profile raises your combined tier above what PSA alone would suggest. Both factors matter for your overall risk."
       },
       "explanation": {
         "high": "A high combined risk tier means your PSA level — together with your Part 1 risk profile — falls in the range where urologists typically discuss biopsy. This does not mean you have cancer; it means more investigation is warranted.",
@@ -1283,16 +1283,16 @@
     "fixToCalculate": "Fix these to calculate:",
     "headsUp": "Heads up:",
     "calculate": "Calculate result",
-    "calculateFull": "Calculate full model (Part 1 + 2 + 3)",
+    "calculateFull": "Calculate full model (Pre-PSA + PSA + MRI)",
     "calculating": "Calculating…",
-    "psaAndMriTitle": "PSA & MRI (Parts 2-3)",
+    "psaAndMriTitle": "PSA & MRI",
     "includeMri": "Include MRI / PI-RADS?",
     "editAndCompare": "Edit answers & compare",
     "previousScore": "Previous score",
     "currentScore": "Current score",
-    "part1Title": "Part 1 — Baseline risk",
-    "part2Title": "Part 2 — PSA-adjusted risk",
-    "part3Title": "Part 3 — MRI / biopsy risk",
+    "part1Title": "Pre-PSA — Baseline risk",
+    "part2Title": "PSA — PSA-adjusted risk",
+    "part3Title": "MRI — Biopsy risk",
     "errors": {
       "ipssRange": "IPSS total must be between 0 and 35",
       "shimRange": "SHIM total must be between 0 and 25",

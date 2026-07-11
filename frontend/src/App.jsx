@@ -1896,7 +1896,7 @@ function App() {
           <div className="post-results-step">
             {!postResult && isCalculatingPart3 && (
               <ResultsLoading
-                label="ePSA · Part 3"
+                label="ePSA · MRI"
                 message="Analyzing your PSA and MRI data…"
                 steps={PART2_LOADING_STEPS}
                 storageKey={LOADING_SEEN_KEY_P2}
@@ -2156,19 +2156,19 @@ function App() {
                     ? (currentStep === 3 ? 'Results' : `Step ${Math.min(part1Step + 1, 7)} of 7`)
                     : 'Complete';
                   const psaSub = !preResult
-                    ? 'Complete Part 1 first'
+                    ? 'Complete Pre-PSA step first'
                     : (stage === 'post' && currentStep === 1)
                       ? 'Step 1 of 1'
                       : 'Complete';
                   const biomarkersSub = !preResult
-                    ? 'Complete Part 1 first'
+                    ? 'Complete Pre-PSA step first'
                     : !biomarkersReached
                       ? 'Complete PSA first'
                       : (stage === 'post' && currentStep === 2)
                         ? 'Step 1 of 1'
                         : 'Complete';
                   const mriSub = !preResult
-                    ? 'Complete Part 1 first'
+                    ? 'Complete Pre-PSA step first'
                     : !postResult && !mriReached
                       ? (biomarkersEnabled ? 'Complete Biomarkers first' : 'Complete PSA first')
                       : (stage === 'post' && currentStep === 3)
@@ -2234,7 +2234,7 @@ function App() {
                           {part1Status === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '1'}
                         </span>
                         <span className="stage-nav-body">
-                          <span className="stage-nav-label">Baseline Risk</span>
+                          <span className="stage-nav-label">Pre-PSA</span>
                           <span className="stage-nav-sub">{part1Sub}</span>
                         </span>
                       </button>
