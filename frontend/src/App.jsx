@@ -9,7 +9,7 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
 // Lazy-loaded modals/overlays — only shown on demand
@@ -26,6 +26,7 @@ const Part2BiomarkersForm = React.lazy(() => import('./components/Part2Biomarker
 const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
+import QuickEntry from './components/QuickEntry.jsx';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -98,6 +99,7 @@ function App() {
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
+  const [showQuickEntry, setShowQuickEntry] = useState(false);
 
   const hasCachedConsent = () => {
     try {
@@ -1969,6 +1971,16 @@ function App() {
                 <span>Import Previous Session</span>
               </button>
             )}
+            {!showQuickEntry && (
+              <button
+                type="button"
+                className="ws-btn-text header-import-btn"
+                onClick={() => setShowQuickEntry(true)}
+              >
+                <ZapIcon size={13} />
+                <span>Quick Entry (Demo)</span>
+              </button>
+            )}
             {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
               <button
                 type="button"
@@ -2108,7 +2120,12 @@ function App() {
           </div>
         )}
 
-        {authStep !== 'app' ? (
+        {showQuickEntry ? (
+          <QuickEntry
+            calculatorConfig={calculatorConfig}
+            onClose={() => setShowQuickEntry(false)}
+          />
+        ) : authStep !== 'app' ? (
           renderAuthScreen()
         ) : (
           <>
