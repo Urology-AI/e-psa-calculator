@@ -192,11 +192,11 @@ function App() {
 
   const [preResult, setPreResult] = useState(null);
   const [postResult, setPostResult] = useState(null);
-  // True while Part 4 is waiting on the biopsy-prediction API call, so a loading
+  // True while Part 3 is waiting on the biopsy-prediction API call, so a loading
   // screen can be shown instead of a blank step between the MRI form and results.
   const [isCalculatingPart3, setIsCalculatingPart3] = useState(false);
   // Shows a lightweight PSA-only interim result between Part 2 (PSA form) and
-  // Part 4 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
+  // Part 3 (MRI form) so Part 2 isn't just a pass-through to a combined screen.
   const [showPart2Interim, setShowPart2Interim] = useState(false);
   // Brief "Calculating your risk…" transition between Part 1 submission and Part 1 Results.
   // Lets the gauge needle animate in and prevents an instant jump that feels jarring.
@@ -1453,6 +1453,15 @@ function App() {
     const part2TotalSteps = 3;
 
     if (currentStep === 1) {
+      if (pathwayMode === 'post_psa' && !biomarkersEnabled) {
+        // PSA-only pathway: skip biomarkers AND skip MRI entirely — compute
+        // the PSA-only result directly and show the Part 2 results screen.
+        const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
+        setPostResult(interimResult);
+        setShowPart2Interim(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       if (!biomarkersEnabled) {
         // Biomarkers step temporarily disabled — go straight to MRI.
         setCurrentStep(3);
@@ -1464,7 +1473,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === 2) {
       // Biomarkers entered — compute the Part 2 result (ePSA score from
-      // PSA + baseline, no MRI yet) and show it before moving to Part 4 (MRI).
+      // PSA + baseline, no MRI yet) and show it before moving to Part 3 (MRI).
       const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
       setPostResult(interimResult);
       setShowPart2Interim(true);
@@ -1487,7 +1496,7 @@ function App() {
       }
       const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
 
-      // Part 4 (MRI/PI-RADS present): the validated biopsy-prediction service is the
+      // Part 3 (MRI/PI-RADS present): the validated biopsy-prediction service is the
       // sole source of the biopsy risk estimate (log(PSA) + PSAD + PI-RADS,
       // N=120 Mount Sinai registry, OOF AUC 0.703). No local fallback model —
       // on failure we show an "unavailable" notice instead (see Part3Results.jsx).
@@ -1868,7 +1877,7 @@ function App() {
         );
 
       case 3:
-        // Part 4 — MRI / PI-RADS, feeds the biopsy prediction model
+        // Part 3 — MRI / PI-RADS, feeds the biopsy prediction model
         return (
           <Part3Form
             formData={postData}
@@ -1885,7 +1894,7 @@ function App() {
           <div className="post-results-step">
             {!postResult && isCalculatingPart3 && (
               <ResultsLoading
-                label="ePSA · Part 4"
+                label="ePSA · Part 3"
                 message="Analyzing your PSA and MRI data…"
                 steps={PART2_LOADING_STEPS}
                 storageKey={LOADING_SEEN_KEY_P2}
@@ -1912,7 +1921,7 @@ function App() {
               />
             ) : (
               // Stopped after Part 2 (PSA + biomarkers, no MRI) — final screen stays
-              // PSA-focused; combined-risk/biopsy detail is deferred to Part 4 once MRI is added.
+              // PSA-focused; combined-risk/biopsy detail is deferred to Part 3 once MRI is added.
               <Part2Results
                 result={postResult}
                 postData={postData}
@@ -2110,6 +2119,7 @@ function App() {
               preResult={preResult}
               postResult={postResult}
               biomarkersEnabled={biomarkersEnabled}
+              showPart2Interim={showPart2Interim}
             />
             {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}

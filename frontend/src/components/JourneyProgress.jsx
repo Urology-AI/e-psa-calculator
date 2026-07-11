@@ -2,24 +2,31 @@ import React from 'react';
 import { CheckIcon } from 'lucide-react';
 import './JourneyProgress.css';
 
-const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResult, biomarkersEnabled = false }) => {
+const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResult, biomarkersEnabled = false, showPart2Interim = false }) => {
   const isPostPathway =
     pathwayMode === 'post_psa' || pathwayMode === 'post_mri' || stage === 'post';
   // MRI is only part of the journey when the user actually chose (or upgraded
   // to) the combined PSA + MRI pathway — a PSA-only pathway never shows it.
   const isMriPathway = pathwayMode === 'post_mri' || postResult?.pathwayMode === 'post_mri';
 
+  // Reaching the Part 2/3 results screen (interim PSA-only results, or the
+  // final combined/biopsy results) means every step up to the pathway's last
+  // is done — regardless of which currentStep number got us here.
+  const resultsReached = showPart2Interim || currentStep >= 4;
+
   let activeIdx;
   if (pathwayMode === null && !preResult) {
     activeIdx = 0;
   } else if (stage === 'pre') {
     activeIdx = currentStep >= 3 ? 2 : currentStep <= 1 ? 1 : 1;
+  } else if (resultsReached) {
+    activeIdx = Infinity; // clamped to steps.length - 1 below
   } else if (biomarkersEnabled) {
-    activeIdx = currentStep >= 4 ? 6 : currentStep === 3 ? 5 : currentStep === 2 ? 4 : 3;
+    activeIdx = currentStep === 3 ? 5 : currentStep === 2 ? 4 : 3;
   } else {
     // Biomarkers step (currentStep 2) is disabled — fold it into the PSA step's
     // active index (currentStep skips straight from 1 to 3 in this case).
-    activeIdx = currentStep >= 4 ? 5 : currentStep === 3 ? 4 : 3;
+    activeIdx = currentStep === 3 ? 4 : 3;
   }
 
   const steps = [

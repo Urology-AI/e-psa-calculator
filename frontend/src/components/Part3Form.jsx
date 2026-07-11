@@ -64,7 +64,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     return true;
   };
 
-  // Ensure Part 1 is complete before showing Part 4
+  // Ensure Part 1 is complete before showing Part 3
   if (!preResult) {
     return (
       <div className="part2-form-container">
@@ -75,7 +75,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     );
   }
 
-  const stepChipLabel = hasMriPathway ? 'Part 4 — MRI Results' : 'Part 4 — MRI Results (Optional)';
+  const stepChipLabel = hasMriPathway ? 'Part 3 — MRI Results' : 'Part 3 — MRI Results (Optional)';
   const stepTitle = hasMriPathway ? 'Your MRI Results' : 'MRI Results (Optional)';
   const stepNote = hasMriPathway
     ? 'Enter the PI-RADS score from your MRI report. Your radiologist or urologist will have this.'
@@ -108,7 +108,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
                   <div className="question-text">{t('part2.mri.q1')}</div>
                   <InfoIcon
                     title="MRI PI-RADS — evidence sources"
-                    description="PI-RADS scoring is used in Part 4 (when provided) to run the validated biopsy prediction model."
+                    description="PI-RADS scoring is used in Part 3 (when provided) to run the validated biopsy prediction model."
                     sources={fieldReferences.part2.pirads.sources}
                   />
                 </div>
