@@ -257,7 +257,7 @@ const Part3Results = ({
         <AlertTriangleIcon size={32} color="#d97706" style={{ marginBottom: '12px' }} />
         <h3 className="p2r-error-banner__title">No Results Yet</h3>
         <p className="p2r-error-banner__body">
-          Complete the Part 3 (MRI) questionnaire to see your biopsy risk assessment.
+          Complete the MRI questionnaire to see your biopsy risk assessment.
         </p>
       </div>
     </div>
@@ -277,8 +277,8 @@ const Part3Results = ({
           Assessment Data Incomplete
         </h3>
         <p className="p2r-error-banner__body p2r-error-banner__body--mb">
-          Your Part 3 results could not be computed — the PSA data or session record appears incomplete or corrupted.
-          Please start a new assessment or return to Part 1 to re-enter your PSA value.
+          Your MRI stage results could not be computed — the PSA data or session record appears incomplete or corrupted.
+          Please start a new assessment or return to the Pre-PSA stage to re-enter your PSA value.
         </p>
         <button
           type="button"
@@ -294,7 +294,7 @@ const Part3Results = ({
   if (isLoading) return (
     <div className="p2r-container">
       <ResultsLoading
-        label="ePSA · Part 3"
+        label="ePSA · MRI"
         message="Reviewing your PSA and MRI results…"
         steps={PART2_LOADING_STEPS}
         onComplete={() => setIsLoading(false)}
@@ -448,7 +448,7 @@ const Part3Results = ({
   return (
     <div className="p2r-container" role="main">
 
-      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Part 3 · ePSA MRI & Biopsy Risk" />
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="MRI · Biopsy Risk Assessment" />
 
       {/* ── Biopsy Risk Output ── */}
       <div className="multimodal-output-grid" role="region" aria-label="ePSA biopsy risk output">
@@ -557,7 +557,7 @@ const Part3Results = ({
       {/* ── Risk Summary Card ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="Risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Guideline-Based Next Steps · Part 3 · PSA + MRI</span>
+          <span>ePSA Guideline-Based Next Steps · MRI · PSA + PI-RADS</span>
           <span>Assessed today</span>
         </div>
 
@@ -572,9 +572,9 @@ const Part3Results = ({
 
         {/* ── Tier journey: Part 1 → Part 2 ── */}
         {preResult?.epsaTierLabel && (
-          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 3">
+          <div className="tier-journey" aria-label="Risk tier change from Pre-PSA to MRI stage">
             <div className="tier-journey-step">
-              <span className="tier-journey-label">Part 1 Baseline</span>
+              <span className="tier-journey-label">Pre-PSA Baseline</span>
               <span className="tier-journey-tier">{preResult.epsaTierLabel}</span>
             </div>
             <span className="tier-journey-arrow" aria-hidden="true">→</span>
@@ -631,7 +631,7 @@ const Part3Results = ({
 
           {preResult?.score != null && (
             <div className="p2r-key-input p2r-key-input--muted">
-              <div className="p2r-key-input-label">Part 1 Score</div>
+              <div className="p2r-key-input-label">Pre-PSA Score</div>
               <div className="p2r-key-input-value">
                 {preResult.score}
                 <span className="p2r-key-input-unit">%</span>

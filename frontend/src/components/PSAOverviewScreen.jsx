@@ -175,10 +175,10 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
       ),
       benefits: [
         {
-          title: t('psaOverview.steps.epsa.benefit1Title', 'Two questions, two parts'),
+          title: t('psaOverview.steps.epsa.benefit1Title', 'Three stages, one guideline'),
           body: t(
             'psaOverview.steps.epsa.benefit1Body',
-            'Part 1: should you discuss PSA testing?   Part 2: given your PSA, what are the guideline-supported next steps?'
+            'Pre-PSA: should you discuss PSA testing? PSA: given your result, what are the next steps? MRI: combined with imaging, what does your biopsy risk look like?'
           ),
         },
         {

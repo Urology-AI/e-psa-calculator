@@ -102,9 +102,9 @@ const BiomarkerContextSection = ({ formData }) => {
 };
 
 /**
- * Parts 2 & 3 Results — ePSA score (PSA + baseline, no MRI yet) plus any
+ * PSA Results — ePSA score (PSA + baseline, no MRI yet) plus any
  * advanced-biomarker context the user reported. MRI / PI-RADS and the
- * validated biopsy-prediction model live on Part 4 once MRI data is added.
+ * validated biopsy-prediction model live on the MRI stage once MRI data is added.
  */
 const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, onStartOver }) => {
   const { t } = useTranslation();
@@ -115,7 +115,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
   if (isLoading) return (
     <div className="results-container">
       <ResultsLoading
-        label="ePSA · Part 2"
+        label="ePSA · PSA"
         message="Analyzing your PSA result…"
         steps={PSA_LOADING_STEPS}
         onComplete={() => setIsLoading(false)}
@@ -163,15 +163,9 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
 
   return (
     <div className="part2-form-container">
-      <div className="flow-header">
-        <div className="flow-step-chip">Parts 2 &amp; 3 Results</div>
-        <h3 className="flow-step-title">Your ePSA Score</h3>
-        <p className="flow-step-note">Based on your PSA level and baseline profile. Add your MRI / PI-RADS result next for the combined biopsy-risk assessment.</p>
-      </div>
-
       <div className="risk-summary-card res-reveal" role="region" aria-label="PSA and biomarker risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Score · PSA &amp; Biomarkers</span>
+          <span>ePSA Score · PSA Result</span>
           <span>Assessed today</span>
         </div>
 
@@ -184,9 +178,9 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         </div>
 
         {preResult?.epsaTierLabel && (
-          <div className="tier-journey" aria-label="Risk tier change from Part 1 to Part 2">
+          <div className="tier-journey" aria-label="Risk tier change from Pre-PSA to PSA stage">
             <div className="tier-journey-step">
-              <span className="tier-journey-label">Part 1 Baseline</span>
+              <span className="tier-journey-label">Pre-PSA Baseline</span>
               <span className="tier-journey-tier">{preResult.epsaTierLabel}</span>
             </div>
             <span className="tier-journey-arrow" aria-hidden="true">→</span>
@@ -222,7 +216,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
 
           {preResult?.score != null && (
             <div className="p2r-key-input p2r-key-input--muted">
-              <div className="p2r-key-input-label">Part 1 Score</div>
+              <div className="p2r-key-input-label">Pre-PSA Score</div>
               <div className="p2r-key-input-value">
                 {preResult.score}
                 <span className="p2r-key-input-unit">%</span>
@@ -297,7 +291,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         role="note"
         style={{ margin: '1rem 0', padding: '0.875rem 1rem', background: '#eef2ff', border: '1px solid #c7d2fe', borderLeft: '4px solid #6366F1', borderRadius: '8px', fontSize: '0.8125rem', color: '#312e81', lineHeight: 1.5 }}
       >
-        PSA alone has limited specificity. Adding an MRI PI-RADS score (Part 4) lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.
+        PSA alone has limited specificity. Adding an MRI PI-RADS score lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.
       </div>
 
       {/* ── Confirmed PSA reminder ── */}
@@ -320,7 +314,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
           )}
           {typeof onContinueToMRI === 'function' && (
             <button className="btn-calculate" onClick={onContinueToMRI}>
-              Continue to MRI Assessment (Part 4) →
+              Continue to MRI Assessment →
             </button>
           )}
         </div>
