@@ -123,45 +123,6 @@
   color: var(--ms-gray-600);
 }
 
-/* ── Capability chips ── */
-.ws-capability-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0 0 0.875rem;
-}
-
-.ws-capability-chip {
-  display: inline-flex;
-  align-items: center;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  color: #4338ca;
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.theme-dark .ws-capability-chip {
-  background: rgba(99, 102, 241, 0.14);
-  border-color: rgba(129, 140, 248, 0.4);
-  color: #c7d2fe;
-}
-
-/* ── vs. standard PSA note ── */
-.ws-vs-psa-note {
-  font-size: 0.75rem;
-  color: #6b7280;
-  max-width: 480px;
-  line-height: 1.55;
-  margin: 0 0 1.25rem;
-}
-
-.theme-dark .ws-vs-psa-note {
-  color: var(--ink-400);
-}
-
 /* ── CTA block ── */
 .ws-storage-choice {
   display: flex;
