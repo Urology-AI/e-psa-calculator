@@ -5,6 +5,9 @@ import './JourneyProgress.css';
 const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResult, biomarkersEnabled = false }) => {
   const isPostPathway =
     pathwayMode === 'post_psa' || pathwayMode === 'post_mri' || stage === 'post';
+  // MRI is only part of the journey when the user actually chose (or upgraded
+  // to) the combined PSA + MRI pathway — a PSA-only pathway never shows it.
+  const isMriPathway = pathwayMode === 'post_mri' || postResult?.pathwayMode === 'post_mri';
 
   let activeIdx;
   if (pathwayMode === null && !preResult) {
@@ -27,11 +30,14 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
       ? [
           { label: 'PSA' },
           ...(biomarkersEnabled ? [{ label: 'Biomarkers' }] : []),
-          { label: 'MRI' },
-          { label: 'Final Score' },
+          ...(isMriPathway ? [{ label: 'MRI' }, { label: 'Final Score' }] : []),
         ]
       : []),
   ];
+
+  // A PSA-only pathway can still transiently visit the (optional) MRI form —
+  // clamp so we never point past the end of this pathway's own step list.
+  activeIdx = Math.min(activeIdx, steps.length - 1);
 
   return (
     <nav className="journey-progress" aria-label="Assessment progress">

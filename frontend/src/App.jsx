@@ -2117,6 +2117,9 @@ function App() {
               <nav className="stage-nav" aria-label="Assessment stages">
                 {(() => {
                   const isPostMri = postResult?.pathwayMode === 'post_mri';
+                  // MRI only belongs on this nav for the combined PSA + MRI
+                  // pathway — a PSA-only pathway should never show it.
+                  const showMri = pathwayMode === 'post_mri' || isPostMri;
                   // Has the user reached (or passed) the biomarkers / MRI forms this session?
                   const biomarkersReached = stage === 'post' && currentStep >= 2;
                   const mriReached = stage === 'post' && currentStep >= 3;
@@ -2244,22 +2247,26 @@ function App() {
                           </button>
                         </>
                       )}
-                      <span className="stage-nav-sep" aria-hidden="true" />
-                      <button
-                        type="button"
-                        className={`stage-nav-item stage-nav-item--${mriStatus}`}
-                        onClick={goToMri}
-                        disabled={mriStatus === 'locked'}
-                        aria-current={mriStatus === 'current' ? 'step' : undefined}
-                      >
-                        <span className="stage-nav-num" aria-hidden="true">
-                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : mriNum}
-                        </span>
-                        <span className="stage-nav-body">
-                          <span className="stage-nav-label">MRI</span>
-                          <span className="stage-nav-sub">{mriSub}</span>
-                        </span>
-                      </button>
+                      {showMri && (
+                        <>
+                          <span className="stage-nav-sep" aria-hidden="true" />
+                          <button
+                            type="button"
+                            className={`stage-nav-item stage-nav-item--${mriStatus}`}
+                            onClick={goToMri}
+                            disabled={mriStatus === 'locked'}
+                            aria-current={mriStatus === 'current' ? 'step' : undefined}
+                          >
+                            <span className="stage-nav-num" aria-hidden="true">
+                              {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : mriNum}
+                            </span>
+                            <span className="stage-nav-body">
+                              <span className="stage-nav-label">MRI</span>
+                              <span className="stage-nav-sub">{mriSub}</span>
+                            </span>
+                          </button>
+                        </>
+                      )}
                     </>
                   );
                 })()}
