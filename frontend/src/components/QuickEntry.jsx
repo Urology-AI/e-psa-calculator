@@ -84,6 +84,7 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
   const { t } = useTranslation();
   const [showResults, setShowResults] = useState(false);
   const [preResult, setPreResult] = useState(null);
+  const [part2Result, setPart2Result] = useState(null); // PSA-only interim (Part 2), shown alongside Part 3 when MRI is included
   const [postResult, setPostResult] = useState(null);
   const [priorResult, setPriorResult] = useState(null); // snapshot for before/after comparison
   const [errors, setErrors] = useState([]);
@@ -190,11 +191,11 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
     const mergedErrors = [...(validation.errors || []), ...extraErrors];
     setWarnings(validation.warnings || []);
     setErrors(mergedErrors);
-    if (mergedErrors.length > 0) { setPreResult(null); setPostResult(null); setShowResults(false); return; }
+    if (mergedErrors.length > 0) { setPreResult(null); setPart2Result(null); setPostResult(null); setShowResults(false); return; }
 
     const part1Result = calculateDynamicEPsa(localFormData, calculatorConfig);
     if (!part1Result) {
-      setPreResult(null); setPostResult(null); setShowResults(false);
+      setPreResult(null); setPart2Result(null); setPostResult(null); setShowResults(false);
       setErrors([t('quickEntry.errors.calculationFailed')]); setWarnings([]);
       return;
     }
@@ -220,9 +221,16 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
 
     setCalculating(true);
     try {
+      // When MRI data is included, also compute the PSA-only Part 2 interim result
+      // (mirrors the wizard's step between the PSA form and the MRI form) so Quick
+      // Entry doesn't skip straight from Part 1 to the combined Part 3 screen.
+      const interimPart2Result = includeMri
+        ? calculateDynamicEPsaPost(part1Result, { ...localPostData, pathwayMode: 'post_psa' }, calculatorConfig)
+        : null;
+
       const result = calculateDynamicEPsaPost(part1Result, localPostData, calculatorConfig);
       if (!result) {
-        setPreResult(part1Result); setPostResult(null); setShowResults(false);
+        setPreResult(part1Result); setPart2Result(null); setPostResult(null); setShowResults(false);
         setErrors([t('quickEntry.errors.calculationFailed')]); setWarnings([]);
         return;
       }
@@ -242,6 +250,7 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
       }
 
       setPreResult(part1Result);
+      setPart2Result(interimPart2Result);
       setPostResult(result);
       setShowResults(true);
     } finally {
@@ -363,7 +372,7 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
   };
 
   const handleResetAll = () => {
-    setShowResults(false); setPreResult(null); setPostResult(null); setPriorResult(null);
+    setShowResults(false); setPreResult(null); setPart2Result(null); setPostResult(null); setPriorResult(null);
     setErrors([]); setWarnings([]);
     setAge(''); setRace(''); setEthnicity(''); resetDefaults();
   };
@@ -435,6 +444,20 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
             onStartOver={handleResetAll}
           />
         </div>
+
+        {postResult.pathwayMode === 'post_mri' && part2Result && (
+          <div className="qe-results-section">
+            <div className="qe-results-section-title">{t('quickEntry.part2Title')}</div>
+            <Part2Results
+              result={part2Result}
+              postData={{ psa, onHormonalTherapy, pathwayMode: 'post_psa' }}
+              preResult={preResult}
+              onContinueToMRI={() => {}}
+              onBack={backToForm}
+              onStartOver={handleResetAll}
+            />
+          </div>
+        )}
 
         <div className="qe-results-section">
           <div className="qe-results-section-title">
