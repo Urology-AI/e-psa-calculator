@@ -32,7 +32,7 @@
     "react-i18next": "^15.1.4",
     "react-is": "^19.2.4",
     "recharts": "^3.7.0",
-    "@epsa/engine": "git+https://github.com/Urology-AI/epsa-engine.git"
+    "@epsa/engine": "file:./vendor/epsa-engine"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

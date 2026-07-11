@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Part2Form.css';
 import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import RiskGauge from './RiskGauge';
+import { CollapsibleSection, GuardrailBanner } from './shared/ResultsShared.jsx';
+import { AlertTriangleIcon, AlertCircleIcon, CheckCircle2Icon } from 'lucide-react';
+import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
 
 /* ─── PSA context colors (labels resolved via i18n) ─── */
 const PSA_TIER_COLORS = {
@@ -105,10 +108,32 @@ const BiomarkerContextSection = ({ formData }) => {
  */
 const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, onStartOver }) => {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
 
   if (!result) return null;
 
-  const { riskCat, riskClass, epsaTierKey, psaValue, psaAdjusted, psaAdjustedFlag, psaTier } = result;
+  if (isLoading) return (
+    <div className="results-container">
+      <ResultsLoading
+        label="ePSA · Part 2"
+        message="Analyzing your PSA result…"
+        steps={PSA_LOADING_STEPS}
+        onComplete={() => setIsLoading(false)}
+        storageKey={LOADING_SEEN_KEY_PSA}
+      />
+    </div>
+  );
+
+  const {
+    riskCat, riskClass, epsaTierKey, psaValue, psaAdjusted, psaAdjustedFlag, psaTier,
+    guardrailAlerts = [], lowPsaWarning, lowPsaWarningText, discordanceFlag, isOtherHormonal,
+  } = result;
+
+  const ageNum = Number(preResult?.age) || 0;
+  const isAge70Plus = ageNum >= 70;
+  const auaAgeThreshold = ageNum < 50 ? 2.5 : ageNum < 60 ? 3.5 : ageNum < 70 ? 4.5 : 6.5;
+  const auaAgeLabel = ageNum < 50 ? '40–49' : ageNum < 60 ? '50–59' : ageNum < 70 ? '60–69' : '70+';
+  const psaForThreshold = parseFloat(psaAdjusted ?? psaValue) || 0;
   const cleanRiskCat = (riskCat || '').replace(/[🟢🟡🟠🔴]/g, '').trim();
   const riskColor = riskClass === 'high' || String(riskClass || '').toLowerCase().includes('high') ? '#dc2626'
     : riskClass === 'moderate' || String(riskClass || '').toLowerCase().includes('moderate') ? '#d97706'
@@ -181,6 +206,18 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
             </div>
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
             <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
+            {ageNum >= 40 && (
+              <div style={{ marginTop: '8px', fontSize: '11px', background: '#f8fafc', border: '0.5px solid #cbd5e1', borderRadius: '6px', padding: '6px 8px', lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: '2px' }}>AUA/SUO 2026 Age-Adjusted Threshold</div>
+                <div style={{ color: '#334155' }}>
+                  Age {auaAgeLabel}: <strong>{auaAgeThreshold} ng/mL</strong>
+                  {' · '}
+                  {psaForThreshold >= auaAgeThreshold
+                    ? <span style={{ color: '#b45309', fontWeight: 600 }}>Your PSA exceeds this threshold</span>
+                    : <span style={{ color: '#15803d', fontWeight: 600 }}>Your PSA is below this threshold</span>}
+                </div>
+              </div>
+            )}
           </div>
 
           {preResult?.score != null && (
@@ -196,6 +233,64 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         </div>
       </div>
 
+      {/* ── Critical guardrail alerts (e.g. PSA > 100) ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts
+        .filter(a => a.level === 'critical')
+        .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
+      }
+
+      {/* ── Hormonal therapy note ── */}
+      {isOtherHormonal && (
+        <div className="p2r-alert p2r-alert--warning" role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '1px solid #fde68a', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
+          <AlertTriangleIcon size={16} style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '13px', color: '#92400e' }}>Hormonal Therapy Noted</div>
+            <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Clinical notices: low PSA / discordance ── */}
+      {(lowPsaWarning || discordanceFlag) && (
+        <div role="note" aria-label="Clinical notices" style={{ background: '#fffbeb', border: '1px solid #fde68a', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#92400e', marginBottom: '6px' }}>
+            <AlertTriangleIcon size={13} />
+            <span>Clinical Notices</span>
+          </div>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {lowPsaWarning && (
+              <li style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>
+                <strong style={{ color: '#92400e' }}>Low PSA Risk: </strong>{lowPsaWarningText}
+              </li>
+            )}
+            {discordanceFlag && (
+              <li style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>
+                <strong style={{ color: '#92400e' }}>Risk Discordance: </strong>{discordanceFlag.text}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* ── Age 70+ SDM notice (AUA/SUO 2026) ── */}
+      {isAge70Plus && (
+        <div role="note" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: '#f5f3ff', border: '1.5px solid #c4b5fd', borderLeft: '4px solid #7c3aed', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
+          <AlertCircleIcon size={16} style={{ marginTop: '1px', flexShrink: 0, color: '#7c3aed' }} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '13px', color: '#5b21b6' }}>Age 70+ — Shared Decision-Making Required</div>
+            <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#4c1d95', lineHeight: 1.5 }}>
+              Per AUA/SUO 2026, PSA screening decisions at age 70+ require a physician-led conversation about life expectancy before acting on this result.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Non-critical guardrail alerts ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts
+        .filter(a => a.level !== 'critical')
+        .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
+      }
+
       <BiomarkerContextSection formData={postData} />
 
       <div
@@ -204,6 +299,19 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
       >
         PSA alone has limited specificity. Adding an MRI PI-RADS score (Part 4) lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.
       </div>
+
+      {/* ── Confirmed PSA reminder ── */}
+      <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a', margin: '8px 0' }}>
+        <CheckCircle2Icon size={14} style={{ flexShrink: 0, color: '#2563eb' }} />
+        <span>Up to 25–40% of elevated PSA values normalise on repeat testing. If this PSA hasn't been confirmed, discuss a repeat test with your clinician before further workup (AUA/SUO 2026, Statement 3).</span>
+      </div>
+
+      <CollapsibleSection title="Important Disclaimer" defaultOpen={false}>
+        <p style={{ fontSize: '13px', color: '#374151', lineHeight: 1.6 }}>
+          ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.
+        </p>
+        <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+      </CollapsibleSection>
 
       <div className="form-navigation">
         <div className="form-navigation-inner">

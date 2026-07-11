@@ -93,6 +93,48 @@ export const PART2_LOADING_STEPS = [
   },
 ];
 
+// Part 2: PSA-only analysis (no MRI/biopsy references — MRI lives on Part 3)
+export const PSA_LOADING_STEPS = [
+  {
+    label: 'Loading your baseline profile',
+    detail: 'Retrieving your Part 1 risk score and guideline classification…',
+    progress: 14,
+    duration: 1500,
+  },
+  {
+    label: 'Analyzing your PSA level',
+    detail: 'Placing your PSA in context — gray zone, PSA density, and hormonal adjustments…',
+    progress: 32,
+    duration: 2000,
+  },
+  {
+    label: 'Checking age-adjusted thresholds',
+    detail: 'Comparing your PSA against AUA/SUO 2026 age-adjusted reference ranges…',
+    progress: 52,
+    duration: 2000,
+  },
+  {
+    label: 'Matching 2026 guidelines',
+    detail: 'Aligning with AUA/SUO/NCCN/EAU 2026 PSA-based next-step recommendations…',
+    progress: 71,
+    duration: 2000,
+  },
+  {
+    label: 'Applying the Part 2 model',
+    detail: 'Combining PSA and baseline data through the ePSA post-PSA engine…',
+    progress: 89,
+    duration: 1800,
+  },
+  {
+    label: 'Composing your plan',
+    detail: 'Preparing your personalized PSA assessment with guideline-backed next steps…',
+    progress: 97,
+    duration: 0,
+  },
+];
+
+export const LOADING_SEEN_KEY_PSA = 'epsa_loading_seen_psa';
+
 /* ─── Shared Results Loading Screen ───
  * Used by both Part 1 and Part 2 results pages.
  *
