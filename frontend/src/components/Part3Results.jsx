@@ -185,6 +185,7 @@ const Part3Results = ({
   onShowModelDocs = null,
   flowMode = 'public',
   onSubmitToSinai = null,
+  biomarkersEnabled = false,
 }) => {
   const { t } = useTranslation();
   const [showPrintableForm, setShowPrintableForm] = useState(false);
@@ -939,29 +940,31 @@ const Part3Results = ({
         )}
 
         {/* ── Adjunctive Biomarkers (AUA/SUO 2026 Statement 17) ── */}
-        <CollapsibleSection title="Adjunctive biomarkers your urologist may consider">
-          <p style={{ fontSize: '13px', color: '#374151', margin: '0 0 10px', lineHeight: 1.6 }}>
-            AUA/SUO 2026 Statement 17 (Conditional; Grade C): when further risk stratification would influence the biopsy decision, adjunctive urine or serum markers may be used. These tests are not required for every patient — they are most useful when the biopsy decision is uncertain.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-            {[
-              { name: '4Kscore', type: 'Blood', use: 'Combines PSA isoforms + hK2; reduces unnecessary biopsies ~30%' },
-              { name: 'PHI (Prostate Health Index)', type: 'Blood', use: 'Combines p2PSA, fPSA, tPSA; validated for initial & repeat biopsy' },
-              { name: 'PCA3', type: 'Urine', use: 'Prostate-specific mRNA; predicts repeat biopsy outcome' },
-              { name: 'MPS2 / MyProstateScore 2.0', type: 'Urine', use: '18-gene panel; 95% NPV at threshold 40 for avoiding repeat biopsy' },
-              { name: 'STHLM-3', type: 'Blood', use: 'Multiplex (232 SNPs + PSA isoforms); AUC 0.74 vs PSA 0.56' },
-              { name: 'ExoDx Intelliscore', type: 'Urine', use: 'Exosome-based gene expression; initial & repeat biopsy' },
-              { name: 'SelectMDx', type: 'Urine', use: 'HOXC6/DLX1 mRNA; predicts high-grade cancer' },
-            ].map(b => (
-              <div key={b.name} style={{ background: 'var(--color-background-secondary,#f9f9f9)', border: '0.5px solid var(--color-border-tertiary,#e5e7eb)', borderRadius: '8px', padding: '10px 12px' }}>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary,#111)' }}>{b.name}</div>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>{b.type}</div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary,#374151)', lineHeight: 1.5 }}>{b.use}</div>
-              </div>
-            ))}
-          </div>
-          <p style={{ fontSize: '11px', color: '#9ca3af', margin: '10px 0 0', fontStyle: 'italic' }}>AUA/SUO 2026 Guideline Table · Statement 17 · Discuss with your urologist which test is appropriate for you.</p>
-        </CollapsibleSection>
+        {biomarkersEnabled && (
+          <CollapsibleSection title="Adjunctive biomarkers your urologist may consider">
+            <p style={{ fontSize: '13px', color: '#374151', margin: '0 0 10px', lineHeight: 1.6 }}>
+              AUA/SUO 2026 Statement 17 (Conditional; Grade C): when further risk stratification would influence the biopsy decision, adjunctive urine or serum markers may be used. These tests are not required for every patient — they are most useful when the biopsy decision is uncertain.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+              {[
+                { name: '4Kscore', type: 'Blood', use: 'Combines PSA isoforms + hK2; reduces unnecessary biopsies ~30%' },
+                { name: 'PHI (Prostate Health Index)', type: 'Blood', use: 'Combines p2PSA, fPSA, tPSA; validated for initial & repeat biopsy' },
+                { name: 'PCA3', type: 'Urine', use: 'Prostate-specific mRNA; predicts repeat biopsy outcome' },
+                { name: 'MPS2 / MyProstateScore 2.0', type: 'Urine', use: '18-gene panel; 95% NPV at threshold 40 for avoiding repeat biopsy' },
+                { name: 'STHLM-3', type: 'Blood', use: 'Multiplex (232 SNPs + PSA isoforms); AUC 0.74 vs PSA 0.56' },
+                { name: 'ExoDx Intelliscore', type: 'Urine', use: 'Exosome-based gene expression; initial & repeat biopsy' },
+                { name: 'SelectMDx', type: 'Urine', use: 'HOXC6/DLX1 mRNA; predicts high-grade cancer' },
+              ].map(b => (
+                <div key={b.name} style={{ background: 'var(--color-background-secondary,#f9f9f9)', border: '0.5px solid var(--color-border-tertiary,#e5e7eb)', borderRadius: '8px', padding: '10px 12px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary,#111)' }}>{b.name}</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>{b.type}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary,#374151)', lineHeight: 1.5 }}>{b.use}</div>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: '11px', color: '#9ca3af', margin: '10px 0 0', fontStyle: 'italic' }}>AUA/SUO 2026 Guideline Table · Statement 17 · Discuss with your urologist which test is appropriate for you.</p>
+          </CollapsibleSection>
+        )}
 
         {/* ── Validated Risk Calculators (AUA/SUO 2026 Statement 10) ── */}
         <CollapsibleSection title="Cross-check with AUA-recommended risk calculators">

@@ -36,6 +36,7 @@ import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 import { fetchBiopsyPrediction } from './utils/biopsyApi';
@@ -131,6 +132,20 @@ function App() {
       }
     })();
   }, []);
+
+  // Remote feature flags (published by the admin dashboard) — e.g. whether the
+  // Biomarkers step is enabled in the post-PSA journey. Off by default.
+  const [featureFlags, setFeatureFlags] = useState(() => getFeatureFlags());
+
+  useEffect(() => {
+    (async () => {
+      const refreshed = await refreshFeatureFlags();
+      if (refreshed) {
+        setFeatureFlags(refreshed);
+      }
+    })();
+  }, []);
+  const biomarkersEnabled = featureFlags.biomarkersEnabled;
   
   // Disable client-side analytics writes in patient app; keep admin analytics only.
   const shouldTrackAnalytics = false;
@@ -1438,6 +1453,12 @@ function App() {
     const part2TotalSteps = 3;
 
     if (currentStep === 1) {
+      if (!biomarkersEnabled) {
+        // Biomarkers step temporarily disabled — go straight to MRI.
+        setCurrentStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       // PSA entered — advance to the biomarkers step (no calculation yet).
       setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1854,7 +1875,7 @@ function App() {
             setFormData={setPostData}
             preResult={preResult}
             onNext={handlePostNext}
-            onBack={() => setCurrentStep(currentStep - 1)}
+            onBack={() => setCurrentStep(biomarkersEnabled ? currentStep - 1 : 1)}
             pathwayMode={pathwayMode}
           />
         );
@@ -1876,6 +1897,7 @@ function App() {
                 preData={{ ...preData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
                 preResult={preResult}
                 postData={{ ...postData, pathwayMode: pathwayMode || postResult?.pathwayMode || 'post_mri' }}
+                biomarkersEnabled={biomarkersEnabled}
                 storageMode={storageMode}
                 sessionId={appSessionId}
                 userEmail={userEmail}
@@ -2087,6 +2109,7 @@ function App() {
               pathwayMode={pathwayMode}
               preResult={preResult}
               postResult={postResult}
+              biomarkersEnabled={biomarkersEnabled}
             />
             {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
             {/* Stage navigation — shown once a pathway is active */}
@@ -2097,6 +2120,7 @@ function App() {
                   // Has the user reached (or passed) the biomarkers / MRI forms this session?
                   const biomarkersReached = stage === 'post' && currentStep >= 2;
                   const mriReached = stage === 'post' && currentStep >= 3;
+                  const mriNum = biomarkersEnabled ? '4' : '3';
 
                   const part1Sub = stage === 'pre'
                     ? (currentStep === 3 ? 'Results' : `Step ${Math.min(part1Step + 1, 7)} of 7`)
@@ -2116,7 +2140,7 @@ function App() {
                   const mriSub = !preResult
                     ? 'Complete Part 1 first'
                     : !postResult && !mriReached
-                      ? 'Complete Biomarkers first'
+                      ? (biomarkersEnabled ? 'Complete Biomarkers first' : 'Complete PSA first')
                       : (stage === 'post' && currentStep === 3)
                         ? 'Step 1 of 1'
                         : isPostMri
@@ -2200,22 +2224,26 @@ function App() {
                           <span className="stage-nav-sub">{psaSub}</span>
                         </span>
                       </button>
-                      <span className="stage-nav-sep" aria-hidden="true" />
-                      <button
-                        type="button"
-                        className={`stage-nav-item stage-nav-item--${biomarkersStatus}`}
-                        onClick={goToBiomarkers}
-                        disabled={biomarkersStatus === 'locked'}
-                        aria-current={biomarkersStatus === 'current' ? 'step' : undefined}
-                      >
-                        <span className="stage-nav-num" aria-hidden="true">
-                          {biomarkersStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '3'}
-                        </span>
-                        <span className="stage-nav-body">
-                          <span className="stage-nav-label">Biomarkers</span>
-                          <span className="stage-nav-sub">{biomarkersSub}</span>
-                        </span>
-                      </button>
+                      {biomarkersEnabled && (
+                        <>
+                          <span className="stage-nav-sep" aria-hidden="true" />
+                          <button
+                            type="button"
+                            className={`stage-nav-item stage-nav-item--${biomarkersStatus}`}
+                            onClick={goToBiomarkers}
+                            disabled={biomarkersStatus === 'locked'}
+                            aria-current={biomarkersStatus === 'current' ? 'step' : undefined}
+                          >
+                            <span className="stage-nav-num" aria-hidden="true">
+                              {biomarkersStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '3'}
+                            </span>
+                            <span className="stage-nav-body">
+                              <span className="stage-nav-label">Biomarkers</span>
+                              <span className="stage-nav-sub">{biomarkersSub}</span>
+                            </span>
+                          </button>
+                        </>
+                      )}
                       <span className="stage-nav-sep" aria-hidden="true" />
                       <button
                         type="button"
@@ -2225,7 +2253,7 @@ function App() {
                         aria-current={mriStatus === 'current' ? 'step' : undefined}
                       >
                         <span className="stage-nav-num" aria-hidden="true">
-                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : '4'}
+                          {mriStatus === 'done' ? <CheckIcon size={13} aria-hidden="true" /> : mriNum}
                         </span>
                         <span className="stage-nav-body">
                           <span className="stage-nav-label">MRI</span>

@@ -2,7 +2,7 @@ import React from 'react';
 import { CheckIcon } from 'lucide-react';
 import './JourneyProgress.css';
 
-const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResult }) => {
+const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResult, biomarkersEnabled = false }) => {
   const isPostPathway =
     pathwayMode === 'post_psa' || pathwayMode === 'post_mri' || stage === 'post';
 
@@ -11,8 +11,12 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
     activeIdx = 0;
   } else if (stage === 'pre') {
     activeIdx = currentStep >= 3 ? 2 : currentStep <= 1 ? 1 : 1;
-  } else {
+  } else if (biomarkersEnabled) {
     activeIdx = currentStep >= 4 ? 6 : currentStep === 3 ? 5 : currentStep === 2 ? 4 : 3;
+  } else {
+    // Biomarkers step (currentStep 2) is disabled — fold it into the PSA step's
+    // active index (currentStep skips straight from 1 to 3 in this case).
+    activeIdx = currentStep >= 4 ? 5 : currentStep === 3 ? 4 : 3;
   }
 
   const steps = [
@@ -22,7 +26,7 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
     ...(isPostPathway
       ? [
           { label: 'PSA' },
-          { label: 'Biomarkers' },
+          ...(biomarkersEnabled ? [{ label: 'Biomarkers' }] : []),
           { label: 'MRI' },
           { label: 'Final Score' },
         ]

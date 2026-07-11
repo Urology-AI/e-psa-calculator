@@ -130,6 +130,17 @@ service cloud.firestore {
     }
 
     // ============================================
+    // APP FEATURE FLAGS (Public Read, Admin Write)
+    // Published by the epsa-admin-dashboard (Mount Sinai MSAL admins write via
+    // a Pages Function using a service account, which bypasses these rules —
+    // this rule only covers direct/manual writes from an authenticated admin).
+    // ============================================
+    match /appConfig/{docId} {
+      allow get: if docId == 'featureFlags';
+      allow create, update, delete: if isAuthenticated() && isAuthorizedAdmin();
+    }
+
+    // ============================================
     // SINAI CLINIC CODES (Mount Sinai cohort — IRB STUDY-14-00050)
     //
     // Minted by super-admins (or the generateCodes script via Admin SDK,
