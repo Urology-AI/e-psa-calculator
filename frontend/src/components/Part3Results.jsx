@@ -88,18 +88,23 @@ const RiskLevelBar = ({ riskClass }) => {
 };
 
 /* ─── Guardrail Banner ─── */
-const GUARDRAIL_CONFIG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: AlertCircleIcon },
+// Icon component only — box/label colors come from the .p2r-guardrail-banner--{level} /
+// .p2r-guardrail-label--{level} CSS classes (Part3Results.css), which already have
+// .theme-dark overrides. The icon's `color` prop can't be set via CSS, so it uses the
+// same CSS variables the classes are built from to stay in sync across themes.
+const GUARDRAIL_ICONS = {
+  critical: AlertCircleIcon,
+  warning: AlertTriangleIcon,
+  info: AlertCircleIcon,
 };
 const GuardrailBanner = ({ alert }) => {
-  const cfg = GUARDRAIL_CONFIG[alert.level] || GUARDRAIL_CONFIG.info;
   const level = alert.level || 'info';
+  const Icon = GUARDRAIL_ICONS[level] || GUARDRAIL_ICONS.info;
+  const iconColor = level === 'critical' ? 'var(--error-600)' : level === 'warning' ? 'var(--warning-600)' : 'var(--brand-700)';
   return (
     <div role="alert" className={`p2r-guardrail-banner p2r-guardrail-banner--${level}`}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
+        <Icon size={15} aria-hidden="true" color={iconColor} />
         <span className={`p2r-guardrail-label--${level}`}>{alert.title}</span>
       </div>
       <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>{alert.message}</p>
@@ -312,6 +317,7 @@ const Part3Results = ({
     epsaTierKey, guardrailAlerts = [],
     discordanceFlag, lowPsaWarning, lowPsaWarningText,
     psadFlag, apiPrediction = null,
+    priorPsa = null, rescreeningIntervalMessage = null,
   } = result;
 
   const ageNum = Number(preResult?.age || preData?.age) || 0;
@@ -658,87 +664,88 @@ const Part3Results = ({
         </div>
       )}
 
-      {/* ── Hormonal therapy ── */}
-      {isOtherHormonal && (
-        <div className="p2r-alert p2r-alert--warning" role="alert">
-          <PillIcon size={16} className="p2r-alert-icon" />
-          <div>
-            <div className="p2r-alert-title">Hormonal Therapy Noted</div>
-            <p className="p2r-alert-body">No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.</p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Clinical Notices (after the risk card so the result is seen first) ── */}
-      {(lowPsaWarning || psadFlag || discordanceFlag) && (
-        <div className="p2r-notices" role="note" aria-label="Clinical notices">
-          <div className="p2r-notices-title">
-            <AlertTriangleIcon size={14} className="p2r-notices-icon" />
-            <span>Clinical Notices</span>
-          </div>
-          <ul className="p2r-notices-list">
-            {lowPsaWarning && (
-              <NoticeItem label="Low PSA Risk">
-                {lowPsaWarningText}
-              </NoticeItem>
-            )}
-            {psadFlag && (() => {
-              const psaNum = parseFloat(psaValue) || 0;
-              const volNum = parseFloat(postData?.prostateVolume) || 0;
-              const psad = volNum > 0 ? (psaNum / volNum) : null;
-              const psadDisplay = psad != null ? psad.toFixed(3) : null;
-              const psadTier = psad == null ? null
-                : psad < 0.10 ? { label: 'Low risk (with negative MRI)', color: '#16a34a', note: 'PSAD <0.10 ng/mL²: biopsy may be safely deferred in 48% of patients with negative MRI (NPV 94%).' }
-                : psad < 0.15 ? { label: 'Borderline', color: '#d97706', note: 'PSAD 0.10–0.15 ng/mL²: intermediate zone — consider MRI and clinical context before biopsy decision.' }
-                : { label: 'Elevated — supports biopsy', color: '#dc2626', note: 'PSAD ≥0.15 ng/mL²: guideline supports proceeding with systematic biopsy even with negative/equivocal MRI (AUA/SUO 2026, Statement 16).' };
-              return (
-                <NoticeItem label="PSA Density">
-                  {psadDisplay && <><strong style={{ color: psadTier?.color }}>{psadDisplay} ng/mL²</strong> — <span style={{ color: psadTier?.color, fontWeight: 600 }}>{psadTier?.label}</span>. </>}
-                  {psadTier?.note}{' '}
-                  <ModalInfoIcon
-                    title="PSA Density — AUA/SUO 2026 & Kadeer et al. 2025"
-                    description="AUA/SUO 2026 Statement 16: for patients with negative/equivocal MRI and elevated risk, PSA density guides biopsy decisions. PSAD <0.10 ng/mL² can avoid biopsy in ~48% of patients while maintaining 94% NPV. PSAD <0.15 ng/mL² avoids ~67% of biopsies."
-                    sources={fieldReferences.part2?.psadKadeer?.sources || []}
-                  />
+      {/* ── Clinical Notices: one consolidated box for every non-critical, patient-specific
+           note instead of a separate card per item (hormonal therapy, low PSA, PSAD,
+           discordance, PSA confirmation status, re-screening interval, PSA velocity caveat,
+           and the low-PSA-70+ discontinuation signal). ── */}
+      {(() => {
+        const psaConfirmedNo = postData?.psaConfirmed === 'no';
+        const psaConfirmedUnsure = postData?.psaConfirmed === 'not_sure';
+        const showDiscontinuationSignal = isAge70Plus && parseFloat(psaValue) < 3.0;
+        const hasAnyNotice = isOtherHormonal || lowPsaWarning || psadFlag || discordanceFlag ||
+          psaConfirmedNo || psaConfirmedUnsure || (priorPsa != null && rescreeningIntervalMessage) ||
+          showDiscontinuationSignal;
+        if (!hasAnyNotice) return null;
+        return (
+          <div className="p2r-notices" role="note" aria-label="Clinical notices">
+            <div className="p2r-notices-title">
+              <AlertTriangleIcon size={14} className="p2r-notices-icon" />
+              <span>Clinical Notices</span>
+            </div>
+            <ul className="p2r-notices-list">
+              {isOtherHormonal && (
+                <NoticeItem label="Hormonal Therapy">
+                  No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.
                 </NoticeItem>
-              );
-            })()}
-            {discordanceFlag && (
-              <NoticeItem label="Risk Discordance">
-                {discordanceFlag.text}
+              )}
+              {lowPsaWarning && (
+                <NoticeItem label="Low PSA Risk">
+                  {lowPsaWarningText}
+                </NoticeItem>
+              )}
+              {psadFlag && (() => {
+                const psaNum = parseFloat(psaValue) || 0;
+                const volNum = parseFloat(postData?.prostateVolume) || 0;
+                const psad = volNum > 0 ? (psaNum / volNum) : null;
+                const psadDisplay = psad != null ? psad.toFixed(3) : null;
+                const psadTier = psad == null ? null
+                  : psad < 0.10 ? { label: 'Low risk (with negative MRI)', color: '#16a34a', note: 'PSAD <0.10 ng/mL²: biopsy may be safely deferred in 48% of patients with negative MRI (NPV 94%).' }
+                  : psad < 0.15 ? { label: 'Borderline', color: '#d97706', note: 'PSAD 0.10–0.15 ng/mL²: intermediate zone — consider MRI and clinical context before biopsy decision.' }
+                  : { label: 'Elevated — supports biopsy', color: '#dc2626', note: 'PSAD ≥0.15 ng/mL²: guideline supports proceeding with systematic biopsy even with negative/equivocal MRI (AUA/SUO 2026, Statement 16).' };
+                return (
+                  <NoticeItem label="PSA Density">
+                    {psadDisplay && <><strong style={{ color: psadTier?.color }}>{psadDisplay} ng/mL²</strong> — <span style={{ color: psadTier?.color, fontWeight: 600 }}>{psadTier?.label}</span>. </>}
+                    {psadTier?.note}{' '}
+                    <ModalInfoIcon
+                      title="PSA Density — AUA/SUO 2026 & Kadeer et al. 2025"
+                      description="AUA/SUO 2026 Statement 16: for patients with negative/equivocal MRI and elevated risk, PSA density guides biopsy decisions. PSAD <0.10 ng/mL² can avoid biopsy in ~48% of patients while maintaining 94% NPV. PSAD <0.15 ng/mL² avoids ~67% of biopsies."
+                      sources={fieldReferences.part2?.psadKadeer?.sources || []}
+                    />
+                  </NoticeItem>
+                );
+              })()}
+              {discordanceFlag && (
+                <NoticeItem label="Risk Discordance">
+                  {discordanceFlag.text}
+                </NoticeItem>
+              )}
+              {psaConfirmedNo && (
+                <NoticeItem label="Unconfirmed PSA">
+                  AUA/SUO 2026 (Statement 3 — Expert Opinion): you indicated this PSA has not been confirmed with a repeat test. Up to 25–40% of elevated PSA values normalise on retesting. Discuss a repeat PSA with your clinician before proceeding to MRI, biomarkers, or biopsy.
+                </NoticeItem>
+              )}
+              {psaConfirmedUnsure && (
+                <NoticeItem label="PSA Confirmation Unknown">
+                  AUA/SUO 2026 (Statement 3): a confirmatory PSA is recommended before initiating further workup. Ask your clinician whether a repeat test has been or should be performed.
+                </NoticeItem>
+              )}
+              {priorPsa != null && rescreeningIntervalMessage && (
+                <NoticeItem label="Re-Screening Interval">
+                  Based on prior PSA of {priorPsa} ng/mL: {rescreeningIntervalMessage}
+                </NoticeItem>
+              )}
+              {showDiscontinuationSignal && (
+                <NoticeItem label="Possible Discontinuation Candidate">
+                  AUA/SUO Stmt 7: PSA &lt;3 at age 70+ — discuss with your clinician whether continued screening offers a net benefit.
+                </NoticeItem>
+              )}
+              <NoticeItem label="PSA Velocity">
+                PSA velocity alone is not a guideline indication for biopsy (AUA/SUO Stmt 9). Always consider the full clinical picture.
               </NoticeItem>
-            )}
-          </ul>
-        </div>
-      )}
-
-      {/* ── Confirmatory PSA notice (AUA/SUO 2026 Statement 3) ── */}
-      {postData?.psaConfirmed === 'no' && (
-        <div role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fefce8', border: '0.5px solid #fde047', borderLeft: '3px solid #ca8a04', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#713f12', lineHeight: 1.55 }}>
-          <AlertTriangleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#ca8a04' }} />
-          <span><strong>Unconfirmed PSA — consider repeating before acting.</strong> AUA/SUO 2026 (Statement 3 — Expert Opinion): you indicated this PSA has not been confirmed with a repeat test. Up to 25–40% of elevated PSA values normalise on retesting. Before proceeding to MRI, biomarkers, or biopsy, discuss a repeat PSA with your clinician.</span>
-        </div>
-      )}
-      {postData?.psaConfirmed === 'not_sure' && (
-        <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '0.5px solid #fcd34d', borderLeft: '3px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0', fontSize: '13px', color: '#78350f', lineHeight: 1.55 }}>
-          <AlertCircleIcon size={15} aria-hidden="true" style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
-          <span><strong>PSA confirmation status unknown.</strong> AUA/SUO 2026 (Statement 3): a confirmatory PSA is recommended before initiating further workup. Ask your clinician whether a repeat test has been or should be performed.</span>
-        </div>
-      )}
-
-      {/* ── PSA Velocity Guardrail (AUA/SUO 2026 Statement 9) ── */}
-      <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a' }}>
-        <AlertCircleIcon size={14} aria-hidden="true" style={{ flexShrink: 0, color: '#2563eb' }} />
-        <span><strong>PSA velocity alone</strong> is not a guideline indication for biopsy (AUA/SUO Stmt 9). Always consider the full clinical picture.</span>
-      </div>
-
-      {/* ── Screening discontinuation signal for low-PSA 70+ patients (AUA/SUO 2026 Stmt 7) ── */}
-      {isAge70Plus && parseFloat(psaValue) < 3.0 && (
-        <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#14532d' }}>
-          <CheckCircle2Icon size={14} aria-hidden="true" style={{ flexShrink: 0, color: '#16a34a' }} />
-          <span><strong>Possible discontinuation candidate</strong> (AUA/SUO Stmt 7): PSA &lt;3 at age 70+ — discuss with your clinician whether continued screening offers a net benefit.</span>
-        </div>
-      )}
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* ── Age 70+ SDM / Life Expectancy Required banner ── */}
       {isAge70Plus && (

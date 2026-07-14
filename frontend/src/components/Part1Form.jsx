@@ -95,6 +95,8 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     age: formData.age || '',
     race: formData.race || null,
     familyHistory: formData.familyHistory ?? null,
+    familyHistoryCancerTypes: formData.familyHistoryCancerTypes ?? [],
+    ashkenaziJewish: formData.ashkenaziJewish ?? null,
     inflammationHistory: formData.inflammationHistory ?? null,
     brcaStatus: formData.brcaStatus ?? null,
     heightUnit: formData.heightUnit || 'imperial',
@@ -211,6 +213,8 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
 
   const SKIP_DEFAULTS = {
     familyHistory: 0,
+    familyHistoryCancerTypes: [],
+    ashkenaziJewish: false,
     inflammationHistory: 0,
     brcaStatus: 'unknown',
     exercise: 1,
@@ -242,6 +246,14 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
 
   const updateField = (field, value) => {
     setLocalData(prev => ({ ...prev, [field]: value, skippedFields: clearSkip(prev, field) }));
+  };
+
+  const toggleArrayField = (field, value) => {
+    setLocalData(prev => {
+      const current = Array.isArray(prev[field]) ? prev[field] : [];
+      const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
+      return { ...prev, [field]: next, skippedFields: clearSkip(prev, field) };
+    });
   };
 
   const updateIPSS = (index, value) => {
@@ -1091,7 +1103,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             {[
               { value: 'yes', label: 'Yes — BRCA1 or BRCA2' },
               { value: 'lynch', label: 'Yes — Lynch syndrome (MLH1/MSH2/MSH6/PMS2)' },
-              { value: 'other_elevated', label: 'Yes — ATM, CHEK2, HOXB13, or NBS1' },
+              { value: 'other_elevated', label: 'Yes — ATM, CHEK2, HOXB13, PALB2, or NBS1' },
               { value: 'other_unknown', label: 'Yes — other or unknown variant' },
               { value: 'no', label: 'Tested — no pathogenic variant found' },
               { value: 'unknown', label: 'Never tested / unsure' },
@@ -1112,6 +1124,66 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </div>
           )}
           <SkipLink field="brcaStatus" />
+        </div>
+      </div>
+
+      {/* Family history of breast/ovarian/pancreatic cancer — hereditary syndrome proxy */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">12b</div>
+          <div className="question-text">Do you have a family history of breast, ovarian, or pancreatic cancer?</div>
+          <NonGuidelineBadge />
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            Family history of these cancers can indicate hereditary breast/ovarian cancer (HBOC) or Lynch syndrome — hereditary syndromes also linked to prostate cancer risk (LoPC 2026, Table 4; EDPC 2026). Select all that apply.
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: 'breast', label: 'Breast cancer' },
+              { value: 'ovarian', label: 'Ovarian cancer' },
+              { value: 'pancreatic', label: 'Pancreatic cancer' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.familyHistoryCancerTypes.includes(opt.value) ? 'selected' : ''}`}
+                onClick={() => toggleArrayField('familyHistoryCancerTypes', opt.value)}
+                aria-pressed={localData.familyHistoryCancerTypes.includes(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <SkipLink field="familyHistoryCancerTypes" />
+        </div>
+      </div>
+
+      {/* Ashkenazi Jewish ancestry — BRCA founder-mutation prevalence flag */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">12c</div>
+          <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
+          <NonGuidelineBadge />
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40 vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication (LoPC 2026, Table 4).
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: true, label: 'Yes' },
+              { value: false, label: 'No' },
+            ].map(opt => (
+              <button
+                key={String(opt.value)}
+                className={`option-btn ${localData.ashkenaziJewish === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('ashkenaziJewish', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <SkipLink field="ashkenaziJewish" />
         </div>
       </div>
 

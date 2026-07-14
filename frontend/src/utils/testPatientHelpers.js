@@ -20,13 +20,32 @@ export function makePart1Form(overrides = {}) {
   return { ...defaults, ...overrides };
 }
 
-/** Build a preResult from Part 1 for use in Part 2 tests */
+/**
+ * Build a preResult from Part 1 for use in Part 2 tests.
+ * NOTE: calculateDynamicEPsa's real return object does NOT expose top-level
+ * isBlack/fhBinary/brcaStatus fields — only highRiskAnchors.{blackRace,familyHistory,brca}.
+ * `isBlack`/`familyHistory`/`brca` overrides here are convenience shorthand that get
+ * translated into the real highRiskAnchors shape, so tests exercise the same field
+ * path calculateDynamicEPsaPost actually reads in production.
+ */
 export function makePreResult(overrides = {}) {
+  const { isBlack, familyHistory, brca, highRiskAnchors, ...rest } = overrides;
+  const hasShorthand = isBlack !== undefined || familyHistory !== undefined || brca !== undefined;
   return {
     score: 25,
     risk: 'LOWER',
     tierRisk: 'LOWER',
-    ...overrides
+    ...(hasShorthand || highRiskAnchors
+      ? {
+          highRiskAnchors: {
+            blackRace: !!isBlack,
+            familyHistory: !!familyHistory,
+            brca: !!brca,
+            ...highRiskAnchors,
+          },
+        }
+      : {}),
+    ...rest
   };
 }
 

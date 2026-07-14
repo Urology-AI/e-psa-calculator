@@ -449,10 +449,16 @@ export async function generateResultsLetterPdf(preResult, postResult, preData, p
   const age = Number(preResult?.age || preData?.age) || 0;
   const race = preData?.race || preResult?.race || null;
   const bmi = preResult?.bmi ?? preData?.bmi;
-  const fhBinary = preResult?.fhBinary ?? 0;
-  const isBlack = !!preResult?.isBlack;
-  const brcaStatus = preResult?.brcaStatus;
-  const brcaPositive = ['yes','positive','lynch','other_elevated','other_unknown'].includes(brcaStatus);
+  // NOTE: preResult (the engine's return object) does not expose top-level fhBinary/isBlack/
+  // brcaStatus fields — only highRiskAnchors.{familyHistory,blackRace,brca}. Read the raw
+  // intake fields from preData instead, which is the actual formData passed to the engine.
+  const fhBinary = preData?.familyHistory > 0 ? 1 : (preResult?.highRiskAnchors?.familyHistory ? 1 : 0);
+  const isBlack = !!preResult?.highRiskAnchors?.blackRace;
+  const brcaStatus = preData?.brcaStatus;
+  const germlineMutations = Array.isArray(preData?.germlineMutations) ? preData.germlineMutations : [];
+  const brcaPositive = ['yes','positive','lynch','other_elevated','other_unknown'].includes(brcaStatus)
+    || germlineMutations.length > 0
+    || !!preResult?.highRiskAnchors?.brca;
 
   // ── Header ─────────────────────────────────────────────────────────────────
   setColor(doc, NAVY, 'fill');
@@ -684,10 +690,15 @@ export async function generateSdmWorksheetPdf(preResult, preData, postResult) {
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   const age = Number(preResult?.age || preData?.age) || 0;
-  const fhBinary = preResult?.fhBinary ?? 0;
-  const isBlack = !!preResult?.isBlack;
-  const brcaStatus = preResult?.brcaStatus;
-  const brcaPositive = ['yes','positive','lynch','other_elevated','other_unknown'].includes(brcaStatus);
+  // See generateResultsLetterPdf above — preResult does not expose top-level fhBinary/isBlack/
+  // brcaStatus; read raw intake fields from preData instead.
+  const fhBinary = preData?.familyHistory > 0 ? 1 : (preResult?.highRiskAnchors?.familyHistory ? 1 : 0);
+  const isBlack = !!preResult?.highRiskAnchors?.blackRace;
+  const brcaStatus = preData?.brcaStatus;
+  const sdmGermlineMutations = Array.isArray(preData?.germlineMutations) ? preData.germlineMutations : [];
+  const brcaPositive = ['yes','positive','lynch','other_elevated','other_unknown'].includes(brcaStatus)
+    || sdmGermlineMutations.length > 0
+    || !!preResult?.highRiskAnchors?.brca;
 
   // ── Determine SDM scenario ─────────────────────────────────────────────────
   let sdmScenario, sdmGuideline, sdmRationale;

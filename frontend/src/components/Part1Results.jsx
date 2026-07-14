@@ -93,6 +93,10 @@ const IMPACT_TO_REF = {
   'Family history': 'familyHistory',
   'Inflammation history': 'inflammationHistory',
   'Genetic mutation': 'brcaStatus',
+  'Expanded germline panel': 'brcaStatus',
+  // 'Family history (breast/ovarian/pancreatic)' intentionally has no popover mapping —
+  // the 'familyHistory' reference entry cites direct prostate-FH sources (Carter 1993, etc.),
+  // which would misattribute the HBOC/Lynch-syndrome evidence this factor is actually based on.
   'BMI': 'heightWeight',
   'Exercise': 'exercise',
   'Smoking': 'smoking',
@@ -501,10 +505,12 @@ const ResearchIdCard = ({ sessionId }) => {
 };
 
 /* ─── Guardrail Alert Banner ─── */
+// Uses semantic CSS variables (defined in App.css, with .theme-dark overrides) so
+// guardrail banners render correctly in both light and dark mode.
 const GUARDRAIL_CFG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: InfoIcon },
+  critical: { bg: 'var(--error-50)', border: 'var(--error-600)', labelColor: 'var(--error-600)', Icon: AlertCircleIcon },
+  warning:  { bg: 'var(--warning-50)', border: 'var(--warning-600)', labelColor: 'var(--warning-600)', Icon: AlertTriangleIcon },
+  info:     { bg: 'var(--brand-50)', border: 'var(--brand-500)', labelColor: 'var(--brand-700)', Icon: InfoIcon },
 };
 
 const GuardrailBanner = ({ alert }) => {
@@ -529,9 +535,9 @@ const GuardrailBanner = ({ alert }) => {
           {alert.title}
         </span>
       </div>
-      <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{alert.message}</p>
+      <p style={{ margin: 0, fontSize: '14px', color: 'var(--ink-800)', lineHeight: 1.5 }}>{alert.message}</p>
       {alert.guideline && (
-        <p style={{ margin: 0, fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
+        <p style={{ margin: 0, fontSize: '11px', color: 'var(--ink-600)', fontStyle: 'italic' }}>
           Guideline: {alert.guideline}
         </p>
       )}
@@ -664,6 +670,8 @@ const Part1Results = ({
     belowMinAge = false,
     aboveMaxScreeningAge = false,
     guardrailAlerts = [],
+    guidelineTrack = null,
+    epsaExtendedProfile = null,
     empiricalRate = null,
     empiricalRateCiLo = null,
     empiricalRateCiHi = null,
@@ -812,6 +820,12 @@ const Part1Results = ({
                 <div className="v2-tier-label">{t('part1Results.psaTestingPriority')}</div>
                 <h2 className="v2-tier-title res-tier-pop" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
+                {guidelineTrack && epsaExtendedProfile && (
+                  <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }} title="Guideline-based score reflects only age, race, family history, and germline mutation status. ePSA extended profile adds lifestyle and research-based factors as context.">
+                    <span><strong style={{ color: 'var(--brand-700)' }}>Guideline score:</strong> {guidelineTrack.percent}%</span>
+                    <span><strong style={{ color: 'var(--ink-700)' }}>ePSA extended:</strong> {epsaExtendedProfile.percent}%</span>
+                  </div>
+                )}
                 {(() => {
                   // Show "Based on X of 27 inputs you answered" so users see the prediction
                   // confidence and which inputs they skipped. Total = 27 distinct items
@@ -842,7 +856,7 @@ const Part1Results = ({
 
       {/* ── Guideline Deviation Banner ── */}
       {psaRecommendReason === 'score_threshold' && !belowMinAge && !aboveMaxScreeningAge && (() => {
-        const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden']);
+        const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden', 'Family history (breast/ovarian/pancreatic)', 'Ashkenazi Jewish ancestry']);
         const nonGuidelineFactors = (itemImpacts || []).filter(b => b.points > 0 && NON_GUIDELINE.has(b.item)).map(b => b.item);
         return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
       })()}
