@@ -6,7 +6,7 @@ import './Part1Results.css';
 import './Part3Results.css';
 import RiskGauge from './RiskGauge';
 import { CollapsibleSection, GuardrailBanner } from './shared/ResultsShared.jsx';
-import { AlertTriangleIcon, AlertCircleIcon, CheckCircle2Icon } from 'lucide-react';
+import { AlertTriangleIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
 
 /* ─── PSA context colors (labels resolved via i18n) ─── */
@@ -127,6 +127,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
   const {
     riskCat, riskClass, epsaTierKey, psaValue, psaAdjusted, psaAdjustedFlag, psaTier,
     guardrailAlerts = [], lowPsaWarning, lowPsaWarningText, discordanceFlag, isOtherHormonal,
+    priorPsa = null, rescreeningIntervalMessage = null,
   } = result;
 
   const ageNum = Number(preResult?.age) || 0;
@@ -233,78 +234,76 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
-      {/* ── Hormonal therapy note ── */}
-      {isOtherHormonal && (
-        <div className="p2r-alert p2r-alert--warning" role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#fffbeb', border: '1px solid #fde68a', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
-          <AlertTriangleIcon size={16} style={{ marginTop: '1px', flexShrink: 0, color: '#d97706' }} />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '13px', color: '#92400e' }}>Hormonal Therapy Noted</div>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.</p>
+      {/* ── Clinical Notices: one consolidated box for every non-critical, patient-specific
+           note (hormonal therapy, low PSA, discordance, re-screening interval, age 70+ SDM,
+           and any non-critical guardrail) instead of a separate card per item. ── */}
+      {(() => {
+        const nonCriticalGuardrails = (guardrailAlerts || []).filter(a => a.level !== 'critical');
+        // Age 70+ SDM note is redundant with the LIFE_EXPECTANCY_GATE guardrail when both apply —
+        // only show the standalone note if the guardrail (which covers 75+/comorbidities) didn't fire.
+        const hasLifeExpectancyGuardrail = nonCriticalGuardrails.some(a => a.code === 'LIFE_EXPECTANCY_GATE');
+        const showAge70Note = isAge70Plus && !hasLifeExpectancyGuardrail;
+        const hasAnyNotice = isOtherHormonal || lowPsaWarning || discordanceFlag ||
+          (priorPsa != null && rescreeningIntervalMessage) || showAge70Note || nonCriticalGuardrails.length > 0;
+        if (!hasAnyNotice) return null;
+        return (
+          <div className="p2r-notices" role="note" aria-label="Clinical notices">
+            <div className="p2r-notices-title">
+              <AlertTriangleIcon size={13} className="p2r-notices-icon" />
+              <span>Clinical Notices</span>
+            </div>
+            <ul className="p2r-notices-list">
+              {isOtherHormonal && (
+                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>Hormonal Therapy: </strong>No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.
+                </li>
+              )}
+              {lowPsaWarning && (
+                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>Low PSA Risk: </strong>{lowPsaWarningText}
+                </li>
+              )}
+              {discordanceFlag && (
+                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>Risk Discordance: </strong>{discordanceFlag.text}
+                </li>
+              )}
+              {priorPsa != null && rescreeningIntervalMessage && (
+                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>Re-Screening Interval </strong>(prior PSA {priorPsa} ng/mL): {rescreeningIntervalMessage}
+                </li>
+              )}
+              {showAge70Note && (
+                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>Age 70+ — SDM Required: </strong>Per AUA/SUO 2026, PSA screening decisions at age 70+ require a physician-led conversation about life expectancy before acting on this result.
+                </li>
+              )}
+              {nonCriticalGuardrails.map(alert => (
+                <li key={alert.code} style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning-600)' }}>{alert.title}: </strong>{alert.message}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      )}
-
-      {/* ── Clinical notices: low PSA / discordance ── */}
-      {(lowPsaWarning || discordanceFlag) && (
-        <div role="note" aria-label="Clinical notices" style={{ background: '#fffbeb', border: '1px solid #fde68a', borderLeft: '4px solid #d97706', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#92400e', marginBottom: '6px' }}>
-            <AlertTriangleIcon size={13} />
-            <span>Clinical Notices</span>
-          </div>
-          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {lowPsaWarning && (
-              <li style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>
-                <strong style={{ color: '#92400e' }}>Low PSA Risk: </strong>{lowPsaWarningText}
-              </li>
-            )}
-            {discordanceFlag && (
-              <li style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.5 }}>
-                <strong style={{ color: '#92400e' }}>Risk Discordance: </strong>{discordanceFlag.text}
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
-
-      {/* ── Age 70+ SDM notice (AUA/SUO 2026) ── */}
-      {isAge70Plus && (
-        <div role="note" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', background: '#f5f3ff', border: '1.5px solid #c4b5fd', borderLeft: '4px solid #7c3aed', borderRadius: '8px', padding: '10px 14px', margin: '8px 0' }}>
-          <AlertCircleIcon size={16} style={{ marginTop: '1px', flexShrink: 0, color: '#7c3aed' }} />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '13px', color: '#5b21b6' }}>Age 70+ — Shared Decision-Making Required</div>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#4c1d95', lineHeight: 1.5 }}>
-              Per AUA/SUO 2026, PSA screening decisions at age 70+ require a physician-led conversation about life expectancy before acting on this result.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Non-critical guardrail alerts ── */}
-      {guardrailAlerts?.length > 0 && guardrailAlerts
-        .filter(a => a.level !== 'critical')
-        .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
-      }
+        );
+      })()}
 
       <BiomarkerContextSection formData={postData} />
 
+      {/* ── Next-step guidance: one compact box instead of two ── */}
       <div
         role="note"
-        style={{ margin: '1rem 0', padding: '0.875rem 1rem', background: '#eef2ff', border: '1px solid #c7d2fe', borderLeft: '4px solid #6366F1', borderRadius: '8px', fontSize: '0.8125rem', color: '#312e81', lineHeight: 1.5 }}
+        style={{ margin: '1rem 0', padding: '0.875rem 1rem', background: 'var(--brand-50)', border: '1px solid var(--brand-400)', borderLeft: '4px solid var(--brand-500)', borderRadius: '8px', fontSize: '0.8125rem', color: 'var(--brand-700)', lineHeight: 1.6 }}
       >
-        PSA alone has limited specificity. Adding an MRI PI-RADS score lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.
-      </div>
-
-      {/* ── Confirmed PSA reminder ── */}
-      <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a', margin: '8px 0' }}>
-        <CheckCircle2Icon size={14} style={{ flexShrink: 0, color: '#2563eb' }} />
-        <span>Up to 25–40% of elevated PSA values normalise on repeat testing. If this PSA hasn't been confirmed, discuss a repeat test with your clinician before further workup (AUA/SUO 2026, Statement 3).</span>
+        <p style={{ margin: 0 }}>PSA alone has limited specificity. Adding an MRI PI-RADS score lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.</p>
+        <p style={{ margin: '8px 0 0' }}>Up to 25–40% of elevated PSA values normalise on repeat testing. If this PSA hasn't been confirmed, discuss a repeat test with your clinician before further workup (AUA/SUO 2026, Statement 3).</p>
       </div>
 
       <CollapsibleSection title="Important Disclaimer" defaultOpen={false}>
-        <p style={{ fontSize: '13px', color: '#374151', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.6 }}>
           ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.
         </p>
-        <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+        <p style={{ fontSize: '11px', color: 'var(--ink-600)', fontStyle: 'italic' }}>— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
       </CollapsibleSection>
 
       <div className="form-navigation">

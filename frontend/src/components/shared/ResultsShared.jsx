@@ -35,10 +35,12 @@ export const CollapsibleSection = ({
 };
 
 // ─── Guardrail Banner ─────────────────────────────────────────────────────────
+// Uses semantic CSS variables (App.css, with .theme-dark overrides) so this renders
+// correctly in both light and dark mode.
 const GUARDRAIL_CONFIG = {
-  critical: { bg: '#fef2f2', border: '#dc2626', labelColor: '#991b1b', Icon: AlertCircleIcon },
-  warning:  { bg: '#fffbeb', border: '#d97706', labelColor: '#92400e', Icon: AlertTriangleIcon },
-  info:     { bg: '#eff6ff', border: '#2563eb', labelColor: '#1e40af', Icon: InfoIcon },
+  critical: { bg: 'var(--error-50)', border: 'var(--error-600)', labelColor: 'var(--error-600)', Icon: AlertCircleIcon },
+  warning:  { bg: 'var(--warning-50)', border: 'var(--warning-600)', labelColor: 'var(--warning-600)', Icon: AlertTriangleIcon },
+  info:     { bg: 'var(--brand-50)', border: 'var(--brand-500)', labelColor: 'var(--brand-700)', Icon: InfoIcon },
 };
 
 export const GuardrailBanner = ({ alert }) => {
@@ -58,7 +60,7 @@ export const GuardrailBanner = ({ alert }) => {
         <cfg.Icon size={15} aria-hidden="true" color={cfg.labelColor} />
         <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor }}>{alert?.title}</span>
       </div>
-      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{alert?.message}</p>
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>{alert?.message}</p>
     </div>
   );
 };

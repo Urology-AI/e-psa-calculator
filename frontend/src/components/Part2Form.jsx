@@ -39,6 +39,7 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
     psaConfirmed: formData.psaConfirmed || null,
     psa: formData.psa || '',
     prostateVolume: formData.prostateVolume || '',
+    priorPsa: formData.priorPsa || '',
     onHormonalTherapy: formData.onHormonalTherapy || false,
     hormonalTherapyType: formData.hormonalTherapyType || '',
     // PI-RADS fields belong to Part 4 (MRI) but are carried through here so the
@@ -78,6 +79,19 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
       // Allow partial typing — only reject clearly out-of-range complete values
       const volNum = parseFloat(value);
       if (Number.isNaN(volNum) || volNum <= 200) {
+        setLocalData(prev => ({ ...prev, [field]: value }));
+      }
+      return;
+    }
+
+    // Validate optional prior/baseline PSA input (drives re-screening interval guidance)
+    if (field === 'priorPsa') {
+      if (value === '' || value === null || value === undefined) {
+        setLocalData(prev => ({ ...prev, [field]: '' }));
+        return;
+      }
+      const priorPsaNum = parseFloat(value);
+      if (Number.isNaN(priorPsaNum) || priorPsaNum <= 1000) {
         setLocalData(prev => ({ ...prev, [field]: value }));
       }
       return;
@@ -234,6 +248,24 @@ const Part2Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
               />
               <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem' }}>
                 {t('part2.psa.psaNote')}
+              </div>
+
+              <label htmlFor="field-prior-psa" style={{ display: 'block', marginTop: '10px', fontSize: '0.8125rem', fontWeight: 600 }}>
+                Prior / Baseline PSA (ng/mL) <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional — an earlier PSA result, if you have one)</span>
+              </label>
+              <input
+                id="field-prior-psa"
+                type="number"
+                className="input-field"
+                placeholder="e.g. 1.8"
+                step="0.1"
+                min="0"
+                max="1000"
+                value={localData.priorPsa}
+                onChange={(e) => updateField('priorPsa', e.target.value)}
+              />
+              <div className="question-note" style={{ marginTop: '8px', fontSize: '0.8125rem' }}>
+                Your baseline PSA helps determine how often you should be re-screened. AUA/SUO 2026 (EDPC p.14–15): a baseline PSA of 1–3 ng/mL supports re-screening every 1–4 years; below 1 ng/mL may allow a substantially longer interval.
               </div>
             </div>
           </div>

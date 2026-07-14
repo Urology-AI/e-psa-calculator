@@ -277,6 +277,31 @@ export function checkGuardrails(formData, pathwayMode) {
     });
   }
 
+  // 4. Life expectancy gate: age >=75 or 2+ comorbidities — screening benefit
+  // uncertain regardless of risk score. Purely additive; does not alter rawScore.
+  // Rationale: EDPC 2026 p.15 — "for patients with less than a ten-year estimated
+  // life expectancy, screening is not likely to provide a benefit... American patients
+  // older than 77 years of age have less than a 10-year life expectancy." Comorbidity
+  // burden is a recognized life-expectancy modifier (competing-mortality risk), distinct
+  // from its separate role as a cancer-risk score contributor above.
+  const hasTwoComorbidities = Boolean(formData?.hasTwoComorbidities);
+  if ((Number.isFinite(age) && age >= 75) || hasTwoComorbidities) {
+    alerts.push({
+      level: 'info',
+      code: 'LIFE_EXPECTANCY_GATE',
+      title: 'Screening Benefit May Be Limited — Discuss Life Expectancy',
+      message:
+        (Number.isFinite(age) && age >= 75
+          ? `At age ${age}, median life expectancy is commonly under 10 years. `
+          : 'A significant comorbidity burden can shorten life expectancy below 10 years. ') +
+        'Guidelines indicate that when life expectancy is under 10 years, PSA screening is ' +
+        'unlikely to provide a mortality benefit, regardless of risk score. This is a starting ' +
+        'point for a conversation with your physician about your individual life expectancy and ' +
+        'whether continued screening is likely to help — not a standalone decision.',
+      guideline: 'AUA/SUO 2026 EDPC p.15 (life expectancy <10y screening threshold); AUA/SUO 2026 Statement 1 (shared decision-making)',
+    });
+  }
+
   return alerts;
 }
 
@@ -437,14 +462,27 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // Return a minimal shell so the display layer shows the correct
   // age-out messaging without producing a meaningless score.
   if (ageNum < 40 || ageNum > 75) {
+    const shellHasTwoComorbidities =
+      (formData?.comorbidityScore !== undefined && formData?.comorbidityScore !== null)
+        ? Number(formData.comorbidityScore) >= 2
+        : [formData?.hypertension, formData?.hyperlipidemia, formData?.coronaryArteryDisease, formData?.diabetes]
+            .filter((v) => v === 'yes' || v === true || v === 1).length >= 2;
     return {
       score: 0,
+      guidelineTrack: { rawScore: 0, maxScore: 50, percent: 0, hasLifeExpectancyFlag: ageNum > 75, label: 'Guideline-based score (USPSTF/NCCN/AUA)', description: 'Reflects only age, race, family history, and germline mutation status — the factors directly recognized by major screening guidelines.' },
+      epsaExtendedProfile: { rawScore: 0, maxScore: 80, percent: 0, label: 'ePSA extended profile', description: 'Adds lifestyle and research-based factors as contextual layers on top of the guideline-based score.' },
       age: ageNum,
       bmi: Number(bmi).toFixed(1),
       ipssTotal,
       shimTotal,
       itemImpacts: [],
-      guardrailAlerts: [],
+      guardrailAlerts: checkGuardrails({
+        psa: null,
+        pirads: null,
+        age: ageNum,
+        highRiskFeatures: false,
+        hasTwoComorbidities: shellHasTwoComorbidities,
+      }, formData.pathwayMode || 'pre_psa'),
       belowMinAge: ageNum < 40,
       aboveMaxScreeningAge: ageNum > 75,
       // Age < 40: no PSA recommended per AUA/NCCN. Age > 75: requires SDM, not automatic.
@@ -660,6 +698,54 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     : { data: 'N/A.', literature: 'Untested/unknown status cannot be scored.', decision: '0 pts. Conservative default — untested status does not add risk in this model.' };
   addImpact('Genetic mutation', brcaLabel, brcaPositive ? 16 : 0, 'brcaStatus', BRCA_RATIONALE);
 
+  // ── Expanded germline panel (HOXB13 / ATM / CHEK2 / PALB2 / Lynch-MMR) ────────
+  // Literature: HOXB13 G84E OR ≈ 3.4-4.7x (Ewing et al. NEJM 2012); ATM OR ≈ 2.1-2.9x,
+  // CHEK2 OR ≈ 1.9-3.0x, PALB2 OR ≈ 2.4-3.0x (Na et al. Eur Urol 2017 IMPACT/Pritchard 2016);
+  // Lynch/MMR (MLH1/MSH2/MSH6/PMS2) OR ≈ 2-5x (Raymond et al. 2013; LoPC Table 4 p.13).
+  // Captured separately from brcaStatus so a positive result on any panel gene (not just
+  // BRCA1/2) reaches the same high-risk anchor without requiring the UI to overload the
+  // single brcaStatus enum. Additive/optional — defaults to no impact if not provided.
+  const germlineMutations = Array.isArray(formData.germlineMutations) ? formData.germlineMutations : [];
+  const PANEL_GENES = ['hoxb13', 'atm', 'chek2', 'palb2', 'lynch', 'mlh1', 'msh2', 'msh6', 'pms2'];
+  const panelPositive = germlineMutations.some((g) => PANEL_GENES.includes(String(g).toLowerCase()));
+  const alreadyCountedViaBrca = brcaPositive; // avoid double-counting when brcaStatus already covers it
+  const PANEL_RATIONALE = panelPositive
+    ? { data: 'Not in training set.', literature: 'HOXB13 G84E OR ≈ 3.4-4.7× (Ewing et al. NEJM 2012); ATM/CHEK2/PALB2 OR ≈ 1.9-3.0× (Na et al. Eur Urol 2017; IMPACT study); Lynch/MMR OR ≈ 2-5× (Raymond et al. 2013). LoPC Table 4 (p.13) and EDPC p.13 list these as germline-testing indications alongside BRCA1/2.', decision: alreadyCountedViaBrca ? '0 additional pts — already scored via brcaStatus.' : '16 pts — same anchor as BRCA1/2, consistent with comparable or higher effect sizes in the literature.' }
+    : { data: 'N/A.', literature: 'No non-BRCA germline mutation reported.', decision: '0 pts.' };
+  addImpact('Expanded germline panel', panelPositive ? germlineMutations.join(', ') : 'None reported', (panelPositive && !alreadyCountedViaBrca) ? 16 : 0, 'germlineMutations', PANEL_RATIONALE);
+  const germlinePositive = brcaPositive || panelPositive;
+
+  // ── Family history of breast / ovarian / pancreatic cancer ────────────────────
+  // Literature: family history of these cancers is a recognized proxy for hereditary
+  // breast/ovarian cancer (HBOC) or Lynch syndrome, independent of prostate-specific
+  // family history above. LoPC Table 4 (p.13): "strong personal or family history of
+  // related cancers... breast, colorectal, ovarian, pancreatic, upper tract urothelial
+  // carcinoma" is a germline-testing indication. EDPC p.12 corroborates for HBOC/Lynch
+  // spectrum. Scored at 6 pts (below the 10 pts for direct prostate FH, since it is an
+  // indirect hereditary-syndrome proxy rather than a direct prostate-cancer association).
+  const hereditaryCancerFamilyHistory = Array.isArray(formData.familyHistoryCancerTypes)
+    ? formData.familyHistoryCancerTypes
+    : [];
+  const HEREDITARY_CANCER_TYPES = ['breast', 'ovarian', 'pancreatic'];
+  const hereditaryFhPositive = hereditaryCancerFamilyHistory.some((c) => HEREDITARY_CANCER_TYPES.includes(String(c).toLowerCase()));
+  const HEREDITARY_FH_RATIONALE = hereditaryFhPositive
+    ? { data: 'Not in training set.', literature: 'Family history of breast, ovarian, or pancreatic cancer is a recognized proxy for hereditary breast/ovarian cancer (HBOC) or Lynch syndrome (LoPC Table 4, p.13; EDPC p.12).', decision: `6 pts. Literature-only. Indirect hereditary-syndrome proxy — scored below direct prostate FH (10 pts).` }
+    : { data: 'N/A.', literature: 'No reported family history of breast, ovarian, or pancreatic cancer.', decision: '0 pts.' };
+  addImpact('Family history (breast/ovarian/pancreatic)', hereditaryFhPositive ? hereditaryCancerFamilyHistory.join(', ') : 'None reported', hereditaryFhPositive ? 6 : 0, 'familyHistoryCancerTypes', HEREDITARY_FH_RATIONALE);
+
+  // ── Ashkenazi Jewish ancestry ───────────────────────────────────────────────────
+  // Literature: Ashkenazi Jewish ancestry carries a substantially elevated BRCA1/2
+  // founder-mutation prevalence (~1 in 40 vs ~1 in 400-800 general population), and is
+  // listed as a germline-testing indication independent of confirmed mutation status
+  // (LoPC Table 4, p.13: "Ashkenazi Jewish ancestry — particularly in patients with
+  // Grade Group 2 or higher disease"). Scored modestly (4 pts) as an ancestry-based
+  // risk-elevation flag distinct from a confirmed positive germline result.
+  const ashkenaziJewish = formData.ashkenaziJewish === true || formData.ashkenaziJewish === 'yes';
+  const ASHKENAZI_RATIONALE = ashkenaziJewish
+    ? { data: 'Not in training set.', literature: 'Ashkenazi Jewish ancestry carries ~1 in 40 BRCA1/2 founder-mutation prevalence vs ~1 in 400-800 general population. Listed as a germline-testing indication (LoPC Table 4, p.13).', decision: '4 pts. Literature-only. Ancestry-based flag, distinct from a confirmed positive germline result.' }
+    : { data: 'N/A.', literature: 'No reported Ashkenazi Jewish ancestry.', decision: '0 pts.' };
+  addImpact('Ashkenazi Jewish ancestry', ashkenaziJewish ? 'Yes' : 'No', ashkenaziJewish ? 4 : 0, 'ashkenaziJewish', ASHKENAZI_RATIONALE);
+
   // ── Inflammation history ──────────────────────────────────────────────────────
   // Literature: prior prostatitis/prostate inflammation OR ≈ 1.6–2.0× for PCa (Dennis et al.
   // Prostate 2002; Guo & Zheng 2018 meta-analysis). Chronic inflammation drives carcinogenesis.
@@ -759,7 +845,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // AUA/SUO 2026 Statement 5 (Strong, Grade B): routine screening before age 45
   // is only indicated for high-risk individuals (Black ancestry, germline mutations,
   // or strong family history). Score-threshold alone must not override this at age 40–44.
-  const isHighRiskForEarlyScreening = isBlack || brcaPositive || fhBinary === 1;
+  const isHighRiskForEarlyScreening = isBlack || germlinePositive || fhBinary === 1;
   if (upperProb < recommendThreshold) {
     recommendPSA = false;
   } else if (lowerProb >= recommendThreshold) {
@@ -800,11 +886,11 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
 
   // Step 3 — High-risk early screening (always wins over Steps 1-2)
   // (Statement 5, Strong Recommendation, Evidence Level: Grade B)
-  if ((isBlack || brcaPositive) && ageNum >= 40 && ageNum < 50) {
+  if ((isBlack || germlinePositive) && ageNum >= 40 && ageNum < 50) {
     recommendPSA = true;
     psaRecommendReason = 'high_risk_early_screening';
   }
-  if ((isBlack || brcaPositive) && ageNum >= 50) {
+  if ((isBlack || germlinePositive) && ageNum >= 50) {
     recommendPSA = true;
     if (['score_threshold', 'age_guideline_50_69', 'baseline_psa_45_50', null].includes(psaRecommendReason)) {
       psaRecommendReason = 'high_risk_early_screening';
@@ -854,7 +940,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     psaRecommendReason === null &&
     ageNum >= 40 && ageNum < 45 &&
     rawScore <= 10 &&
-    !isBlack && !brcaPositive && fhBinary !== 1
+    !isBlack && !germlinePositive && fhBinary !== 1
   ) {
     psaRecommendReason = 'low_risk_followup';
   }
@@ -878,7 +964,20 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
       'AUA/SUO 2026 (Statement 7) recommends individualized shared decision-making for PSA screening at ages 70–74, based on overall health and life expectancy. In very healthy patients with life expectancy ≥10 years, ongoing screening every 2–4 years is reasonable following SDM. NCCN Early Detection v1.2024 and EAU 2024 align. Discuss with your physician whether continued screening is appropriate for you.'
   };
 
-  const psaRecommendMessage = psaRecommendReason ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] : null;
+  // Generic shared-decision-making (SDM) closing line, appended to every non-null
+  // recommendation message so SDM framing is not limited to the 70-74 age bucket.
+  // AUA/SUO 2026 Statement 1 (Clinical Principle): "Clinicians should engage in
+  // shared decision-making (SDM) with people for whom prostate cancer screening
+  // would be appropriate and proceed based on a person's values and preferences."
+  const SDM_CLOSING_LINE =
+    ' This result is a starting point for a conversation with your physician — not a standalone decision. ' +
+    'Per AUA/SUO 2026 (Statement 1), screening decisions should be made through shared decision-making, ' +
+    'reflecting your personal values and preferences.';
+  const psaRecommendMessage = psaRecommendReason
+    ? (PSA_RECOMMEND_MESSAGES[psaRecommendReason]
+        ? PSA_RECOMMEND_MESSAGES[psaRecommendReason] + SDM_CLOSING_LINE
+        : null)
+    : null;
 
   // ---------------------------------------------------------------------------
   // Guideline support matrix — which of the four major guidelines support
@@ -1000,7 +1099,7 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     age70plus: ageNum >= 70,
     blackRace: isBlack,
     familyHistory: fhBinary > 0,
-    brca: brcaPositive,
+    brca: germlinePositive,
     twoComorbidities: hasTwoComorbidities
   };
   const hasHighRiskAnchor = Object.values(highRiskAnchors).some((v) => v === true);
@@ -1019,12 +1118,50 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     pirads: null,
     age: ageNum,
     highRiskFeatures: hasHighRiskAnchor,
+    hasTwoComorbidities,
   }, formData.pathwayMode || 'pre_psa');
+
+  // ---------------------------------------------------------------------------
+  // Guideline-based score (two-track output) — a clean subset of the full
+  // rawScore containing only USPSTF/NCCN/AUA-recognized screening factors: age,
+  // race, family history, and germline mutations (BRCA1/2 + expanded panel).
+  // Purely additive/derived from itemImpacts already computed above — does not
+  // change rawScore, score, epsaTierIndex, or any existing recommendation logic.
+  // Lifestyle/research-based factors (BMI, smoking, diet, exercise, SHIM, IPSS,
+  // comorbidities, inflammation, chemical exposure, Ashkenazi ancestry, non-
+  // prostate cancer family history) remain in the full score as the separate
+  // "ePSA extended profile" layer — i.e. everything already on the main result.
+  // The life-expectancy gate is surfaced as a flag (categorical), not a point
+  // deduction, since it modifies screening benefit, not cancer probability.
+  // ---------------------------------------------------------------------------
+  const GUIDELINE_TRACK_ITEMS = new Set(['Age', 'Black ancestry', 'Family history', 'Genetic mutation', 'Expanded germline panel']);
+  const GUIDELINE_TRACK_MAX_POINTS = 50; // Age(16) + Black ancestry(8) + Family history(10) + Genetic mutation(16, BRCA/panel deduplicated)
+  const guidelineTrackRawScore = itemImpacts
+    .filter((i) => GUIDELINE_TRACK_ITEMS.has(i.item))
+    .reduce((sum, i) => sum + (Number(i.points) || 0), 0);
+  const guidelineTrack = {
+    rawScore: guidelineTrackRawScore,
+    maxScore: GUIDELINE_TRACK_MAX_POINTS,
+    percent: Math.round(Math.max(0, Math.min(1, guidelineTrackRawScore / GUIDELINE_TRACK_MAX_POINTS)) * 100),
+    hasLifeExpectancyFlag: guardrailAlerts.some((a) => a.code === 'LIFE_EXPECTANCY_GATE'),
+    label: 'Guideline-based score (USPSTF/NCCN/AUA)',
+    description: 'Reflects only age, race, family history, and germline mutation status — the factors directly recognized by major screening guidelines.',
+  };
+  const epsaExtendedProfile = {
+    rawScore,
+    maxScore: MAX_POINTS,
+    percent: scorePercent,
+    label: 'ePSA extended profile',
+    description: 'Adds lifestyle and research-based factors (BMI, smoking, diet, exercise, SHIM, IPSS, comorbidities, and others) as contextual layers on top of the guideline-based score. Contextualizes but does not override the guideline-based recommendation.',
+  };
 
   return {
     // Provenance — used by the results meta-bar for audit/citation
     computedAt: new Date().toISOString(),
     engineVersion: '1.0.0',
+    // Two-track output (additive — see guidelineTrack/epsaExtendedProfile above)
+    guidelineTrack,
+    epsaExtendedProfile,
     // Core score
     score: scorePercent,
     scoreRange,
@@ -1198,11 +1335,13 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     ? calcHighGradeRisk(piradsVal, psaAdjusted)
     : null;
 
-  const isBlack = !!preResult?.isBlack;
-  const fhBinary = preResult?.fhBinary ?? 0;
-  const hasFamilyHistory = fhBinary === 1 || preResult?.familyHistory === 1;
-  const brcaStatus = preResult?.brcaStatus;
-  const brcaPositive = brcaStatus === 'yes' || brcaStatus === 'positive' || brcaStatus === 'lynch' || brcaStatus === 'other_elevated' || brcaStatus === 'other_unknown';
+  // NOTE: calculateDynamicEPsa's return object does not expose top-level isBlack/fhBinary/
+  // brcaStatus/familyHistory fields — only highRiskAnchors.{blackRace,familyHistory,brca}.
+  // Read from there (previously read nonexistent fields, so hasHighRiskFeature below was
+  // always false regardless of the patient's actual risk profile).
+  const isBlack = !!preResult?.highRiskAnchors?.blackRace;
+  const hasFamilyHistory = !!preResult?.highRiskAnchors?.familyHistory;
+  const brcaPositive = !!preResult?.highRiskAnchors?.brca; // includes expanded germline panel (HOXB13/ATM/CHEK2/PALB2/Lynch)
   const hasHighRiskFeature =
     isBlack || hasFamilyHistory || brcaPositive || (piradsVal != null && piradsVal >= 3);
 
@@ -1435,6 +1574,45 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Re-screening interval — driven by prior/baseline PSA, not just current PSA.
+  // AUA/SUO 2026 EDPC p.14-15 (validated against guideline PDFs 2026-07-14):
+  //   - Baseline PSA 1-3 ng/mL: re-screen every 1-4 years.
+  //   - Baseline PSA <1 ng/mL, or below age-specific median: re-screening interval
+  //     may be substantially prolonged.
+  //   - Age >=75 with PSA <3 ng/mL: clinicians may discontinue or substantially
+  //     lengthen the re-screening interval.
+  // `priorPsa` is the patient's prior/baseline PSA value (distinct from the
+  // current-visit `psa`), entered on the post-PSA/MRI intake form. Additive —
+  // absent priorPsa produces no interval recommendation (null), no change to
+  // any existing scoring or recommendation logic.
+  // ---------------------------------------------------------------------------
+  const priorPsaVal = sanitizePostInput(postData?.priorPsa, { min: 0, max: 1000 });
+  const priorPsaNum = priorPsaVal === '' || priorPsaVal === null || priorPsaVal === undefined ? null : Number(priorPsaVal);
+  const ageForInterval = Number(preResult?.age);
+  let rescreeningIntervalYears = null;
+  let rescreeningIntervalReason = null;
+  let rescreeningIntervalMessage = null;
+  if (priorPsaNum != null && !Number.isNaN(priorPsaNum)) {
+    if (Number.isFinite(ageForInterval) && ageForInterval >= 75 && priorPsaNum < 3) {
+      rescreeningIntervalYears = 'discontinue_or_lengthen';
+      rescreeningIntervalReason = 'age75_low_baseline_psa';
+      rescreeningIntervalMessage = `At age ${ageForInterval} with a prior PSA of ${priorPsaNum} ng/mL (<3), clinicians may discontinue screening or substantially lengthen the re-screening interval, per AUA/SUO 2026 EDPC p.15. This is a starting point for discussion with your physician, not a standalone decision.`;
+    } else if (priorPsaNum < 1) {
+      rescreeningIntervalYears = 'prolonged';
+      rescreeningIntervalReason = 'low_baseline_psa';
+      rescreeningIntervalMessage = `A prior PSA below 1 ng/mL is associated with a substantially prolonged re-screening interval per AUA/SUO 2026 EDPC p.14.`;
+    } else if (priorPsaNum >= 1 && priorPsaNum <= 3) {
+      rescreeningIntervalYears = '1-4';
+      rescreeningIntervalReason = 'moderate_baseline_psa';
+      rescreeningIntervalMessage = `A prior PSA of ${priorPsaNum} ng/mL (1-3 ng/mL range) supports a re-screening interval of 1 to 4 years per AUA/SUO 2026 EDPC p.14.`;
+    } else {
+      rescreeningIntervalYears = 'standard';
+      rescreeningIntervalReason = 'elevated_baseline_psa';
+      rescreeningIntervalMessage = `A prior PSA above 3 ng/mL does not support interval-lengthening; follow standard age-based re-screening guidance and discuss with your physician.`;
+    }
+  }
+
   const guardrailAlerts = checkGuardrails({
     psa: psaAdjusted,
     pirads: piradsVal,
@@ -1442,9 +1620,14 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
     ggg: postData?.ggg,
     age: preResult?.age,
     highRiskFeatures: hasHighRiskFeature,
+    hasTwoComorbidities: Boolean(preResult?.highRiskAnchors?.twoComorbidities),
   }, pathwayMode);
 
   return {
+    priorPsa: priorPsaNum,
+    rescreeningIntervalYears,
+    rescreeningIntervalReason,
+    rescreeningIntervalMessage,
     // Provenance — used by the results meta-bar for audit/citation
     computedAt: new Date().toISOString(),
     engineVersion: '1.0.0',
