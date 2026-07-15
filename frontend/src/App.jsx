@@ -1461,6 +1461,7 @@ function App() {
         const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
         setPostResult(interimResult);
         setShowPart2Interim(true);
+        setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
