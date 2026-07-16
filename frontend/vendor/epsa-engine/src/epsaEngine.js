@@ -1437,14 +1437,14 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
       discordanceFlag = {
         direction: 'epsa_higher',
         severity,
-        text: `Your ePSA risk profile (${tierDef.label}) is higher than what your PSA level alone (${psaVal} ng/mL, ${psaTierLabel}) would suggest. Your individual risk factors — such as race, family history, or genetic markers — may place you at elevated risk that PSA alone underestimates. Discuss this with your physician before concluding your PSA result is reassuring.`
+        text: `Model–guideline discordance: the ePSA combined risk tier (${tierDef.label}) is higher than PSA alone (${psaVal} ng/mL, ${psaTierLabel}) would indicate. Non-PSA risk factors (race, family history, germline status) are driving the tier above the PSA-only estimate. Do not let an unremarkable PSA alone rule out further workup — corroborate with the guideline-based risk factors before deferring.`
       };
     } else if (diff < 0) {
-      // PSA is higher than ePSA combined tier — patient should not be falsely reassured
+      // PSA is higher than ePSA combined tier — clinician should not be falsely reassured by the model tier
       discordanceFlag = {
         direction: 'psa_higher',
         severity: 'yellow',
-        text: `Your PSA level (${psaVal} ng/mL, ${psaTierLabel}) is in a higher range than your combined ePSA tier (${tierDef.label}) alone suggests. A PSA in this range warrants follow-up with your physician regardless of your overall ePSA profile. Do not rely on the combined tier alone — your PSA result is an independent signal that should be discussed with your doctor.`
+        text: `Model–guideline discordance: PSA (${psaVal} ng/mL, ${psaTierLabel}) is in a higher range than the combined ePSA tier (${tierDef.label}) alone would suggest. PSA is an independent, guideline-recognized signal — evaluate and manage the PSA value on its own merits regardless of the lower combined tier.`
       };
     }
   }

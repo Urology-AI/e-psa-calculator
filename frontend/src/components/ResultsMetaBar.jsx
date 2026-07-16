@@ -49,8 +49,8 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
           <p className="results-meta-bar__notice" role="note">
             <strong>Educational use only — not a medical device or diagnosis.</strong>
             {' '}
-            This result is a screening-conversation aid based on AUA/SUO 2026, NCCN 2024, and EAU 2024 guidance.
-            Discuss every result with a clinician before any health decision.
+            This result is a clinical decision-support aid based on AUA/SUO 2026, NCCN 2024, and EAU 2024 guidance.
+            It does not replace clinical judgment — confirm against guideline criteria and patient-specific factors before acting.
             {' '}
             <em>Models are internally validated on the Mount Sinai ePSA cohort only — no external cohort has been used yet.</em>
           </p>

@@ -520,7 +520,7 @@ const Part3Results = ({
       {/* ── Shared Decision-Making Framing (compact strip) ── */}
       <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '7px' }}>
         <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-        <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
+        <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making with the patient.</span>
       </div>
 
       {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
