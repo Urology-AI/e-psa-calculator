@@ -29,6 +29,15 @@ const PrePsaInputSchema = z.object({
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
   chemicalExposure: z.union([z.number().int().min(0).max(1), z.null()]).optional(),
   dietPattern: z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']).optional().transform(val => val || ''),
+  // Count (0-2+) of diagnosed cardiometabolic conditions (hypertension, hyperlipidemia,
+  // CAD, diabetes) — the engine's validateInputs() requires this OR all four individual
+  // boolean fields; without either, calculateDynamicEPsa() silently returns null and every
+  // caller gets a bogus zero/default-tier result instead of a real score or an error.
+  comorbidityScore: z.union([z.number().int().min(0).max(2), z.string(), z.null()]).optional().transform(val => {
+    if (val === null || val === undefined || val === '') return undefined;
+    const n = typeof val === 'string' ? parseInt(val, 10) : val;
+    return Number.isFinite(n) ? Math.min(2, Math.max(0, n)) : undefined;
+  }),
 });
 
 const PostPsaInputSchema = z.object({
