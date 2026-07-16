@@ -14,10 +14,11 @@ export const DIET_MAP = { red_meat: 'western', mixed: 'other', plant: 'plant-bas
  */
 export function deriveIpssFromQol(qol) {
   const q = Number(qol);
-  if (q <= 1) return [0, 0, 0, 0, 0, 0, 0];
-  if (q === 2) return [1, 1, 1, 1, 1, 1, 1];
-  if (q <= 4) return [3, 3, 3, 3, 3, 3, 3];
-  return [5, 5, 5, 5, 5, 5, 5];
+  // Bins must stay consistent with the engine's IPSS severity thresholds:
+  // mild 0–7, moderate 8–19, severe 20–35 (sum of 7 items, each 0–5).
+  if (q <= 1) return [1, 1, 1, 1, 1, 1, 1]; // total 7 — mild
+  if (q <= 3) return [2, 2, 2, 2, 2, 2, 2]; // total 14 — moderate
+  return [5, 5, 5, 5, 5, 5, 5]; // total 35 — severe
 }
 
 /**

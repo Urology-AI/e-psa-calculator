@@ -34,6 +34,57 @@ export const CollapsibleSection = ({
   );
 };
 
+// ─── Clinical Detail Disclosure ───────────────────────────────────────────────
+// Progressive-disclosure wrapper: the public/default view of ePSA is written in
+// plain, patient-facing language. Clinicians (or anyone who wants the underlying
+// rigor — guideline citations, cited studies, model/guideline terminology) can
+// reveal it on demand via this toggle rather than it being removed or hidden away
+// in a separate mode. Keep the plain-language content OUTSIDE this wrapper (always
+// visible) and put the guideline/citation/technical language INSIDE (opt-in).
+export const ClinicalDetail = ({
+  children,
+  label = 'Show clinical detail',
+  hideLabel = 'Hide clinical detail',
+  defaultOpen = false,
+  className = '',
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`clinical-detail${className ? ` ${className}` : ''}`}>
+      <button
+        type="button"
+        className="clinical-detail__toggle"
+        onClick={() => setOpen(v => !v)}
+        aria-expanded={open}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          margin: '6px 0 0',
+          cursor: 'pointer',
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#2563eb',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+        }}
+      >
+        {open ? <ChevronUpIcon size={12} aria-hidden="true" /> : <ChevronDownIcon size={12} aria-hidden="true" />}
+        {open ? hideLabel : label}
+      </button>
+      {open && (
+        <div
+          className="clinical-detail__body"
+          style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed rgba(0,0,0,0.12)' }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Guardrail Banner ─────────────────────────────────────────────────────────
 // Uses semantic CSS variables (App.css, with .theme-dark overrides) so this renders
 // correctly in both light and dark mode.

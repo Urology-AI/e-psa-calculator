@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source for new code.
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
+import { ClinicalDetail } from './shared/ResultsShared.jsx';
 import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -518,9 +519,14 @@ const Part3Results = ({
       }
 
       {/* ── Shared Decision-Making Framing (compact strip) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', display: 'flex', alignItems: 'center', gap: '7px' }}>
-        <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-        <span><strong>Shared decision-making tool</strong> (AUA/SUO 2026 Statement 1) — discuss these results with your clinician before acting.</span>
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+          <span>This result is meant to support a conversation with your doctor, not replace it.</span>
+        </div>
+        <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+          <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
+        </ClinicalDetail>
       </div>
 
       {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
@@ -716,7 +722,12 @@ const Part3Results = ({
               })()}
               {discordanceFlag && (
                 <NoticeItem label="Risk Discordance">
-                  {discordanceFlag.text}
+                  {discordanceFlag.direction === 'epsa_higher'
+                    ? "Your overall risk profile looks higher than your PSA number alone would suggest — other factors (like family history or ancestry) are pushing it up. Don't assume a normal-looking PSA means everything is fine; talk to your doctor about the full picture."
+                    : "Your PSA number is higher than your overall risk profile alone would suggest. A PSA in this range is worth following up on with your doctor, regardless of the rest of your profile."}
+                  <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+                    {discordanceFlag.text}
+                  </ClinicalDetail>
                 </NoticeItem>
               )}
               {psaConfirmedNo && (
