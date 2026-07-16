@@ -36,7 +36,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyAdminOTP = exports.sendAdminOTP = exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.submitToRedcap = exports.syncToRedcap = void 0;
+exports.sendAdminOTP = exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.calculatePsaRecommendation = exports.submitToRedcap = exports.syncToRedcap = void 0;
+exports.verifyAdminOTP = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
 const params_1 = require("firebase-functions/params");
@@ -51,9 +52,14 @@ const OTP_GMAIL_PASS = (0, params_1.defineSecret)('OTP_GMAIL_PASS');
 var redcapSync_1 = require("./redcapSync");
 Object.defineProperty(exports, "syncToRedcap", { enumerable: true, get: function () { return redcapSync_1.syncToRedcap; } });
 Object.defineProperty(exports, "submitToRedcap", { enumerable: true, get: function () { return redcapSync_1.submitToRedcap; } });
+// Single source of truth for the pre-PSA and post-PSA/MRI recommendations,
+// shared by web, epsa-screening-tool (via @epsa/engine), and the iOS app
+// (via this callable).
+var psaEngine_1 = require("./psaEngine");
+Object.defineProperty(exports, "calculatePsaRecommendation", { enumerable: true, get: function () { return psaEngine_1.calculatePsaRecommendation; } });
 // Sinai clinic cohort — IRB STUDY-14-00050.
 // Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
-// after 30 days via Firestore TTL) and optionally pushed to Sinai REDCap.
+// after 90 days of inactivity via Firestore TTL) and optionally pushed to Sinai REDCap.
 // All Sinai data is keyed only by clinic code — never tied to PII.
 var sinaiCohort_1 = require("./sinaiCohort");
 Object.defineProperty(exports, "validateClinicCode", { enumerable: true, get: function () { return sinaiCohort_1.validateClinicCode; } });
@@ -235,16 +241,16 @@ exports.createSession = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('invalid-argument', 'Invalid result data', error);
         }
     }
-    // Create session document with 30-day expiry
+    // Create session document with 90-day expiry (rolling — reset on each update)
     const sessionRef = db.collection('sessions').doc();
-    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const ninetyDaysFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
     const sessionData = {
         userId,
         status: 'STEP1_COMPLETE',
         pathwayMode: data.pathwayMode || null,
         step1: stripUndefined(step1Data),
         result: data.result || null,
-        expiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow),
+        expiresAt: admin.firestore.Timestamp.fromDate(ninetyDaysFromNow),
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
@@ -480,9 +486,9 @@ exports.loginAnonymousBySessionId = functions.https.onCall(async (data, context)
         const userCreatedAt = matchedData === null || matchedData === void 0 ? void 0 : matchedData.createdAt;
         const lastActivity = userUpdatedAt || userCreatedAt;
         if (lastActivity) {
-            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-            if (lastActivity.toDate() < thirtyDaysAgo) {
-                throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days. Please start a new session.');
+            const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+            if (lastActivity.toDate() < ninetyDaysAgo) {
+                throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 90 days of inactivity. Please start a new session.');
             }
         }
         const nowIso = new Date().toISOString();
@@ -740,7 +746,7 @@ exports.getSession = functions.https.onCall(async (data, context) => {
     if (sessionData === null || sessionData === void 0 ? void 0 : sessionData.expiresAt) {
         const expiresAt = sessionData.expiresAt;
         if (expiresAt.toDate() < new Date()) {
-            throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 30 days.');
+            throw new functions.https.HttpsError('deadline-exceeded', 'Session has expired. Anonymous sessions last 90 days of inactivity.');
         }
     }
     // Audit log
@@ -757,7 +763,7 @@ exports.cleanupOldSessions = functions.pubsub.schedule('0 2 * * *') // 2 AM dail
     const now = admin.firestore.Timestamp.now();
     let deletedCount = 0;
     const batchOps = [];
-    // 1. Delete sessions that have passed their explicit expiresAt timestamp (30-day anonymous sessions)
+    // 1. Delete sessions that have passed their explicit expiresAt timestamp (90-day inactivity TTL)
     const expiredQuery = await db.collection('sessions')
         .where('expiresAt', '<', now)
         .limit(500)
@@ -1519,12 +1525,12 @@ exports.optimizeDatabase = functions.pubsub.schedule('0 6 * * 0') // 6 AM every 
                 .where('userId', '==', userDoc.id)
                 .limit(1)
                 .get();
-            // Remove users with no sessions and older than 30 days
+            // Remove users with no sessions and older than 90 days
             if (userSessions.empty && userDoc.data().createdAt) {
                 const createdAt = userDoc.data().createdAt.toDate();
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                if (createdAt < thirtyDaysAgo) {
+                const ninetyDaysAgo = new Date();
+                ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+                if (createdAt < ninetyDaysAgo) {
                     await userDoc.ref.delete();
                     optimizedCount++;
                     console.log(`Removed abandoned user: ${userDoc.id}`);

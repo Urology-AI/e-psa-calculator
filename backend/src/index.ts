@@ -13,6 +13,11 @@ const OTP_GMAIL_PASS = defineSecret('OTP_GMAIL_PASS');
 // submitToRedcap: callable function for local-storage users to push directly
 export { syncToRedcap, submitToRedcap } from './redcapSync';
 
+// Single source of truth for the pre-PSA and post-PSA/MRI recommendations,
+// shared by web, epsa-screening-tool (via @epsa/engine), and the iOS app
+// (via this callable).
+export { calculatePsaRecommendation } from './psaEngine';
+
 // Sinai clinic cohort — IRB STUDY-14-00050.
 // Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
 // after 90 days of inactivity via Firestore TTL) and optionally pushed to Sinai REDCap.
