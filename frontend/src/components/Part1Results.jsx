@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
 import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -222,53 +222,63 @@ const NON_GUIDELINE_LABELS = {
 };
 
 const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
-  let guidelineSays, epsaAdds;
+  let guidelineSays, epsaAdds, plainWhy;
   if (age < 45) {
     guidelineSays = 'AUA/NCCN do not recommend routine PSA screening before age 45 for average-risk men. High-risk individuals (Black ancestry, BRCA1/2, strong family history) may begin discussions at 40–45.';
     epsaAdds = 'The model recommends PSA testing based on this patient\'s individual risk score, which exceeds the model threshold — this exceeds what AUA/NCCN currently endorse for this age group.';
+    plainWhy = 'earlier than standard guidelines typically recommend for someone your age';
   } else if (age < 50) {
     guidelineSays = 'AUA/SUO 2026 (Statement 2, Strong Recommendation; Grade A) recommends a baseline PSA discussion beginning at age 45 for average-risk men. Repeat screening is individualized until routine 2–4 year intervals begin at age 50.';
     epsaAdds = 'The model recommends PSA testing with more urgency than the guideline. The score exceeds the model threshold, driven partly by factors AUA/NCCN do not use for screening decisions.';
+    plainWhy = 'with more urgency than the standard guideline calls for at your age';
   } else if (age <= 69) {
     guidelineSays = 'AUA/NCCN already recommend regular PSA screening every 2–4 years at ages 50–69.';
     epsaAdds = 'The model is adding urgency beyond the routine interval. The score is elevated by individual risk factors — including some that fall outside AUA/NCCN criteria.';
+    plainWhy = 'sooner than the routine every-2-to-4-year schedule';
   } else {
     guidelineSays = 'AUA/NCCN require Shared Decision Making at age 70+, weighing screening benefit against life expectancy and comorbidities. Routine screening is not automatically recommended.';
     epsaAdds = 'The model is flagging elevated risk based on the score, but at this age the guideline requires a life-expectancy assessment before acting on it.';
+    plainWhy = 'even though guidelines say screening after 70 depends on your overall health and life expectancy, not just your score';
   }
 
   return (
     <div role="alert" className="guideline-deviation-banner guideline-deviation-banner--amber">
       <div className="guideline-deviation-banner__header">
         <AlertTriangleIcon size={15} className="guideline-deviation-banner__icon" />
-        <span className="guideline-deviation-banner__title">Model recommendation exceeds AUA/NCCN guideline criteria</span>
+        <span className="guideline-deviation-banner__title">Why this recommendation may look different from standard guidance</span>
       </div>
 
-      <div className="guideline-deviation-banner__row">
-        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--guideline">AUA/NCCN criteria</span>
-        <p className="guideline-deviation-banner__text">{guidelineSays}</p>
-      </div>
-
-      <div className="guideline-deviation-banner__row">
-        <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--epsa">Model output</span>
-        <p className="guideline-deviation-banner__text">{epsaAdds}</p>
-      </div>
-
-      {nonGuidelineFactors.length > 0 && (
-        <div className="guideline-deviation-banner__factors">
-          <span className="guideline-deviation-banner__factors-label">Factors used that are NOT AUA/NCCN screening criteria:</span>
-          <ul className="guideline-deviation-banner__factors-list">
-            {nonGuidelineFactors.map(f => (
-              <li key={f}>{NON_GUIDELINE_LABELS[f] || f}</li>
-            ))}
-          </ul>
-          <p className="guideline-deviation-banner__factors-note">AUA/NCCN base PSA screening on age, race, family history, and germline mutations only. Diet, exercise, BMI, urinary symptoms, and similar factors are not part of their screening criteria.</p>
-        </div>
-      )}
-
-      <p className="guideline-deviation-banner__footer">
-        <strong>When the model and the guideline disagree, the guideline governs the recommendation.</strong> ePSA is a decision-support aid, not an autonomous diagnosis — published AUA/NCCN criteria and clinical judgment should drive the final decision.
+      <p className="guideline-deviation-banner__text">
+        This tool is suggesting PSA testing {plainWhy}. That's because it also weighs personal factors — like lifestyle, family history, or symptoms — that standard screening guidelines don't factor in. <strong>Talk this over with your doctor</strong>, who can weigh both the guideline and your personal risk factors together.
       </p>
+
+      <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+        <div className="guideline-deviation-banner__row">
+          <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--guideline">AUA/NCCN criteria</span>
+          <p className="guideline-deviation-banner__text">{guidelineSays}</p>
+        </div>
+
+        <div className="guideline-deviation-banner__row">
+          <span className="guideline-deviation-banner__pill guideline-deviation-banner__pill--epsa">Model output</span>
+          <p className="guideline-deviation-banner__text">{epsaAdds}</p>
+        </div>
+
+        {nonGuidelineFactors.length > 0 && (
+          <div className="guideline-deviation-banner__factors">
+            <span className="guideline-deviation-banner__factors-label">Factors used that are NOT AUA/NCCN screening criteria:</span>
+            <ul className="guideline-deviation-banner__factors-list">
+              {nonGuidelineFactors.map(f => (
+                <li key={f}>{NON_GUIDELINE_LABELS[f] || f}</li>
+              ))}
+            </ul>
+            <p className="guideline-deviation-banner__factors-note">AUA/NCCN base PSA screening on age, race, family history, and germline mutations only. Diet, exercise, BMI, urinary symptoms, and similar factors are not part of their screening criteria.</p>
+          </div>
+        )}
+
+        <p className="guideline-deviation-banner__footer">
+          <strong>When the model and the guideline disagree, the guideline governs the recommendation.</strong> ePSA is a decision-support aid, not an autonomous diagnosis — published AUA/NCCN criteria and clinical judgment should drive the final decision.
+        </p>
+      </ClinicalDetail>
     </div>
   );
 };
@@ -365,11 +375,10 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
   }
   const cfg = PSA_BANNER_CONFIG[configKey];
   const { Icon } = cfg;
-  const message = psaRecommendMessage || (
-    recommendPSA === true
-      ? 'PSA testing is indicated. Discuss with the patient before ordering.'
-      : 'ePSA score is below the recommendation threshold for this patient. Standard age-based screening guidance applies.'
-  );
+  const plainMessage = recommendPSA === true
+    ? 'Based on your answers, getting a PSA test is a good next step. Talk with your doctor about scheduling one.'
+    : 'Based on your answers, your risk falls below the level where a PSA test is typically recommended right now. Regular check-ins with your doctor as you age are still a good idea.';
+  const message = psaRecommendMessage || plainMessage;
   const papers = BEYOND_GUIDELINE_PAPERS[configKey] || null;
   return (
     <div
@@ -378,34 +387,39 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       role="alert"
       aria-live="polite"
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Icon size={18} style={{ color: cfg.iconColor, flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
-            {cfg.label}
-          </span>
-        </div>
-        {guidelineSupport && <GuidelineSupportBadge support={guidelineSupport} count={guidelineSupportCount} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Icon size={18} style={{ color: cfg.iconColor, flexShrink: 0 }} />
+        <span style={{ fontWeight: 700, fontSize: '13px', color: cfg.labelColor, letterSpacing: '0.03em' }}>
+          {cfg.label}
+        </span>
       </div>
       <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{message}</p>
-      <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{cfg.source}</p>
-      {papers && (
-        <div style={{ marginTop: '4px' }}>
-          <button
-            type="button"
-            onClick={() => setShowPapers(!showPapers)}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: cfg.labelColor, display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            {showPapers ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
-            {showPapers ? 'Hide' : 'Show'} supporting research ({papers.length} studies)
-          </button>
-          {showPapers && (
-            <ul style={{ margin: '6px 0 0 16px', padding: 0, fontSize: '12px', color: '#6b7280', lineHeight: 1.7 }}>
-              {papers.map((paper) => <li key={paper}>{paper}</li>)}
-            </ul>
-          )}
-        </div>
-      )}
+
+      <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+        {guidelineSupport && (
+          <div style={{ marginBottom: '8px' }}>
+            <GuidelineSupportBadge support={guidelineSupport} count={guidelineSupportCount} />
+          </div>
+        )}
+        <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{cfg.source}</p>
+        {papers && (
+          <div style={{ marginTop: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setShowPapers(!showPapers)}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: cfg.labelColor, display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              {showPapers ? <ChevronUpIcon size={12} /> : <ChevronDownIcon size={12} />}
+              {showPapers ? 'Hide' : 'Show'} supporting research ({papers.length} studies)
+            </button>
+            {showPapers && (
+              <ul style={{ margin: '6px 0 0 16px', padding: 0, fontSize: '12px', color: '#6b7280', lineHeight: 1.7 }}>
+                {papers.map((paper) => <li key={paper}>{paper}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
+      </ClinicalDetail>
     </div>
   );
 };
@@ -781,9 +795,14 @@ const Part1Results = ({
       )}
 
       {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-          <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making with the patient.</span>
+      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+            <span>This tool is here to help you understand your options and talk them through with your doctor — it doesn't replace that conversation.</span>
+          </div>
+          <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+            <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
+          </ClinicalDetail>
       </div>
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
@@ -918,10 +937,22 @@ const Part1Results = ({
             : inScreeningRange
               ? 'Re-screen every 2–4 years for ages 50–69 (AUA/SUO Stmt 6)'
               : 'Age 70+: Shared Decision-Making required before continuing screening (AUA/SUO Stmt 7)';
+        const plainNextStep = !alreadyStarted
+          ? `Consider starting PSA screening around age ${isElevatedRisk ? '40' : '45'}.`
+          : ageNum < 50
+            ? "You're in the early-screening window — this is a good time to talk with your doctor about when to start."
+            : inScreeningRange
+              ? 'A repeat PSA test every 2–4 years is typical for your age.'
+              : "At 70+, whether to keep screening is a personal decision — talk it through with your doctor.";
         return (
-          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <AlertCircleIcon size={14} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
-            <span><strong>Guideline-recommended next step:</strong> {nextStep}</span>
+          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <AlertCircleIcon size={14} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
+              <span><strong>Your next step:</strong> {plainNextStep}</span>
+            </div>
+            <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+              <span><strong>Guideline-recommended next step:</strong> {nextStep}</span>
+            </ClinicalDetail>
           </div>
         );
       })()}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ClinicalDetail } from './shared/ResultsShared.jsx';
 import './ResultsMetaBar.css';
 
 const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }) => {
@@ -49,11 +50,16 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
           <p className="results-meta-bar__notice" role="note">
             <strong>Educational use only — not a medical device or diagnosis.</strong>
             {' '}
-            This result is a clinical decision-support aid based on AUA/SUO 2026, NCCN 2024, and EAU 2024 guidance.
-            It does not replace clinical judgment — confirm against guideline criteria and patient-specific factors before acting.
-            {' '}
-            <em>Models are internally validated on the Mount Sinai ePSA cohort only — no external cohort has been used yet.</em>
+            This result is meant to help guide a conversation with your doctor, not replace one.
           </p>
+          <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+            <p className="results-meta-bar__notice" role="note" style={{ margin: 0 }}>
+              This result is a clinical decision-support aid based on AUA/SUO 2026, NCCN 2024, and EAU 2024 guidance.
+              It does not replace clinical judgment — confirm against guideline criteria and patient-specific factors before acting.
+              {' '}
+              <em>Models are internally validated on the Mount Sinai ePSA cohort only — no external cohort has been used yet.</em>
+            </p>
+          </ClinicalDetail>
         </div>
       )}
     </div>
