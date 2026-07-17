@@ -1,5 +1,6 @@
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../config/firebase';
+import { signInAnonymously } from 'firebase/auth';
+import { functions, auth } from '../config/firebase';
 
 /**
  * Single source of truth for the pre-PSA and post-PSA/MRI recommendation —
@@ -7,14 +8,20 @@ import { functions } from '../config/firebase';
  * computing locally. This is the same callable the iOS app uses
  * (PsaEngineService.swift), so web/iOS/epsa-screening-tool can never
  * silently drift apart on scoring logic again.
- *
- * NOTE: this service exists but nothing calls it yet — App.jsx and
- * QuickEntry.jsx still compute locally via utils/dynamicCalculator.js.
- * Migrating those ~15 call sites is a separate, larger change (touches
- * core session state management) and should not be bundled with adding
- * this service.
  */
 const calculatePsaRecommendationFn = httpsCallable(functions, 'calculatePsaRecommendation');
+
+// The callable requires context.auth. Local computation never needed auth, so a
+// user reaching Part 1 before UniversalAuth's sign-in flow completes (or via a
+// path that never triggers it) previously worked fine and now 401s. iOS already
+// guards this (AuthService.shared.ensureSignedIn() before every callable) — this
+// mirrors that instead of assuming some other code path already signed them in.
+async function ensureSignedIn() {
+  if (!auth) throw new Error('Firebase auth is not configured');
+  if (auth.currentUser) return auth.currentUser;
+  const result = await signInAnonymously(auth);
+  return result.user;
+}
 
 /**
  * @param {object} prePsa - Part 1 form data (age, race, bmi, ipss, shim, etc.)
@@ -22,6 +29,7 @@ const calculatePsaRecommendationFn = httpsCallable(functions, 'calculatePsaRecom
  * @returns {Promise<{part1: object, part2?: object}>}
  */
 export const calculatePsaRecommendation = async (prePsa, postPsa) => {
+  await ensureSignedIn();
   const payload = { prePsa };
   if (postPsa) payload.postPsa = postPsa;
   const result = await calculatePsaRecommendationFn(payload);

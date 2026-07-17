@@ -154,6 +154,23 @@ export const fieldReferences = {
       { name: 'Mayo Clinic', url: 'https://www.mayoclinic.org/diseases-conditions/prostate-cancer/symptoms-causes/syc-20353087' },
     ],
   },
+  familyHistoryCancerTypes: {
+    title: 'Family history of breast, ovarian, or pancreatic cancer',
+    description: 'Family history of breast, ovarian, or pancreatic cancer can indicate hereditary breast/ovarian cancer (HBOC) or Lynch syndrome — hereditary syndromes also linked to elevated prostate cancer risk.',
+    isGuideline: false,
+    sources: [
+      { name: 'NCCN Guidelines® — Genetic/Familial High-Risk Assessment: Breast, Ovarian, and Pancreatic (LoPC), Table 4', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1503' },
+      { name: 'NCCN Guidelines® — Prostate Cancer Early Detection (EDPC)', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1460' },
+    ],
+  },
+  ashkenaziJewish: {
+    title: 'Ashkenazi Jewish ancestry',
+    description: 'Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40, vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication.',
+    isGuideline: false,
+    sources: [
+      { name: 'NCCN Guidelines® — Genetic/Familial High-Risk Assessment: Breast, Ovarian, and Pancreatic (LoPC), Table 4', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=2&id=1503' },
+    ],
+  },
   comorbidities: {
     titleKey: 'part1.fields.comorbidities.title',
     descriptionKey: 'part1.fields.comorbidities.description',
