@@ -36,7 +36,7 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
-import { getCalculatorConfig, calculateDynamicEPsa, calculateDynamicEPsaPost } from './utils/dynamicCalculator';
+import { getCalculatorConfig } from './utils/dynamicCalculator';
 import { computeSessionResults } from './services/psaEngineService';
 import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
@@ -124,29 +124,17 @@ function App() {
   
   // urlEmail URL param removed — PHI must not appear in URLs
   
-  // Calculator configuration — always the default. Used both for client-side
-  // validateInputs()/Model Documentation, and as the local computation fallback
-  // below for users who aren't in cloud mode.
+  // Calculator configuration — always the default; used for client-side
+  // validateInputs() and the Model Documentation page's display config.
   const calculatorConfig = getCalculatorConfig();
 
-  // Computes Part 1 (+ Part 2 if step2 has a PSA value) via the shared Cloud
-  // Function when the user is in cloud mode — but computes locally, with no
-  // network call and no Firebase auth, when they're in local mode (JSON/PDF
-  // import, or "continue without an account"). Local mode must never trigger
-  // sign-in just to see your own score; auth should only happen for genuinely
-  // cloud-related actions (saving to cloud, restoring/importing a cloud
-  // session by code) — those call sites use computeSessionResults directly,
-  // not this wrapper, since a session fetched from Firestore is cloud by
-  // definition regardless of the current storageMode state.
-  const computeResultsForMode = async (step1, step2) => {
-    if (storageMode === 'local') {
-      const preResult = calculateDynamicEPsa(step1, calculatorConfig);
-      const hasPostPsa = step2 && step2.psa !== undefined && step2.psa !== null && step2.psa !== '';
-      const postResult = (hasPostPsa && preResult) ? calculateDynamicEPsaPost(preResult, step2, calculatorConfig) : null;
-      return { preResult, postResult };
-    }
-    return computeSessionResults(step1, step2);
-  };
+  // Scoring always goes through computeSessionResults (the shared Cloud
+  // Function), regardless of storageMode. storageMode governs whether a
+  // *session gets persisted* to Firestore — the actual consent boundary — not
+  // whether computing a score is allowed to touch the network.
+  // calculatePsaRecommendation is stateless: takes form data, returns a
+  // result, stores nothing. The anonymous auth it requires is a Cloud
+  // Functions calling-convention detail, not a data-storage event.
 
   // Remote feature flags (published by the admin dashboard) — e.g. whether the
   // Biomarkers step is enabled in the post-PSA journey. Off by default.
@@ -1184,19 +1172,14 @@ function App() {
     }));
     
     // Calculate Part1 results; if validation fails (missing required fields), go to form so user can fill gaps.
-    // Computed against the storage mode this import is about to end up in (below),
-    // not the current `storageMode` state — that hasn't updated yet within this
-    // same handler (setStorageMode is async), and file imports are local-first by
-    // design, so reading stale state here would risk an unwanted auth call.
-    const importStorageMode = importType === 'pdf' ? 'local' : (importedData.storageMode || 'local');
+    // Always via the shared Cloud Function — computing a score doesn't store
+    // anything, so this doesn't need to wait for/depend on the storage-mode
+    // decision below (which governs whether a *session gets persisted*).
     const hasPart2Import = targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0;
-    const { preResult: part1Result, postResult: part2Result } = importStorageMode === 'local'
-      ? (() => {
-          const pre = calculateDynamicEPsa(normalizedImport, calculatorConfig);
-          const post = (hasPart2Import && pre) ? calculateDynamicEPsaPost(pre, importedData.part2Data, calculatorConfig) : null;
-          return { preResult: pre, postResult: post };
-        })()
-      : await computeSessionResults(normalizedImport, hasPart2Import ? importedData.part2Data : undefined);
+    const { preResult: part1Result, postResult: part2Result } = await computeSessionResults(
+      normalizedImport,
+      hasPart2Import ? importedData.part2Data : undefined
+    );
     setPreResult(part1Result || null);
 
     // Calculate Part2 results if this is complete import and post data exists
@@ -1386,7 +1369,7 @@ function App() {
     {
       // Calculate Part 1 results via the shared Cloud Function
       // SHIM is hardcoded to zeros — removed from the form per design change
-      const { preResult: result } = await computeResultsForMode({ ...preData, shim: [0, 0, 0, 0, 0], pathwayMode: pathwayMode || 'pre_psa' });
+      const { preResult: result } = await computeSessionResults({ ...preData, shim: [0, 0, 0, 0, 0], pathwayMode: pathwayMode || 'pre_psa' });
 
       if (!result) {
         console.error('Calculation failed - missing required fields');
@@ -1477,7 +1460,7 @@ function App() {
         // the PSA-only result directly and show the Part 2 results screen.
         // (Sends preData, not the already-computed preResult — the Cloud Function
         // takes raw Part 1 form data and recomputes Part 1 + Part 2 together.)
-        const { postResult: interimResult } = await computeResultsForMode(preData, { ...postData, pathwayMode: 'post_psa' });
+        const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
         setPostResult(interimResult);
         setShowPart2Interim(true);
         setCurrentStep(2);
@@ -1496,7 +1479,7 @@ function App() {
     } else if (currentStep === 2) {
       // Biomarkers entered — compute the Part 2 result (ePSA score from
       // PSA + baseline, no MRI yet) and show it before moving to Part 3 (MRI).
-      const { postResult: interimResult } = await computeResultsForMode(preData, { ...postData, pathwayMode: 'post_psa' });
+      const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
       setPostResult(interimResult);
       setShowPart2Interim(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1516,7 +1499,7 @@ function App() {
         setCurrentStep(3);
         return;
       }
-      const { postResult: result } = await computeResultsForMode(preData, { ...postData, pathwayMode: inferredPathway });
+      const { postResult: result } = await computeSessionResults(preData, { ...postData, pathwayMode: inferredPathway });
 
       // Part 3 (MRI/PI-RADS present): the validated biopsy-prediction service is the
       // sole source of the biopsy risk estimate (log(PSA) + PSAD + PI-RADS,

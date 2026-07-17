@@ -5,7 +5,8 @@ import Part3Results from './Part3Results.jsx';
 import InfoIcon from './InfoIcon.jsx';
 import { fieldReferences } from '../utils/fieldReferences';
 import './QuickEntry.css';
-import { validateInputs, calculateDynamicEPsa, calculateDynamicEPsaPost } from '../utils/dynamicCalculator';
+import { validateInputs } from '../utils/dynamicCalculator';
+import { computeSessionResults } from '../services/psaEngineService';
 import { fetchBiopsyPrediction } from '../utils/biopsyApi';
 import { useTranslation } from 'react-i18next';
 import { ZapIcon, UploadIcon, RotateCcwIcon, ChevronDownIcon, AlertCircleIcon, AlertTriangleIcon, ArrowLeftIcon } from 'lucide-react';
@@ -193,9 +194,10 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
     setErrors(mergedErrors);
     if (mergedErrors.length > 0) { setPreResult(null); setPart2Result(null); setPostResult(null); setShowResults(false); return; }
 
-    // Quick Entry is a local-only testing tool (storageMode="local" below) — always
-    // computes locally, no Cloud Function call and no Firebase auth required.
-    const part1Result = calculateDynamicEPsa(localFormData, calculatorConfig);
+    // Quick Entry doesn't persist anything (storageMode="local" below is about
+    // session storage, not this call) — computing via the shared Cloud Function
+    // is fine; it's stateless and stores nothing either way.
+    const { preResult: part1Result } = await computeSessionResults(localFormData);
     if (!part1Result) {
       setPreResult(null); setPart2Result(null); setPostResult(null); setShowResults(false);
       setErrors([t('quickEntry.errors.calculationFailed')]); setWarnings([]);
@@ -227,10 +229,10 @@ const QuickEntry = ({ calculatorConfig, onClose }) => {
       // (mirrors the wizard's step between the PSA form and the MRI form) so Quick
       // Entry doesn't skip straight from Part 1 to the combined Part 3 screen.
       const interimPart2Result = includeMri
-        ? calculateDynamicEPsaPost(part1Result, { ...localPostData, pathwayMode: 'post_psa' }, calculatorConfig)
+        ? (await computeSessionResults(localFormData, { ...localPostData, pathwayMode: 'post_psa' })).postResult
         : null;
 
-      const result = calculateDynamicEPsaPost(part1Result, localPostData, calculatorConfig);
+      const { postResult: result } = await computeSessionResults(localFormData, localPostData);
       if (!result) {
         setPreResult(part1Result); setPart2Result(null); setPostResult(null); setShowResults(false);
         setErrors([t('quickEntry.errors.calculationFailed')]); setWarnings([]);
