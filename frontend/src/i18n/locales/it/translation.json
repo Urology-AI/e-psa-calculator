@@ -1347,11 +1347,11 @@
     "scoring": {
       "title": "Come viene calcolato il punteggio",
       "body": "Il modello ePSA utilizza un approccio a punti (binned). Le tue risposte vengono convertite in fattori di rischio. Questi vengono combinati in un singolo punteggio, normalizzato su una scala 0-100%. Viene mostrato un intervallo del +/-5% per evitare di interpretare eccessivamente le piccole differenze.",
-      "formula": "Tipo di modello: {{modelType}}. Livelli di rischio: INFERIORE (sotto {{lowerPct}}%), MODERATO ({{lowerPct}}%-{{moderatePct}}%), SUPERIORE (sopra {{moderatePct}}%)."
+      "formula": "Tipo di modello: {{modelType}}. I tuoi fattori di rischio combinati sono raggruppati in tre livelli — INFERIORE, MODERATO e SUPERIORE — che riflettono il tuo rischio relativo, non un punteggio numerico esatto."
     },
     "riskTiers": {
       "title": "Livelli di rischio e raccomandazione PSA",
-      "body": "Il tuo risultato viene collocato in uno dei tre livelli (INFERIORE, MODERATO, SUPERIORE). Inoltre, il modello può indicare se il test PSA è \"Raccomandato\" o \"Non raccomandato\" in base a una soglia."
+      "body": "Il tuo risultato viene collocato in uno dei tre livelli (INFERIORE, MODERATO, SUPERIORE). Inoltre, il modello può indicare se il test PSA è \"Raccomandato\" o \"Non raccomandato\" in base al tuo profilo di rischio combinato. Questo è solo per uso educativo e dovrebbe essere rivisto con il tuo medico."
     },
     "limitations": {
       "title": "Limitazioni",

@@ -1347,11 +1347,11 @@
     "scoring": {
       "title": "Como a Pontuação é Calculada",
       "body": "O modelo ePSA usa uma abordagem por pontos (binned). Suas respostas são convertidas em fatores de risco (ex. idade 50-59, 60-69, 70+; IMC 25-29.9 ou >=30; gravidade do IPSS; exercício; raça negra; histórico familiar). Esses são combinados em uma única pontuação, normalizada para uma escala de 0-100%. Um intervalo de +/-5% é exibido para evitar a superinterpretação de pequenas diferenças.",
-      "formula": "Tipo de modelo: {{modelType}}. Níveis de risco: MENOR (abaixo de {{lowerPct}}%), MODERADO ({{lowerPct}}%-{{moderatePct}}%), MAIOR (acima de {{moderatePct}}%)."
+      "formula": "Tipo de modelo: {{modelType}}. Seus fatores de risco combinados são agrupados em três níveis — MENOR, MODERADO e MAIOR — refletindo seu risco relativo, não uma pontuação numérica exata."
     },
     "riskTiers": {
       "title": "Níveis de Risco e Recomendação de PSA",
-      "body": "Seu resultado é colocado em um dos três níveis (MENOR, MODERADO, MAIOR). Além disso, o modelo pode indicar se o teste de PSA é 'Recomendado' ou 'Não Recomendado' com base em um limiar (ex. pontuação acima de ~{{recommendPct}}% pode sugerir considerar discussão de PSA com um médico). Isso é apenas para uso educacional e deve ser revisado com seu médico."
+      "body": "Seu resultado é colocado em um dos três níveis (MENOR, MODERADO, MAIOR). Além disso, o modelo pode indicar se o teste de PSA é \"Recomendado\" ou \"Não Recomendado\" com base no seu perfil de risco combinado. Isso é apenas para uso educacional e deve ser revisado com seu médico."
     },
     "limitations": {
       "title": "Limitações",
