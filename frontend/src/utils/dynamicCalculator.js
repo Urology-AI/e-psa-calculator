@@ -1,8 +1,25 @@
 /**
  * Dynamic ePSA Calculator
- * Reads configuration from calculatorConfig.js
- * Allows real-time model adjustments without code changes
- * Current ePSA calculator is the default configuration
+ *
+ * Local wrapper around @epsa/engine — used by:
+ *  - App.gh-pages.jsx, the static GitHub Pages build, which has no Firebase
+ *    backend and so cannot call the shared calculatePsaRecommendation Cloud
+ *    Function; it computes locally against the default config.
+ *  - QuickEntry.jsx's client-side validateInputs() call, for instant form
+ *    validation before submitting to the Cloud Function.
+ *
+ * The main app (App.jsx) computes scores via services/psaEngineService.js
+ * (the Cloud Function) instead of calling calculateDynamicEPsa directly —
+ * see that file's computeSessionResults().
+ *
+ * Previously supported a live-published config (Firestore
+ * calculatorConfig/published + localStorage override) and an A/B-testing
+ * variant system (getModelVariant/getVariantConfig), for adjusting model
+ * weights without a code deploy. Removed: nothing in the codebase ever
+ * wrote to either the Firestore doc or the localStorage key, so the whole
+ * subsystem was dead weight — and now that scoring runs server-side via
+ * the Cloud Function, a client-side config override couldn't have taken
+ * effect there anyway. Always uses DEFAULT_CALCULATOR_CONFIG.
  */
 
 import { DEFAULT_CALCULATOR_CONFIG } from '@epsa/engine';
@@ -11,9 +28,6 @@ import {
   calculateDynamicEPsaPost as calculateDynamicEPsaPostEngine,
   validateInputs,
 } from '@epsa/engine';
-
-export const CALCULATOR_CONFIG_STORAGE_KEY = 'epsa_calculator_config';
-export const CALCULATOR_CONFIG_DOC_PATH = { collection: 'calculatorConfig', doc: 'published' };
 
 // Shared validation + math engine (single source of truth)
 export { validateInputs };
@@ -30,148 +44,10 @@ export const calculateDynamicEPsaPost = (preResult, postData, customConfig = nul
   return calculateDynamicEPsaPostEngine(preResult, postData, config);
 };
 
-// Get current config (from localStorage or default)
-export const getCalculatorConfig = () => {
-  try {
-    const stored = localStorage.getItem(CALCULATOR_CONFIG_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error('Error loading calculator config:', error);
-  }
-  return DEFAULT_CALCULATOR_CONFIG;
-};
+export const getCalculatorConfig = () => DEFAULT_CALCULATOR_CONFIG;
 
-// Refresh config from Firestore published doc (if Firebase is configured)
-// Returns the loaded config, or null if refresh failed.
-export const refreshCalculatorConfig = async () => {
-  try {
-    const firebaseModule = await import('../config/firebase');
-    const firestoreDb = firebaseModule.db;
-
-    if (!firestoreDb) {
-      return null;
-    }
-
-    const { doc, getDoc } = await import('firebase/firestore');
-    const ref = doc(firestoreDb, CALCULATOR_CONFIG_DOC_PATH.collection, CALCULATOR_CONFIG_DOC_PATH.doc);
-    const snap = await getDoc(ref);
-
-    if (!snap.exists()) {
-      return null;
-    }
-
-    const data = snap.data();
-    const publishedConfig = data?.config;
-    if (!publishedConfig) {
-      return null;
-    }
-
-    localStorage.setItem(CALCULATOR_CONFIG_STORAGE_KEY, JSON.stringify(publishedConfig));
-    return publishedConfig;
-  } catch (error) {
-    console.warn('Failed to refresh calculator config from Firestore:', error);
-    return null;
-  }
-};
-
-// Save config to localStorage (and Firebase in production)
-export const saveCalculatorConfig = async (config) => {
-  try {
-    localStorage.setItem(CALCULATOR_CONFIG_STORAGE_KEY, JSON.stringify(config));
-    
-    // Store version history
-    const versions = JSON.parse(localStorage.getItem('epsa_config_versions') || '[]');
-    versions.push({
-      version: config.version,
-      timestamp: new Date().toISOString(),
-      config: JSON.parse(JSON.stringify(config))
-    });
-    localStorage.setItem('epsa_config_versions', JSON.stringify(versions.slice(-20))); // Keep last 20
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving config:', error);
-    return false;
-  }
-};
-
-// Get version history for rollback
-export const getConfigVersions = () => {
-  try {
-    return JSON.parse(localStorage.getItem('epsa_config_versions') || '[]');
-  } catch (error) {
-    return [];
-  }
-};
-
-// Rollback to specific version
-export const rollbackToVersion = (versionTimestamp) => {
-  const versions = getConfigVersions();
-  const targetVersion = versions.find(v => v.timestamp === versionTimestamp);
-  
-  if (targetVersion) {
-    saveCalculatorConfig(targetVersion.config);
-    return targetVersion.config;
-  }
-  return null;
-};
-
-// A/B Testing: Get model variant for user
-export const getModelVariant = (userId, availableVariants = ['control', 'variant_a', 'variant_b']) => {
-  // Deterministic assignment based on userId
-  const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const index = hash % availableVariants.length;
-  return availableVariants[index];
-};
-
-// Get config for A/B variant
-export const getVariantConfig = (variant) => {
-  const baseConfig = getCalculatorConfig();
-  
-  switch (variant) {
-    case 'variant_a':
-      // More aggressive detection
-      return {
-        ...baseConfig,
-        version: `${baseConfig.version}-aggressive`,
-        part1: {
-          ...baseConfig.part1,
-          riskCutoffs: {
-            ...baseConfig.part1.riskCutoffs,
-            lower: { ...baseConfig.part1.riskCutoffs.lower, threshold: 0.05 },
-            moderate: { ...baseConfig.part1.riskCutoffs.moderate, threshold: 0.15 }
-          }
-        }
-      };
-    case 'variant_b':
-      // More conservative
-      return {
-        ...baseConfig,
-        version: `${baseConfig.version}-conservative`,
-        part1: {
-          ...baseConfig.part1,
-          riskCutoffs: {
-            ...baseConfig.part1.riskCutoffs,
-            lower: { ...baseConfig.part1.riskCutoffs.lower, threshold: 0.12 },
-            moderate: { ...baseConfig.part1.riskCutoffs.moderate, threshold: 0.25 }
-          }
-        }
-      };
-    default:
-      return baseConfig;
-  }
-};
-
-// Export functions
 export default {
   getCalculatorConfig,
-  saveCalculatorConfig,
-  getConfigVersions,
-  rollbackToVersion,
   calculateDynamicEPsa,
   calculateDynamicEPsaPost,
-  getModelVariant,
-  getVariantConfig
 };

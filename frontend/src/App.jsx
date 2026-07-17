@@ -36,7 +36,7 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
-import { getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { getCalculatorConfig } from './utils/dynamicCalculator';
 import { computeSessionResults } from './services/psaEngineService';
 import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
@@ -124,17 +124,11 @@ function App() {
   
   // urlEmail URL param removed — PHI must not appear in URLs
   
-  // Calculator configuration
-  const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
-
-  useEffect(() => {
-    (async () => {
-      const refreshed = await refreshCalculatorConfig();
-      if (refreshed) {
-        setCalculatorConfig(refreshed);
-      }
-    })();
-  }, []);
+  // Calculator configuration — always the default; scoring itself runs
+  // server-side via the Cloud Function (see services/psaEngineService.js).
+  // This is only used for client-side validateInputs() and the Model
+  // Documentation page's display config.
+  const calculatorConfig = getCalculatorConfig();
 
   // Remote feature flags (published by the admin dashboard) — e.g. whether the
   // Biomarkers step is enabled in the post-PSA journey. Off by default.
