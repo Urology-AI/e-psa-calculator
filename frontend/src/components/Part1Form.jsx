@@ -1133,6 +1133,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-number">12b</div>
           <div className="question-text">Do you have a family history of breast, ovarian, or pancreatic cancer?</div>
           <NonGuidelineBadge />
+          <InfoIcon {...fieldReferences.familyHistoryCancerTypes} />
         </div>
         <div className="question-body">
           <QuestionSubtext>
@@ -1153,6 +1154,13 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
                 {opt.label}
               </button>
             ))}
+            <button
+              className={`option-btn ${localData.familyHistoryCancerTypes.length === 0 ? 'selected' : ''}`}
+              onClick={() => setLocalData(prev => ({ ...prev, familyHistoryCancerTypes: [], skippedFields: clearSkip(prev, 'familyHistoryCancerTypes') }))}
+              aria-pressed={localData.familyHistoryCancerTypes.length === 0}
+            >
+              {t('part1.options.no')}
+            </button>
           </div>
           <SkipLink field="familyHistoryCancerTypes" />
         </div>
@@ -1164,6 +1172,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-number">12c</div>
           <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
           <NonGuidelineBadge />
+          <InfoIcon {...fieldReferences.ashkenaziJewish} />
         </div>
         <div className="question-body">
           <QuestionSubtext>

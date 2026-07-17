@@ -95,9 +95,11 @@ const IMPACT_TO_REF = {
   'Inflammation history': 'inflammationHistory',
   'Genetic mutation': 'brcaStatus',
   'Expanded germline panel': 'brcaStatus',
-  // 'Family history (breast/ovarian/pancreatic)' intentionally has no popover mapping —
-  // the 'familyHistory' reference entry cites direct prostate-FH sources (Carter 1993, etc.),
-  // which would misattribute the HBOC/Lynch-syndrome evidence this factor is actually based on.
+  // Distinct reference entries (not 'familyHistory', which cites direct prostate-FH
+  // sources like Carter 1993) — these two cite the HBOC/Lynch-syndrome/NCCN LoPC
+  // evidence they're actually based on.
+  'Family history (breast/ovarian/pancreatic)': 'familyHistoryCancerTypes',
+  'Ashkenazi Jewish ancestry': 'ashkenaziJewish',
   'BMI': 'heightWeight',
   'Exercise': 'exercise',
   'Smoking': 'smoking',
