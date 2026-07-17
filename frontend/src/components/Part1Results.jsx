@@ -11,7 +11,6 @@ import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import { PSA_BANNER_CONFIG_DATA } from '@epsa/engine';
 import PrintableForm from './PrintableForm';
-import ModelDocumentation from './ModelDocumentation';
 import RiskGauge from './RiskGauge';
 import { AUAGuidelineCriteria } from './AUAFlowchart';
 import { Part1GuidelineJourney } from './GuidelineJourney';

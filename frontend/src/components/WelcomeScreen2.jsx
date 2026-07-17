@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import './WelcomeScreen2.css';
-import RiskAssessmentDocs from './RiskAssessmentDocs';
 import { EyeIcon, EyeOffIcon, FlaskConicalIcon, HospitalIcon, DnaIcon } from 'lucide-react';
 import { DEFAULT_CALCULATOR_CONFIG } from '@epsa/engine';
 import { useTranslation } from 'react-i18next';
 
 const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG }) => {
   const [showModelDetails, setShowModelDetails] = useState(false);
-  const [showDocs, setShowDocs] = useState(false);
   const activeConfig = config || DEFAULT_CALCULATOR_CONFIG;
   const part2 = activeConfig.part2 || DEFAULT_CALCULATOR_CONFIG.part2;
   const riskCategories = part2.riskCategories || [];
@@ -24,8 +22,6 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
 
   return (
     <div className="welcome-screen-2">
-      {showDocs && <RiskAssessmentDocs config={activeConfig} onClose={() => setShowDocs(false)} />}
-      
       <div className="welcome2-container">
         <div className="welcome2-header">
           <h1>{t('welcome2.stage2Title')}</h1>
@@ -168,12 +164,6 @@ const WelcomeScreen2 = ({ onBegin, preResult, config = DEFAULT_CALCULATOR_CONFIG
       <footer className="welcome2-footer">
         <div className="footer-content">
           <p className="footer-text">{t('welcome2.footerText')}</p>
-          <button 
-            className="btn-model-docs" 
-            onClick={() => setShowDocs(true)}
-          >
-            {t('welcome2.viewDocsButton')}
-          </button>
         </div>
       </footer>
     </div>
