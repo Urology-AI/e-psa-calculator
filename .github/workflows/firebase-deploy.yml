@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_deploy_functions:
+        description: 'Deploy functions even if this run detects no backend/ changes (e.g. to deploy a fix that already merged before this workflow existed)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,6 +18,82 @@ permissions:
   pull-requests: write
 
 jobs:
+  deploy-functions:
+    # Cloud Functions only — Hosting is deployed by build-and-deploy below.
+    # Runs on push to main, or on-demand via workflow_dispatch (Actions tab →
+    # this workflow → Run workflow). Skipped for PRs (functions have no
+    # preview-channel equivalent to Hosting's, and deploying on every PR push
+    # would be redundant with what merges to main).
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Skip the deploy (rather than fail it) when this push didn't touch backend/
+    # or firebase.json — Cloud Functions deploys are slow and this workflow fires
+    # on every push to main, most of which are frontend-only. Defaults to
+    # deploying (safer than silently skipping) if the before-SHA is unusable —
+    # e.g. all-zeros on a branch's first push, a history-rewriting push, or a
+    # manual workflow_dispatch run (no before/after push SHAs at all) — the
+    # force_deploy_functions input makes the manual-dispatch case explicit too.
+    - name: Check whether backend changed
+      id: changed
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_deploy_functions }}" = "true" ]; then
+          echo "backend_changed=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        BEFORE_SHA="${{ github.event.before }}"
+        if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE_SHA" 2>/dev/null; then
+          echo "backend_changed=true" >> "$GITHUB_OUTPUT"
+        elif git diff --quiet "$BEFORE_SHA" "${{ github.sha }}" -- backend firebase.json; then
+          echo "backend_changed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "backend_changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup Node.js
+      if: steps.changed.outputs.backend_changed == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: npm
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Install dependencies
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: npm ci
+      working-directory: backend
+
+    - name: Build (tsc + vendor copy)
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: npm run build
+      working-directory: backend
+
+    # firebase-tools reads GOOGLE_APPLICATION_CREDENTIALS as a file path, not a
+    # JSON blob directly, so the secret has to be written to disk first. Uses
+    # runner temp (not the repo checkout) and is removed in the following step
+    # regardless of deploy outcome.
+    - name: Write service account credentials
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-sa.json"
+      env:
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}
+
+    - name: Deploy functions
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: npx firebase-tools deploy --only functions --project epsa-30d0b --non-interactive
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+
+    - name: Remove service account credentials
+      if: always() && steps.changed.outputs.backend_changed == 'true'
+      run: rm -f "$RUNNER_TEMP/firebase-sa.json"
+
   build-and-deploy:
     runs-on: ubuntu-latest
 
