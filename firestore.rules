@@ -116,20 +116,6 @@ service cloud.firestore {
     }
 
     // ============================================
-    // CALCULATOR CONFIG (Public Read, Admin Write)
-    // ============================================
-    match /calculatorConfig/{docId} {
-      allow get: if docId == 'published';
-      allow create, update, delete: if isAuthenticated() && isAuthorizedAdmin();
-    }
-
-    match /calculatorConfigVersions/{versionId} {
-      allow read: if isAuthenticated() && isAuthorizedAdmin();
-      allow create: if isAuthenticated() && isAuthorizedAdmin();
-      allow update, delete: if false;
-    }
-
-    // ============================================
     // APP FEATURE FLAGS (Public Read, Admin Write)
     // Published by the epsa-admin-dashboard (Mount Sinai MSAL admins write via
     // a Pages Function using a service account, which bypasses these rules —
