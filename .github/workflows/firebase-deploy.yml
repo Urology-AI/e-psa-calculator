@@ -84,9 +84,16 @@ jobs:
       env:
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}
 
+    # Scoped to calculatePsaRecommendation only, not the whole functions/ codebase
+    # (~30 functions including sendAdminOTP, submitRedcap, session management, etc).
+    # Deploying everything would need the CI service account granted
+    # secretmanager.secrets.get across every secret those other functions use
+    # (OTP email credentials among them) — broader access than a CI bot deploying
+    # one stateless calculator function should have. Widen this deliberately, with
+    # its own IAM review, if/when CI needs to deploy the rest of backend/.
     - name: Deploy functions
       if: steps.changed.outputs.backend_changed == 'true'
-      run: npx firebase-tools deploy --only functions --project epsa-30d0b --non-interactive
+      run: npx firebase-tools deploy --only functions:calculatePsaRecommendation --project epsa-30d0b --non-interactive
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
 
