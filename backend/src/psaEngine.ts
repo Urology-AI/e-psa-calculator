@@ -22,13 +22,44 @@ const PrePsaInputSchema = z.object({
   weightUnit: z.enum(['lbs', 'kg']).optional(),
   weightKg: z.union([z.number().positive(), z.string(), z.null()]).optional(),
   familyHistory: z.union([z.number().int().min(0).max(3), z.null()]).transform(val => val === null ? 0 : val),
-  brcaStatus: z.enum(['none', 'brca1', 'brca2', 'both', 'unknown']).optional().transform(val => val || 'unknown'),
+  // Must match the vocabulary the engine's brcaPositive check actually tests for
+  // ('yes'/'lynch'/'other_elevated'/'other_unknown' => positive), NOT an invented
+  // brca1/brca2/both scheme — those values silently fail to trigger the +16 anchor
+  // since the engine only string-compares against this exact set.
+  brcaStatus: z.enum(['yes', 'lynch', 'other_elevated', 'other_unknown', 'no', 'unknown']).optional().transform(val => val || 'unknown'),
   ipss: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 0 : val)),
   shim: z.array(z.union([z.number().int().min(1).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
   exercise: z.union([z.number().int().min(0).max(2), z.null()]).transform(val => val === null ? 0 : val),
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
-  chemicalExposure: z.union([z.number().int().min(0).max(1), z.null()]).optional(),
+  // Must match the string vocabulary the engine's _ceStrong/_ceWeak checks test
+  // for directly — a plain 0/1 number (the prior shape) matches none of those
+  // string comparisons, so chemical-exposure points silently never applied.
+  chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown']).optional(),
   dietPattern: z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']).optional().transform(val => val || ''),
+  // Count (0-2+) of diagnosed cardiometabolic conditions (hypertension, hyperlipidemia,
+  // CAD, diabetes) — the engine's validateInputs() requires this OR all four individual
+  // boolean fields; without either, calculateDynamicEPsa() silently returns null and every
+  // caller gets a bogus zero/default-tier result instead of a real score or an error.
+  comorbidityScore: z.union([z.number().int().min(0).max(2), z.string(), z.null()]).optional().transform(val => {
+    if (val === null || val === undefined || val === '') return undefined;
+    const n = typeof val === 'string' ? parseInt(val, 10) : val;
+    return Number.isFinite(n) ? Math.min(2, Math.max(0, n)) : undefined;
+  }),
+  // Expanded germline panel (HOXB13/ATM/CHEK2/PALB2/Lynch-MMR) — additive to brcaStatus,
+  // not double-counted by the engine if both fire. Must match epsaEngine.js's PANEL_GENES
+  // vocabulary (case-insensitive): hoxb13, atm, chek2, palb2, lynch, mlh1, msh2, msh6, pms2.
+  germlineMutations: z.array(z.string()).optional(),
+  // Family history of breast/ovarian/pancreatic cancer — hereditary-syndrome proxy,
+  // distinct from familyHistory (which is prostate-specific).
+  familyHistoryCancerTypes: z.array(z.enum(['breast', 'ovarian', 'pancreatic'])).optional(),
+  // Ashkenazi Jewish ancestry — BRCA1/2 carrier-probability marker.
+  ashkenaziJewish: z.union([z.boolean(), z.enum(['yes', 'no'])]).optional().transform(val => val === 'yes' || val === true),
+  // Echoed back on the response (calculateDynamicEPsa defaults to 'pre_psa' either way) —
+  // not schema-critical, but omitting it would silently strip it for callers that pass it.
+  pathwayMode: z.string().optional(),
+  // Cosmetic only — drives itemImpacts[].wasSkipped ("using a neutral default" badges in the
+  // UI). Never affects scoring. Omitting it just means those badges won't render.
+  skippedFields: z.array(z.string()).optional(),
 });
 
 const PostPsaInputSchema = z.object({
