@@ -18,6 +18,7 @@ import { Part1GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, PART1_LOADING_STEPS } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
+import { pointsToSeverity, SEVERITY_LABELS } from '../utils/severity';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import {
@@ -696,12 +697,6 @@ const Part1Results = ({
     empiricalRateEvents = null,
   } = result;
 
-  const rawImpactTotal = Number(result?.calculationDetails?.rawScore);
-  const impactMaxScore = Number(result?.calculationDetails?.maxScore);
-  const impactTotal = itemImpacts.reduce((sum, i) => sum + (Number(i?.points) || 0), 0);
-  const impactTotalDisplay = Number.isFinite(rawImpactTotal) ? rawImpactTotal : impactTotal;
-  const impactPercent = Number.isFinite(impactMaxScore) && impactMaxScore > 0
-    ? Math.round((impactTotalDisplay / impactMaxScore) * 100) : null;
   const rawScore = Number(result?.calculationDetails?.rawScore);
   const maxScore = Number(result?.calculationDetails?.maxScore);
 
@@ -1009,7 +1004,7 @@ const Part1Results = ({
                 {t('part1Results.factorBadgeExplanation.before')} <FactorSourceBadge itemName="Age" /> {t('part1Results.factorBadgeExplanation.middle')} <FactorSourceBadge itemName="Exercise" /> {t('part1Results.factorBadgeExplanation.after')}
               </p>
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid #2563eb', borderRadius: '6px', padding: '8px 12px', marginBottom: '10px', fontSize: '11.5px', color: '#374151', lineHeight: 1.6 }}>
-                <strong style={{ color: '#1e40af' }}>How point values were chosen:</strong> Each factor was evaluated against our internal dataset (N=100, AUC=0.56) and published literature. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click <em>"Why this score?"</em> under any row to see the data coefficient, literature OR, and the decision rationale.
+                <strong style={{ color: '#1e40af' }}>How factors were evaluated:</strong> Each factor was evaluated against our internal dataset (N=100, AUC=0.56) and published literature. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click <em>"Why this score?"</em> under any row to see the data coefficient, literature OR, and the decision rationale.
               </div>
               {(() => {
                 const sortedByImpact = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
@@ -1020,10 +1015,11 @@ const Part1Results = ({
                   <>
                     <div className="impact-table-wrap">
                       <table className="impact-table" aria-label="Item impact breakdown table">
-                        <thead><tr><th>{t('part1Results.tableHeaderItem')}</th><th>{t('part1Results.tableHeaderInput')}</th><th>{t('part1Results.tableHeaderImpact')}</th><th>{t('part1Results.tableHeaderPoints')}</th></tr></thead>
+                        <thead><tr><th>{t('part1Results.tableHeaderItem')}</th><th>{t('part1Results.tableHeaderInput')}</th><th>{t('part1Results.tableHeaderImpact')}</th></tr></thead>
                         <tbody>
                           {visibleImpacts.map((impact) => {
                             const skipped = isImpactSkipped(impact.item);
+                            const severity = pointsToSeverity(Number(impact.points));
                             return (
                               <React.Fragment key={impact.item}>
                                 <tr style={skipped ? { opacity: 0.7 } : undefined}>
@@ -1036,23 +1032,16 @@ const Part1Results = ({
                                     ) : impact.value}
                                   </td>
                                   <td>
-                                    <div className="impact-bar-track" aria-hidden="true">
-                                      <div className={`impact-bar-fill ${impact.points > 0 ? 'impact-bar-fill--active' : 'impact-bar-fill--zero'}`} style={{ width: `${Math.min(100, ((Number(impact.points) || 0) / 20) * 100)}%` }} />
-                                    </div>
+                                    <span className={severity ? `impact-severity-badge impact-severity-badge--${severity}` : 'impact-severity-badge impact-severity-badge--none'}>
+                                      {severity ? SEVERITY_LABELS[severity] : t('part1Results.noImpact', 'No impact')}
+                                    </span>
                                   </td>
-                                  <td><span className={`impact-points-badge ${impact.points > 0 ? 'impact-points-badge--active' : 'impact-points-badge--zero'}`}>{impact.points > 0 ? `+${impact.points}` : '0'}</span></td>
                                 </tr>
                                 <RationaleRow rationale={impact.rationale} />
                               </React.Fragment>
                             );
                           })}
                         </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colSpan={3}>{t('part1Results.totalScoreContribution')}</td>
-                            <td><span className="impact-total-badge impact-total-badge--counting">{animImpactScore}{Number.isFinite(impactMaxScore) ? ` / ${impactMaxScore}` : ''}{impactPercent != null ? ` (${impactPercent}%)` : ''}</span></td>
-                          </tr>
-                        </tfoot>
                       </table>
                     </div>
                     {itemImpacts.length > TOP_N && (
