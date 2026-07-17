@@ -54,6 +54,12 @@ const PrePsaInputSchema = z.object({
   familyHistoryCancerTypes: z.array(z.enum(['breast', 'ovarian', 'pancreatic'])).optional(),
   // Ashkenazi Jewish ancestry — BRCA1/2 carrier-probability marker.
   ashkenaziJewish: z.union([z.boolean(), z.enum(['yes', 'no'])]).optional().transform(val => val === 'yes' || val === true),
+  // Echoed back on the response (calculateDynamicEPsa defaults to 'pre_psa' either way) —
+  // not schema-critical, but omitting it would silently strip it for callers that pass it.
+  pathwayMode: z.string().optional(),
+  // Cosmetic only — drives itemImpacts[].wasSkipped ("using a neutral default" badges in the
+  // UI). Never affects scoring. Omitting it just means those badges won't render.
+  skippedFields: z.array(z.string()).optional(),
 });
 
 const PostPsaInputSchema = z.object({
