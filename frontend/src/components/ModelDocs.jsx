@@ -17,9 +17,11 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+  // Exact tier-boundary/recommend-threshold percentages are intentionally not
+  // surfaced here — see modelDocs.scoring.formula / modelDocs.riskTiers.body,
+  // which now describe the tiers qualitatively instead of interpolating the
+  // real thresholds from config into user-facing text.
   const part1 = config?.part1 || DEFAULT_CALCULATOR_CONFIG.part1;
-  const riskCutoffs = part1?.riskCutoffs || { lower: { threshold: 0.23 }, moderate: { threshold: 0.39 }, higher: { threshold: 1.0 } };
-  const recommendThreshold = part1?.recommendThreshold ?? 0.09;
 
   return (
     <>
@@ -65,8 +67,6 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
               <p className="formula-note">
                 {t('modelDocs.scoring.formula', {
                   modelType: part1?.modelType || 'binned_v1',
-                  lowerPct: Math.round((riskCutoffs?.lower?.threshold ?? 0.23) * 100),
-                  moderatePct: Math.round((riskCutoffs?.moderate?.threshold ?? 0.39) * 100),
                 })}
               </p>
             </section>
@@ -74,9 +74,7 @@ const ModelDocs = ({ onClose, config = DEFAULT_CALCULATOR_CONFIG }) => {
             <section className="docs-section">
               <h3>{t('modelDocs.riskTiers.title')}</h3>
               <p>
-                {t('modelDocs.riskTiers.body', {
-                  recommendPct: Math.round(recommendThreshold * 100),
-                })}
+                {t('modelDocs.riskTiers.body')}
               </p>
             </section>
 

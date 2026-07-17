@@ -1357,11 +1357,11 @@
     "scoring": {
       "title": "How the Score Is Calculated",
       "body": "The ePSA model uses a point-based (binned) approach. Your answers are converted into risk factors (e.g. age 50-59, 60-69, 70+; BMI 25-29.9 or >=30; IPSS severity; exercise; Black race; family history). These are combined into a single score, normalized to a 0-100% scale. A +/-5% range is shown to avoid over-interpreting small differences.",
-      "formula": "Model type: {{modelType}}. Risk tiers: LOWER (below {{lowerPct}}%), MODERATE ({{lowerPct}}%-{{moderatePct}}%), HIGHER (above {{moderatePct}}%)."
+      "formula": "Model type: {{modelType}}. Your combined risk factors are grouped into three tiers — LOWER, MODERATE, and HIGHER — reflecting your relative risk, not an exact numeric score."
     },
     "riskTiers": {
       "title": "Risk Tiers & PSA Recommendation",
-      "body": "Your result is placed into one of three tiers (LOWER, MODERATE, HIGHER). In addition, the model may indicate whether PSA testing is \"Recommended\" or \"Not Recommended\" based on a threshold (e.g. score above ~{{recommendPct}}% may suggest considering PSA discussion with a clinician). This is for educational use only and should be reviewed with your doctor."
+      "body": "Your result is placed into one of three tiers (LOWER, MODERATE, HIGHER). In addition, the model may indicate whether PSA testing is \"Recommended\" or \"Not Recommended\" based on your combined risk profile. This is for educational use only and should be reviewed with your doctor."
     },
     "limitations": {
       "title": "Limitations",

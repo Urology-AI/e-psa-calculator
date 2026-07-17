@@ -1347,11 +1347,11 @@
     "scoring": {
       "title": "Comment le score est calculé",
       "body": "Le modèle ePSA utilise une approche par points (binned). Vos réponses sont converties en facteurs de risque (ex. âge 50-59, 60-69, 70+ ; IMC 25-29.9 ou >=30 ; sévérité IPSS ; exercice ; race noire ; antécédents familiaux). Ceux-ci sont combinés en un seul score, normalisé sur une échelle de 0 à 100%. Une plage de +/-5% est affichée pour éviter de sur-interpréter de petites différences.",
-      "formula": "Type de modèle : {{modelType}}. Niveaux de risque : INFÉRIEUR (en dessous de {{lowerPct}}%), MODÉRÉ ({{lowerPct}}%-{{moderatePct}}%), SUPÉRIEUR (au-dessus de {{moderatePct}}%)."
+      "formula": "Type de modèle : {{modelType}}. Vos facteurs de risque combinés sont regroupés en trois niveaux — INFÉRIEUR, MODÉRÉ et SUPÉRIEUR — reflétant votre risque relatif, et non un score numérique exact."
     },
     "riskTiers": {
       "title": "Niveaux de risque et recommandation PSA",
-      "body": "Votre résultat est placé dans l'un des trois niveaux (INFÉRIEUR, MODÉRÉ, SUPÉRIEUR). De plus, le modèle peut indiquer si le test PSA est « Recommandé » ou « Non recommandé » sur la base d'un seuil (ex. score au-dessus d'environ {{recommendPct}}% peut suggérer d'envisager une discussion PSA avec un clinicien). Ceci est uniquement à des fins éducatives et doit être examiné avec votre médecin."
+      "body": "Votre résultat est placé dans l'un des trois niveaux (INFÉRIEUR, MODÉRÉ, SUPÉRIEUR). De plus, le modèle peut indiquer si le test PSA est « Recommandé » ou « Non recommandé » selon votre profil de risque combiné. Ceci est uniquement à des fins éducatives et doit être examiné avec votre médecin."
     },
     "limitations": {
       "title": "Limites",

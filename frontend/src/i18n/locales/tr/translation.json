@@ -1347,11 +1347,11 @@
     "scoring": {
       "title": "Skor Nasıl Hesaplanır",
       "body": "ePSA modeli puana dayalı (gruplanmış) bir yaklaşım kullanır. Cevaplarınız risk faktörlerine dönüştürülür (ör. yaş 50-59, 60-69, 70+; BMI 25-29.9 veya >=30; IPSS şiddeti; egzersiz; Siyahi ırk; aile öyküsü). Bunlar tek bir skorda birleştirilir ve %0-100 ölçeğine normalleştirilir. Küçük farkların aşırı yorumlanmasını önlemek için +/-%5'lik bir aralık gösterilir.",
-      "formula": "Model türü: {{modelType}}. Risk düzeyleri: DAHA DÜŞÜK (%{{lowerPct}} altında), ORTA (%{{lowerPct}}-%{{moderatePct}}), DAHA YÜKSEK (%{{moderatePct}} üzerinde)."
+      "formula": "Model türü: {{modelType}}. Birleşik risk faktörleriniz üç düzeye ayrılır — DAHA DÜŞÜK, ORTA ve DAHA YÜKSEK — kesin bir sayısal puan değil, göreceli riskinizi yansıtır."
     },
     "riskTiers": {
       "title": "Risk Düzeyleri ve PSA Önerisi",
-      "body": "Sonucunuz üç düzeyden birine yerleştirilir (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK). Ayrıca model, bir eşiğe dayalı olarak PSA testinin \"Önerilen\" veya \"Önerilmeyen\" olduğunu belirtebilir (ör. yaklaşık %{{recommendPct}}'in üzerindeki bir skor, bir hekimle PSA görüşmesi yapmayı düşünmeyi önerebilir). Bu yalnızca eğitsel kullanım içindir ve doktorunuzla gözden geçirilmelidir."
+      "body": "Sonucunuz üç düzeyden birine yerleştirilir (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK). Ayrıca model, birleşik risk profilinize dayanarak PSA testinin \"Önerilen\" veya \"Önerilmeyen\" olduğunu belirtebilir. Bu yalnızca eğitsel kullanım içindir ve doktorunuzla gözden geçirilmelidir."
     },
     "limitations": {
       "title": "Sınırlamalar",
