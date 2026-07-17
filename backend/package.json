@@ -7,7 +7,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "tsc && cp -r src/vendor lib/vendor",
+    "build": "tsc && cp -r src/vendor lib/vendor && cp package.json package-lock.json lib/",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
