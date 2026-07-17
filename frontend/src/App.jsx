@@ -36,7 +36,8 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import ThemeSwitcher from './components/ThemeSwitcher.jsx';
 import TextScaleControl from './components/TextScaleControl.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
-import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig, getModelVariant, getVariantConfig, refreshCalculatorConfig } from './utils/dynamicCalculator';
+import { getCalculatorConfig } from './utils/dynamicCalculator';
+import { computeSessionResults } from './services/psaEngineService';
 import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
 import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
@@ -123,17 +124,11 @@ function App() {
   
   // urlEmail URL param removed — PHI must not appear in URLs
   
-  // Calculator configuration
-  const [calculatorConfig, setCalculatorConfig] = useState(() => getCalculatorConfig());
-
-  useEffect(() => {
-    (async () => {
-      const refreshed = await refreshCalculatorConfig();
-      if (refreshed) {
-        setCalculatorConfig(refreshed);
-      }
-    })();
-  }, []);
+  // Calculator configuration — always the default; scoring itself runs
+  // server-side via the Cloud Function (see services/psaEngineService.js).
+  // This is only used for client-side validateInputs() and the Model
+  // Documentation page's display config.
+  const calculatorConfig = getCalculatorConfig();
 
   // Remote feature flags (published by the admin dashboard) — e.g. whether the
   // Biomarkers step is enabled in the post-PSA journey. Off by default.
@@ -295,9 +290,9 @@ function App() {
                       setStage('post');
                       if (session.step1) {
                         setPreData(session.step1);
-                        // Recalculate pre result using new calculator
+                        // Recalculate pre result via the shared Cloud Function
                         try {
-                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                          const { preResult } = await computeSessionResults(session.step1);
                           setPreResult(preResult);
                         } catch (error) {
                           console.error('Error calculating preResult:', error);
@@ -308,8 +303,7 @@ function App() {
                         // Recalculate post result if we have pre result
                         if (session.step1) {
                           try {
-                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
-                            const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
+                            const { postResult } = await computeSessionResults(session.step1, session.step2);
                             setPostResult(postResult);
                           } catch (error) {
                             console.error('Error calculating postResult:', error);
@@ -324,8 +318,8 @@ function App() {
                       if (session.step1) {
                         // Calculate result FIRST before setting preData
                         try {
-                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
-                          
+                          const { preResult } = await computeSessionResults(session.step1);
+
                           // Set result FIRST, then data, then step
                           if (preResult) {
                             // Set result immediately
@@ -395,7 +389,7 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            const { preResult } = await computeSessionResults(session.step1);
                             setPreResult(preResult);
                           } catch (error) {
                             console.error('Error calculating preResult:', error);
@@ -405,8 +399,7 @@ function App() {
                           setPostData(session.step2);
                           if (session.step1) {
                             try {
-                              const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
-                              const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
+                              const { postResult } = await computeSessionResults(session.step1, session.step2);
                               setPostResult(postResult);
                             } catch (error) {
                               console.error('Error calculating postResult:', error);
@@ -419,7 +412,7 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            const { preResult } = await computeSessionResults(session.step1);
                             setPreResult(preResult);
                           } catch (error) {
                             console.error('Error calculating preResult:', error);
@@ -467,11 +460,10 @@ function App() {
                       if (session.step1) {
                         setPreData(session.step1);
                         try {
-                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                          const { preResult, postResult } = await computeSessionResults(session.step1, session.step2);
                           setPreResult(preResult);
                           if (session.step2) {
                             setPostData(session.step2);
-                            const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
                             setPostResult(postResult);
                           }
                         } catch (calcErr) {
@@ -483,7 +475,7 @@ function App() {
                       setStage('pre');
                       if (session.step1) {
                         try {
-                          const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                          const { preResult } = await computeSessionResults(session.step1);
                           if (preResult) {
                             setPreResult(preResult);
                             setPreData(session.step1);
@@ -512,11 +504,10 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            const { preResult, postResult } = await computeSessionResults(session.step1, session.step2);
                             setPreResult(preResult);
                             if (session.step2) {
                               setPostData(session.step2);
-                              const postResult = calculateDynamicEPsaPost(preResult, session.step2, calculatorConfig);
                               setPostResult(postResult);
                             }
                           } catch (calcErr) { console.error('Calc error:', calcErr); }
@@ -527,7 +518,7 @@ function App() {
                         if (session.step1) {
                           setPreData(session.step1);
                           try {
-                            const preResult = calculateDynamicEPsa(session.step1, calculatorConfig);
+                            const { preResult } = await computeSessionResults(session.step1);
                             setPreResult(preResult);
                           } catch (calcErr) { console.error('Calc error:', calcErr); }
                         }
@@ -1065,14 +1056,11 @@ function App() {
                 step1.shim = [...Array(5)].map((_, i) => (src[i] != null && src[i] !== '') ? src[i] : null);
               }
               setPreData(step1);
-              const recalcPre = calculateDynamicEPsa(step1, calculatorConfig);
+              const { preResult: recalcPre, postResult: recalcPost } = await computeSessionResults(step1, sessionData.step2);
               if (recalcPre) setPreResult(recalcPre);
               if (sessionData.step2) {
                 setPostData(sessionData.step2);
-                if (recalcPre) {
-                  const recalcPost = calculateDynamicEPsaPost(recalcPre, sessionData.step2, calculatorConfig);
-                  if (recalcPost) setPostResult(recalcPost);
-                }
+                if (recalcPre && recalcPost) setPostResult(recalcPost);
                 setStage('post');
                 setCurrentStep(4);
               } else {
@@ -1178,12 +1166,15 @@ function App() {
     }));
     
     // Calculate Part1 results; if validation fails (missing required fields), go to form so user can fill gaps
-    const part1Result = calculateDynamicEPsa(normalizedImport, calculatorConfig);
+    const hasPart2Import = targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0;
+    const { preResult: part1Result, postResult: part2Result } = await computeSessionResults(
+      normalizedImport,
+      hasPart2Import ? importedData.part2Data : undefined
+    );
     setPreResult(part1Result || null);
-    
+
     // Calculate Part2 results if this is complete import and post data exists
-    if (targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0 && part1Result) {
-      const part2Result = calculateDynamicEPsaPost(part1Result, importedData.part2Data, calculatorConfig);
+    if (hasPart2Import && part1Result) {
       setPostResult(part2Result);
     }
     
@@ -1367,9 +1358,9 @@ function App() {
 
   const handlePart1Next = async () => {
     {
-      // Calculate Part 1 results using DYNAMIC calculator
+      // Calculate Part 1 results via the shared Cloud Function
       // SHIM is hardcoded to zeros — removed from the form per design change
-      const result = calculateDynamicEPsa({ ...preData, shim: [0, 0, 0, 0, 0], pathwayMode: pathwayMode || 'pre_psa' }, calculatorConfig);
+      const { preResult: result } = await computeSessionResults({ ...preData, shim: [0, 0, 0, 0, 0], pathwayMode: pathwayMode || 'pre_psa' });
 
       if (!result) {
         console.error('Calculation failed - missing required fields');
@@ -1458,7 +1449,9 @@ function App() {
       if (pathwayMode === 'post_psa' && !biomarkersEnabled) {
         // PSA-only pathway: skip biomarkers AND skip MRI entirely — compute
         // the PSA-only result directly and show the Part 2 results screen.
-        const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
+        // (Sends preData, not the already-computed preResult — the Cloud Function
+        // takes raw Part 1 form data and recomputes Part 1 + Part 2 together.)
+        const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
         setPostResult(interimResult);
         setShowPart2Interim(true);
         setCurrentStep(2);
@@ -1477,7 +1470,7 @@ function App() {
     } else if (currentStep === 2) {
       // Biomarkers entered — compute the Part 2 result (ePSA score from
       // PSA + baseline, no MRI yet) and show it before moving to Part 3 (MRI).
-      const interimResult = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: 'post_psa' }, calculatorConfig);
+      const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
       setPostResult(interimResult);
       setShowPart2Interim(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1492,12 +1485,12 @@ function App() {
       if (hasMriData && pathwayMode !== 'post_mri') setPathwayMode('post_mri');
       const inferredPathway = effectivePathway;
       if (!preResult) {
-        console.error('calculateDynamicEPsaPost called with null preResult — aborting');
+        console.error('Cannot compute Part 2 results with null preResult — aborting');
         setStage('pre');
         setCurrentStep(3);
         return;
       }
-      const result = calculateDynamicEPsaPost(preResult, { ...postData, pathwayMode: inferredPathway }, calculatorConfig);
+      const { postResult: result } = await computeSessionResults(preData, { ...postData, pathwayMode: inferredPathway });
 
       // Part 3 (MRI/PI-RADS present): the validated biopsy-prediction service is the
       // sole source of the biopsy risk estimate (log(PSA) + PSAD + PI-RADS,
