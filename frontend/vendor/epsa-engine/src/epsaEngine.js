@@ -914,7 +914,15 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
   // Routine PSA screening above age 70 is an individualized shared decision
   // based on overall health and life expectancy. Above 75 is handled separately
   // by the `aboveMaxScreeningAge` flag.
-  if (ageNum >= 70 && ageNum <= 75 && psaRecommendReason === null) {
+  // FIX (test-case audit, ePSA analysis.xlsx C06): individualized-SDM framing at 70-75
+  // takes precedence over score_threshold/age_guideline_50_69/family_history_override —
+  // those steps produce an assertive "recommended" framing that doesn't reflect the
+  // guideline's explicit shift to individualized SDM at this age. It still yields to
+  // high_risk_early_screening (Black ancestry / confirmed germline mutation remains a
+  // strong guideline anchor at any age). Previously this only applied when no earlier
+  // step had already claimed a reason, so family history or an elevated score would
+  // silently suppress the age-70+ SDM framing entirely.
+  if (ageNum >= 70 && ageNum <= 75 && psaRecommendReason !== 'high_risk_early_screening') {
     psaRecommendReason = 'older_shared_decision';
   }
 
@@ -1186,11 +1194,23 @@ export const calculateDynamicEPsa = (formData, customConfig = null) => {
     tierScoreRange,
 
     // 3-tier classification
+    // FIX (test-case audit, ePSA analysis.xlsx C16): the elevated tier's default label
+    // ("Strong Candidate for PSA Testing") previously applied whenever total rawScore
+    // reached 18, even when guideline-recognized factors alone (age, race, family
+    // history, germline mutation — see guidelineTrack above) wouldn't reach that
+    // threshold and non-guideline lifestyle/symptom factors (e.g. IPSS/SHIM) did the
+    // pushing. That reads as guideline urgency the case doesn't have — e.g. a 58yo with
+    // no guideline anchors but elevated IPSS/SHIM previously showed the same "Strong
+    // Candidate" label as a genuinely high-risk patient. Use guidelineTrack.rawScore
+    // against the same 18-point elevated threshold to distinguish the two.
     epsaTierIndex,
     epsaTierKey: epsaTierDef.key,
-    epsaTierLabel: (epsaTierIndex === 2 && isHighRiskFlagged)
-      ? 'Strong candidate for PSA testing'
-      : epsaTierDef.label,
+    epsaTierLabel: (epsaTierIndex === 2 && guidelineTrack.rawScore < 18)
+      ? 'Elevated ePSA Score — Non-Guideline Factors'
+      : (epsaTierIndex === 2 && isHighRiskFlagged)
+        ? 'Strong candidate for PSA testing'
+        : epsaTierDef.label,
+    tierDrivenByNonGuidelineFactors: epsaTierIndex === 2 && guidelineTrack.rawScore < 18,
     epsaTierScoreRange: epsaTierDef.scoreRange,
     epsaTierNormalizedRange: epsaTierDef.normalizedRange,
     epsaTierBoundaries: { lowMax: 10, intermediateMax: 17, maxScore: MAX_POINTS },
