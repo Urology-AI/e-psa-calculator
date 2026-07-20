@@ -111,14 +111,11 @@ export const calculatePsaRecommendation = functions.https.onCall(
     }
 
     try {
-      // Vendored copy of e-psa's own engine (kept in sync with
-      // frontend/vendor/epsa-engine/src) — NOT the @epsa/engine npm package,
-      // which has fallen behind e-psa's current logic (life-expectancy gate,
-      // expanded germline panel, guideline-track scoring, re-screening interval,
-      // and a highRiskAnchors bug fix). This backend copy is the single source
-      // of truth for iOS and any other non-web client; frontend/vendor is the
-      // source of truth for web. Update both together when the engine changes.
-      const { calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS } = await import('./vendor/epsa-engine/src/index.js');
+      // @epsa/engine is now the single source of truth (Urology-AI/epsa-engine),
+      // consumed as a real dependency by both frontend and backend — no more
+      // hand-synced vendored copies. This is the same logic used by e-psa web
+      // and the MSSM screening tool, and by iOS via this Cloud Function.
+      const { calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS } = await import('@epsa/engine');
 
       const part1 = calculateDynamicEPsa(input.prePsa);
       const guardrails = checkGuardrails(input.prePsa, 'pre_psa');
