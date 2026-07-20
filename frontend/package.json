@@ -18,7 +18,7 @@
     "deploy": "gh-pages -d ../docs"
   },
   "dependencies": {
-    "@epsa/engine": "file:./vendor/epsa-engine",
+    "@epsa/engine": "git+ssh://git@github.com/Urology-AI/epsa-engine.git#v0.1.1",
     "@libsql/client": "^0.17.3",
     "@radix-ui/react-progress": "^1.1.12",
     "@radix-ui/react-radio-group": "^1.4.3",
