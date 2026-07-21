@@ -7,7 +7,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "tsc && cp package.json package-lock.json lib/",
+    "build": "tsc && cp package.json package-lock.json lib/ && ([ -f .npmrc ] && cp .npmrc lib/ || true)",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
@@ -15,7 +15,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
-    "@epsa/engine": "git+ssh://git@github.com/Urology-AI/epsa-engine.git#v0.1.1",
+    "@urology-ai/epsa-engine": "^0.1.1",
     "@types/cors": "^2.8.19",
     "@types/nodemailer": "^8.0.0",
     "cors": "^2.8.6",

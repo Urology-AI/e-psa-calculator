@@ -14,7 +14,7 @@ const OTP_GMAIL_PASS = defineSecret('OTP_GMAIL_PASS');
 export { syncToRedcap, submitToRedcap } from './redcapSync';
 
 // Single source of truth for the pre-PSA and post-PSA/MRI recommendations,
-// shared by web, epsa-screening-tool (via @epsa/engine), and the iOS app
+// shared by web, epsa-screening-tool (via @urology-ai/epsa-engine), and the iOS app
 // (via this callable).
 export { calculatePsaRecommendation } from './psaEngine';
 
