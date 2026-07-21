@@ -34,7 +34,9 @@ const PrePsaInputSchema = z.object({
   // Must match the string vocabulary the engine's _ceStrong/_ceWeak checks test
   // for directly — a plain 0/1 number (the prior shape) matches none of those
   // string comparisons, so chemical-exposure points silently never applied.
-  chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown']).optional(),
+  // 'yes'/'no' are QuickEntry's simplified binary answer, scored by the engine the
+  // same as 'agent_orange'/'nine_eleven' (strong) and 'none' (no signal) respectively.
+  chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown', 'yes', 'no']).optional(),
   dietPattern: z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']).optional().transform(val => val || ''),
   // Count (0-2+) of diagnosed cardiometabolic conditions (hypertension, hyperlipidemia,
   // CAD, diabetes) — the engine's validateInputs() requires this OR all four individual
