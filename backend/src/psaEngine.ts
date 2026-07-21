@@ -109,7 +109,14 @@ export const calculatePsaRecommendation = functions.https.onCall(
     try {
       input = RequestSchema.parse(data);
     } catch (error) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid PSA input data', error);
+      // A raw ZodError doesn't reliably survive the callable-function JSON
+      // transport (Error subclasses drop non-enumerable fields), so callers
+      // saw only the top-level message with no way to tell which field
+      // failed. Send the flattened field/message pairs explicitly instead.
+      const issues = error instanceof z.ZodError
+        ? error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message }))
+        : [];
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid PSA input data', { issues });
     }
 
     try {
