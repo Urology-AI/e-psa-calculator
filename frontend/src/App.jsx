@@ -1171,15 +1171,30 @@ function App() {
       ...normalizedImport
     }));
     
-    // Calculate Part1 results; if validation fails (missing required fields), go to form so user can fill gaps.
+    // Calculate Part1 results; if validation fails (missing/invalid fields), go to form so user can fill gaps.
     // Always via the shared Cloud Function — computing a score doesn't store
     // anything, so this doesn't need to wait for/depend on the storage-mode
     // decision below (which governs whether a *session gets persisted*).
     const hasPart2Import = targetStage === 'post' && importedData.part2Data && Object.keys(importedData.part2Data).length > 0;
-    const { preResult: part1Result, postResult: part2Result } = await computeSessionResults(
-      normalizedImport,
-      hasPart2Import ? importedData.part2Data : undefined
-    );
+    let part1Result = null;
+    let part2Result = null;
+    try {
+      ({ preResult: part1Result, postResult: part2Result } = await computeSessionResults(
+        normalizedImport,
+        hasPart2Import ? importedData.part2Data : undefined
+      ));
+    } catch (error) {
+      console.error('Import calculation error:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+      });
+      setImportError(error?.details?.message || error?.message || 'Imported data failed validation. Please review and complete the form.');
+      setCurrentStep(1);
+      setPart1Step(0);
+      setStage('pre');
+      return;
+    }
     setPreResult(part1Result || null);
 
     // Calculate Part2 results if this is complete import and post data exists
