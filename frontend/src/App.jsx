@@ -1189,7 +1189,11 @@ function App() {
         message: error?.message,
         details: error?.details,
       });
-      setImportError(error?.details?.message || error?.message || 'Imported data failed validation. Please review and complete the form.');
+      const issues = error?.details?.issues;
+      const issuesSummary = Array.isArray(issues) && issues.length > 0
+        ? issues.map(issue => `${issue.path}: ${issue.message}`).join('; ')
+        : null;
+      setImportError(issuesSummary || error?.message || 'Imported data failed validation. Please review and complete the form.');
       setCurrentStep(1);
       setPart1Step(0);
       setStage('pre');
