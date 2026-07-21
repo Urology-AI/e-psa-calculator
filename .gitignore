@@ -3,6 +3,9 @@ node_modules/
 /.pnp
 .pnp.js
 
+# Private-registry auth token, written by CI right before build/deploy — never committed
+backend/.npmrc
+
 # Production builds
 /build
 /dist

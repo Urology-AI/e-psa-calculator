@@ -93,7 +93,7 @@ function auaThresholdForAge(age: number, thresholds: Record<string, { threshold:
  * calculatePsaRecommendation
  *
  * Callable by any authenticated client (web, iOS with Firebase anonymous auth).
- * Runs the exact same @epsa/engine logic used by e-psa web and
+ * Runs the exact same @urology-ai/epsa-engine logic used by e-psa web and
  * epsa-screening-tool — clients must never reimplement this decision locally.
  * Always computes Part 1 (pre-PSA); computes Part 2 (post-PSA/PI-RADS combined
  * tier) in the same response whenever `postPsa` is supplied, so both parts stay
@@ -120,11 +120,11 @@ export const calculatePsaRecommendation = functions.https.onCall(
     }
 
     try {
-      // @epsa/engine is now the single source of truth (Urology-AI/epsa-engine),
+      // @urology-ai/epsa-engine is now the single source of truth (Urology-AI/epsa-engine),
       // consumed as a real dependency by both frontend and backend — no more
       // hand-synced vendored copies. This is the same logic used by e-psa web
       // and the MSSM screening tool, and by iOS via this Cloud Function.
-      const { calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS } = await import('@epsa/engine');
+      const { calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS } = await import('@urology-ai/epsa-engine');
 
       const part1 = calculateDynamicEPsa(input.prePsa);
       const guardrails = checkGuardrails(input.prePsa, 'pre_psa');

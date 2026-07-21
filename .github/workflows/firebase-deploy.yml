@@ -64,15 +64,40 @@ jobs:
         cache: npm
         cache-dependency-path: backend/package-lock.json
 
+    # @urology-ai/epsa-engine is a private GitHub Packages registry dependency
+    # (not the git+ssh dependency the frontend job below still uses). This
+    # .npmrc has to travel into backend/lib/ (done by `npm run build`'s copy
+    # step) because Firebase's Cloud Functions deploy re-runs npm install on
+    # Google's own remote build infrastructure using only what got uploaded —
+    # local git/SSH auth from this runner never reaches that step, but a
+    # registry token baked into .npmrc does.
+    - name: Write .npmrc for private registry
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: |
+        echo "@urology-ai:registry=https://npm.pkg.github.com" > backend/.npmrc
+        echo "//npm.pkg.github.com/:_authToken=${EPSA_ENGINE_DEPLOY_KEY}" >> backend/.npmrc
+      env:
+        EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
+
+    # npm install, not npm ci: package-lock.json doesn't yet have an entry for
+    # @urology-ai/epsa-engine (no environment with registry read access was
+    # available to regenerate it when the dependency was switched from the
+    # git+ssh URL). Lock-file reproducibility doesn't protect anything here
+    # anyway — Google's Cloud Functions build reinstalls everything from
+    # scratch on its own infrastructure regardless of what this step produces.
     - name: Install dependencies
       if: steps.changed.outputs.backend_changed == 'true'
-      run: npm ci
+      run: npm install
       working-directory: backend
 
     - name: Build (tsc + vendor copy)
       if: steps.changed.outputs.backend_changed == 'true'
       run: npm run build
       working-directory: backend
+
+    - name: Remove local .npmrc
+      if: always() && steps.changed.outputs.backend_changed == 'true'
+      run: rm -f backend/.npmrc
 
     # firebase-tools reads GOOGLE_APPLICATION_CREDENTIALS as a file path, not a
     # JSON blob directly, so the secret has to be written to disk first. Uses
