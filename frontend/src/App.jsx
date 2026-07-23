@@ -12,10 +12,40 @@ import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
 import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
+import LegalHub from './components/legal/LegalHub.jsx';
+import LegalDocPage from './components/legal/LegalDocPage.jsx';
+import { webPrivacy, webTerms } from './components/legal/content/web.js';
+import { iosPrivacy, iosTerms } from './components/legal/content/ios.js';
+import { androidPrivacy, androidTerms } from './components/legal/content/android.js';
+
+const LEGAL_DOCS = {
+  '/legal/web/privacy': webPrivacy,
+  '/legal/web/terms': webTerms,
+  '/legal/ios/privacy': iosPrivacy,
+  '/legal/ios/terms': iosTerms,
+  '/legal/android/privacy': androidPrivacy,
+  '/legal/android/terms': androidTerms,
+};
+
+// Simple path-based rendering for /legal/** — this app has no client router,
+// and legal pages need to work as plain URLs independent of the auth flow.
+function LegalRoute({ pathname }) {
+  const doc = LEGAL_DOCS[pathname];
+  if (doc) {
+    return (
+      <LegalDocPage
+        title={doc.title}
+        updated={doc.updated}
+        sections={doc.sections}
+        backHref="/legal"
+        backLabel="Back to Legal"
+      />
+    );
+  }
+  return <LegalHub />;
+}
 // Lazy-loaded modals/overlays — only shown on demand
 const ModelDocs = React.lazy(() => import('./components/ModelDocs.jsx'));
-const PrivacyPolicyPopup = React.lazy(() => import('./components/PrivacyPolicyPopup.jsx'));
-const TermsOfServicePopup = React.lazy(() => import('./components/TermsOfServicePopup.jsx'));
 import { useTranslation } from 'react-i18next';
 // StepNavigation, StepForm, FormField - not used in new Part 1 flow, kept for Stage 2 (post)
 import Part1Form from './components/Part1Form.jsx';
@@ -82,8 +112,6 @@ function App() {
   const [consentData, setConsentData] = useState(null); // Used to track consent status (saved to localStorage and Firestore)
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
-  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showSaveToCloudConsent, setShowSaveToCloudConsent] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
@@ -101,6 +129,10 @@ function App() {
 
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
+
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/legal')) {
+    return <LegalRoute pathname={window.location.pathname} />;
+  }
 
   const hasCachedConsent = () => {
     try {
@@ -2334,12 +2366,6 @@ function App() {
           onClose={() => setShowModelDocs(false)}
         />
       )}
-      {showPrivacyPolicy && (
-        <PrivacyPolicyPopup onClose={() => setShowPrivacyPolicy(false)} />
-      )}
-      {showTermsOfService && (
-        <TermsOfServicePopup onClose={() => setShowTermsOfService(false)} />
-      )}
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
@@ -2358,14 +2384,18 @@ function App() {
             <BookIcon size={13} aria-hidden="true" />
             <span>{t('app.footer.modelDocs')}</span>
           </button>
-          <button className="btn-footer-link" onClick={() => setShowPrivacyPolicy(true)}>
+          <a className="btn-footer-link" href="/legal/web/privacy">
             <ShieldCheckIcon size={13} aria-hidden="true" />
             <span>{t('app.footer.privacyPolicy')}</span>
-          </button>
-          <button className="btn-footer-link" onClick={() => setShowTermsOfService(true)}>
+          </a>
+          <a className="btn-footer-link" href="/legal/web/terms">
             <FileTextIcon size={13} aria-hidden="true" />
             <span>{t('app.footer.termsOfService')}</span>
-          </button>
+          </a>
+          <a className="btn-footer-link" href="/legal">
+            <ShieldCheckIcon size={13} aria-hidden="true" />
+            <span>Legal</span>
+          </a>
           <button className="btn-footer-link" onClick={() => setShowCredits(true)}>
             <UsersIcon size={13} aria-hidden="true" />
             <span>Credits</span>
