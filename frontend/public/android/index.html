@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ePSA for Android — Data Safety &amp; Privacy Policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Roboto, -apple-system, "Segoe UI", sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.55; color: #1c1c1e; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { color: #f2f2f7; background: #000; } }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  h2 { font-size: 1.15rem; margin-top: 2.4em; }
+  .tag { display: inline-block; font-size: 0.8rem; font-weight: 600; color: #00578B; background: rgba(0,87,139,0.1); padding: 3px 10px; border-radius: 999px; margin-bottom: 18px; }
+  .overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; margin: 16px 0 24px; }
+  .overview div { border: 1px solid rgba(128,128,128,0.25); border-radius: 10px; padding: 12px; font-size: 0.85rem; }
+  .overview b { display: block; font-size: 0.95rem; margin-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 8px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(128,128,128,0.2); vertical-align: top; }
+  th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.7; }
+  .cat { font-weight: 600; margin-top: 1.6em; }
+  .none { opacity: 0.55; }
+  .pill { display: inline-block; font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .pill.no { background: rgba(39,174,96,0.12); color: #1e8449; }
+  .pill.yes { background: rgba(230,126,34,0.14); color: #b9600a; }
+  code { background: rgba(128,128,128,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+  .note { font-size: 0.85rem; opacity: 0.75; margin-top: 6px; }
+  a { color: #06ABEB; }
+</style>
+</head>
+<body>
+  <span class="tag">Android App</span>
+  <h1>ePSA — Data Safety</h1>
+  <p class="note">Mount Sinai Urology · Tewari Lab. Formatted to mirror Google Play's Data Safety section (<a href="https://support.google.com/googleplay/android-developer/topic/9877467">policy reference</a>). Educational use only — not a diagnostic tool.</p>
+
+  <div class="overview">
+    <div><b>Encrypted in transit</b>Yes — all network calls use HTTPS/TLS</div>
+    <div><b>You can request data deletion</b>Not applicable for most data — see below</div>
+    <div><b>Independent security review</b>No</div>
+    <div><b>Data sold to third parties</b>No</div>
+  </div>
+
+  <p>
+    <!-- TODO: replace # with the real Play Store listing URL once the internal/production
+         track is live, e.g. https://play.google.com/store/apps/details?id=com.epsa -->
+    <a href="#" style="display:inline-block">
+      <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="56">
+    </a>
+  </p>
+
+  <h2>Data collected &amp; shared, by category</h2>
+
+  <div class="cat">Health and fitness</div>
+  <table>
+    <tr><th>Data</th><th>Collected</th><th>Shared</th><th>Purpose</th><th>Optional?</th></tr>
+    <tr>
+      <td>Screening responses: age, race/ethnicity, family history, height/weight, urinary symptom score (IPSS), sexual health score (SHIM), lifestyle factors, and — if entered — PSA value, MRI/PI‑RADS result, prostate volume</td>
+      <td><span class="pill yes">Yes</span></td>
+      <td><span class="pill no">No</span> (processed, not shared onward)</td>
+      <td>App functionality</td>
+      <td>Age/race required to see a result; everything else optional</td>
+    </tr>
+  </table>
+  <p class="note">Sent to our backend (Google Cloud Functions via Firebase) for a single stateless calculation, then returned to your device. <strong>Not stored on our servers</strong> — there's no per-response record to delete.</p>
+
+  <div class="cat">Messages</div>
+  <table>
+    <tr><th>Data</th><th>Collected</th><th>Shared</th></tr>
+    <tr><td>Ask-tab chat questions</td><td class="none"><span class="pill no">No</span></td><td class="none">—</td></tr>
+  </table>
+  <p class="note">Chat is answered on-device (Gemini Nano via Google AICore, where the device supports it) or from a local offline knowledge base. No chat text is ever sent to a server.</p>
+
+  <div class="cat">App activity</div>
+  <table>
+    <tr><th>Data</th><th>Collected</th><th>Shared</th><th>Purpose</th></tr>
+    <tr>
+      <td>Anonymous Firebase-auth identifier (random ID, no name/email/phone attached)</td>
+      <td><span class="pill yes">Yes</span></td>
+      <td><span class="pill no">No</span></td>
+      <td>App functionality (authenticates the screening calculation call)</td>
+    </tr>
+  </table>
+
+  <div class="cat">Device or other IDs</div>
+  <table>
+    <tr><th>Data</th><th>Collected</th></tr>
+    <tr><td>Advertising ID</td><td class="none"><span class="pill no">No</span></td></tr>
+    <tr><td>Any other device identifier</td><td class="none"><span class="pill no">No</span></td></tr>
+  </table>
+
+  <div class="cat">Not collected</div>
+  <p>Location, contacts, photos/videos, audio, files/docs, calendar, web browsing history, financial info, personal identifiers beyond the anonymous ID above.</p>
+
+  <h2>Locally stored, never transmitted</h2>
+  <p>Selected journey stage and language preference are stored only on your device (Android SharedPreferences).</p>
+
+  <h2>Privacy Policy</h2>
+  <p>See the full privacy policy: <a href="/privacy">epsa-30d0b.web.app/privacy</a> <em>(placeholder — link once hosted)</em>.</p>
+
+  <p class="note">Last updated: <em>[DATE]</em>. <strong>Draft for review</strong> — have Mount Sinai's privacy/compliance team confirm before entering this into Play Console's Data Safety form, since this app touches PSA/MRI/urinary-symptom data (Play's "Health info" category).</p>
+</body>
+</html>

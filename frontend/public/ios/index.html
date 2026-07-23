@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ePSA for iOS — App Privacy Details</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.55; color: #1c1c1e; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { color: #f2f2f7; background: #000; } }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  h2 { font-size: 1.15rem; margin-top: 2.4em; }
+  .tag { display: inline-block; font-size: 0.8rem; font-weight: 600; color: #00578B; background: rgba(0,87,139,0.1); padding: 3px 10px; border-radius: 999px; margin-bottom: 18px; }
+  .banner { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; }
+  .banner div { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.25); border-radius: 10px; padding: 12px; font-size: 0.85rem; }
+  .banner b { display: block; font-size: 0.95rem; }
+  .group { margin-top: 2em; border: 1px solid rgba(128,128,128,0.25); border-radius: 12px; overflow: hidden; }
+  .group > .head { padding: 12px 16px; font-weight: 700; background: rgba(0,87,139,0.06); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 8px 16px; border-top: 1px solid rgba(128,128,128,0.15); vertical-align: top; }
+  th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.7; }
+  .pill { display: inline-block; font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .pill.no { background: rgba(39,174,96,0.12); color: #1e8449; }
+  .pill.yes { background: rgba(230,126,34,0.14); color: #b9600a; }
+  .empty { padding: 14px 16px; font-size: 0.88rem; opacity: 0.65; }
+  code { background: rgba(128,128,128,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+  .note { font-size: 0.85rem; opacity: 0.75; margin-top: 6px; }
+  a { color: #06ABEB; }
+</style>
+</head>
+<body>
+  <span class="tag">iOS App</span>
+  <h1>ePSA — App Privacy Details</h1>
+  <p class="note">Mount Sinai Urology · Tewari Lab. Formatted to mirror Apple's App Privacy "nutrition label" (<a href="https://developer.apple.com/app-store/app-privacy-details/">reference</a>). Educational use only — not a diagnostic tool.</p>
+
+  <div class="banner">
+    <div><b>Data Used to Track You</b>None</div>
+    <div><b>No advertising, no third-party trackers</b>Confirmed</div>
+  </div>
+
+  <p>
+    <!-- TODO: replace # with the real App Store listing URL once published,
+         e.g. https://apps.apple.com/app/idXXXXXXXXXX -->
+    <a href="#" style="display:inline-block">
+      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" height="48">
+    </a>
+  </p>
+
+  <h2>Data Linked to You</h2>
+  <div class="group">
+    <div class="head">Health &amp; Fitness</div>
+    <table>
+      <tr><th>Data type</th><th>Used for</th></tr>
+      <tr><td>Health (screening responses: age, race/ethnicity, family history, height/weight, IPSS/SHIM symptom scores, and — if entered — PSA value, MRI/PI‑RADS, prostate volume)</td><td>App Functionality</td></tr>
+    </table>
+    <p class="empty">Sent to our backend (Google Cloud Functions via Firebase) for a single stateless calculation, then returned to your device. <strong>Not stored on our servers.</strong> Linked here to your session via the anonymous identifier below, out of caution — no name/email/phone is ever attached.</p>
+  </div>
+
+  <div class="group">
+    <div class="head">Identifiers</div>
+    <table>
+      <tr><th>Data type</th><th>Used for</th></tr>
+      <tr><td>User ID (anonymous Firebase-auth identifier — random, no name/email/phone attached)</td><td>App Functionality</td></tr>
+    </table>
+  </div>
+
+  <h2>Data Not Linked to You</h2>
+  <div class="group">
+    <div class="head">User Content</div>
+    <div class="empty">Ask-tab chat is answered <strong>100% on-device</strong> via Apple's on-device Foundation Models (iOS 26+, supported hardware only). No network call is made for chat and nothing is sent to us, Apple, or any third party. On unsupported devices, the app shows an "on-device AI not available" state instead of a cloud fallback. Chat history is stored locally on your device only (SwiftData) and never uploaded — so there is <span class="pill no">nothing to list here</span>.</div>
+  </div>
+
+  <h2>Data Not Collected</h2>
+  <p>Contact info, precise/coarse location, financial info, contacts, photos/videos, audio, browsing history, search history, purchases, usage/analytics data, diagnostics beyond standard OS crash reporting, advertising data.</p>
+
+  <h2>Locally stored, never transmitted</h2>
+  <p>Selected journey stage and language preference (<code>UserDefaults</code>).</p>
+
+  <h2>Privacy Policy</h2>
+  <p>See the full privacy policy: <a href="/privacy">epsa-30d0b.web.app/privacy</a> <em>(placeholder — link once hosted)</em>.</p>
+
+  <p class="note">Last updated: <em>[DATE]</em>. <strong>Draft for review</strong> — have Mount Sinai's privacy/compliance team confirm the Health &amp; Fitness "linked to you" classification before entering this into App Store Connect, since whether an anonymous session ID counts as "linking" is an Apple judgment call worth getting right.</p>
+</body>
+</html>
