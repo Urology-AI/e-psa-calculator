@@ -109,16 +109,17 @@ jobs:
       env:
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}
 
-    # Scoped to calculatePsaRecommendation only, not the whole functions/ codebase
-    # (~30 functions including sendAdminOTP, submitRedcap, session management, etc).
-    # Deploying everything would need the CI service account granted
-    # secretmanager.secrets.get across every secret those other functions use
-    # (OTP email credentials among them) — broader access than a CI bot deploying
-    # one stateless calculator function should have. Widen this deliberately, with
-    # its own IAM review, if/when CI needs to deploy the rest of backend/.
+    # Scoped to these two stateless, secret-free functions only, not the whole
+    # functions/ codebase (~30 functions including sendAdminOTP, submitRedcap,
+    # session management, etc). Deploying everything would need the CI service
+    # account granted secretmanager.secrets.get across every secret those other
+    # functions use (OTP email credentials among them) — broader access than a
+    # CI bot deploying a couple of stateless calculators should have. Widen this
+    # deliberately, with its own IAM review, if/when CI needs to deploy the rest
+    # of backend/.
     - name: Deploy functions
       if: steps.changed.outputs.backend_changed == 'true'
-      run: npx firebase-tools deploy --only functions:calculatePsaRecommendation --project epsa-30d0b --non-interactive
+      run: npx firebase-tools deploy --only functions:calculatePsaRecommendation,functions:predictBiopsyRisk --project epsa-30d0b --non-interactive
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
 
@@ -172,8 +173,14 @@ jobs:
     # repoToken is deliberately NOT passed to the deploy action: with a token it
     # calls the GitHub check-runs/comments API and any API hiccup crashes the
     # whole job even when the Firebase deploy succeeded.
+    # Also runs on workflow_dispatch, not just push — otherwise a manual dispatch
+    # (e.g. to deploy a fix that already merged before this workflow existed, or
+    # to redeploy without a new push) builds successfully but the live site
+    # silently keeps serving the previous bundle, since this was the only step
+    # that actually publishes it. Found the hard way: deploy-functions' own
+    # workflow_dispatch support gave no indication hosting wasn't also shipping.
     - name: Deploy (live)
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'

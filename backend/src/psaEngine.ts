@@ -12,23 +12,37 @@ import { z } from 'zod';
 const PrePsaInputSchema = z.object({
   age: z.union([z.number().int().min(18).max(120), z.string()]).transform(val => typeof val === 'string' ? parseInt(val, 10) : val),
   race: z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say', 'african-american', 'american-indian', 'native-hawaiian', 'unknown']),
-  ethnicity: z.enum(['hispanic-latino', 'not-hispanic-latino', 'unknown']).optional(),
+  // .nullable() alongside .optional() throughout this schema: the callable-function
+  // transport (Firebase httpsCallable) serializes any field that's `undefined` on the
+  // client as `null` on the wire, so an unanswered/skipped optional question always
+  // arrives here as null — .optional() alone (which permits only undefined, not null)
+  // rejects that and produced a 400 on nearly every real submission.
+  ethnicity: z.enum(['hispanic-latino', 'not-hispanic-latino', 'unknown']).nullable().optional(),
   heightFt: z.union([z.number().int().min(1).max(9), z.string(), z.null()]).optional(),
   heightIn: z.union([z.number().int().min(0).max(11), z.string(), z.null()]).optional(),
   heightCm: z.union([z.number().positive(), z.string(), z.null()]).optional(),
-  weight: z.union([z.number().positive(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  // Nullable/optional like the height fields: QuickEntry.jsx enters BMI directly
+  // and never sends a separate weight value at all (its formData omits the key
+  // entirely), which — same as every other omitted-optional-field case in this
+  // schema — arrives here as null over the callable-function wire. The engine
+  // scores on `bmi`, not raw weight (see itemImpacts: a "BMI" entry, never a
+  // "Weight" one), so there's nothing to derive it for.
+  weight: z.union([z.number().positive(), z.string(), z.null()]).optional().transform(val => (typeof val === 'string' ? parseFloat(val) : val) || undefined),
   bmi: z.union([z.number().positive(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
-  heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
-  weightUnit: z.enum(['lbs', 'kg']).optional(),
+  heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).nullable().optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
+  weightUnit: z.enum(['lbs', 'kg']).nullable().optional(),
   weightKg: z.union([z.number().positive(), z.string(), z.null()]).optional(),
   familyHistory: z.union([z.number().int().min(0).max(3), z.null()]).transform(val => val === null ? 0 : val),
   // Must match the vocabulary the engine's brcaPositive check actually tests for
   // ('yes'/'lynch'/'other_elevated'/'other_unknown' => positive), NOT an invented
   // brca1/brca2/both scheme — those values silently fail to trigger the +16 anchor
   // since the engine only string-compares against this exact set.
-  brcaStatus: z.enum(['yes', 'lynch', 'other_elevated', 'other_unknown', 'no', 'unknown']).optional().transform(val => val || 'unknown'),
+  brcaStatus: z.enum(['yes', 'lynch', 'other_elevated', 'other_unknown', 'no', 'unknown']).nullable().optional().transform(val => val || 'unknown'),
   ipss: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 0 : val)),
-  shim: z.array(z.union([z.number().int().min(1).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
+  // min(0) not min(1): Part1Form's Full SHIM mode legitimately offers "No sexual
+  // activity" / "Did not attempt" (value 0) for 4 of the 5 sub-questions — standard
+  // SHIM/IIEF-5 scoring — so a real, valid user answer of 0 was being rejected here.
+  shim: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
   exercise: z.union([z.number().int().min(0).max(2), z.null()]).transform(val => val === null ? 0 : val),
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
   // Must match the string vocabulary the engine's _ceStrong/_ceWeak checks test
@@ -36,8 +50,10 @@ const PrePsaInputSchema = z.object({
   // string comparisons, so chemical-exposure points silently never applied.
   // 'yes'/'no' are QuickEntry's simplified binary answer, scored by the engine the
   // same as 'agent_orange'/'nine_eleven' (strong) and 'none' (no signal) respectively.
-  chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown', 'yes', 'no']).optional(),
-  dietPattern: z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']).optional().transform(val => val || ''),
+  chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown', 'yes', 'no']).nullable().optional(),
+  // '' is the frontend's own "not answered" sentinel for this field (sent alongside,
+  // not instead of, the null-on-the-wire case above) — accept both.
+  dietPattern: z.union([z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']), z.literal('')]).nullable().optional().transform(val => val || ''),
   // Count (0-2+) of diagnosed cardiometabolic conditions (hypertension, hyperlipidemia,
   // CAD, diabetes) — the engine's validateInputs() requires this OR all four individual
   // boolean fields; without either, calculateDynamicEPsa() silently returns null and every
@@ -50,18 +66,18 @@ const PrePsaInputSchema = z.object({
   // Expanded germline panel (HOXB13/ATM/CHEK2/PALB2/Lynch-MMR) — additive to brcaStatus,
   // not double-counted by the engine if both fire. Must match epsaEngine.js's PANEL_GENES
   // vocabulary (case-insensitive): hoxb13, atm, chek2, palb2, lynch, mlh1, msh2, msh6, pms2.
-  germlineMutations: z.array(z.string()).optional(),
+  germlineMutations: z.array(z.string()).nullable().optional(),
   // Family history of breast/ovarian/pancreatic cancer — hereditary-syndrome proxy,
   // distinct from familyHistory (which is prostate-specific).
-  familyHistoryCancerTypes: z.array(z.enum(['breast', 'ovarian', 'pancreatic'])).optional(),
+  familyHistoryCancerTypes: z.array(z.enum(['breast', 'ovarian', 'pancreatic'])).nullable().optional(),
   // Ashkenazi Jewish ancestry — BRCA1/2 carrier-probability marker.
-  ashkenaziJewish: z.union([z.boolean(), z.enum(['yes', 'no'])]).optional().transform(val => val === 'yes' || val === true),
+  ashkenaziJewish: z.union([z.boolean(), z.enum(['yes', 'no'])]).nullable().optional().transform(val => val === 'yes' || val === true),
   // Echoed back on the response (calculateDynamicEPsa defaults to 'pre_psa' either way) —
   // not schema-critical, but omitting it would silently strip it for callers that pass it.
-  pathwayMode: z.string().optional(),
+  pathwayMode: z.string().nullable().optional(),
   // Cosmetic only — drives itemImpacts[].wasSkipped ("using a neutral default" badges in the
   // UI). Never affects scoring. Omitting it just means those badges won't render.
-  skippedFields: z.array(z.string()).optional(),
+  skippedFields: z.array(z.string()).nullable().optional(),
 });
 
 const PostPsaInputSchema = z.object({
@@ -69,9 +85,9 @@ const PostPsaInputSchema = z.object({
   pirads: z.union([z.number().int().min(1).max(5), z.string(), z.null()]).optional(),
   prostateVolume: z.union([z.number().min(5).max(500), z.string(), z.null()]).optional(),
   priorPsa: z.union([z.number().min(0).max(1000), z.string(), z.null()]).optional(),
-  onHormonalTherapy: z.boolean().optional(),
-  hormonalTherapyType: z.enum(['', 'finasteride', 'dutasteride', 'other']).optional(),
-  knowPirads: z.boolean().optional(),
+  onHormonalTherapy: z.boolean().nullable().optional(),
+  hormonalTherapyType: z.enum(['', 'finasteride', 'dutasteride', 'other']).nullable().optional(),
+  knowPirads: z.boolean().nullable().optional(),
 });
 
 const RequestSchema = z.object({
