@@ -18,6 +18,13 @@ export { syncToRedcap, submitToRedcap } from './redcapSync';
 // (via this callable).
 export { calculatePsaRecommendation } from './psaEngine';
 
+// GG≥2 biopsy-risk model (ePSA v4), ported from Urology-AI/biopsy-prediction's
+// model/model.py so Part 3 doesn't depend on the separate Render-hosted
+// FastAPI service (whose free-tier cold starts caused "temporarily
+// unavailable" errors). Closed-form logistic regression — see biopsyPrediction.ts
+// for the full provenance and sync-with-Python-repo caveat.
+export { predictBiopsyRisk } from './biopsyPrediction';
+
 // Sinai clinic cohort — IRB STUDY-14-00050.
 // Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
 // after 90 days of inactivity via Firestore TTL) and optionally pushed to Sinai REDCap.
