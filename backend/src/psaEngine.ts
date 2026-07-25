@@ -21,7 +21,13 @@ const PrePsaInputSchema = z.object({
   heightFt: z.union([z.number().int().min(1).max(9), z.string(), z.null()]).optional(),
   heightIn: z.union([z.number().int().min(0).max(11), z.string(), z.null()]).optional(),
   heightCm: z.union([z.number().positive(), z.string(), z.null()]).optional(),
-  weight: z.union([z.number().positive(), z.string()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  // Nullable/optional like the height fields: QuickEntry.jsx enters BMI directly
+  // and never sends a separate weight value at all (its formData omits the key
+  // entirely), which — same as every other omitted-optional-field case in this
+  // schema — arrives here as null over the callable-function wire. The engine
+  // scores on `bmi`, not raw weight (see itemImpacts: a "BMI" entry, never a
+  // "Weight" one), so there's nothing to derive it for.
+  weight: z.union([z.number().positive(), z.string(), z.null()]).optional().transform(val => (typeof val === 'string' ? parseFloat(val) : val) || undefined),
   bmi: z.union([z.number().positive(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
   heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).nullable().optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
   weightUnit: z.enum(['lbs', 'kg']).nullable().optional(),
