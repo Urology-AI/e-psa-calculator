@@ -33,7 +33,10 @@ const PrePsaInputSchema = z.object({
   // since the engine only string-compares against this exact set.
   brcaStatus: z.enum(['yes', 'lynch', 'other_elevated', 'other_unknown', 'no', 'unknown']).nullable().optional().transform(val => val || 'unknown'),
   ipss: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 0 : val)),
-  shim: z.array(z.union([z.number().int().min(1).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
+  // min(0) not min(1): Part1Form's Full SHIM mode legitimately offers "No sexual
+  // activity" / "Did not attempt" (value 0) for 4 of the 5 sub-questions — standard
+  // SHIM/IIEF-5 scoring — so a real, valid user answer of 0 was being rejected here.
+  shim: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
   exercise: z.union([z.number().int().min(0).max(2), z.null()]).transform(val => val === null ? 0 : val),
   smoking: z.union([z.number().int().min(0).max(2), z.null()]).optional(),
   // Must match the string vocabulary the engine's _ceStrong/_ceWeak checks test
