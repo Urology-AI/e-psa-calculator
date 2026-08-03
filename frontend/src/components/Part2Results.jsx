@@ -5,7 +5,7 @@ import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import RiskGauge from './RiskGauge';
-import { CollapsibleSection, GuardrailBanner } from './shared/ResultsShared.jsx';
+import { CollapsibleSection, GuardrailBanner, SdmConversationGuide } from './shared/ResultsShared.jsx';
 import { AlertTriangleIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
 
@@ -287,6 +287,9 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
           </div>
         );
       })()}
+
+      {/* ── Shared Decision-Making Conversation Guide (AHRQ SHARE Approach) ── */}
+      <SdmConversationGuide sdmGuide={result?.sdmGuide} />
 
       <BiomarkerContextSection formData={postData} />
 

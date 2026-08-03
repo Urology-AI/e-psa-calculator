@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source for new code.
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
-import { ClinicalDetail } from './shared/ResultsShared.jsx';
+import { ClinicalDetail, SdmConversationGuide } from './shared/ResultsShared.jsx';
 import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -518,16 +518,21 @@ const Part3Results = ({
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
-      {/* ── Shared Decision-Making Framing (compact strip) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-          <span>This result is meant to support a conversation with your doctor, not replace it.</span>
-        </div>
-        <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
-          <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
-        </ClinicalDetail>
-      </div>
+      {/* ── Shared Decision-Making Conversation Guide (AHRQ SHARE Approach / AUA/SUO 2026 Statement 1) ── */}
+      <SdmConversationGuide
+        sdmGuide={result?.sdmGuide}
+        fallback={
+          <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <UsersIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+              <span>This result is meant to support a conversation with your doctor, not replace it.</span>
+            </div>
+            <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+              <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
+            </ClinicalDetail>
+          </div>
+        }
+      />
 
       {/* ── Validated Biopsy Prediction Model (Part 3 — PSA + PSAD + PI-RADS) ── */}
       {apiPrediction && (
