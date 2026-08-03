@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { ASSESSMENT_STEPS, AssessmentSidebar } from './shared/AssessmentJourney.jsx';
 import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -25,6 +26,7 @@ import {
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, CheckIcon, CircleIcon, XIcon,
+  BarChart3Icon, ClipboardListIcon, BookOpenIcon, UserIcon, LayersIcon,
 } from 'lucide-react';
 
 /* ─── Count-up animation hook ─── */
@@ -76,9 +78,9 @@ const FactorSourceBadge = ({ itemName }) => {
         borderRadius: '10px',
         verticalAlign: 'middle',
         whiteSpace: 'nowrap',
-        background: isAua ? '#dbeafe' : '#f3f4f6',
-        color: isAua ? '#1e40af' : '#374151',
-        border: `1px solid ${isAua ? '#93c5fd' : '#d1d5db'}`,
+        background: isAua ? 'var(--brand-50)' : '#f3f4f6',
+        color: isAua ? 'var(--brand-700)' : '#374151',
+        border: `1px solid ${isAua ? 'var(--brand-400)' : '#d1d5db'}`,
       }}
     >
       {label}
@@ -119,7 +121,7 @@ const SourcesPopover = ({ itemName }) => {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', color: '#2563eb', fontSize: '12px', lineHeight: 1 }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', color: 'var(--brand-600)', fontSize: '12px', lineHeight: 1 }}
         title={`References for ${itemName}`}
         aria-label={`Show references for ${itemName}`}
       >ⓘ</button>
@@ -193,22 +195,12 @@ const RationaleRow = ({ rationale }) => {
   );
 };
 
-/* ─── Collapsible Section ─── */
-const CollapsibleSection = ({ title, children, defaultOpen = false, id, highlight = false }) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div
-      id={id}
-      className={`collapsible-section${highlight ? ' collapsible-section--highlight' : ''}`}
-    >
-      <button className="collapsible-toggle" onClick={() => setOpen(!open)} aria-expanded={open} type="button">
-        <span>{title}</span>
-        {open ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
-      </button>
-      {open && <div className="collapsible-body">{children}</div>}
-    </div>
-  );
-};
+/* ─── Collapsible Section ───
+ * Local alias of the shared CollapsibleSection (./shared/ResultsShared.jsx) so
+ * existing usages below don't need renaming. The shared version adds the
+ * `advanced` prop, which auto-expands clinician-oriented sections when
+ * Doctor Mode is on. */
+const CollapsibleSection = SharedCollapsibleSection;
 
 /* ─── Guideline Deviation Banner ─── */
 const NON_GUIDELINE_LABELS = {
@@ -251,7 +243,7 @@ const GuidelineDeviationBanner = ({ age, nonGuidelineFactors = [] }) => {
       </div>
 
       <p className="guideline-deviation-banner__text">
-        This tool is suggesting PSA testing {plainWhy}. That's because it also weighs personal factors — like lifestyle, family history, or symptoms — that standard screening guidelines don't factor in. <strong>Talk this over with your doctor</strong>, who can weigh both the guideline and your personal risk factors together.
+        ⚠️ This tool suggests PSA testing {plainWhy}. <strong>Talk this over with your doctor.</strong>
       </p>
 
       <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
@@ -426,6 +418,42 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
   );
 };
 
+/* ─── "Why?" impact summary ─────────────────────────────────────────────────
+ * Graphical headline of the top risk-driving factors, shown up front, replacing
+ * the need to open "What Drove Your Score" just to see the headline drivers.
+ * Severity tiers are derived from the same pointsToSeverity/SEVERITY_LABELS
+ * bucketing used by the detailed impact table in Advanced Clinical Details —
+ * no new severity data is invented here.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const WhySection = ({ itemImpacts = [] }) => {
+  // Pre-PSA screen shows a plain checklist of factor names — no percentages/
+  // scores/bars. This is a deliberate difference from Part2/Part3, which show
+  // WhyImpactBars with tiers; the product owner's spec keeps Step 1 simple
+  // since the point here is just "should I get screened," not "how much."
+  const positive = (itemImpacts || [])
+    .filter(i => Number(i.points) > 0)
+    .sort((a, b) => Number(b.points) - Number(a.points))
+    .slice(0, 5)
+    .map(i => i.item);
+  if (!positive.length) return null;
+  return (
+    <div className="top-factors-callout" role="note" aria-label="Factors driving your risk estimate">
+      <div className="section-heading-row">
+        <BarChart3Icon size={17} aria-hidden="true" className="section-heading-icon" />
+        <span className="top-factors-callout__label">Why? Your estimated risk is shaped mainly by:</span>
+      </div>
+      <ul className="why-factor-checklist" style={{ listStyle: 'none', margin: '8px 0 0', padding: 0, display: 'grid', gap: '6px' }}>
+        {positive.map((label) => (
+          <li key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800, #1f2937)', fontWeight: 500 }}>
+            <CheckIcon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+            {label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 /* ─── Next Step Cards ─── */
 const NextStepsSection = ({ onContinueToPSA, onContinueToBiopsy }) => (
   <div className="next-steps-section">
@@ -470,18 +498,18 @@ const ResearchIdCard = ({ sessionId }) => {
   };
   return (
     <div style={{
-      background: '#f0f7ff',
-      border: '1.5px solid #3b82f6',
+      background: 'var(--brand-50)',
+      border: '1px solid var(--brand-400)',
       borderRadius: '10px',
-      padding: '14px 16px',
+      padding: '16px 18px',
       margin: '12px 0',
       display: 'flex',
       flexDirection: 'column',
       gap: '6px',
     }} role="region" aria-label="Research participation ID">
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <FlaskConicalIcon size={15} color="#3b82f6" />
-        <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e40af' }}>
+        <FlaskConicalIcon size={15} color="var(--brand-700)" />
+        <span style={{ fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-small)', color: 'var(--brand-700)' }}>
           Research Participation ID
         </span>
       </div>
@@ -491,8 +519,8 @@ const ResearchIdCard = ({ sessionId }) => {
           fontSize: '22px',
           fontWeight: 700,
           letterSpacing: '4px',
-          color: '#1e3a8a',
-          background: '#dbeafe',
+          color: 'var(--brand-700)',
+          background: 'var(--brand-100)',
           borderRadius: '6px',
           padding: '4px 12px',
         }}>
@@ -501,12 +529,12 @@ const ResearchIdCard = ({ sessionId }) => {
         <button
           onClick={handleCopy}
           style={{
-            background: copied ? '#22c55e' : '#3b82f6',
+            background: copied ? '#22c55e' : 'var(--brand-700)',
             color: '#fff',
             border: 'none',
             borderRadius: '6px',
             padding: '6px 12px',
-            fontSize: '12px',
+            fontSize: 'var(--font-size-caption)',
             fontWeight: 600,
             cursor: 'pointer',
             transition: 'background 0.2s',
@@ -516,7 +544,7 @@ const ResearchIdCard = ({ sessionId }) => {
           {copied ? <><CheckIcon size={13} style={{ marginRight: 4 }} />Copied</> : 'Copy'}
         </button>
       </div>
-      <p style={{ margin: 0, fontSize: '12px', color: '#1e40af' }}>
+      <p style={{ margin: 0, fontSize: 'var(--font-size-caption)', color: 'var(--brand-700)' }}>
         Show this code to your clinic staff to link your responses to your visit — no personal information is stored.
       </p>
     </div>
@@ -712,7 +740,7 @@ const Part1Results = ({
   const gaugeScore = mapRawScoreToGaugePercent(rawScore, maxScore);
   const activeTier = tierRisk || risk;
   const riskBgClass = epsaTierKey === 'low' ? 'risk-card--lower' : epsaTierKey === 'intermediate' ? 'risk-card--moderate' : epsaTierKey === 'elevated' ? 'risk-card--elevated' : activeTier === 'LOWER' ? 'risk-card--lower' : activeTier === 'HIGHER' ? 'risk-card--elevated' : 'risk-card--moderate';
-  const tierAccentColor = epsaTierKey === 'low' ? '#16a34a' : epsaTierKey === 'intermediate' ? '#2563eb' : epsaTierKey === 'elevated' ? '#d97706' : activeTier === 'LOWER' ? '#16a34a' : activeTier === 'HIGHER' ? '#d97706' : '#2563eb';
+  const tierAccentColor = epsaTierKey === 'low' ? '#16a34a' : epsaTierKey === 'intermediate' ? 'var(--brand-600)' : epsaTierKey === 'elevated' ? '#d97706' : activeTier === 'LOWER' ? '#16a34a' : activeTier === 'HIGHER' ? '#d97706' : 'var(--brand-600)';
 
 
   const getTierDescription = (key, tier) => {
@@ -745,9 +773,17 @@ const Part1Results = ({
   const screeningGuidelineAutoOpen = guidelineTriggers.length > 0;
 
   return (
-    <div className="results-container" role="main">
+    <>
+      <AssessmentSidebar
+        currentStepKey="pre"
+        riskLabel={epsaTierLabel || activeTier}
+        riskColor={tierAccentColor}
+        onPrint={() => window.print()}
+        onFindUrologist={() => document.getElementById('find-urologist')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      />
+      <div className="results-container results-container--with-sidebar" role="main">
 
-      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Pre-PSA · Baseline Assessment" />
+      <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Before PSA Test" />
 
       {/* ── Guardrail Alerts ── */}
       {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
@@ -790,27 +826,14 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Shared Decision-Making Conversation Guide (AHRQ SHARE Approach / AUA/SUO 2026 Statement 1) ── */}
-      <SdmConversationGuide
-        sdmGuide={result?.sdmGuide}
-        fallback={
-          <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-                <span>This tool is here to help you understand your options and talk them through with your doctor — it doesn't replace that conversation.</span>
-              </div>
-              <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
-                <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
-              </ClinicalDetail>
-          </div>
-        }
-      />
-
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">
         <div className="v2-res-eyebrow">
           <span>{t('part1Results.eyebrow')}</span>
           <span>{t('part1Results.assessedToday')}</span>
+        </div>
+        <div className="v2-res-step-question" style={{ fontSize: 'var(--font-size-small, 0.875rem)', fontWeight: 600, color: 'var(--brand-700)', margin: '2px 0 6px' }}>
+          Step {ASSESSMENT_STEPS[0].step} of 3 — {ASSESSMENT_STEPS[0].question}
         </div>
 
         {belowMinAge ? (
@@ -877,95 +900,148 @@ const Part1Results = ({
         )}
       </div>
 
-      {/* ── Guideline-Referenced PSA Recommendation (with evidence citation) ── */}
+      {/* ── Why? (progressive disclosure: graphical headline only) ── */}
+      {!belowMinAge && !aboveMaxScreeningAge && <WhySection itemImpacts={itemImpacts} />}
+
+      {/* ── Model confidence ── */}
+      {!belowMinAge && !aboveMaxScreeningAge && <ModelConfidenceBadge />}
+
+      {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
+      <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
+
+      {/* ── Recommended Next Step ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (
-        <PsaRecommendationBanner
-          recommendPSA={recommendPSA}
-          psaRecommendReason={psaRecommendReason}
-          psaRecommendMessage={psaRecommendMessage}
-          guidelineSupport={psaGuidelineSupport}
-          guidelineSupportCount={psaGuidelineSupportCount}
-        />
-      )}
-
-      {/* ── Guideline Deviation Banner ── */}
-      {psaRecommendReason === 'score_threshold' && !belowMinAge && !aboveMaxScreeningAge && (() => {
-        const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden', 'Family history (breast/ovarian/pancreatic)', 'Ashkenazi Jewish ancestry']);
-        const nonGuidelineFactors = (itemImpacts || []).filter(b => b.points > 0 && NON_GUIDELINE.has(b.item)).map(b => b.item);
-        return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
-      })()}
-
-
-      {/* ── Add PSA CTA ── */}
-      {onContinueToPostPSA && (
-        <div
-          className="psa-cta-banner res-reveal"
-          style={{ '--delay': '460ms' }}
-          role="complementary"
-          aria-label="Add PSA result"
-        >
-          <div className="psa-cta-banner__text">
-            <p className="psa-cta-banner__title">
-              {t('part1Results.psaCtaTitle')}
-            </p>
-            <p className="psa-cta-banner__desc">
-              {t('part1Results.psaCtaDesc')}
-            </p>
+        <div className="next-step-group">
+          <div className="section-heading-row">
+            <ClipboardListIcon size={17} aria-hidden="true" className="section-heading-icon" />
+            <span className="section-heading-title">{t('part1Results.recommendedNextStepHeading', 'Recommended Next Step')}</span>
           </div>
-          <button
-            type="button"
-            onClick={onContinueToPostPSA}
-            className="psa-cta-banner__btn"
-          >
-            {t('part1Results.psaCtaButton')} <ArrowRightIcon size={15} />
-          </button>
+
+          {/* Short, scannable 2-3 line summary — the detailed banners below (guideline
+              deviation, PSA CTA, clinical-detail cadence) remain for anyone who wants
+              the full picture, but this is the at-a-glance answer. */}
+          {(() => {
+            const ageNum = Number(age) || 0;
+            const isElevatedRisk = isHighRiskFlagged ||
+              formData?.race === 'black' || formData?.race === 'african-american' ||
+              Number(formData?.familyHistory) > 0 || ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
+            const startAgeNum = isElevatedRisk ? 40 : 45;
+            const alreadyStarted = ageNum >= startAgeNum;
+            const inScreeningRange = ageNum >= 50 && ageNum <= 69;
+            const cadenceLine = !alreadyStarted
+              ? `Consider starting PSA screening around age ${isElevatedRisk ? '40' : '45'}`
+              : ageNum < 50
+                ? "You're in the early-screening window — talk with your doctor about timing"
+                : inScreeningRange
+                  ? 'Repeat PSA testing every 2–4 years'
+                  : 'At 70+, whether to keep screening is a personal decision';
+            return (
+              <ul className="recommended-next-step-summary" style={{ listStyle: 'none', margin: '0 0 10px', padding: 0, display: 'grid', gap: '5px' }}>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800)' }}>
+                  <CheckIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+                  {recommendPSA === true ? 'Discuss PSA screening with your physician' : 'PSA testing is not typically needed right now — keep checking in with your doctor'}
+                </li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800)' }}>
+                  <CheckIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+                  {cadenceLine}
+                </li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800)' }}>
+                  <CheckIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+                  Use shared decision-making with your doctor — see the guide below
+                </li>
+              </ul>
+            );
+          })()}
+
+          <PsaRecommendationBanner
+            recommendPSA={recommendPSA}
+            psaRecommendReason={psaRecommendReason}
+            psaRecommendMessage={psaRecommendMessage}
+            guidelineSupport={psaGuidelineSupport}
+            guidelineSupportCount={psaGuidelineSupportCount}
+          />
+
+          {psaRecommendReason === 'score_threshold' && (() => {
+            const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden', 'Family history (breast/ovarian/pancreatic)', 'Ashkenazi Jewish ancestry']);
+            const nonGuidelineFactors = (itemImpacts || []).filter(b => b.points > 0 && NON_GUIDELINE.has(b.item)).map(b => b.item);
+            return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
+          })()}
+
+          {onContinueToPostPSA && (
+            <div
+              className="psa-cta-banner res-reveal"
+              style={{ '--delay': '460ms' }}
+              role="complementary"
+              aria-label="Add PSA result"
+            >
+              <div className="psa-cta-banner__text">
+                <p className="psa-cta-banner__title">
+                  {t('part1Results.psaCtaTitle')}
+                </p>
+                <p className="psa-cta-banner__desc">
+                  {t('part1Results.psaCtaDesc')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onContinueToPostPSA}
+                className="psa-cta-banner__btn"
+              >
+                {t('part1Results.psaCtaButton')} <ArrowRightIcon size={15} />
+              </button>
+            </div>
+          )}
+
+          {(() => {
+            const ageNum = Number(age) || 0;
+            const isElevatedRisk = isHighRiskFlagged ||
+              formData?.race === 'black' || formData?.race === 'african-american' ||
+              Number(formData?.familyHistory) > 0 || ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
+            const startAgeNum = isElevatedRisk ? 40 : 45;
+            const alreadyStarted = ageNum >= startAgeNum;
+            const inScreeningRange = ageNum >= 50 && ageNum <= 69;
+            const nextStep = !alreadyStarted
+              ? `Initiate PSA screening at age ${isElevatedRisk ? '40' : '45'} (AUA/SUO Stmt ${isElevatedRisk ? '5' : '2'})`
+              : ageNum < 50
+                ? `Patient is in the early-screening window — individualize per AUA/SUO Stmt ${isElevatedRisk ? '5' : '4'}`
+                : inScreeningRange
+                  ? 'Re-screen every 2–4 years for ages 50–69 (AUA/SUO Stmt 6)'
+                  : 'Age 70+: Shared Decision-Making required before continuing screening (AUA/SUO Stmt 7)';
+            const plainNextStep = !alreadyStarted
+              ? `Consider starting PSA screening around age ${isElevatedRisk ? '40' : '45'}.`
+              : ageNum < 50
+                ? "You're in the early-screening window — this is a good time to talk with your doctor about when to start."
+                : inScreeningRange
+                  ? 'A repeat PSA test every 2–4 years is typical for your age.'
+                  : "At 70+, whether to keep screening is a personal decision — talk it through with your doctor.";
+            return (
+              <div style={{ background: 'var(--brand-50)', border: '1px solid var(--brand-100)', borderLeft: '3px solid var(--brand-600)', borderRadius: '8px', padding: '10px 14px', fontSize: 'var(--font-size-small)', color: 'var(--brand-700)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <AlertCircleIcon size={14} aria-hidden="true" style={{ color: 'var(--brand-600)', flexShrink: 0 }} />
+                  <span><strong>Your next step:</strong> {plainNextStep}</span>
+                </div>
+                <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+                  <span><strong>Guideline-recommended next step:</strong> {nextStep}</span>
+                </ClinicalDetail>
+              </div>
+            );
+          })()}
         </div>
       )}
 
-      {/* ── Guideline-Recommended Next Step (compact strip) ── */}
-      {!belowMinAge && !aboveMaxScreeningAge && (() => {
-        const ageNum = Number(age) || 0;
-        const isElevatedRisk = isHighRiskFlagged ||
-          formData?.race === 'black' || formData?.race === 'african-american' ||
-          Number(formData?.familyHistory) > 0 || ['yes','lynch','other_elevated','other_unknown'].includes(formData?.brcaStatus);
-        const startAgeNum = isElevatedRisk ? 40 : 45;
-        const alreadyStarted = ageNum >= startAgeNum;
-        const inScreeningRange = ageNum >= 50 && ageNum <= 69;
-        const nextStep = !alreadyStarted
-          ? `Initiate PSA screening at age ${isElevatedRisk ? '40' : '45'} (AUA/SUO Stmt ${isElevatedRisk ? '5' : '2'})`
-          : ageNum < 50
-            ? `Patient is in the early-screening window — individualize per AUA/SUO Stmt ${isElevatedRisk ? '5' : '4'}`
-            : inScreeningRange
-              ? 'Re-screen every 2–4 years for ages 50–69 (AUA/SUO Stmt 6)'
-              : 'Age 70+: Shared Decision-Making required before continuing screening (AUA/SUO Stmt 7)';
-        const plainNextStep = !alreadyStarted
-          ? `Consider starting PSA screening around age ${isElevatedRisk ? '40' : '45'}.`
-          : ageNum < 50
-            ? "You're in the early-screening window — this is a good time to talk with your doctor about when to start."
-            : inScreeningRange
-              ? 'A repeat PSA test every 2–4 years is typical for your age.'
-              : "At 70+, whether to keep screening is a personal decision — talk it through with your doctor.";
-        return (
-          <div style={{ background: '#eff6ff', border: '0.5px solid #93c5fd', borderLeft: '3px solid #2563eb', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#1e3a8a' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <AlertCircleIcon size={14} aria-hidden="true" style={{ color: '#2563eb', flexShrink: 0 }} />
-              <span><strong>Your next step:</strong> {plainNextStep}</span>
-            </div>
-            <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
-              <span><strong>Guideline-recommended next step:</strong> {nextStep}</span>
-            </ClinicalDetail>
-          </div>
-        );
-      })()}
-
-      {/* ── Expandable sections ── */}
+      {/* ── Advanced Clinical Details ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '500ms' }}>
+        <div className="section-heading-row section-heading-row--umbrella">
+          <LayersIcon size={17} aria-hidden="true" className="section-heading-icon" />
+          <span className="section-heading-title">{t('part1Results.advancedClinicalDetailsHeading', 'Advanced Clinical Details')}</span>
+        </div>
 
         <CollapsibleSection
           id="screening-guidelines"
-          title={t('part1Results.sectionScreeningGuidelines')}
+          title={<><BookOpenIcon size={15} aria-hidden="true" className="collapsible-title-icon" />{t('part1Results.sectionScreeningGuidelines')}</>}
           defaultOpen={false}
           highlight={screeningGuidelineAutoOpen}
+          advanced
         >
           {(() => {
             const ageNum = Number(age);
@@ -1004,13 +1080,16 @@ const Part1Results = ({
           };
           return (
           <div ref={breakdownRef}>
-            <CollapsibleSection title={t('part1Results.sectionWhatDroveScore')} defaultOpen={false}>
+            <CollapsibleSection title={t('part1Results.sectionWhatDroveScore')} defaultOpen={false} advanced>
               <p>{t('part1Results.scoreIntro')}</p>
               <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0 10px' }}>
                 {t('part1Results.factorBadgeExplanation.before')} <FactorSourceBadge itemName="Age" /> {t('part1Results.factorBadgeExplanation.middle')} <FactorSourceBadge itemName="Exercise" /> {t('part1Results.factorBadgeExplanation.after')}
               </p>
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid #2563eb', borderRadius: '6px', padding: '8px 12px', marginBottom: '10px', fontSize: '11.5px', color: '#374151', lineHeight: 1.6 }}>
-                <strong style={{ color: '#1e40af' }}>How factors were evaluated:</strong> Each factor was evaluated against our internal dataset (N=100, AUC=0.56) and published literature. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click <em>"Why this score?"</em> under any row to see the data coefficient, literature OR, and the decision rationale.
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid var(--brand-600)', borderRadius: '6px', padding: '10px 12px', marginBottom: '10px', fontSize: 'var(--font-size-caption)', color: '#374151', lineHeight: 1.6 }}>
+                <strong style={{ color: 'var(--brand-700)' }}>How factors were evaluated:</strong> Each factor was evaluated against our internal dataset and published literature. Where they conflict, the well-replicated literature is used instead.
+                <ClinicalDetail label="Show methodology detail" hideLabel="Hide methodology detail">
+                  Internal dataset: N=100, AUC=0.56. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click "Why this score?" under any row to see the data coefficient, literature OR, and the decision rationale.
+                </ClinicalDetail>
               </div>
               {(() => {
                 const sortedByImpact = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
@@ -1054,7 +1133,7 @@ const Part1Results = ({
                       <button
                         type="button"
                         onClick={() => setShowAllImpacts(v => !v)}
-                        style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 0' }}
+                        style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--brand-600)', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 0' }}
                         aria-expanded={showAllImpacts}
                       >
                         {showAllImpacts
@@ -1082,6 +1161,10 @@ const Part1Results = ({
           );
         })()}
 
+        <CollapsibleSection id="find-urologist" title={<><UserIcon size={15} aria-hidden="true" className="collapsible-title-icon" />Find a Board-Certified Urologist Near You</>}>
+          <UrologistFinder flowMode={flowMode} />
+        </CollapsibleSection>
+
         {onShowModelDocs && (
           <div className="model-docs-btn-row">
             <button type="button" className="btn-results btn-results--outline model-docs-btn" onClick={onShowModelDocs}>
@@ -1093,45 +1176,44 @@ const Part1Results = ({
 
       </div>
 
-      {/* ── Urologist Finder ── */}
-      <CollapsibleSection title="Find a Board-Certified Urologist Near You">
-        <UrologistFinder flowMode={flowMode} />
-      </CollapsibleSection>
-
       {/* ── Action buttons ── */}
       <div className="results-actions res-reveal" style={{ '--delay': '640ms' }}>
         <div className="results-actions-row results-actions-row--primary">
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>{t('part1Results.btnEditAnswers')}</span></button>
-          {confirmStartOver ? (
-            <div className="start-over-confirm">
-              <span className="start-over-confirm-msg">This will erase all your answers. Are you sure?</span>
-              <div className="start-over-confirm-btns">
-                <button className="btn-results btn-results--danger" onClick={onStartOver}><RefreshCwIcon size={14} /><span>Yes, start over</span></button>
-                <button className="btn-results btn-results--outline" onClick={() => setConfirmStartOver(false)}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <button className="btn-results btn-results--danger-outline" onClick={() => setConfirmStartOver(true)}><RefreshCwIcon size={16} /><span>{t('part1Results.btnStartOver')}</span></button>
-          )}
-        </div>
-        <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>{t('part1Results.btnPrintResults')}</span></button>
-          <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>{t('part1Results.btnPrintableForm')}</span></button>
-          {(storageMode === 'local' || storageMode === 'cloud') && (
-            <>
-              <button className="btn-results btn-results--outline" onClick={() => {
-                try {
-                  if (!formData || Object.keys(formData).length === 0) throw new Error('No form data');
-                  const exportData = { version: '1.0', exportDate: new Date().toISOString(), part: 'part1', formData, userInfo: { email: userEmail || null, phone: userPhone || null, sessionId: sessionId || null } };
-                  const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
-                  const a = Object.assign(document.createElement('a'), { href: url, download: `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json` });
-                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                } catch { setExportError(t('part1Results.exportFailedAlert')); }
-              }}><DownloadIcon size={16} /><span>{t('part1Results.btnExportJson')}</span></button>
-              <button className="btn-results btn-results--outline" onClick={handleExportCsv}><DownloadIcon size={16} /><span>{t('part1Results.btnExportCsv')}</span></button>
-            </>
-          )}
+          <MoreActionsMenu>
+            <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>{t('part1Results.btnPrintableForm')}</span></button>
+            {(storageMode === 'local' || storageMode === 'cloud') && (
+              <>
+                <button
+                  className="btn-results btn-results--outline"
+                  onClick={() => {
+                    try {
+                      if (!formData || Object.keys(formData).length === 0) throw new Error('No form data');
+                      const exportData = { version: '1.0', exportDate: new Date().toISOString(), part: 'part1', formData, userInfo: { email: userEmail || null, phone: userPhone || null, sessionId: sessionId || null } };
+                      const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
+                      const a = Object.assign(document.createElement('a'), { href: url, download: `epsa-part1-data-${new Date().toISOString().split('T')[0]}.json` });
+                      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                    } catch { setExportError(t('part1Results.exportFailedAlert')); }
+                  }}
+                >
+                  <DownloadIcon size={16} /><span>{t('part1Results.btnExportJson')}</span>
+                </button>
+                <button className="btn-results btn-results--outline" onClick={handleExportCsv}><DownloadIcon size={16} /><span>{t('part1Results.btnExportCsv')}</span></button>
+              </>
+            )}
+            <button className="btn-results btn-results--danger-outline" onClick={() => setConfirmStartOver(true)}><RefreshCwIcon size={16} /><span>{t('part1Results.btnStartOver')}</span></button>
+          </MoreActionsMenu>
         </div>
+        {confirmStartOver && (
+          <div className="start-over-confirm">
+            <span className="start-over-confirm-msg">This will erase all your answers. Are you sure?</span>
+            <div className="start-over-confirm-btns">
+              <button className="btn-results btn-results--danger" onClick={onStartOver}><RefreshCwIcon size={14} /><span>Yes, start over</span></button>
+              <button className="btn-results btn-results--outline" onClick={() => setConfirmStartOver(false)}>Cancel</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Export error ── */}
@@ -1143,7 +1225,7 @@ const Part1Results = ({
       )}
 
       {/* ── Disclaimer (below buttons) ── */}
-      <CollapsibleSection title={t('part1Results.sectionDisclaimer')} defaultOpen={false}>
+      <DisclaimerTeaser>
         <p className="detail-disclaimer">{t('part1Results.disclaimerText')}</p>
         <p className="detail-attribution">{t('part1Results.disclaimerAttribution')}</p>
         <div className="detail-notice-box" style={{ borderLeft: '3px solid #d97706', background: '#fffbeb', marginBottom: '0.75rem' }}>
@@ -1154,8 +1236,9 @@ const Part1Results = ({
           <br /><br />
           <strong>Data Retention:</strong> Anonymous research data submitted under consent may be retained for up to 7 years in accordance with IRB protocol STUDY-14-00050.
         </div>
-      </CollapsibleSection>
-    </div>
+      </DisclaimerTeaser>
+      </div>
+    </>
   );
 };
 

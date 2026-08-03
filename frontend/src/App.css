@@ -106,6 +106,19 @@
   --text-3xl:  1.875rem;
   --text-4xl:  2.25rem;
 
+  /* ── Clinical type scale (phase-2 agents: use these for consistent
+       hierarchy across Part1/2/3 results and other new screens) ── */
+  --font-size-hero:    2rem;      /* 32px — page-level hero numbers/headlines */
+  --font-size-h1:      1.5rem;    /* 24px — screen/section titles */
+  --font-size-h2:      1.25rem;   /* 20px — subsection titles */
+  --font-size-body:    1rem;      /* 16px — body copy */
+  --font-size-small:   0.875rem;  /* 14px — secondary/supporting text */
+  --font-size-caption: 0.75rem;   /* 12px — labels, meta, footnotes */
+
+  --font-weight-heading: 700;
+  --font-weight-medium:  500;
+  --font-weight-body:    400;
+
   /* ── App background — clean MS gray-100 ── */
   --app-bg: var(--ms-gray-100);
   --header-logo-bg: linear-gradient(180deg, #ffffff 0%, #F5F5F7 100%);
@@ -174,22 +187,34 @@ body {
   }
 }
 
-/* ─── App Header ─── */
+/* ─── App Header ───
+   Primary visual header: larger wordmark + one-line tagline + a small
+   attribution line, generous vertical rhythm, clear separation from
+   content via border + soft shadow. */
 .app-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.625rem 0 0.875rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem 0 1.375rem;
+  margin-bottom: 1.75rem;
   border-bottom: 0.0625rem solid var(--line-200);
+  box-shadow: var(--shadow-xs);
 }
 
 .header-brand {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.header-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
 }
 
 .header-brand-sep {
@@ -201,15 +226,148 @@ body {
 }
 
 .header-product-name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: var(--font-size-hero);
+  font-weight: var(--font-weight-heading);
   letter-spacing: -0.02em;
   color: var(--ms-navy);
-  line-height: 1;
+  line-height: 1.1;
+}
+
+.header-product-name-tm {
+  font-size: 0.55em;
+  font-weight: 600;
+  vertical-align: super;
+  margin-left: 0.05em;
+  color: var(--ink-500);
+}
+
+.header-tagline {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-700);
+  line-height: 1.3;
+}
+
+.header-attribution {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
+  color: var(--ink-500);
+  line-height: 1.4;
 }
 
 .theme-dark .header-product-name {
   color: var(--ms-cyan);
+}
+
+/* ─── Patient / Doctor view mode toggle ─── */
+.doctor-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--ms-gray-100, #f3f4f6);
+  border: 1px solid var(--ms-gray-300, #d1d5db);
+  border-radius: 999px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.doctor-mode-toggle__btn {
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.32rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ms-gray-500, #6b7280);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.doctor-mode-toggle__btn--active {
+  background: var(--brand-700, #1d3a59);
+  color: #fff;
+}
+
+.theme-dark .doctor-mode-toggle {
+  background: var(--ink-800, #1f2937);
+  border-color: var(--ink-600, #4b5563);
+}
+
+.theme-dark .doctor-mode-toggle__btn {
+  color: var(--ink-300, #d1d5db);
+}
+
+.theme-dark .doctor-mode-toggle__btn--active {
+  background: var(--ms-cyan);
+  color: var(--ms-navy, #0f2942);
+}
+
+/* ─── Header settings overflow menu (text size / theme / language) ─── */
+.header-settings-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  border: 0.0625rem solid var(--line-100);
+  background: var(--surface-subtle);
+  color: var(--ink-700);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.header-settings-trigger:hover {
+  background: var(--surface-muted, var(--surface-subtle));
+  transform: translateY(-0.0625rem);
+}
+
+.header-settings-trigger[aria-expanded="true"] {
+  background: var(--brand-50);
+  border-color: var(--brand-400);
+  color: var(--ms-navy);
+}
+
+.header-settings-popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  min-width: 15rem;
+  background: var(--surface);
+  border: 0.0625rem solid var(--line-100);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.header-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.header-settings-row--lang {
+  justify-content: flex-start;
+}
+
+.header-settings-row-label {
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--ink-600);
+  white-space: nowrap;
+}
+
+.theme-dark .header-settings-popover {
+  background: var(--surface-subtle);
 }
 
 /* ─── Dark mode overrides ─── */
@@ -1130,14 +1288,25 @@ body {
   }
 }
 
-/* ─── Mobile header: single tight row ─── */
+/* ─── Mobile header: compact stack ─── */
 @media (max-width: 640px) {
   .app-header {
-    /* Keep brand + actions on one line; let actions scroll if needed */
     gap: 0.5rem;
-    padding: 0.5rem 0 0.625rem;
-    margin-bottom: 0.875rem;
+    padding: 0.75rem 0 0.875rem;
+    margin-bottom: 1rem;
     align-items: center;
+  }
+
+  .header-product-name {
+    font-size: var(--font-size-h1);
+  }
+
+  .header-tagline {
+    font-size: var(--font-size-small);
+  }
+
+  .header-attribution {
+    display: none;
   }
 
   /* Let actions wrap onto a second line rather than clipping — overflow:hidden

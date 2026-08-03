@@ -2,10 +2,16 @@
  * Shared result screen components — used by Part1Results and Part2Results.
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
-import React, { useState } from 'react';
-import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon } from 'lucide-react';
+import { useDoctorMode } from '../../context/DoctorModeContext.jsx';
 
 // ─── Collapsible Section ──────────────────────────────────────────────────────
+// `advanced` marks a section as clinician-oriented content (guideline statements,
+// model internals, validation detail) — when Doctor Mode is on, these auto-expand
+// so a clinician doesn't have to click through every disclosure individually.
+// Sections that aren't clinician-specific (e.g. "Find a Urologist") should leave
+// `advanced` false so Doctor Mode doesn't force-open things patients still want closed.
 export const CollapsibleSection = ({
   title,
   children,
@@ -13,8 +19,13 @@ export const CollapsibleSection = ({
   id,
   highlight = false,
   className = '',
+  advanced = false,
 }) => {
-  const [open, setOpen] = useState(defaultOpen);
+  const { doctorMode } = useDoctorMode();
+  const [open, setOpen] = useState(defaultOpen || (advanced && doctorMode));
+  useEffect(() => {
+    if (advanced && doctorMode) setOpen(true);
+  }, [advanced, doctorMode]);
   return (
     <div
       id={id}
@@ -48,7 +59,11 @@ export const ClinicalDetail = ({
   defaultOpen = false,
   className = '',
 }) => {
-  const [open, setOpen] = useState(defaultOpen);
+  const { doctorMode } = useDoctorMode();
+  const [open, setOpen] = useState(defaultOpen || doctorMode);
+  useEffect(() => {
+    if (doctorMode) setOpen(true);
+  }, [doctorMode]);
   return (
     <div className={`clinical-detail${className ? ` ${className}` : ''}`}>
       <button
@@ -174,6 +189,154 @@ export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
   );
 };
 
+// ─── SDM Timeline ──────────────────────────────────────────────────────────
+// Static 4-step visual reinforcing that ePSA feeds a conversation, not a verdict.
+const SDM_TIMELINE_STEPS = ['Questionnaire', 'ePSA Assessment', 'Shared Decision-Making', 'Personalized Care Plan'];
+
+const SdmTimeline = () => (
+  <div
+    aria-hidden="true"
+    style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px', margin: '4px 0 14px', fontSize: 'var(--font-size-caption, 12px)' }}
+  >
+    {SDM_TIMELINE_STEPS.map((step, i) => (
+      <React.Fragment key={step}>
+        <span
+          style={{
+            padding: '4px 10px',
+            borderRadius: '999px',
+            fontWeight: step === 'Shared Decision-Making' ? 700 : 500,
+            color: step === 'Shared Decision-Making' ? '#fff' : 'var(--ink-700, #374151)',
+            background: step === 'Shared Decision-Making' ? 'var(--brand-700, #1d3a59)' : 'var(--ink-50, #f3f4f6)',
+            border: step === 'Shared Decision-Making' ? 'none' : '1px solid var(--ink-200, #e5e7eb)',
+          }}
+        >
+          {step}
+        </span>
+        {i < SDM_TIMELINE_STEPS.length - 1 && <ArrowRightIcon size={12} aria-hidden="true" style={{ color: 'var(--ink-400, #9ca3af)', flexShrink: 0 }} />}
+      </React.Fragment>
+    ))}
+  </div>
+);
+
+// ─── Ask-Your-Doctor question bank ────────────────────────────────────────
+const ASK_YOUR_DOCTOR_QUESTIONS = [
+  'What does my ePSA assessment mean for me?',
+  'Should I repeat my PSA test?',
+  'Would an MRI provide additional information?',
+  'Do I need to see a urologist?',
+  'What are the benefits and risks of a biopsy?',
+  'How do my family history and other risk factors influence my care?',
+];
+
+/**
+ * SdmCard — the dedicated, prominent "Shared Decision-Making" card. Placed
+ * directly below the Overall Assessment card on every results screen
+ * (Part1/2/3Results.jsx), reinforcing that ePSA informs a conversation with a
+ * clinician rather than making the decision itself. Wraps the existing
+ * patient-customized `SdmConversationGuide` (SHARE steps) as an optional
+ * "Prepare for your visit" sub-section so that content isn't duplicated.
+ *
+ * @param {string} stageNote - one-line, stage-specific framing, e.g.
+ *   "Discuss whether PSA screening is appropriate." (Pre-PSA),
+ *   "Review your PSA result together with your clinician." (PSA),
+ *   "Discuss MRI findings and whether a biopsy is appropriate." (MRI)
+ * @param {object|null} sdmGuide - result?.sdmGuide from the engine, same prop
+ *   already passed to SdmConversationGuide elsewhere.
+ */
+export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div
+      role="region"
+      aria-label="Shared decision-making"
+      style={{
+        background: '#fff',
+        border: '1px solid var(--ink-200, #e5e7eb)',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        boxShadow: 'var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.04))',
+        margin: '0.875rem 0',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <StethoscopeIcon size={18} aria-hidden="true" style={{ color: 'var(--brand-700, #1d3a59)', flexShrink: 0 }} />
+        <span style={{ fontWeight: 'var(--font-weight-heading, 700)', fontSize: 'var(--font-size-body, 1rem)', color: 'var(--ink-900, #111827)' }}>
+          Shared Decision-Making
+        </span>
+        <span style={{ flex: '1 1 auto', minWidth: '180px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-700, #374151)' }}>
+          {stageNote || 'Review these results with your physician before deciding on further testing.'}
+        </span>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+            background: 'none', border: '1px solid var(--brand-700, #1d3a59)', borderRadius: '999px',
+            padding: '4px 12px', fontSize: 'var(--font-size-caption, 0.75rem)', fontWeight: 700,
+            color: 'var(--brand-700, #1d3a59)', cursor: 'pointer',
+          }}
+        >
+          {expanded ? 'Hide' : 'View'} SDM Guide {expanded ? <ChevronUpIcon size={12} aria-hidden="true" /> : <ChevronDownIcon size={12} aria-hidden="true" />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--ink-100, #f3f4f6)' }}>
+          <SdmTimeline />
+
+          <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-700, #374151)', lineHeight: 1.6 }}>
+            Your ePSA assessment is designed to support — not replace — a conversation with your healthcare team. Together, you can discuss:
+          </p>
+          <ul style={{ margin: '0 0 12px', paddingLeft: '20px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-700, #374151)', lineHeight: 1.7 }}>
+            <li>Your personal risk factors</li>
+            <li>Benefits and potential harms of additional testing</li>
+            <li>Your values and preferences</li>
+            <li>Whether repeat PSA testing, MRI, or biopsy is appropriate</li>
+          </ul>
+
+          <div style={{ background: 'var(--ink-50, #f9fafb)', border: '1px solid var(--ink-200, #e5e7eb)', borderRadius: '8px', padding: '12px 14px', margin: '0 0 12px' }}>
+            <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--ink-500, #6b7280)', marginBottom: '4px' }}>
+              Recommended next step
+            </div>
+            <p style={{ margin: 0, fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800, #1f2937)' }}>
+              Schedule an appointment with a board-certified urologist or your primary care physician to review your results.
+            </p>
+          </div>
+
+          {/* Dr. Tewari's message is shown once per session (Pre-PSA card only) — see showFullGuide callers. */}
+          {showFullGuide && (
+            <div style={{ borderLeft: '3px solid var(--brand-700, #1d3a59)', background: 'var(--brand-50, #eff6ff)', borderRadius: '0 8px 8px 0', padding: '10px 14px', margin: '0 0 12px' }}>
+              <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', fontWeight: 700, color: 'var(--brand-700, #1d3a59)', marginBottom: '3px' }}>
+                Message from Dr. Ashutosh K. Tewari
+              </div>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800, #1f2937)', fontStyle: 'italic', lineHeight: 1.55 }}>
+                "ePSA is intended to support informed conversations between patients and clinicians. Screening and treatment decisions should always reflect the complete clinical picture together with the patient's preferences and values."
+              </p>
+            </div>
+          )}
+
+          {sdmGuide && (
+            <div style={{ marginBottom: '12px' }}>
+              <SdmConversationGuide sdmGuide={sdmGuide} />
+            </div>
+          )}
+
+          <CollapsibleSection title="Questions to ask your physician" className="sdm-card__ask-doctor">
+            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-700, #374151)', lineHeight: 1.8 }}>
+              {ASK_YOUR_DOCTOR_QUESTIONS.map((q) => <li key={q}>{q}</li>)}
+            </ul>
+          </CollapsibleSection>
+
+          <p style={{ margin: '12px 0 0', fontSize: 'var(--font-size-caption, 0.75rem)', color: 'var(--ink-500, #6b7280)', lineHeight: 1.6 }}>
+            <strong>Clinical Practice Note:</strong> Shared decision-making is a core recommendation of the AUA/SUO, NCCN, and EAU prostate cancer screening guidelines. Screening decisions should be individualized based on clinical findings, patient preferences, and discussion with a qualified healthcare professional.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Guideline Support Badge ──────────────────────────────────────────────────
 const GUIDELINE_LABELS = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
 
@@ -254,5 +417,130 @@ export const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => 
         </span>
       )}
     </span>
+  );
+};
+
+// ─── Disclaimer Teaser ─────────────────────────────────────────────────────
+// One-line "Important" summary always visible + the full legal/IRB disclaimer
+// content (passed as children, unchanged) tucked behind "View Full Disclaimer".
+export const DisclaimerTeaser = ({ children }) => (
+  <div style={{ margin: '0.875rem 0' }}>
+    <div
+      role="note"
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: '8px',
+        background: 'var(--ink-50, #f9fafb)', border: '1px solid var(--ink-200, #e5e7eb)',
+        borderRadius: '10px', padding: '10px 14px', marginBottom: '6px',
+      }}
+    >
+      <InfoIcon size={15} aria-hidden="true" style={{ color: 'var(--ink-500, #6b7280)', flexShrink: 0, marginTop: '2px' }} />
+      <p style={{ margin: 0, fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-700, #374151)', lineHeight: 1.5 }}>
+        <strong style={{ color: 'var(--ink-900, #111827)' }}>Important — </strong>
+        ePSA is an educational decision support tool. It does not replace clinical judgment.
+      </p>
+    </div>
+    <CollapsibleSection title="View Full Disclaimer" defaultOpen={false}>
+      {children}
+    </CollapsibleSection>
+  </div>
+);
+
+// ─── Model Confidence Badge ────────────────────────────────────────────────
+export const ModelConfidenceBadge = ({ level = 'High', cohortNote = 'Validated on Mount Sinai registry', guidelinesNote = 'Supported by AUA, NCCN, EAU guidance' }) => {
+  const colour = level === 'High' ? '#166534' : level === 'Moderate' ? '#92400e' : '#991b1b';
+  const bg = level === 'High' ? '#f0fdf4' : level === 'Moderate' ? '#fffbeb' : '#fef2f2';
+  const border = level === 'High' ? '#86efac' : level === 'Moderate' ? '#fcd34d' : '#fca5a5';
+  return (
+    <div
+      role="note"
+      aria-label={`Model confidence: ${level}`}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        background: bg, border: `1px solid ${border}`, borderRadius: '10px',
+        padding: '10px 14px', margin: '0.75rem 0',
+      }}
+    >
+      <ShieldCheckIcon size={18} aria-hidden="true" style={{ color: colour, flexShrink: 0 }} />
+      <div>
+        <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colour }}>
+          Model Confidence — {level}
+        </div>
+        <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', color: 'var(--ink-600, #4b5563)', marginTop: '1px' }}>
+          {cohortNote} · {guidelinesNote}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── "Why?" Impact Bars ────────────────────────────────────────────────────
+// Graphical alternative to a plain bullet list of risk-driver names — each
+// factor gets a labeled horizontal bar sized by its impact tier.
+const IMPACT_TIER_WIDTH = { high: '100%', medium: '65%', low: '35%', none: '6%' };
+const IMPACT_TIER_LABEL = { high: 'High', medium: 'Medium', low: 'Low', none: '—' };
+
+export const WhyImpactBars = ({ items = [] }) => (
+  <div role="list" aria-label="Risk factors and their impact" style={{ display: 'grid', gap: '8px' }}>
+    {items.map(({ label, impact = 'low' }) => (
+      <div key={label} role="listitem" style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 40%) 1fr auto', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800, #1f2937)', fontWeight: 500 }}>{label}</span>
+        <span style={{ background: 'var(--ink-100, #f3f4f6)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+          <span
+            style={{
+              display: 'block', height: '100%', borderRadius: '999px', width: IMPACT_TIER_WIDTH[impact],
+              background: impact === 'high' ? 'var(--brand-700, #1d3a59)' : impact === 'medium' ? 'var(--brand-500, #3b6591)' : impact === 'low' ? 'var(--brand-300, #93b4d6)' : 'transparent',
+            }}
+          />
+        </span>
+        <span style={{ fontSize: 'var(--font-size-caption, 0.75rem)', color: 'var(--ink-500, #6b7280)', fontWeight: 600, minWidth: '3.5em', textAlign: 'right' }}>
+          {IMPACT_TIER_LABEL[impact]}
+        </span>
+      </div>
+    ))}
+  </div>
+);
+
+// ─── More Actions Menu ─────────────────────────────────────────────────────
+// Overflow menu for secondary actions (Export JSON/CSV, extra PDF variants,
+// Start Over, etc.) so the primary action row only ever shows Continue /
+// Print Summary / Edit Answers, per the "too many buttons" feedback.
+export const MoreActionsMenu = ({ children, label = 'More actions' }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '4px',
+          background: '#fff', border: '1px solid var(--ink-300, #d1d5db)', borderRadius: '999px',
+          padding: '0.6rem 1rem', fontSize: 'var(--font-size-small, 0.875rem)', fontWeight: 600,
+          color: 'var(--ink-700, #374151)', cursor: 'pointer',
+        }}
+      >
+        <MoreHorizontalIcon size={16} aria-hidden="true" />
+        <span>{label}</span>
+      </button>
+      {open && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
+          <div
+            role="menu"
+            style={{
+              position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
+              background: '#fff', border: '1px solid var(--ink-200, #e5e7eb)', borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '8px', minWidth: '220px',
+              display: 'grid', gap: '2px',
+            }}
+            onClick={() => setOpen(false)}
+          >
+            {children}
+          </div>
+        </>
+      )}
+    </div>
   );
 };

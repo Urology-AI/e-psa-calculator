@@ -342,6 +342,72 @@
   text-decoration-color: currentColor;
 }
 
+.welcome-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1.5rem;
+  margin: 1.25rem auto 0;
+  padding: 0;
+  max-width: 640px;
+}
+
+.welcome-clinical-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--ms-gray-300, #d1d5db);
+}
+
+.welcome-clinical-tools__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ms-gray-400, #9ca3af);
+}
+
+.theme-dark .welcome-clinical-tools { border-left-color: var(--ink-700, #374151); }
+
+.ws-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1.5px solid var(--brand-700, #1d3a59);
+  color: var(--brand-700, #1d3a59);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+}
+
+.ws-btn-pill:hover {
+  background: var(--brand-700, #1d3a59);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(29, 58, 89, 0.18);
+}
+
+.ws-btn-pill--quiet {
+  border-color: var(--ms-gray-300, #d1d5db);
+  color: var(--ms-gray-600, #4b5563);
+}
+
+.ws-btn-pill--quiet:hover {
+  background: var(--ms-gray-600, #4b5563);
+  border-color: var(--ms-gray-600, #4b5563);
+  color: #fff;
+}
+
+.theme-dark .ws-btn-pill { background: transparent; border-color: var(--ms-cyan); color: var(--ms-cyan); }
+.theme-dark .ws-btn-pill:hover { background: var(--ms-cyan); color: var(--ms-navy, #0f2942); }
+.theme-dark .ws-btn-pill--quiet { border-color: var(--ink-600, #4b5563); color: var(--ink-300, #d1d5db); }
+.theme-dark .ws-btn-pill--quiet:hover { background: var(--ink-600, #4b5563); color: #fff; }
+
 /* ── Responsive ── */
 @media (max-width: 560px) {
   .ws-hero-card-head { padding: 1.125rem 1.25rem 1rem; }

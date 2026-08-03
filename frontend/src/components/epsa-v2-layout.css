@@ -174,6 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.75rem;
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1005,3 +1007,152 @@
 .theme-dark .v2-ari-arrow { color: #fbbf24; }
 .theme-dark .v2-ari-notice-text { color: #fde68a; }
 .theme-dark .v2-ari-notice-note { color: #fcd34d; }
+
+/* ── Desktop assessment sidebar (Epic/Cerner-style step rail) ──
+   Hidden entirely below 1180px — mobile/tablet keep the existing top stepper
+   and results-container centering untouched. Purely additive: results screens
+   render <AssessmentSidebar/> as a sibling before .results-container and add
+   the --with-sidebar modifier class, both no-ops under the breakpoint. */
+.assessment-sidebar { display: none; }
+
+@media (min-width: 1180px) {
+  .assessment-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: fixed;
+    top: 132px;
+    left: max(24px, calc(50% - 620px));
+    width: 232px;
+    max-height: calc(100vh - 156px);
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+    background: #fff;
+    border: 1px solid var(--ink-200, #e5e7eb);
+    border-radius: 14px;
+    box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.04));
+    z-index: 5;
+  }
+
+  /* !important: this file's load order relative to Part1/2/3Results.css is not
+     consistent across the three screens (each imports them in a different order,
+     and Quick Entry mounts all three at once), so a plain-specificity override
+     can silently lose the cascade depending on which screen mounted first.
+     Margin/max-width here must always win over the base .results-container
+     centering rule when this modifier class is present. */
+  .results-container--with-sidebar {
+    margin-left: 264px !important;
+    max-width: calc(1240px - 264px) !important;
+  }
+
+  /* Quick Entry (Clinician View) stacks all three result sections inside its
+     own 900px-max-width reading column (.qe-results-wrapper, QuickEntry.css) —
+     too narrow to also fit a 232px sidebar without cramping the content down
+     to ~600px. Widen that wrapper only when it actually contains sidebar-aware
+     content, so the normal (non-stacked) step-by-step flow is untouched. */
+  .qe-results-wrapper:has(.results-container--with-sidebar) {
+    max-width: 1240px !important;
+  }
+}
+
+.assessment-sidebar__steps { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.assessment-sidebar__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  opacity: 0.55;
+}
+
+.assessment-sidebar__step--done,
+.assessment-sidebar__step--active { opacity: 1; }
+
+.assessment-sidebar__step-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink-300, #d1d5db);
+  color: var(--ink-500, #6b7280);
+  margin-top: 1px;
+}
+
+.assessment-sidebar__step--done .assessment-sidebar__step-marker {
+  background: var(--brand-700, #1d3a59);
+  border-color: var(--brand-700, #1d3a59);
+  color: #fff;
+}
+
+.assessment-sidebar__step--active .assessment-sidebar__step-marker {
+  border-color: var(--brand-700, #1d3a59);
+  color: var(--brand-700, #1d3a59);
+}
+
+.assessment-sidebar__step-text { display: flex; flex-direction: column; gap: 1px; }
+
+.assessment-sidebar__step-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-500, #6b7280);
+}
+
+.assessment-sidebar__step--active .assessment-sidebar__step-label { color: var(--brand-700, #1d3a59); }
+
+.assessment-sidebar__step-question {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-800, #1f2937);
+  line-height: 1.3;
+}
+
+.assessment-sidebar__risk {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--ink-100, #f3f4f6);
+  border-bottom: 1px solid var(--ink-100, #f3f4f6);
+}
+
+.assessment-sidebar__risk-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-500, #6b7280);
+}
+
+.assessment-sidebar__risk-value { font-size: 1.0625rem; font-weight: 800; }
+
+.assessment-sidebar__actions { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.assessment-sidebar__action {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: 1px solid var(--ink-200, #e5e7eb);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-700, #374151);
+  cursor: pointer;
+  transition: background 0.13s;
+}
+
+.assessment-sidebar__action:hover { background: var(--ink-50, #f9fafb); }
+
+.theme-dark .assessment-sidebar {
+  background: var(--ink-900, #111827);
+  border-color: var(--ink-700, #374151);
+}
+.theme-dark .assessment-sidebar__step-question { color: var(--ink-200, #e5e7eb); }
+.theme-dark .assessment-sidebar__action { border-color: var(--ink-600, #4b5563); color: var(--ink-200, #e5e7eb); }
+.theme-dark .assessment-sidebar__action:hover { background: var(--ink-800, #1f2937); }
+.theme-dark .assessment-sidebar__risk { border-color: var(--ink-700, #374151); }
