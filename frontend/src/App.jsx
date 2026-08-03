@@ -9,8 +9,11 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon, InfoIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
+import AboutEpsaModal from './components/AboutEpsaModal.jsx';
+import { DoctorModeProvider } from './context/DoctorModeContext.jsx';
+import DoctorModeToggle from './components/DoctorModeToggle.jsx';
 import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
 import LegalHub from './components/legal/LegalHub.jsx';
 import LegalDocPage from './components/legal/LegalDocPage.jsx';
@@ -62,9 +65,7 @@ import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
 import BackButton from './components/BackButton.jsx';
 import JourneyProgress from './components/JourneyProgress.jsx';
-import LanguageSwitcher from './components/LanguageSwitcher.jsx';
-import ThemeSwitcher from './components/ThemeSwitcher.jsx';
-import TextScaleControl from './components/TextScaleControl.jsx';
+import HeaderSettingsMenu from './components/HeaderSettingsMenu.jsx';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp, Timestamp, deleteField } from 'firebase/firestore';
 import { getCalculatorConfig } from './utils/dynamicCalculator';
 import { computeSessionResults } from './services/psaEngineService';
@@ -113,6 +114,7 @@ function App() {
   const [storageMode, setStorageMode] = useState('cloud'); // 'cloud' | 'local'
   const [showModelDocs, setShowModelDocs] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [showAboutEpsa, setShowAboutEpsa] = useState(false);
   const [showSaveToCloudConsent, setShowSaveToCloudConsent] = useState(false);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
@@ -1758,6 +1760,28 @@ function App() {
               }}
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
             />
+            <div className="welcome-secondary-actions">
+              <button
+                type="button"
+                className="ws-btn-pill"
+                onClick={() => setAuthStep('import')}
+              >
+                <UploadIcon size={14} />
+                <span>Import Previous Session</span>
+              </button>
+              <div className="welcome-clinical-tools">
+                <span className="welcome-clinical-tools__label">For clinicians &amp; researchers</span>
+                <button
+                  type="button"
+                  className="ws-btn-pill ws-btn-pill--quiet"
+                  onClick={() => setShowQuickEntry(true)}
+                  title="Shows all pathway stages on one page with full clinical detail — enter values directly instead of the step-by-step patient flow."
+                >
+                  <ZapIcon size={14} />
+                  <span>Clinician View</span>
+                </button>
+              </div>
+            </div>
           </>
         );
       case 'import':
@@ -2009,32 +2033,15 @@ function App() {
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
           <div className="header-brand">
-            <span className="header-product-name">ePSA</span>
+            <div className="header-brand-text">
+              <span className="header-product-name">ePSA<span className="header-product-name-tm">™</span></span>
+              <span className="header-tagline">Early Prostate Screening Assessment</span>
+              <span className="header-attribution">Educational Decision Support · Developed by Tewari Lab, Icahn School of Medicine at Mount Sinai</span>
+            </div>
           </div>
           <div className="header-actions">
-            <TextScaleControl />
-            <ThemeSwitcher />
-            <LanguageSwitcher />
-            {authStep !== 'app' && authStep !== 'import' && (
-              <button
-                type="button"
-                className="ws-btn-text header-import-btn"
-                onClick={() => setAuthStep('import')}
-              >
-                <UploadIcon size={13} />
-                <span>Import Previous Session</span>
-              </button>
-            )}
-            {!showQuickEntry && (
-              <button
-                type="button"
-                className="ws-btn-text header-import-btn"
-                onClick={() => setShowQuickEntry(true)}
-              >
-                <ZapIcon size={13} />
-                <span>Quick Entry (Demo)</span>
-              </button>
-            )}
+            {(showQuickEntry || authStep === 'app') && <DoctorModeToggle />}
+            <HeaderSettingsMenu />
             {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
               <button
                 type="button"
@@ -2369,6 +2376,9 @@ function App() {
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
+      {showAboutEpsa && (
+        <AboutEpsaModal onClose={() => setShowAboutEpsa(false)} />
+      )}
       {showSaveToCloudConsent && (
         <SaveToCloudConsentModal
           onCancel={() => setShowSaveToCloudConsent(false)}
@@ -2380,6 +2390,10 @@ function App() {
       )}
       <footer className="app-footer">
         <div className="footer-links">
+          <button className="btn-footer-link" onClick={() => setShowAboutEpsa(true)}>
+            <InfoIcon size={13} aria-hidden="true" />
+            <span>About ePSA</span>
+          </button>
           <button className="btn-footer-link" onClick={() => setShowModelDocs(true)}>
             <BookIcon size={13} aria-hidden="true" />
             <span>{t('app.footer.modelDocs')}</span>
@@ -2416,4 +2430,10 @@ function App() {
   );
 }
 
-export default App;
+const AppWithProviders = () => (
+  <DoctorModeProvider>
+    <App />
+  </DoctorModeProvider>
+);
+
+export default AppWithProviders;

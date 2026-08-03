@@ -1183,8 +1183,8 @@
     }
   },
   "quickEntry": {
-    "title": "Quick Entry",
-    "subtitle": "Only Age and Race are required — everything else has a sensible default you can adjust.",
+    "title": "Clinician View",
+    "subtitle": "Enter values directly and see every pathway stage on one page. Only Age and Race are required — everything else has a sensible default you can adjust.",
     "exit": "Exit",
     "requiredLegend": "Required",
     "scoreModifiers": "Score modifiers",

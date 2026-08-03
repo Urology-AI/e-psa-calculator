@@ -4,9 +4,11 @@ import './Part2Form.css';
 import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
+import './Part2Results.css';
 import RiskGauge from './RiskGauge';
-import { CollapsibleSection, GuardrailBanner, SdmConversationGuide } from './shared/ResultsShared.jsx';
-import { AlertTriangleIcon } from 'lucide-react';
+import { CollapsibleSection, GuardrailBanner, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars } from './shared/ResultsShared.jsx';
+import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
+import { AlertTriangleIcon, BarChart2Icon, FlaskConicalIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
 
 /* ─── PSA context colors (labels resolved via i18n) ─── */
@@ -42,6 +44,33 @@ const PRS_LABEL = {
 
 const scoreSuffix = (score) => (score ? ` (score: ${score})` : '');
 
+/* ─── Compact "⚠ Clinical Notice: <short text> — Learn More" line, expandable ───
+   NOTE: this is a local, screen-specific pattern for now — if Part1/Part3 grow a
+   similar need, promote it to shared/ResultsShared.jsx. */
+const ClinicalNoticeLine = ({ label, short, detail }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <div className="p2r-notice-line">
+        <span>
+          <AlertTriangleIcon size={12} style={{ color: 'var(--warning-600)', verticalAlign: '-2px', marginRight: '4px' }} aria-hidden="true" />
+          <strong style={{ color: 'var(--warning-700, var(--warning-600))' }}>{label}: </strong>
+          {short}
+        </span>
+        <button
+          type="button"
+          className="p2r-notice-learn-more"
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+        >
+          {open ? 'Hide' : 'Learn More'}
+        </button>
+      </div>
+      {open && <div className="p2r-notice-detail">{detail}</div>}
+    </div>
+  );
+};
+
 const BiomarkerContextSection = ({ formData }) => {
   if (!formData) return null;
   const items = [];
@@ -67,36 +96,58 @@ const BiomarkerContextSection = ({ formData }) => {
   if (items.length === 0) return null;
 
   return (
-    <div
-      role="region"
-      aria-label="Biomarker context"
-      style={{
-        margin: '1rem 0',
-        padding: '1rem 1.125rem',
-        background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
-        border: '1.5px solid #c7d2fe',
-        borderLeft: '4px solid #6366F1',
-        borderRadius: '10px',
-      }}
+    <CollapsibleSection
+      title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><FlaskConicalIcon size={16} aria-hidden="true" />Biomarker Context ({items.length})</span>}
+      defaultOpen={false}
+      className="p2r-biomarker-collapsible"
     >
-      <h4 style={{ margin: '0 0 4px', fontSize: '0.9375rem', fontWeight: 700, color: '#312e81' }}>Biomarker Context</h4>
-      <p style={{ margin: '0 0 12px', fontSize: '0.8125rem', color: '#4338ca', lineHeight: 1.5 }}>
-        Additional test results you reported, shown alongside your ePSA score for clinical context.
-      </p>
-      <div style={{ display: 'grid', gap: '8px' }}>
-        {items.map((item, idx) => (
-          <div key={idx} style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid #e0e7ff', borderRadius: '8px', padding: '10px 12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', fontSize: '0.8125rem' }}>
-              <strong style={{ color: '#312e81' }}>{item.name}</strong>
-              <span style={{ fontWeight: 700, color: '#4338ca' }}>{item.value}</span>
+      <div role="region" aria-label="Biomarker context">
+        <p className="p2r-biomarker-intro">
+          Additional test results you reported, shown alongside your ePSA score for clinical context.
+        </p>
+        <div className="p2r-biomarker-list">
+          {items.map((item, idx) => (
+            <div key={idx} className="p2r-biomarker-item">
+              <div className="p2r-biomarker-item-row">
+                <strong>{item.name}</strong>
+                <span className="p2r-biomarker-item-value">{item.value}</span>
+              </div>
+              <p className="p2r-biomarker-item-note">{item.note}</p>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#4b5563', lineHeight: 1.5 }}>{item.note}</p>
-          </div>
-        ))}
+          ))}
+        </div>
+        <p className="p2r-biomarker-footnote">
+          These results are displayed for clinical context. The ePSA multimodal model incorporating all biomarker inputs is in active development.
+        </p>
       </div>
-      <p style={{ margin: '12px 0 0', fontSize: '0.75rem', color: '#4338ca', fontStyle: 'italic', lineHeight: 1.5 }}>
-        These results are displayed for clinical context. The ePSA multimodal model incorporating all biomarker inputs is in active development.
-      </p>
+    </CollapsibleSection>
+  );
+};
+
+/* ─── Terse one-liner + optional "Learn more" expand, replacing the two
+   full paragraphs that used to sit inline on this screen. ─── */
+const PsaSpecificityCallout = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div role="note" className="p2r-callout">
+      <div className="p2r-callout-header">
+        <span className="p2r-callout-label">Clinical Insight</span>
+        <p className="p2r-callout-text">PSA alone has limited specificity — an MRI adds much more clarity.</p>
+        <button
+          type="button"
+          className="p2r-notice-learn-more"
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+        >
+          {open ? 'Hide' : 'Learn more'}
+        </button>
+      </div>
+      {open && (
+        <div className="p2r-callout-detail">
+          <p>Adding an MRI PI-RADS score lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.</p>
+          <p>Up to 25–40% of elevated PSA values normalise on repeat testing. If this PSA hasn't been confirmed, discuss a repeat test with your clinician before further workup (AUA/SUO 2026, Statement 3).</p>
+        </div>
+      )}
     </div>
   );
 };
@@ -162,20 +213,72 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
     color: PSA_TIER_COLORS[psaTierLower] || PSA_TIER_COLORS['intermediate-high'],
   };
 
+  /* ─── Recommended next step (derived from tier — mirrors the "Consult a urologist"
+       style callout in the redesign brief) ─── */
+  const recommendedNextStep = isVeryHighRisk || epsaTierKey === 'high'
+    ? 'Consult a urologist'
+    : epsaTierKey === 'intermediate-high'
+    ? 'Discuss an MRI with your physician'
+    : epsaTierKey === 'intermediate-low'
+    ? 'Follow up with your physician'
+    : 'Continue routine screening';
+
+  /* ─── "What happens next?" — short, tailored list derived from this patient's
+       actual tier/guardrails, not a fixed four-item checklist. ─── */
+  const nextStepItems = [];
+  if (priorPsa != null && rescreeningIntervalMessage) {
+    nextStepItems.push('Repeat PSA per your re-screening interval');
+  } else if (epsaTierKey === 'intermediate-low' || epsaTierKey === 'low') {
+    nextStepItems.push('Repeat PSA at your next routine screening');
+  }
+  if (isVeryHighRisk || epsaTierKey === 'high' || epsaTierKey === 'intermediate-high') {
+    nextStepItems.push('Discuss an MRI with your physician');
+  }
+  if (isVeryHighRisk || epsaTierKey === 'high') {
+    nextStepItems.push('Referral to a urologist');
+  }
+  nextStepItems.push('Talk through your options with your clinician — see below');
+  if (nextStepItems.length === 0) nextStepItems.push('Continue routine screening');
+
+  /* ─── "Why?" reasons behind the overall risk — short, patient-facing bullets,
+       each tagged with an impact tier for the graphical WhyImpactBars display ─── */
+  const whyReasons = [];
+  if (psaForThreshold >= auaAgeThreshold) whyReasons.push({ label: 'PSA above age-adjusted threshold', impact: 'high' });
+  if (preResult?.familyHistory === 1 || preResult?.familyHistory === '1' || preResult?.familyHistory === true) {
+    whyReasons.push({ label: 'Family history', impact: 'medium' });
+  }
+  if (postData?.polygenicrisk && postData.polygenicrisk !== 'not_tested' &&
+      (postData.polygenicrisk === 'above_average' || postData.polygenicrisk === 'high')) {
+    whyReasons.push({ label: 'Genetics (elevated polygenic risk score)', impact: 'medium' });
+  }
+  if (discordanceFlag) whyReasons.push({ label: 'Risk discordance between pre-PSA and PSA stages', impact: 'high' });
+  if (lowPsaWarning) whyReasons.push({ label: 'Low-PSA risk pattern', impact: 'low' });
+  if (whyReasons.length === 0) whyReasons.push({ label: psaTierCtx.detail, impact: 'low' });
+
   return (
-    <div className="part2-form-container">
+    <>
+      <AssessmentSidebar currentStepKey="psa" riskLabel={cleanRiskCat} riskColor={riskColor} onPrint={() => window.print()} />
+      <div className="part2-form-container results-container--with-sidebar">
       <div className="risk-summary-card res-reveal" role="region" aria-label="PSA and biomarker risk assessment result">
         <div className="v2-res-eyebrow">
-          <span>ePSA Score · PSA Result</span>
+          <span>PSA Results</span>
           <span>Assessed today</span>
         </div>
 
+        {/* ── PSA value first: the product owner wants the number, not the tier
+             badge, to be the first/largest thing patients see on this screen. ── */}
+        <div className="p2r-psa-hero">
+          <div className="p2r-psa-hero-value" style={{ color: psaTierCtx.color }}>
+            {psaAdjustedFlag ? psaAdjusted : psaValue}
+            <span className="p2r-psa-hero-unit"> ng/mL</span>
+          </div>
+          <div className="p2r-psa-hero-context" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
+        </div>
+
+        {/* Gauge is the single visual representation of the risk tier for this step —
+            the tier name itself is shown once, in the "Overall Assessment" row below. */}
         <div className="v2-gauge-layout">
           <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
-          <div className="v2-tier-info">
-            <div className="v2-tier-label">ePSA Risk Tier</div>
-            <h2 className="v2-tier-title res-tier-pop" style={{ color: riskColor }}>{cleanRiskCat}</h2>
-          </div>
         </div>
 
         {preResult?.epsaTierLabel && (
@@ -186,7 +289,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
             </div>
             <span className="tier-journey-arrow" aria-hidden="true">→</span>
             <div className="tier-journey-step tier-journey-step--to">
-              <span className="tier-journey-label">ePSA Score</span>
+              <span className="tier-journey-label">PSA Results</span>
               <span className="tier-journey-tier" style={{ color: riskColor }}>{cleanRiskCat}</span>
             </div>
           </div>
@@ -202,14 +305,14 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
             <div className="p2r-key-input-tier" style={{ color: psaTierCtx.color }}>{psaTierCtx.label}</div>
             <div className="p2r-key-input-detail">{psaTierCtx.detail}</div>
             {ageNum >= 40 && (
-              <div style={{ marginTop: '8px', fontSize: '11px', background: '#f8fafc', border: '0.5px solid #cbd5e1', borderRadius: '6px', padding: '6px 8px', lineHeight: 1.6 }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: '2px' }}>AUA/SUO 2026 Age-Adjusted Threshold</div>
-                <div style={{ color: '#334155' }}>
+              <div className="p2r-aua-box">
+                <div className="p2r-aua-box-title">AUA/SUO 2026 Age-Adjusted Threshold</div>
+                <div className="p2r-aua-box-body">
                   Age {auaAgeLabel}: <strong>{auaAgeThreshold} ng/mL</strong>
                   {' · '}
                   {psaForThreshold >= auaAgeThreshold
-                    ? <span style={{ color: '#b45309', fontWeight: 600 }}>Your PSA exceeds this threshold</span>
-                    : <span style={{ color: '#15803d', fontWeight: 600 }}>Your PSA is below this threshold</span>}
+                    ? <span className="p2r-aua-flag p2r-aua-flag--warn">Your PSA exceeds this threshold</span>
+                    : <span className="p2r-aua-flag p2r-aua-flag--ok">Your PSA is below this threshold</span>}
                 </div>
               </div>
             )}
@@ -226,17 +329,55 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
             </div>
           )}
         </div>
+
+        {/* ── Overall Assessment: risk tier framed as context beneath the PSA value,
+             with a short "Because" list pulled from the same data as the Why? section. ── */}
+        <div className="p2r-primary-row">
+          <span className="p2r-primary-row-label">Overall Assessment</span>
+          <span className="p2r-primary-row-value" style={{ color: riskColor }}>{cleanRiskCat}</span>
+        </div>
+        <div className="p2r-because">
+          <span className="p2r-because-label">Because:</span>
+          <ul className="p2r-because-list">
+            {whyReasons.map((reason, idx) => (
+              <li key={idx}>{reason.label}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* ── What happens next? — 2-4 items tailored to this patient's tier/guardrails. ── */}
+        <div className="p2r-next-steps">
+          <span className="p2r-primary-row-label">What happens next?</span>
+          <ul className="p2r-next-steps-list">
+            {nextStepItems.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </div>
       </div>
 
-      {/* ── Critical guardrail alerts (e.g. PSA > 100) ── */}
+      {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
+      <SdmCard stageNote="Review your PSA result together with your clinician." sdmGuide={result?.sdmGuide} />
+
+      {/* ── Why? — the single expandable reasoning section behind the headline result ── */}
+      <CollapsibleSection
+        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><BarChart2Icon size={16} aria-hidden="true" />Why?</span>}
+        defaultOpen={false}
+      >
+        <WhyImpactBars items={whyReasons} />
+      </CollapsibleSection>
+
+      {/* ── Model confidence — sits right after the Why? reasoning ── */}
+      <ModelConfidenceBadge />
+
+      {/* ── Critical guardrail alerts (e.g. PSA > 100) — always shown, never collapsed ── */}
       {guardrailAlerts?.length > 0 && guardrailAlerts
         .filter(a => a.level === 'critical')
         .map(alert => <GuardrailBanner key={alert.code} alert={alert} />)
       }
 
-      {/* ── Clinical Notices: one consolidated box for every non-critical, patient-specific
-           note (hormonal therapy, low PSA, discordance, re-screening interval, age 70+ SDM,
-           and any non-critical guardrail) instead of a separate card per item. ── */}
+      {/* ── Clinical Notices: compact "⚠ Clinical Notice: <short text> — Learn More" lines,
+           each independently expandable, instead of a bullet list of full sentences. ── */}
       {(() => {
         const nonCriticalGuardrails = (guardrailAlerts || []).filter(a => a.level !== 'critical');
         // Age 70+ SDM note is redundant with the LIFE_EXPECTANCY_GATE guardrail when both apply —
@@ -252,62 +393,56 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
               <AlertTriangleIcon size={13} className="p2r-notices-icon" />
               <span>Clinical Notices</span>
             </div>
-            <ul className="p2r-notices-list">
-              {isOtherHormonal && (
-                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>Hormonal Therapy: </strong>No validated PSA correction exists for this therapy. PSA used as reported — inform your physician.
-                </li>
-              )}
-              {lowPsaWarning && (
-                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>Low PSA Risk: </strong>{lowPsaWarningText}
-                </li>
-              )}
-              {discordanceFlag && (
-                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>Risk Discordance: </strong>{discordanceFlag.text}
-                </li>
-              )}
-              {priorPsa != null && rescreeningIntervalMessage && (
-                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>Re-Screening Interval </strong>(prior PSA {priorPsa} ng/mL): {rescreeningIntervalMessage}
-                </li>
-              )}
-              {showAge70Note && (
-                <li style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>Age 70+ — SDM Required: </strong>Per AUA/SUO 2026, PSA screening decisions at age 70+ require a physician-led conversation about life expectancy before acting on this result.
-                </li>
-              )}
-              {nonCriticalGuardrails.map(alert => (
-                <li key={alert.code} style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--warning-600)' }}>{alert.title}: </strong>{alert.message}
-                </li>
-              ))}
-            </ul>
+            {isOtherHormonal && (
+              <ClinicalNoticeLine
+                label="Hormonal Therapy"
+                short="No validated PSA correction for this therapy"
+                detail="No validated PSA correction exists for this therapy. PSA used as reported — inform your physician."
+              />
+            )}
+            {lowPsaWarning && (
+              <ClinicalNoticeLine label="Low PSA Risk" short={lowPsaWarningText} detail={lowPsaWarningText} />
+            )}
+            {discordanceFlag && (
+              <ClinicalNoticeLine
+                label="Risk Discordance"
+                short="Pre-PSA and PSA stage results diverge"
+                detail={discordanceFlag.text}
+              />
+            )}
+            {priorPsa != null && rescreeningIntervalMessage && (
+              <ClinicalNoticeLine
+                label="Re-Screening Interval"
+                short={`Prior PSA ${priorPsa} ng/mL`}
+                detail={rescreeningIntervalMessage}
+              />
+            )}
+            {showAge70Note && (
+              <ClinicalNoticeLine
+                label="Age 70+ — SDM Required"
+                short="Discuss life expectancy with your physician first"
+                detail="Per AUA/SUO 2026, PSA screening decisions at age 70+ require a physician-led conversation about life expectancy before acting on this result."
+              />
+            )}
+            {nonCriticalGuardrails.map(alert => (
+              <ClinicalNoticeLine key={alert.code} label={alert.title} short={alert.message} detail={alert.message} />
+            ))}
           </div>
         );
       })()}
 
-      {/* ── Shared Decision-Making Conversation Guide (AHRQ SHARE Approach) ── */}
-      <SdmConversationGuide sdmGuide={result?.sdmGuide} />
-
       <BiomarkerContextSection formData={postData} />
 
-      {/* ── Next-step guidance: one compact box instead of two ── */}
-      <div
-        role="note"
-        style={{ margin: '1rem 0', padding: '0.875rem 1rem', background: 'var(--brand-50)', border: '1px solid var(--brand-400)', borderLeft: '4px solid var(--brand-500)', borderRadius: '8px', fontSize: '0.8125rem', color: 'var(--brand-700)', lineHeight: 1.6 }}
-      >
-        <p style={{ margin: 0 }}>PSA alone has limited specificity. Adding an MRI PI-RADS score lets ePSA run the validated biopsy-prediction model, which combines PSA density and PI-RADS for a much more informative estimate.</p>
-        <p style={{ margin: '8px 0 0' }}>Up to 25–40% of elevated PSA values normalise on repeat testing. If this PSA hasn't been confirmed, discuss a repeat test with your clinician before further workup (AUA/SUO 2026, Statement 3).</p>
-      </div>
+      {/* ── Next-step guidance: one terse callout with an optional "Learn more" expand,
+           instead of two full paragraphs inline. ── */}
+      <PsaSpecificityCallout />
 
-      <CollapsibleSection title="Important Disclaimer" defaultOpen={false}>
-        <p style={{ fontSize: '13px', color: 'var(--ink-800)', lineHeight: 1.6 }}>
+      <DisclaimerTeaser>
+        <p className="p2r-disclaimer-text">
           ePSA is an educational tool, not a medical diagnosis. Results are based on population-level data aligned with AUA/SUO 2026 guideline thresholds. A higher tier means earlier follow-up is recommended — it does not mean you have cancer. Always confirm an elevated PSA with a repeat test before any biopsy, and speak with a physician before making any health decisions.
         </p>
-        <p style={{ fontSize: '11px', color: 'var(--ink-600)', fontStyle: 'italic' }}>— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
-      </CollapsibleSection>
+        <p className="p2r-disclaimer-attribution">— Ashutosh K. Tewari, MD, Icahn School of Medicine at Mount Sinai</p>
+      </DisclaimerTeaser>
 
       <div className="form-navigation">
         <div className="form-navigation-inner">
@@ -326,7 +461,8 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

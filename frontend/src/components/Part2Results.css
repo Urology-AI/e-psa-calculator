@@ -1,0 +1,316 @@
+/* Part2Results.css — scoped styles for the redesigned "Step 2: PSA Result" screen.
+   Only additive to the shared classes already used in the file (p2r-*, v2-*, etc.). */
+
+.p2r-primary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.p2r-primary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border-top: 1px solid var(--ink-100, #e5e7eb);
+}
+
+.p2r-primary-row:first-of-type {
+  border-top: none;
+  padding-top: 8px;
+}
+
+.p2r-primary-row-label {
+  font-size: var(--font-size-small, 0.875rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--ink-500, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.p2r-primary-row-value {
+  font-size: var(--font-size-h2, 1.25rem);
+  font-weight: var(--font-weight-heading, 700);
+  color: var(--ink-900, #111827);
+  text-align: right;
+}
+
+.p2r-notice-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-800, #1f2937);
+  padding: 6px 0;
+  border-top: 1px solid var(--warning-100, #fde68a);
+}
+
+.p2r-notice-line:first-child {
+  border-top: none;
+}
+
+.p2r-notice-learn-more {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-600, #2563eb);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline;
+}
+
+.p2r-notice-detail {
+  font-size: 12px;
+  color: var(--ink-700, #374151);
+  line-height: 1.5;
+  padding: 0 0 8px;
+  margin-top: -2px;
+}
+
+.p2r-learn-more-inline {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--brand-600, #2563eb);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ─── PSA hero: the number itself, shown first and largest, per redesign brief ─── */
+.p2r-psa-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 12px;
+  text-align: center;
+}
+
+.p2r-psa-hero-value {
+  font-size: var(--font-size-hero, 2rem);
+  font-size: clamp(2.25rem, 6vw, 2.75rem);
+  font-weight: var(--font-weight-heading, 800);
+  line-height: 1.1;
+}
+
+.p2r-psa-hero-unit {
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium, 500);
+  margin-left: 4px;
+  opacity: 0.85;
+}
+
+.p2r-psa-hero-context {
+  font-size: var(--font-size-body, 1rem);
+  font-weight: var(--font-weight-medium, 600);
+}
+
+/* ─── "Because:" bullets under Overall Assessment — reuses whyReasons data ─── */
+.p2r-because {
+  padding: 0 0 10px;
+}
+
+.p2r-because-label {
+  font-size: var(--font-size-small, 0.875rem);
+  font-weight: var(--font-weight-medium, 600);
+  color: var(--ink-700, #374151);
+}
+
+.p2r-because-list {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-700, #374151);
+  line-height: 1.5;
+}
+
+/* ─── "What happens next?" — short tailored action list ─── */
+.p2r-next-steps {
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--ink-100, #e5e7eb);
+}
+
+.p2r-next-steps-list {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  font-size: var(--font-size-body, 1rem);
+  color: var(--ink-900, #111827);
+  line-height: 1.6;
+}
+
+/* ─── Primary card: PSA value + tier headline ─── */
+.p2r-key-input-value {
+  font-size: var(--font-size-hero, 2rem);
+  font-weight: var(--font-weight-heading, 700);
+}
+
+.p2r-key-input-tier {
+  font-size: var(--font-size-body, 1rem);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.p2r-key-input-detail {
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-600, #4b5563);
+}
+
+/* ─── AUA/SUO age-adjusted threshold sub-box, neutral gray, no color ─── */
+.p2r-aua-box {
+  margin-top: 10px;
+  font-size: var(--font-size-caption, 0.75rem);
+  background: var(--ink-50, #f8fafc);
+  border: 1px solid var(--ink-200, #e2e8f0);
+  border-radius: 8px;
+  padding: 8px 10px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.p2r-aua-box-title {
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--ink-600, #475569);
+  margin-bottom: 2px;
+}
+
+.p2r-aua-box-body {
+  color: var(--ink-700, #334155);
+}
+
+.p2r-aua-flag {
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.p2r-aua-flag--warn { color: var(--warning-600); }
+.p2r-aua-flag--ok   { color: var(--risk-lower, #16a34a); }
+
+/* ─── "Why?" reasons list ─── */
+.p2r-why-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-800, #1f2937);
+  line-height: 1.7;
+}
+
+/* ─── Biomarker Context: flattened neutral card treatment (no indigo) ─── */
+.p2r-biomarker-intro {
+  margin: 0 0 12px;
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-600, #4b5563);
+  line-height: 1.5;
+}
+
+.p2r-biomarker-list {
+  display: grid;
+  gap: 8px;
+}
+
+.p2r-biomarker-item {
+  background: var(--ink-50, #f8fafc);
+  border: 1px solid var(--ink-200, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.p2r-biomarker-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-900, #111827);
+}
+
+.p2r-biomarker-item-value {
+  font-weight: var(--font-weight-heading, 700);
+  color: var(--brand-700, var(--brand-600));
+}
+
+.p2r-biomarker-item-note {
+  margin: 4px 0 0;
+  font-size: var(--font-size-caption, 0.75rem);
+  color: var(--ink-600, #4b5563);
+  line-height: 1.5;
+}
+
+.p2r-biomarker-footnote {
+  margin: 12px 0 0;
+  font-size: var(--font-size-caption, 0.75rem);
+  color: var(--ink-500, #6b7280);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ─── PSA-specificity "Clinical Insight" callout ─── */
+.p2r-callout {
+  margin: 1rem 0;
+  padding: 14px 16px;
+  background: var(--ink-50, #f8fafc);
+  border: 1px solid var(--ink-200, #e2e8f0);
+  border-left: 3px solid var(--brand-500, var(--brand-600));
+  border-radius: 8px;
+}
+
+.p2r-callout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.p2r-callout-label {
+  font-size: var(--font-size-caption, 0.75rem);
+  font-weight: var(--font-weight-heading, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--brand-700, var(--brand-600));
+  white-space: nowrap;
+}
+
+.p2r-callout-text {
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-800, #1f2937);
+  line-height: 1.6;
+}
+
+.p2r-callout-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--ink-200, #e2e8f0);
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-700, #374151);
+  line-height: 1.6;
+}
+
+.p2r-callout-detail p {
+  margin: 0 0 8px;
+}
+
+.p2r-callout-detail p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Important Disclaimer text ─── */
+.p2r-disclaimer-text {
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-800, #1f2937);
+  line-height: 1.6;
+}
+
+.p2r-disclaimer-attribution {
+  font-size: var(--font-size-caption, 0.75rem);
+  color: var(--ink-600, #4b5563);
+  font-style: italic;
+}

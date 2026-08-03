@@ -43,10 +43,10 @@
   line-height: 1;
 }
 
-/* Done — cyan fill */
+/* Done — navy fill (brand color only, no rainbow) */
 .journey-step--done .journey-step-dot {
-  background: var(--ms-cyan);
-  border: 2px solid var(--ms-cyan);
+  background: var(--ms-navy);
+  border: 2px solid var(--ms-navy);
   color: #ffffff;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .journey-connector--done {
-  background: var(--ms-cyan);
+  background: var(--ms-navy);
 }
 
 /* ─── Dark mode ─── */
