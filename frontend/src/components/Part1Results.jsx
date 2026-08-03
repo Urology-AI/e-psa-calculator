@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
 import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -790,16 +790,21 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Shared Decision-Making Framing Card (AUA/SUO 2026 Statement 1) ── */}
-      <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-            <span>This tool is here to help you understand your options and talk them through with your doctor — it doesn't replace that conversation.</span>
+      {/* ── Shared Decision-Making Conversation Guide (AHRQ SHARE Approach / AUA/SUO 2026 Statement 1) ── */}
+      <SdmConversationGuide
+        sdmGuide={result?.sdmGuide}
+        fallback={
+          <div role="note" aria-label="Shared decision-making guidance" style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderLeft: '3px solid #16a34a', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#166534', lineHeight: 1.5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <CheckCircle2Icon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+                <span>This tool is here to help you understand your options and talk them through with your doctor — it doesn't replace that conversation.</span>
+              </div>
+              <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+                <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
+              </ClinicalDetail>
           </div>
-          <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
-            <span><strong>Clinical decision-support tool</strong> (AUA/SUO 2026 Statement 1) — intended to inform, not replace, shared decision-making between clinician and patient.</span>
-          </ClinicalDetail>
-      </div>
+        }
+      />
 
       {/* ── Risk Summary Card (v2: gauge + tier side-by-side) ── */}
       <div ref={recommendRef} className={`risk-summary-card ${riskBgClass} res-reveal`} style={{ '--delay': '80ms' }} role="region" aria-label="PSA testing recommendation">

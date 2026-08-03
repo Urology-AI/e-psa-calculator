@@ -116,6 +116,64 @@ export const GuardrailBanner = ({ alert }) => {
   );
 };
 
+// ─── SDM Conversation Guide (AHRQ SHARE Approach) ─────────────────────────────
+// Renders the engine's `sdmGuide` field (Seek/Help/Assess/Reach/Evaluate) as a
+// "prepare for your visit" stacked-card list. Falls back to the caller's
+// children (the prior static disclosure card) when sdmGuide is null.
+const SHARE_STEPS = [
+  { key: 'seek', label: 'Seek', listKey: null },
+  { key: 'help', label: 'Help', listKey: 'options' },
+  { key: 'assess', label: 'Assess', listKey: 'considerations' },
+  { key: 'reach', label: 'Reach', listKey: null },
+  { key: 'evaluate', label: 'Evaluate', listKey: null },
+];
+
+export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
+  if (!sdmGuide) return fallback;
+  return (
+    <div
+      role="note"
+      aria-label="Shared decision-making conversation guide"
+      style={{
+        background: '#f0fdf4',
+        border: '0.5px solid #86efac',
+        borderLeft: '3px solid #16a34a',
+        borderRadius: '8px',
+        padding: '10px 12px',
+        fontSize: '12px',
+        color: '#166534',
+        lineHeight: 1.5,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+        <CheckIcon size={14} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span style={{ fontWeight: 700 }}>Prepare for your visit — {sdmGuide.topic}</span>
+      </div>
+      {SHARE_STEPS.map(({ key, label, listKey }) => {
+        const step = sdmGuide[key];
+        if (!step) return null;
+        const items = listKey ? step[listKey] : null;
+        return (
+          <div key={key} style={{ margin: '6px 0', paddingTop: '6px', borderTop: '1px solid #bbf7d0' }}>
+            <div style={{ fontWeight: 600 }}>{label}</div>
+            <div>{step.prompt}</div>
+            {Array.isArray(items) && items.length > 0 && (
+              <ul style={{ margin: '4px 0 0', paddingLeft: '18px' }}>
+                {items.map((item, i) => <li key={i}>{item}</li>)}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+      {sdmGuide.source && (
+        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #bbf7d0', fontSize: '11px', color: '#166534', opacity: 0.85 }}>
+          Source: {sdmGuide.source}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Guideline Support Badge ──────────────────────────────────────────────────
 const GUIDELINE_LABELS = { aua: 'AUA/SUO', nccn: 'NCCN', eau: 'EAU', erspc: 'ERSPC' };
 
