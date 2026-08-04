@@ -14,7 +14,7 @@ const DEFAULT_TIERS = [
   { key: 'elevated',     label: 'Strong Candidate',    color: '#b45309' }, // darkened from #d97706 for WCAG AA contrast
 ];
 
-const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {
+const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCaption = true }) => {
   const [animScore, setAnimScore] = useState(0);
   const [ripple, setRipple]       = useState(false);
   const [labelsIn, setLabelsIn]   = useState(false);
@@ -122,7 +122,7 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS }) => {
         ))}
       </div>
 
-      <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>
+      {showCaption && <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>}
     </figure>
   );
 };

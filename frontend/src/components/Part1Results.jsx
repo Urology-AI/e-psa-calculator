@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
-import { ASSESSMENT_STEPS, AssessmentSidebar } from './shared/AssessmentJourney.jsx';
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
 import UrologistFinder from './UrologistFinder';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -18,7 +18,8 @@ import { Part1GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, PART1_LOADING_STEPS } from './ResultsLoading';
 import ResultsMetaBar from './ResultsMetaBar';
 import { downloadCsv, buildPart1CsvRows } from '../utils/exportCsv';
-import { pointsToSeverity, SEVERITY_LABELS } from '../utils/severity';
+import { pointsToSeverity, SEVERITY_LABELS, toContributionPct } from '../utils/severity';
+import { useDoctorMode, modeAtLeast } from '../context/DoctorModeContext.jsx';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import {
@@ -395,6 +396,7 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
             <GuidelineSupportBadge support={guidelineSupport} count={guidelineSupportCount} />
           </div>
         )}
+        {guidelineSupport && <GuidelineComparisonTable support={guidelineSupport} />}
         <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>{cfg.source}</p>
         {papers && (
           <div style={{ marginTop: '8px' }}>
@@ -426,30 +428,25 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
  * no new severity data is invented here.
  * ─────────────────────────────────────────────────────────────────────────── */
 const WhySection = ({ itemImpacts = [] }) => {
-  // Pre-PSA screen shows a plain checklist of factor names — no percentages/
-  // scores/bars. This is a deliberate difference from Part2/Part3, which show
-  // WhyImpactBars with tiers; the product owner's spec keeps Step 1 simple
-  // since the point here is just "should I get screened," not "how much."
-  const positive = (itemImpacts || [])
+  // Single consolidated "Why?" card — one visual summary instead of a plain
+  // checklist plus a separate detailed table competing for the same story.
+  // Bars reuse the same severity tiers as the detailed breakdown under "For
+  // Healthcare Professionals" below, so the two views never disagree.
+  const items = (itemImpacts || [])
     .filter(i => Number(i.points) > 0)
     .sort((a, b) => Number(b.points) - Number(a.points))
     .slice(0, 5)
-    .map(i => i.item);
-  if (!positive.length) return null;
+    .map(i => ({ label: i.item, impact: pointsToSeverity(Number(i.points)) || 'low' }));
+  if (!items.length) return null;
   return (
     <div className="top-factors-callout" role="note" aria-label="Factors driving your risk estimate">
       <div className="section-heading-row">
         <BarChart3Icon size={17} aria-hidden="true" className="section-heading-icon" />
-        <span className="top-factors-callout__label">Why? Your estimated risk is shaped mainly by:</span>
+        <span className="top-factors-callout__label">Why did I receive this result?</span>
       </div>
-      <ul className="why-factor-checklist" style={{ listStyle: 'none', margin: '8px 0 0', padding: 0, display: 'grid', gap: '6px' }}>
-        {positive.map((label) => (
-          <li key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-small, 0.875rem)', color: 'var(--ink-800, #1f2937)', fontWeight: 500 }}>
-            <CheckIcon size={15} aria-hidden="true" style={{ color: '#16a34a', flexShrink: 0 }} />
-            {label}
-          </li>
-        ))}
-      </ul>
+      <div style={{ marginTop: '10px' }}>
+        <WhyImpactBars items={items} />
+      </div>
     </div>
   );
 };
@@ -602,6 +599,9 @@ const Part1Results = ({
   flowMode = 'public',
 }) => {
   const { t } = useTranslation();
+  const { viewMode } = useDoctorMode();
+  const showContributionPct = modeAtLeast(viewMode, 'clinical');
+  const canExportRawData = modeAtLeast(viewMode, 'clinical');
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAllImpacts, setShowAllImpacts] = useState(false);
@@ -719,11 +719,6 @@ const Part1Results = ({
     guardrailAlerts = [],
     guidelineTrack = null,
     epsaExtendedProfile = null,
-    empiricalRate = null,
-    empiricalRateCiLo = null,
-    empiricalRateCiHi = null,
-    empiricalRateN = null,
-    empiricalRateEvents = null,
   } = result;
 
   const rawScore = Number(result?.calculationDetails?.rawScore);
@@ -832,9 +827,6 @@ const Part1Results = ({
           <span>{t('part1Results.eyebrow')}</span>
           <span>{t('part1Results.assessedToday')}</span>
         </div>
-        <div className="v2-res-step-question" style={{ fontSize: 'var(--font-size-small, 0.875rem)', fontWeight: 600, color: 'var(--brand-700)', margin: '2px 0 6px' }}>
-          Step {ASSESSMENT_STEPS[0].step} of 3 — {ASSESSMENT_STEPS[0].question}
-        </div>
 
         {belowMinAge ? (
           /* ── Under-40: suppress score, show N/A card ── */
@@ -861,12 +853,12 @@ const Part1Results = ({
         ) : (
           <>
             <div className="v2-gauge-layout">
-              <RiskGauge score={gaugeScore} tierKey={epsaTierKey} tierLabel={epsaTierLabel} />
+              <RiskGauge score={gaugeScore} tierKey={epsaTierKey} tierLabel={epsaTierLabel} showCaption={false} />
               <div className="v2-tier-info">
                 <div className="v2-tier-label">{t('part1Results.psaTestingPriority')}</div>
                 <h2 className="v2-tier-title res-tier-pop" style={{ color: tierAccentColor }}>{epsaTierLabel || activeTier}</h2>
                 <p className="v2-tier-narr">{getTierDescription(epsaTierKey, activeTier)}</p>
-                {guidelineTrack && epsaExtendedProfile && (
+                {showContributionPct && guidelineTrack && epsaExtendedProfile && (
                   <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }} title="Guideline-based score reflects only age, race, family history, and germline mutation status. ePSA extended profile adds lifestyle and research-based factors as context.">
                     <span><strong style={{ color: 'var(--brand-700)' }}>Guideline score:</strong> {guidelineTrack.percent}%</span>
                     <span><strong style={{ color: 'var(--ink-700)' }}>ePSA extended:</strong> {epsaExtendedProfile.percent}%</span>
@@ -1033,7 +1025,7 @@ const Part1Results = ({
       <div className="detail-sections res-reveal" style={{ '--delay': '500ms' }}>
         <div className="section-heading-row section-heading-row--umbrella">
           <LayersIcon size={17} aria-hidden="true" className="section-heading-icon" />
-          <span className="section-heading-title">{t('part1Results.advancedClinicalDetailsHeading', 'Advanced Clinical Details')}</span>
+          <span className="section-heading-title">{t('part1Results.advancedClinicalDetailsHeading', viewMode === 'patient' ? 'For Healthcare Professionals' : 'Advanced Clinical Details')}</span>
         </div>
 
         <CollapsibleSection
@@ -1087,24 +1079,30 @@ const Part1Results = ({
               </p>
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid var(--brand-600)', borderRadius: '6px', padding: '10px 12px', marginBottom: '10px', fontSize: 'var(--font-size-caption)', color: '#374151', lineHeight: 1.6 }}>
                 <strong style={{ color: 'var(--brand-700)' }}>How factors were evaluated:</strong> Each factor was evaluated against our internal dataset and published literature. Where they conflict, the well-replicated literature is used instead.
-                <ClinicalDetail label="Show methodology detail" hideLabel="Hide methodology detail">
-                  Internal dataset: N=100, AUC=0.56. Where data and literature agree, data informs the weight. Where they conflict — due to referral bias, sparse positives, or selection effects in our cohort — the well-replicated literature OR is used instead. Click "Why this score?" under any row to see the data coefficient, literature OR, and the decision rationale.
-                </ClinicalDetail>
               </div>
               {(() => {
                 const sortedByImpact = [...itemImpacts].sort((a, b) => Number(b.points) - Number(a.points));
                 const TOP_N = 4;
                 const visibleImpacts = showAllImpacts ? itemImpacts : sortedByImpact.slice(0, TOP_N);
                 const hiddenCount = itemImpacts.length - TOP_N;
+                const contributionPctByItem = showContributionPct ? toContributionPct(itemImpacts) : null;
                 return (
                   <>
                     <div className="impact-table-wrap">
                       <table className="impact-table" aria-label="Item impact breakdown table">
-                        <thead><tr><th>{t('part1Results.tableHeaderItem')}</th><th>{t('part1Results.tableHeaderInput')}</th><th>{t('part1Results.tableHeaderImpact')}</th></tr></thead>
+                        <thead>
+                          <tr>
+                            <th>{t('part1Results.tableHeaderItem')}</th>
+                            <th>{t('part1Results.tableHeaderInput')}</th>
+                            <th>{t('part1Results.tableHeaderImpact')}</th>
+                            {showContributionPct && <th>Contribution</th>}
+                          </tr>
+                        </thead>
                         <tbody>
                           {visibleImpacts.map((impact) => {
                             const skipped = isImpactSkipped(impact.item);
                             const severity = pointsToSeverity(Number(impact.points));
+                            const contributionPct = contributionPctByItem?.get(impact.item);
                             return (
                               <React.Fragment key={impact.item}>
                                 <tr style={skipped ? { opacity: 0.7 } : undefined}>
@@ -1121,6 +1119,11 @@ const Part1Results = ({
                                       {severity ? SEVERITY_LABELS[severity] : t('part1Results.noImpact', 'No impact')}
                                     </span>
                                   </td>
+                                  {showContributionPct && (
+                                    <td className="impact-contribution-pct">
+                                      {Number.isFinite(contributionPct) ? `+${contributionPct}%` : '—'}
+                                    </td>
+                                  )}
                                 </tr>
                                 <RationaleRow rationale={impact.rationale} />
                               </React.Fragment>
@@ -1141,17 +1144,6 @@ const Part1Results = ({
                           : <><ChevronDownIcon size={13} aria-hidden="true" /> Show all {itemImpacts.length} factors ({hiddenCount} more)</>
                         }
                       </button>
-                    )}
-                    {Number.isFinite(empiricalRate) && empiricalRate > 0 && Number.isFinite(empiricalRateN) && (
-                      <p style={{ fontStyle: 'italic', fontSize: '11px', color: '#6b7280', marginTop: '10px', lineHeight: 1.5 }}>
-                        {t('part1Results.empiricalProbabilityText', {
-                          n: empiricalRateN,
-                          events: empiricalRateEvents ?? '—',
-                          rate: Math.round(empiricalRate * 100),
-                          ciLo: Math.round((empiricalRateCiLo ?? 0) * 100),
-                          ciHi: Math.round((empiricalRateCiHi ?? 0) * 100),
-                        })}
-                      </p>
                     )}
                   </>
                 );
@@ -1183,7 +1175,7 @@ const Part1Results = ({
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>{t('part1Results.btnPrintResults')}</span></button>
           <MoreActionsMenu>
             <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>{t('part1Results.btnPrintableForm')}</span></button>
-            {(storageMode === 'local' || storageMode === 'cloud') && (
+            {canExportRawData && (storageMode === 'local' || storageMode === 'cloud') && (
               <>
                 <button
                   className="btn-results btn-results--outline"

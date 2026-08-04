@@ -4,14 +4,17 @@
  */
 import React, { useState, useEffect } from 'react';
 import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon } from 'lucide-react';
-import { useDoctorMode } from '../../context/DoctorModeContext.jsx';
+import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
 
 // ─── Collapsible Section ──────────────────────────────────────────────────────
-// `advanced` marks a section as clinician-oriented content (guideline statements,
-// model internals, validation detail) — when Doctor Mode is on, these auto-expand
-// so a clinician doesn't have to click through every disclosure individually.
-// Sections that aren't clinician-specific (e.g. "Find a Urologist") should leave
-// `advanced` false so Doctor Mode doesn't force-open things patients still want closed.
+// `minMode` marks a section as clinician-oriented content (guideline
+// statements, model internals) — once the view mode reaches that tier
+// ('clinical'), the section auto-expands so the reader doesn't have to click
+// through every disclosure individually. It also
+// auto-collapses again on dropping back below that tier. Sections that aren't
+// audience-specific (e.g. "Find a Urologist") should leave `minMode` unset so
+// switching modes doesn't force-open things patients still want closed.
+// `advanced` is a legacy alias for `minMode="clinical"`.
 export const CollapsibleSection = ({
   title,
   children,
@@ -20,12 +23,15 @@ export const CollapsibleSection = ({
   highlight = false,
   className = '',
   advanced = false,
+  minMode = null,
 }) => {
-  const { doctorMode } = useDoctorMode();
-  const [open, setOpen] = useState(defaultOpen || (advanced && doctorMode));
+  const { viewMode } = useDoctorMode();
+  const effectiveMinMode = minMode || (advanced ? 'clinical' : null);
+  const gated = effectiveMinMode ? modeAtLeast(viewMode, effectiveMinMode) : false;
+  const [open, setOpen] = useState(defaultOpen || gated);
   useEffect(() => {
-    if (advanced && doctorMode) setOpen(true);
-  }, [advanced, doctorMode]);
+    if (effectiveMinMode) setOpen(defaultOpen || gated);
+  }, [effectiveMinMode, gated]);
   return (
     <div
       id={id}
@@ -58,12 +64,14 @@ export const ClinicalDetail = ({
   hideLabel = 'Hide clinical detail',
   defaultOpen = false,
   className = '',
+  minMode = 'clinical',
 }) => {
-  const { doctorMode } = useDoctorMode();
-  const [open, setOpen] = useState(defaultOpen || doctorMode);
+  const { viewMode } = useDoctorMode();
+  const gated = modeAtLeast(viewMode, minMode);
+  const [open, setOpen] = useState(defaultOpen || gated);
   useEffect(() => {
-    if (doctorMode) setOpen(true);
-  }, [doctorMode]);
+    setOpen(defaultOpen || gated);
+  }, [gated]);
   return (
     <div className={`clinical-detail${className ? ` ${className}` : ''}`}>
       <button
@@ -420,6 +428,46 @@ export const GuidelineSupportBadge = ({ support, count, variant = 'light' }) => 
   );
 };
 
+// ─── Guideline Comparison Table ────────────────────────────────────────────
+// Clinical-only breakdown of the same `support: {aua, nccn, eau, erspc}`
+// boolean map GuidelineSupportBadge already summarizes as "N / 4" — here each
+// guideline gets its own row instead of a single combined badge.
+const GUIDELINE_COMPARISON_META = {
+  aua: { label: 'AUA/SUO', statement: 'AUA/SUO 2026 Early Detection Guideline' },
+  nccn: { label: 'NCCN', statement: 'NCCN v1.2024 Prostate Cancer Early Detection' },
+  eau: { label: 'EAU', statement: 'EAU 2024 Prostate Cancer Guidelines' },
+  erspc: { label: 'ERSPC', statement: 'ERSPC risk calculator criteria' },
+};
+
+export const GuidelineComparisonTable = ({ support, recommendationText }) => {
+  if (!support) return null;
+  return (
+    <table className="guideline-comparison-table" aria-label="Per-guideline recommendation comparison">
+      <thead>
+        <tr>
+          <th>Guideline</th>
+          <th>Supports this recommendation</th>
+          <th>Reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(GUIDELINE_COMPARISON_META).map(([key, meta]) => {
+          const supported = Boolean(support[key]);
+          return (
+            <tr key={key}>
+              <td>{meta.label}</td>
+              <td className={supported ? 'guideline-comparison-table__status--supported' : 'guideline-comparison-table__status--unsupported'}>
+                {supported ? 'Yes' : 'No explicit guidance'}
+              </td>
+              <td>{supported ? (recommendationText?.[key] || meta.statement) : '—'}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+};
+
 // ─── Disclaimer Teaser ─────────────────────────────────────────────────────
 // One-line "Important" summary always visible + the full legal/IRB disclaimer
 // content (passed as children, unchanged) tucked behind "View Full Disclaimer".
@@ -447,13 +495,19 @@ export const DisclaimerTeaser = ({ children }) => (
 
 // ─── Model Confidence Badge ────────────────────────────────────────────────
 export const ModelConfidenceBadge = ({ level = 'High', cohortNote = 'Validated on Mount Sinai registry', guidelinesNote = 'Supported by AUA, NCCN, EAU guidance' }) => {
+  const { viewMode } = useDoctorMode();
+  // Patients don't know what "Model Confidence" means — same badge, plainer
+  // label. Clinical mode keeps the precise term since it maps to a specific
+  // validation concept clinicians will recognize.
+  const isPatient = viewMode === 'patient';
+  const title = isPatient ? 'Evidence Quality' : 'Model Confidence';
   const colour = level === 'High' ? '#166534' : level === 'Moderate' ? '#92400e' : '#991b1b';
   const bg = level === 'High' ? '#f0fdf4' : level === 'Moderate' ? '#fffbeb' : '#fef2f2';
   const border = level === 'High' ? '#86efac' : level === 'Moderate' ? '#fcd34d' : '#fca5a5';
   return (
     <div
       role="note"
-      aria-label={`Model confidence: ${level}`}
+      aria-label={`${title}: ${level}`}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         background: bg, border: `1px solid ${border}`, borderRadius: '10px',
@@ -463,10 +517,10 @@ export const ModelConfidenceBadge = ({ level = 'High', cohortNote = 'Validated o
       <ShieldCheckIcon size={18} aria-hidden="true" style={{ color: colour, flexShrink: 0 }} />
       <div>
         <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colour }}>
-          Model Confidence — {level}
+          {title} — {level}
         </div>
         <div style={{ fontSize: 'var(--font-size-caption, 0.75rem)', color: 'var(--ink-600, #4b5563)', marginTop: '1px' }}>
-          {cohortNote} · {guidelinesNote}
+          {isPatient ? 'Based on validated research and current clinical guidelines.' : `${cohortNote} · ${guidelinesNote}`}
         </div>
       </div>
     </div>

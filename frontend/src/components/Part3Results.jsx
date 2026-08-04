@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
 import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
+import JourneyTimeline from './shared/JourneyTimeline.jsx';
+import CarePlanChecklist from './shared/CarePlanChecklist.jsx';
 import UrologistFinder from './UrologistFinder';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -21,6 +23,7 @@ import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';
 import { generateResultsLetterPdf, generateSdmWorksheetPdf } from '../utils/generateClinicalPdfs';
+import { useDoctorMode, modeAtLeast } from '../context/DoctorModeContext.jsx';
 import {
   ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, CloudIcon,
   DownloadIcon, ChevronDownIcon, ChevronUpIcon, FlaskConicalIcon,
@@ -201,6 +204,8 @@ const Part3Results = ({
   biomarkersEnabled = false,
 }) => {
   const { t } = useTranslation();
+  const { viewMode } = useDoctorMode();
+  const canExportRawData = modeAtLeast(viewMode, 'clinical');
   const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const recommendRef = useRef(null);
@@ -519,6 +524,27 @@ const Part3Results = ({
     { key: 'biopsy', label: biopsyRecommended ? 'Discuss biopsy' : 'Biopsy not currently indicated', done: !!biopsyRecommended },
   ];
 
+  /* ── Journey timeline position — where in the care pathway this result
+   * currently sits, derived from the same flags driving the checklist above. */
+  const journeyCurrentKey = biopsyRecommended
+    ? 'biopsy'
+    : piradsVal != null
+      ? 'mri'
+      : ((postData?.psaConfirmed === 'no' || postData?.psaConfirmed === 'not_sure') || lowPsaWarning)
+        ? 'repeat_psa'
+        : 'psa';
+
+  /* ── Care plan items — same set as careCompleteChecklist plus an
+   * appointment-booking item, but interactive (Pending/Scheduled/Done) and
+   * persisted per-session instead of read-only. */
+  const carePlanItems = [
+    { key: 'urology_appt', label: 'Book urology appointment' },
+    ...(summaryNextSteps.includes('Consider Repeat PSA') ? [{ key: 'repeat_psa', label: 'Repeat PSA test' }] : []),
+    ...(piradsVal == null ? [{ key: 'mri', label: 'Schedule MRI' }] : []),
+    ...(biopsyRecommended ? [{ key: 'biopsy', label: 'Discuss biopsy with urologist' }] : []),
+    { key: 'questions', label: 'Print questions for your doctor' },
+  ];
+
   if (showSummaryScreen) {
     return (
       <>
@@ -545,6 +571,8 @@ const Part3Results = ({
               <span className="epsa-summary-risk-value" style={{ color: riskColor }}>{cleanRiskCat}</span>
             </div>
 
+            <JourneyTimeline currentKey={journeyCurrentKey} />
+
             <div className="epsa-summary-block">
               <div className="epsa-summary-block-title">Summary</div>
               <ul className="epsa-summary-checklist">
@@ -555,6 +583,11 @@ const Part3Results = ({
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="epsa-summary-block">
+              <div className="epsa-summary-block-title">My Care Plan</div>
+              <CarePlanChecklist items={carePlanItems} sessionId={sessionId} />
             </div>
 
             <SdmCard stageNote="Use this report during your appointment to discuss the benefits, risks, and alternatives with your healthcare team." sdmGuide={result?.sdmGuide} />
@@ -667,7 +700,7 @@ const Part3Results = ({
         </div>
 
         <div className="v2-gauge-layout">
-          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
+          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} showCaption={false} />
           <div className="v2-tier-info">
             <div className="v2-tier-label">Estimated chance of clinically significant cancer</div>
             <h2 className="v2-tier-title res-tier-pop" style={{ color: riskColor }}>{cleanRiskCat}</h2>
@@ -1175,8 +1208,9 @@ const Part3Results = ({
 
         <div className="epsa-summary-block">
           <div className="epsa-summary-block-title">Key Findings</div>
-          <ul className="epsa-summary-list">
+          <ul className="epsa-summary-checklist">
             <li>
+              <CheckIcon size={14} aria-hidden="true" className="epsa-summary-check-icon" />
               PSA: <strong>{psaAdjustedFlag ? psaAdjusted : psaValue} ng/mL</strong>
               {' — '}
               {summaryPsaExceeds
@@ -1184,13 +1218,13 @@ const Part3Results = ({
                 : <span style={{ color: '#15803d', fontWeight: 600 }}>below the age-adjusted threshold ({auaAgeThreshold} ng/mL)</span>}
             </li>
             {preResult?.epsaTierLabel && (
-              <li>Pre-PSA baseline risk: <strong>{preResult.epsaTierLabel}</strong></li>
+              <li><CheckIcon size={14} aria-hidden="true" className="epsa-summary-check-icon" />Pre-PSA baseline risk: <strong>{preResult.epsaTierLabel}</strong></li>
             )}
             {piradsVal != null && (
-              <li>MRI PI-RADS: <strong>{piradsVal === 0 ? '—' : `${piradsVal} / 5`}</strong>{piradsCtx?.label ? ` (${piradsCtx.label})` : ''}</li>
+              <li><CheckIcon size={14} aria-hidden="true" className="epsa-summary-check-icon" />MRI PI-RADS: <strong>{piradsVal === 0 ? '—' : `${piradsVal} / 5`}</strong>{piradsCtx?.label ? ` (${piradsCtx.label})` : ''}</li>
             )}
             {summaryDiscordant && (
-              <li>Your combined risk tier is <strong>higher</strong> than your PSA number alone would suggest (risk discordance).</li>
+              <li><CheckIcon size={14} aria-hidden="true" className="epsa-summary-check-icon" />Your combined risk tier is <strong>higher</strong> than your PSA number alone would suggest (risk discordance).</li>
             )}
           </ul>
         </div>
@@ -1292,7 +1326,7 @@ const Part3Results = ({
               <DownloadIcon size={16} />
               <span>{pdfGenerating === 'sdm' ? 'Generating…' : 'SDM Worksheet PDF'}</span>
             </button>
-            {(storageMode === 'local' || storageMode === 'cloud') && (
+            {canExportRawData && (storageMode === 'local' || storageMode === 'cloud') && (
               <>
                 <button type="button" className="p2r-menu-item" onClick={() => {
                   try {

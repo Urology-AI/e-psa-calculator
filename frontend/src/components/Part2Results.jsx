@@ -100,6 +100,7 @@ const BiomarkerContextSection = ({ formData }) => {
       title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><FlaskConicalIcon size={16} aria-hidden="true" />Biomarker Context ({items.length})</span>}
       defaultOpen={false}
       className="p2r-biomarker-collapsible"
+      minMode="clinical"
     >
       <div role="region" aria-label="Biomarker context">
         <p className="p2r-biomarker-intro">
@@ -278,7 +279,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         {/* Gauge is the single visual representation of the risk tier for this step —
             the tier name itself is shown once, in the "Overall Assessment" row below. */}
         <div className="v2-gauge-layout">
-          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} />
+          <RiskGauge score={p2GaugeScore} tierKey={p2GaugeTierKey} tierLabel={cleanRiskCat} tiers={p2GaugeTiers} showCaption={false} />
         </div>
 
         {preResult?.epsaTierLabel && (
