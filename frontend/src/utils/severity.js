@@ -36,3 +36,21 @@ export function toSeverityBreakdown(itemImpacts) {
     .map(({ item, value, points }) => ({ item, value, severity: pointsToSeverity(points) }))
     .filter((row) => row.severity !== null);
 }
+
+/**
+ * Normalizes each factor's raw points into a share of the total positive
+ * score, as a whole-number percent (e.g. "PSA" +22). Clinical-only — Patient
+ * view must keep using pointsToSeverity's qualitative tiers instead.
+ * @param {Array<{item: string, points: number}>} itemImpacts
+ * @returns {Map<string, number>} item name -> contribution percent
+ */
+export function toContributionPct(itemImpacts) {
+  const positive = (itemImpacts || []).filter((i) => Number.isFinite(Number(i.points)) && Number(i.points) > 0);
+  const total = positive.reduce((sum, i) => sum + Number(i.points), 0);
+  const map = new Map();
+  if (total <= 0) return map;
+  positive.forEach((i) => {
+    map.set(i.item, Math.round((Number(i.points) / total) * 100));
+  });
+  return map;
+}

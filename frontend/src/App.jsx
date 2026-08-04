@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
 import { auth, db, functions, isFirebaseConfigured } from './config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import './App.css';
+import './components/shared/ResultsViewMode.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import WelcomeScreen2 from './components/WelcomeScreen2.jsx';
 import DataImportScreen from './components/DataImportScreen.jsx';
