@@ -6,6 +6,76 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+/* ─── Million Strong Men Modal ─── */
+export const MillionStrongModal = ({ onClose }) => {
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    closeRef.current?.focus();
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div className="gl-modal-root" role="dialog" aria-modal="true" aria-labelledby="msm-modal-title">
+      <div className="gl-modal-backdrop" onClick={onClose} />
+      <div className="gl-modal-panel">
+        <header className="gl-modal-header">
+          <div className="gl-modal-eyebrow">
+            <UsersIcon size={12} aria-hidden="true" />
+            <span>Initiative</span>
+          </div>
+          <h2 id="msm-modal-title" className="gl-modal-title">Million Strong Men</h2>
+          <p className="gl-modal-sub">Prostate cancer screening accessible to every man, regardless of insurance, income, or access to a doctor.</p>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Close Million Strong Men overview"
+            className="gl-modal-close"
+          >
+            <XIcon size={16} />
+          </button>
+        </header>
+
+        <div className="gl-modal-body">
+          <p className="gl-disclaimer">
+            Million Strong Men is a public health initiative working to make prostate cancer screening — and tools like ePSA — freely available to men everywhere. Prostate cancer is one of the most common cancers among men, yet many never get screened because of cost, access, or simply not knowing where to start.
+          </p>
+          <div className="gl-callout">
+            <span className="gl-callout-title">What the initiative supports</span>
+            <ul className="gl-list">
+              <li>Free, guideline-aligned screening education for men and families</li>
+              <li>Community outreach for men without regular access to a doctor</li>
+              <li>Open tools like ePSA that help men understand their personal risk</li>
+            </ul>
+          </div>
+          <p className="gl-disclaimer">
+            ePSA is built and offered as part of this effort — this assessment will always be free to use.
+          </p>
+        </div>
+
+        <footer className="gl-modal-footer">
+          <a
+            href="https://millionstrongmen.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="gl-cta"
+          >
+            Visit Million Strong Men <ExternalLinkIcon size={13} aria-hidden="true" />
+          </a>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Screening Guidelines Modal ─── */
 export const GuidelinesModal = ({ onClose }) => {
   const closeRef = useRef(null);
@@ -128,6 +198,7 @@ export const GuidelinesModal = ({ onClose }) => {
 const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cloudAvailable }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
+  const [showMsmModal, setShowMsmModal] = useState(false);
 
   const handleBegin = () => {
     if (onBegin) return onBegin();
@@ -144,12 +215,11 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
       <div className="ws-accent-bar" aria-hidden="true" />
 
       {/* ── Million Strong Men Banner ── */}
-      <a
-        href="https://millionstrongmen.com"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={() => setShowMsmModal(true)}
         className="ws-msm-banner"
-        aria-label="Million Strong Men initiative — prostate cancer screening for all men"
+        aria-label="Learn more about the Million Strong Men initiative"
       >
         <div className="ws-msm-icon" aria-hidden="true">
           <UsersIcon size={18} />
@@ -160,7 +230,9 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
           <div className="ws-msm-sub">Prostate cancer screening accessible to every man</div>
         </div>
         <ArrowRightIcon size={16} className="ws-msm-arrow" aria-hidden="true" />
-      </a>
+      </button>
+
+      {showMsmModal && <MillionStrongModal onClose={() => setShowMsmModal(false)} />}
 
       {/* ── Hero card ── */}
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
