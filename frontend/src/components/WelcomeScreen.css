@@ -230,7 +230,35 @@
 
 .ws-demo-link:hover { color: var(--ms-cyan); }
 
-/* ─── How it works ─── */
+/* ─── Welcome + How it works (single split card) ─── */
+.ws-flow-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--surface);
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 10px;
+  margin-bottom: 0.875rem;
+  overflow: hidden;
+}
+
+.ws-flow-half {
+  flex: 1 1 50%;
+  min-width: 0;
+  padding: 1.25rem 1.75rem 1.375rem;
+}
+
+.ws-flow-divider {
+  width: 1px;
+  flex: 0 0 1px;
+  background: var(--ms-gray-200);
+  margin: 1.25rem 0;
+}
+
+@media (max-width: 720px) {
+  .ws-flow-card { flex-direction: column; }
+  .ws-flow-divider { width: auto; height: 1px; flex-basis: 1px; margin: 0 1.25rem; }
+}
+
 .ws-flow {
   background: var(--surface);
   border: 1px solid var(--ms-gray-200);
@@ -246,6 +274,35 @@
   text-transform: uppercase;
   color: var(--ms-gray-400);
   margin: 0 0 1rem;
+}
+
+.ws-flow-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ws-flow-heading-row .ws-flow-heading {
+  margin-bottom: 1rem;
+}
+
+.gl-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ms-blue-600, #2563eb);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.gl-inline-link-anchor {
+  font-weight: 600;
+  color: var(--ms-blue-600, #2563eb);
+  text-decoration: underline;
 }
 
 .ws-flow-steps {
@@ -469,10 +526,12 @@
 .theme-dark .ws-demo-link { color: var(--ink-500); }
 .theme-dark .ws-demo-link:hover { color: var(--ms-cyan); }
 
-.theme-dark .ws-flow {
+.theme-dark .ws-flow,
+.theme-dark .ws-flow-card {
   background: var(--surface);
   border-color: var(--line-200);
 }
+.theme-dark .ws-flow-divider { background: var(--line-200); }
 .theme-dark .ws-flow-step:hover { background: rgba(2, 136, 209, 0.06); }
 .theme-dark .ws-flow-step strong { color: var(--ms-cyan); }
 .theme-dark .ws-flow-step span { color: var(--ink-500); }
