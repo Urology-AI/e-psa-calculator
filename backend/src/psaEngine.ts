@@ -140,12 +140,20 @@ export const calculatePsaRecommendation = functions.https.onCall(
       // consumed as a real dependency by both frontend and backend — no more
       // hand-synced vendored copies. This is the same logic used by e-psa web
       // and the MSSM screening tool, and by iOS via this Cloud Function.
-      const { calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS } = await import('@urology-ai/epsa-engine');
+      const {
+        calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS,
+        ENGINE_VERSION, GUIDELINE_VERSION,
+      } = await import('@urology-ai/epsa-engine');
 
       const part1 = calculateDynamicEPsa(input.prePsa);
       const guardrails = checkGuardrails(input.prePsa, 'pre_psa');
+      // engineVersion/guidelineVersion stamped here so every persisted assessment
+      // (clinicalSessionService.js's normaliseSession already promotes these to
+      // top-level) is traceable to the exact engine build + guideline edition
+      // that produced it. part1/part2 already carry their own model-specific
+      // `modelVersion` from calculatorConfig.js — this is the package-level version.
       const result: { part1: unknown; part2?: unknown } = {
-        part1: { ...part1, guardrailAlerts: guardrails.guardrailAlerts || [] },
+        part1: { ...part1, guardrailAlerts: guardrails.guardrailAlerts || [], engineVersion: ENGINE_VERSION, guidelineVersion: GUIDELINE_VERSION },
       };
 
       if (input.postPsa && input.postPsa.psa !== undefined && input.postPsa.psa !== null && input.postPsa.psa !== '') {
@@ -156,6 +164,8 @@ export const calculatePsaRecommendation = functions.https.onCall(
           ...part2,
           auaThreshold: auaThresholdEntry?.threshold ?? null,
           psaAboveAuaThreshold: auaThresholdEntry ? psaVal > auaThresholdEntry.threshold : false,
+          engineVersion: ENGINE_VERSION,
+          guidelineVersion: GUIDELINE_VERSION,
         };
       }
 

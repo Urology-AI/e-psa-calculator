@@ -54,7 +54,7 @@ export const predictBiopsyRisk = functions.https.onCall(
 
     // @urology-ai/epsa-engine is the single source of truth for this model
     // (see module docstring above) — no locally re-derived coefficients.
-    const { predictBiopsyRisk: predictBiopsyRiskEngine } = await import('@urology-ai/epsa-engine');
+    const { predictBiopsyRisk: predictBiopsyRiskEngine, ENGINE_VERSION, GUIDELINE_VERSION } = await import('@urology-ai/epsa-engine');
 
     // Client only ever sends prostateVolume, never a raw PSAD — derive it here
     // purely for the informational psadTier display field. It never affects
@@ -78,6 +78,8 @@ export const predictBiopsyRisk = functions.https.onCall(
       psad: result.psad,
       psad_tier: result.psadTier,
       model_version: result.modelVersion,
+      engine_version: ENGINE_VERSION,
+      guideline_version: GUIDELINE_VERSION,
       threshold: THRESHOLD,
     };
   }
