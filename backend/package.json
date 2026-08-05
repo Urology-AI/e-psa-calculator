@@ -15,7 +15,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
-    "@urology-ai/epsa-engine": "^0.1.1",
+    "@urology-ai/epsa-engine": "^0.2.0",
     "@types/cors": "^2.8.19",
     "@types/nodemailer": "^8.0.0",
     "cors": "^2.8.6",

@@ -143,17 +143,28 @@ jobs:
         cache: npm
         cache-dependency-path: frontend/package-lock.json
 
-    - name: Authorize private @epsa/engine clone
+    # @epsa/engine now resolves to the @urology-ai/epsa-engine GitHub Packages
+    # registry package (npm: alias in package.json), not a git+ssh clone —
+    # same private-registry auth pattern as backend's step above, reusing the
+    # same deploy key secret (it already grants read:packages).
+    - name: Write .npmrc for private registry
       run: |
-        git config --local --unset-all http.https://github.com/.extraheader || true
-        git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "https://github.com/"
-        git config --global url."https://x-access-token:${EPSA_ENGINE_DEPLOY_KEY}@github.com/".insteadOf "ssh://git@github.com/"
+        echo "@urology-ai:registry=https://npm.pkg.github.com" > frontend/.npmrc
+        echo "//npm.pkg.github.com/:_authToken=${EPSA_ENGINE_DEPLOY_KEY}" >> frontend/.npmrc
       env:
         EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
 
+    # npm install, not npm ci: package-lock.json doesn't yet have an entry
+    # reflecting the npm: alias switch (no environment with registry read
+    # access was available locally to regenerate it) — same situation as
+    # backend's install step above.
     - name: Install dependencies
-      run: npm ci
+      run: npm install
       working-directory: frontend
+
+    - name: Remove local .npmrc
+      if: always()
+      run: rm -f frontend/.npmrc
 
     - name: Build
       run: npm run build
