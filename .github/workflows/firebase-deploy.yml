@@ -90,6 +90,14 @@ jobs:
       run: npm install
       working-directory: backend
 
+    # Phase 1 success criterion: backend output must stay identical to a
+    # direct @urology-ai/epsa-engine call. Run before the deploy build so a
+    # regression here blocks the deploy, not just gets noticed after the fact.
+    - name: Run backend tests
+      if: steps.changed.outputs.backend_changed == 'true'
+      run: npm test
+      working-directory: backend
+
     - name: Build (tsc + vendor copy)
       if: steps.changed.outputs.backend_changed == 'true'
       run: npm run build

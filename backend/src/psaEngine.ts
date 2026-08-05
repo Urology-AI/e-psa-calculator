@@ -90,7 +90,7 @@ const PostPsaInputSchema = z.object({
   knowPirads: z.boolean().nullable().optional(),
 });
 
-const RequestSchema = z.object({
+export const RequestSchema = z.object({
   prePsa: PrePsaInputSchema,
   postPsa: PostPsaInputSchema.optional(),
 });
@@ -105,15 +105,76 @@ function auaThresholdForAge(age: number, thresholds: Record<string, { threshold:
   return null;
 }
 
+export type PsaRecommendationInput = z.infer<typeof RequestSchema>;
+
+/**
+ * computeRecommendation
+ *
+ * The actual computation behind calculatePsaRecommendation, factored out so
+ * it can be exercised directly in psaEngine.test.ts without spinning up a
+ * Firebase callable/auth context. Runs the exact same @urology-ai/epsa-engine
+ * logic used by e-psa web and epsa-screening-tool — clients must never
+ * reimplement this decision locally. Always computes Part 1 (pre-PSA);
+ * computes Part 2 (post-PSA/PI-RADS combined tier) whenever `postPsa` is
+ * supplied, so both parts stay in lockstep — entering/changing a PSA value
+ * re-runs both together.
+ */
+export async function computeRecommendation(input: PsaRecommendationInput) {
+  // @urology-ai/epsa-engine is now the single source of truth (Urology-AI/epsa-engine),
+  // consumed as a real dependency by both frontend and backend — no more
+  // hand-synced vendored copies. This is the same logic used by e-psa web
+  // and the MSSM screening tool, and by iOS via this Cloud Function.
+  const {
+    calculateDynamicEPsa, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS,
+    ENGINE_VERSION, GUIDELINE_VERSION,
+  } = await import('@urology-ai/epsa-engine');
+
+  const part1 = calculateDynamicEPsa(input.prePsa);
+  // part1.guardrailAlerts is already computed correctly inside
+  // calculateDynamicEPsa (it derives hasTwoComorbidities from the raw
+  // comorbidityScore before calling the engine's internal checkGuardrails).
+  // This function used to call checkGuardrails() a second time here, passing
+  // the raw prePsa payload — which has no hasTwoComorbidities field at all,
+  // silently disabling the comorbidity-triggered life-expectancy alert — and
+  // then read a `.guardrailAlerts` property off the result, which doesn't
+  // exist (checkGuardrails returns a plain array), so that second call's
+  // output was unconditionally `[]` regardless of input. Net effect: every
+  // response from this Cloud Function had guardrailAlerts silently zeroed
+  // out. Fixed by trusting part1's own correctly-computed value instead of
+  // recomputing it. (Caught by psaEngine.test.ts asserting backend output
+  // against a direct engine call.)
+  //
+  // engineVersion/guidelineVersion stamped here so every persisted assessment
+  // (clinicalSessionService.js's normaliseSession already promotes these to
+  // top-level) is traceable to the exact engine build + guideline edition
+  // that produced it. part1/part2 already carry their own model-specific
+  // `modelVersion` from calculatorConfig.js — this is the package-level version.
+  const result: { part1: unknown; part2?: unknown } = {
+    part1: { ...part1, engineVersion: ENGINE_VERSION, guidelineVersion: GUIDELINE_VERSION },
+  };
+
+  if (input.postPsa && input.postPsa.psa !== undefined && input.postPsa.psa !== null && input.postPsa.psa !== '') {
+    const part2 = calculateDynamicEPsaPost(part1, input.postPsa);
+    const auaThresholdEntry = auaThresholdForAge(input.prePsa.age, AUA_PSA_THRESHOLDS);
+    const psaVal = Number(input.postPsa.psa);
+    result.part2 = {
+      ...part2,
+      auaThreshold: auaThresholdEntry?.threshold ?? null,
+      psaAboveAuaThreshold: auaThresholdEntry ? psaVal > auaThresholdEntry.threshold : false,
+      engineVersion: ENGINE_VERSION,
+      guidelineVersion: GUIDELINE_VERSION,
+    };
+  }
+
+  return result;
+}
+
 /**
  * calculatePsaRecommendation
  *
  * Callable by any authenticated client (web, iOS with Firebase anonymous auth).
- * Runs the exact same @urology-ai/epsa-engine logic used by e-psa web and
- * epsa-screening-tool — clients must never reimplement this decision locally.
- * Always computes Part 1 (pre-PSA); computes Part 2 (post-PSA/PI-RADS combined
- * tier) in the same response whenever `postPsa` is supplied, so both parts stay
- * in lockstep — entering/changing a PSA value re-runs both together.
+ * See computeRecommendation above for the actual logic — this wrapper only
+ * handles auth and input validation.
  */
 export const calculatePsaRecommendation = functions.https.onCall(
   async (data: unknown, context: functions.https.CallableContext) => {
@@ -121,7 +182,7 @@ export const calculatePsaRecommendation = functions.https.onCall(
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    let input;
+    let input: PsaRecommendationInput;
     try {
       input = RequestSchema.parse(data);
     } catch (error) {
@@ -136,40 +197,7 @@ export const calculatePsaRecommendation = functions.https.onCall(
     }
 
     try {
-      // @urology-ai/epsa-engine is now the single source of truth (Urology-AI/epsa-engine),
-      // consumed as a real dependency by both frontend and backend — no more
-      // hand-synced vendored copies. This is the same logic used by e-psa web
-      // and the MSSM screening tool, and by iOS via this Cloud Function.
-      const {
-        calculateDynamicEPsa, checkGuardrails, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS,
-        ENGINE_VERSION, GUIDELINE_VERSION,
-      } = await import('@urology-ai/epsa-engine');
-
-      const part1 = calculateDynamicEPsa(input.prePsa);
-      const guardrails = checkGuardrails(input.prePsa, 'pre_psa');
-      // engineVersion/guidelineVersion stamped here so every persisted assessment
-      // (clinicalSessionService.js's normaliseSession already promotes these to
-      // top-level) is traceable to the exact engine build + guideline edition
-      // that produced it. part1/part2 already carry their own model-specific
-      // `modelVersion` from calculatorConfig.js — this is the package-level version.
-      const result: { part1: unknown; part2?: unknown } = {
-        part1: { ...part1, guardrailAlerts: guardrails.guardrailAlerts || [], engineVersion: ENGINE_VERSION, guidelineVersion: GUIDELINE_VERSION },
-      };
-
-      if (input.postPsa && input.postPsa.psa !== undefined && input.postPsa.psa !== null && input.postPsa.psa !== '') {
-        const part2 = calculateDynamicEPsaPost(part1, input.postPsa);
-        const auaThresholdEntry = auaThresholdForAge(input.prePsa.age, AUA_PSA_THRESHOLDS);
-        const psaVal = Number(input.postPsa.psa);
-        result.part2 = {
-          ...part2,
-          auaThreshold: auaThresholdEntry?.threshold ?? null,
-          psaAboveAuaThreshold: auaThresholdEntry ? psaVal > auaThresholdEntry.threshold : false,
-          engineVersion: ENGINE_VERSION,
-          guidelineVersion: GUIDELINE_VERSION,
-        };
-      }
-
-      return result;
+      return await computeRecommendation(input);
     } catch (error) {
       functions.logger.error('calculatePsaRecommendation failed', { error });
       throw new functions.https.HttpsError('internal', 'Failed to calculate recommendation', error);
