@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import DemoShowcase from './components/DemoShowcase.jsx'
-import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { ErrorBoundary } from '@urology-ai/epsa-ui'
 import './i18n/i18n.js'
 
 const isDemo = window.location.pathname === '/demo'

@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import TextScaleControl from './TextScaleControl.jsx';
-import ThemeSwitcher from './ThemeSwitcher.jsx';
-import LanguageSwitcher from './LanguageSwitcher.jsx';
+import { TextScaleControl, ThemeSwitcher, LanguageSwitcher } from '@urology-ai/epsa-ui';
 
 // Compact overflow menu that houses the display-preference controls
 // (text size, theme, language) so the primary header can stay quiet.

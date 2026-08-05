@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Part2Form.css';
 import './epsa-v2-layout.css';
 import { useTranslation } from 'react-i18next';
-import InfoIcon from './InfoIcon';
+import { InfoIcon } from '@urology-ai/epsa-ui';
 import { fieldReferences } from '../utils/fieldReferences';
 
 const PIRADS_OPTIONS = [

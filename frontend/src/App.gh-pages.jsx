@@ -13,9 +13,7 @@ import ModelDocs from './components/ModelDocs.jsx';
 import HipaaCompliancePopup from './components/HipaaCompliancePopup.jsx';
 import BackButton from './components/BackButton.jsx';
 import QuickEPsaEntry from './components/QuickEPsaEntry.jsx';
-import LanguageSwitcher from './components/LanguageSwitcher.jsx';
-import ThemeSwitcher from './components/ThemeSwitcher.jsx';
-import TextScaleControl from './components/TextScaleControl.jsx';
+import { LanguageSwitcher, ThemeSwitcher, TextScaleControl } from '@urology-ai/epsa-ui';
 import { BookIcon, ShieldCheckIcon } from 'lucide-react';
 import { calculateDynamicEPsa, calculateDynamicEPsaPost, getCalculatorConfig } from './utils/dynamicCalculator';
 
