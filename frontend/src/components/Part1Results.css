@@ -418,6 +418,22 @@
   display: block;
 }
 
+/* Opt-in via RiskGauge's showCaption prop — no current call site in this
+   file enables it (all pass showCaption={false}), so this only applies to
+   future callers. Ported from epsa-screening-tool's ClinicalModeResult.css
+   as part of the Phase 2 shared-component merge. */
+.risk-gauge-badge {
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
 .risk-gauge-labels {
   display: flex;
   align-items: center;

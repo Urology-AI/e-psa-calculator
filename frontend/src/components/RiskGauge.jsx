@@ -2,16 +2,29 @@ import React, { useState, useEffect } from 'react';
 
 /* ─── Shared PSA Testing Priority Gauge ───
  * Used by Part 1 and Part 2 results to show PSA testing priority.
+ * Also the canonical source for epsa-screening-tool's copy of this file —
+ * mirror any change there (Phase 2 shared-component audit).
+ *
  * Props:
  *   score      — 0-100 numeric; controls needle position
  *   tierKey    — 'low' | 'intermediate' | 'elevated' (active arc)
  *   tierLabel  — caption shown below the gauge
  *   tiers      — optional [{ key, label, color }] overrides
+ *   showCaption — when true, also renders the big plain-language result
+ *     badge above the tier legend. Existing Part1/2/3Results.jsx call sites
+ *     all pass false (the caption is shown elsewhere on those screens) —
+ *     kept opt-in so merging in this badge (previously screening-tool-only)
+ *     doesn't change what's currently on screen for those callers.
+ *
+ * Tier colors intentionally match the --risk-lower/--risk-moderate/
+ * --risk-higher tokens in App.css (and the guideline banners elsewhere on
+ * the results screens), so the whole page tells one consistent
+ * green → amber → red story at a glance.
  */
 const DEFAULT_TIERS = [
-  { key: 'low',          label: 'Lower Priority',      color: '#16a34a' },
-  { key: 'intermediate', label: 'Consider Discussion', color: '#2563eb' },
-  { key: 'elevated',     label: 'Strong Candidate',    color: '#b45309' }, // darkened from #d97706 for WCAG AA contrast
+  { key: 'low',          label: 'Lower Priority',      color: '#1B7A4A' },
+  { key: 'intermediate', label: 'Consider Discussion', color: '#C97B00' },
+  { key: 'elevated',     label: 'Strong Candidate',    color: '#C0392B' },
 ];
 
 const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCaption = true }) => {
@@ -44,7 +57,9 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCapti
   const clampedAnim = Math.min(100, Math.max(0, Number(animScore) || 0));
   const svgRotate = (clampedAnim / 100) * 180 - 90;
 
-  const trackColor = '#e2eaf2';
+  // Theme-neutral translucent track: light enough not to muddy the color
+  // bands, but visible on both light and dark surfaces.
+  const trackColor = 'rgba(148, 163, 184, 0.30)';
   const [low, mid, high] = tiers;
   const activeColor =
     tierKey === low.key  ? low.color  :
@@ -60,26 +75,27 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCapti
     <figure className="risk-gauge-figure" aria-label={`PSA testing priority: ${caption}`}>
       <svg viewBox="0 0 280 145" xmlns="http://www.w3.org/2000/svg" className="risk-gauge-svg" aria-hidden="true">
 
-        {/* Track */}
-        <path d={arcPath(182, -2)} fill="none" stroke={trackColor} strokeWidth={strokeW + 6} strokeLinecap="butt" />
+        {/* Track — same angular range and rounded caps as the color bands
+            drawn on top of it, so no mismatched edges peek out. */}
+        <path d={arcPath(180, 0)} fill="none" stroke={trackColor} strokeWidth={strokeW} strokeLinecap="round" />
 
         {/* Glow halo behind active arc */}
-        {isLow  && <path d={arcPath(180, 122)} fill="none" stroke={low.color}  strokeWidth={strokeW + 10} strokeLinecap="butt" opacity="0.18" />}
-        {isMid  && <path d={arcPath(118, 62)}  fill="none" stroke={mid.color}  strokeWidth={strokeW + 10} strokeLinecap="butt" opacity="0.18" />}
-        {isHigh && <path d={arcPath(58, 0)}    fill="none" stroke={high.color} strokeWidth={strokeW + 10} strokeLinecap="butt" opacity="0.18" />}
+        {isLow  && <path d={arcPath(180, 123)} fill="none" stroke={low.color}  strokeWidth={strokeW + 10} strokeLinecap="round" opacity="0.18" />}
+        {isMid  && <path d={arcPath(119, 61)}  fill="none" stroke={mid.color}  strokeWidth={strokeW + 10} strokeLinecap="round" opacity="0.18" />}
+        {isHigh && <path d={arcPath(57, 0)}    fill="none" stroke={high.color} strokeWidth={strokeW + 10} strokeLinecap="round" opacity="0.18" />}
 
-        {/* Arc segments */}
-        <path d={arcPath(180, 122)} fill="none" stroke={low.color}  strokeWidth={strokeW} strokeLinecap="butt"
-          opacity={isLow  ? '1' : '0.28'}
+        {/* Arc segments — rounded caps read as a friendlier, less "clinical dial" shape */}
+        <path d={arcPath(180, 123)} fill="none" stroke={low.color}  strokeWidth={strokeW} strokeLinecap="round"
+          opacity={isLow  ? '1' : '0.32'}
           style={{ transition: 'opacity 0.5s ease' }} />
-        <path d={arcPath(118, 62)}  fill="none" stroke={mid.color}  strokeWidth={strokeW} strokeLinecap="butt"
-          opacity={isMid  ? '1' : '0.28'}
+        <path d={arcPath(119, 61)}  fill="none" stroke={mid.color}  strokeWidth={strokeW} strokeLinecap="round"
+          opacity={isMid  ? '1' : '0.32'}
           style={{ transition: 'opacity 0.5s ease' }} />
-        <path d={arcPath(58, 0)}    fill="none" stroke={high.color} strokeWidth={strokeW} strokeLinecap="butt"
-          opacity={isHigh ? '1' : '0.28'}
+        <path d={arcPath(57, 0)}    fill="none" stroke={high.color} strokeWidth={strokeW} strokeLinecap="round"
+          opacity={isHigh ? '1' : '0.32'}
           style={{ transition: 'opacity 0.5s ease' }} />
 
-        {/* Needle shadow + needle */}
+        {/* Needle shadow + needle — colored to match the tier it points into */}
         <g
           style={{
             transform: `rotate(${svgRotate}deg)`,
@@ -87,8 +103,9 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCapti
             transition: 'transform 2.5s cubic-bezier(0.34, 1.3, 0.64, 1)',
           }}
         >
-          <line x1={cx} y1={cy + 2} x2={cx} y2={cy - needleLen + 2} stroke="rgba(0,0,0,0.10)" strokeWidth="4" strokeLinecap="round" />
-          <line x1={cx} y1={cy}     x2={cx} y2={cy - needleLen}       stroke="#1e3a5f"          strokeWidth="3" strokeLinecap="round" />
+          <line x1={cx} y1={cy + 2} x2={cx} y2={cy - needleLen + 2} stroke="rgba(0,0,0,0.14)" strokeWidth="5" strokeLinecap="round" />
+          <line x1={cx} y1={cy}     x2={cx} y2={cy - needleLen}       stroke={activeColor}     strokeWidth="3.5" strokeLinecap="round"
+            style={{ transition: 'stroke 0.4s ease' }} />
         </g>
 
         {/* Hub ripple ring (fires after needle settles, scales from hub center) */}
@@ -101,28 +118,36 @@ const RiskGauge = ({ score, tierKey, tierLabel, tiers = DEFAULT_TIERS, showCapti
         )}
 
         {/* Hub */}
-        <circle cx={cx} cy={cy} r="8" fill="#1e3a5f" />
-        <circle cx={cx} cy={cy} r="4.5" fill="#fff" />
+        <circle cx={cx} cy={cy} r="9" fill="#fff" stroke={activeColor} strokeWidth="2.5" style={{ transition: 'stroke 0.4s ease' }} />
+        <circle cx={cx} cy={cy} r="3.5" fill={activeColor} style={{ transition: 'fill 0.4s ease' }} />
       </svg>
 
-      {/* Tier labels — staggered fade-in */}
+      {/* Big, plain-language result badge — the one thing a patient needs to
+          read at a glance. Opt-in via showCaption (see prop docs above). */}
+      {showCaption && (
+        <figcaption className="risk-gauge-badge" style={{ background: `${activeColor}17`, color: activeColor, borderColor: `${activeColor}45` }}>
+          {caption}
+        </figcaption>
+      )}
+
+      {/* Tier legend — staggered fade-in; active tier gets a filled pill */}
       <div className="risk-gauge-labels">
         {tiers.map((t, i) => (
           <span
             key={t.key}
             className={`risk-gauge-range-pill ${tierKey === t.key ? 'risk-gauge-range-pill--active' : ''}`}
             style={{
-              color: t.color,
+              color: tierKey === t.key ? '#fff' : t.color,
+              background: tierKey === t.key ? t.color : 'transparent',
+              borderColor: t.color,
               opacity: labelsIn ? undefined : 0,
-              transition: `opacity 0.4s ease ${0.5 + i * 0.1}s`,
+              transition: `opacity 0.4s ease ${0.5 + i * 0.1}s, background 0.3s ease, color 0.3s ease`,
             }}
           >
             {t.label}
           </span>
         ))}
       </div>
-
-      {showCaption && <figcaption className="risk-gauge-caption" style={{ color: activeColor }}>{caption}</figcaption>}
     </figure>
   );
 };
