@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import Part1Results from './Part1Results.jsx';
 import Part2Results from './Part2Results.jsx';
 import Part3Results from './Part3Results.jsx';
-import InfoIcon from './InfoIcon.jsx';
+import { InfoIcon } from '@urology-ai/epsa-ui';
 import { fieldReferences } from '../utils/fieldReferences';
 import './QuickEntry.css';
 import { validateInputs } from '../utils/dynamicCalculator';

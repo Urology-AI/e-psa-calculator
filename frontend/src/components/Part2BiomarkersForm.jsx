@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Part2Form.css';
 import './epsa-v2-layout.css';
 import './Part1Form.css';
-import InfoIcon from './InfoIcon';
+import { InfoIcon } from '@urology-ai/epsa-ui';
 import { CheckIcon } from 'lucide-react';
 import { biomarkerReferences } from '../utils/fieldReferences';
 

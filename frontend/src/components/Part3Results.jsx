@@ -4,21 +4,16 @@ import { useTranslation } from 'react-i18next';
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
 import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu } from './shared/ResultsShared.jsx';
-import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
-import JourneyTimeline from './shared/JourneyTimeline.jsx';
-import CarePlanChecklist from './shared/CarePlanChecklist.jsx';
-import UrologistFinder from './UrologistFinder';
+import { AssessmentSidebar, JourneyTimeline, CarePlanChecklist, UrologistFinder, RiskGauge, InfoIcon } from '@urology-ai/epsa-ui';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import './Part3Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import PrintableForm from './PrintableForm';
-import RiskGauge from './RiskGauge';
 import AUAScreeningFlowchart, { AUAInitialBiopsyGuidelines } from './AUAFlowchart';
 import { Part2GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './ResultsLoading';
-import InfoIcon from './InfoIcon';
 import ResultsMetaBar from './ResultsMetaBar';
 import { fieldReferences } from '../utils/fieldReferences';
 import { downloadCsv, buildPart2CsvRows } from '../utils/exportCsv';

@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
 import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
-import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
-import UrologistFinder from './UrologistFinder';
+import { AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -12,7 +11,6 @@ import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import { PSA_BANNER_CONFIG_DATA } from '@epsa/engine';
 import PrintableForm from './PrintableForm';
-import RiskGauge from './RiskGauge';
 import { AUAGuidelineCriteria } from './AUAFlowchart';
 import { Part1GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, PART1_LOADING_STEPS } from './ResultsLoading';

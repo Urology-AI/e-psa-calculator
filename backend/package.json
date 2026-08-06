@@ -12,10 +12,11 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "tsc -p tsconfig.test.json && node --test lib-test/*.test.js"
   },
   "dependencies": {
-    "@urology-ai/epsa-engine": "^0.1.1",
+    "@urology-ai/epsa-engine": "^0.2.0",
     "@types/cors": "^2.8.19",
     "@types/nodemailer": "^8.0.0",
     "cors": "^2.8.6",

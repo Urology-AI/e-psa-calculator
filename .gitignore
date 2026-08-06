@@ -11,6 +11,7 @@ backend/.npmrc
 /dist
 /docs
 /backend/lib/
+/backend/lib-test/
 /frontend/build/
 /frontend/dist/
 /admin/build/

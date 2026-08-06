@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { deriveIpssFromQol, expandShimSingle } from '../utils/epsaFormUtils';
 import './Part1Form.css';
 import './epsa-v2-layout.css';
-import InfoIcon from './InfoIcon';
+import { InfoIcon } from '@urology-ai/epsa-ui';
 import { fieldReferences } from '../utils/fieldReferences';
 import { CheckIcon, Dumbbell, Activity, Sofa, Cigarette, CigaretteOff, Flame, Fish, Leaf, Heart, Beef, Salad, AlertTriangle, CheckCircle2, Apple, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

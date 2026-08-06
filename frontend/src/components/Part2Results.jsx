@@ -5,9 +5,8 @@ import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import './Part2Results.css';
-import RiskGauge from './RiskGauge';
 import { CollapsibleSection, GuardrailBanner, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars } from './shared/ResultsShared.jsx';
-import { AssessmentSidebar } from './shared/AssessmentJourney.jsx';
+import { AssessmentSidebar, RiskGauge } from '@urology-ai/epsa-ui';
 import { AlertTriangleIcon, BarChart2Icon, FlaskConicalIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
 
