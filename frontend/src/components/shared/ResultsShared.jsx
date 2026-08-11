@@ -468,6 +468,31 @@ export const GuidelineComparisonTable = ({ support, recommendationText }) => {
   );
 };
 
+// ─── Guideline Recommendation Card ─────────────────────────────────────────
+// Surfaces @urology-ai/epsa-engine's product-spec output-statement tier
+// (part1Tier / part2Tier / the biopsy model's `tier`) as the specific,
+// guideline-matched recommendation language for the stage the patient is on
+// — distinct from the score-based risk tier (epsaTierKey/epsaTierLabel)
+// shown in the gauge above it. `tier` is `{ label, description }` (a superset
+// in practice — part1Tier/part2Tier carry extra fields the caller can pass
+// via `detail`, shown only in clinical view). Renders nothing if no tier is
+// available (e.g. Part 2 before a PSA value is entered).
+export const GuidelineRecommendationCard = ({ tier, detail = null }) => {
+  const { viewMode } = useDoctorMode();
+  if (!tier?.label) return null;
+  return (
+    <div className="guideline-recommendation-card" role="note">
+      <div className="guideline-recommendation-card__header">
+        <StethoscopeIcon size={16} aria-hidden="true" />
+        <span className="guideline-recommendation-card__eyebrow">Guideline-Matched Recommendation</span>
+      </div>
+      <p className="guideline-recommendation-card__label">{tier.label}</p>
+      {tier.description && <p className="guideline-recommendation-card__desc">{tier.description}</p>}
+      {modeAtLeast(viewMode, 'clinical') && detail}
+    </div>
+  );
+};
+
 // ─── Disclaimer Teaser ─────────────────────────────────────────────────────
 // One-line "Important" summary always visible + the full legal/IRB disclaimer
 // content (passed as children, unchanged) tucked behind "View Full Disclaimer".

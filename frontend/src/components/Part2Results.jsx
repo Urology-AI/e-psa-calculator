@@ -5,7 +5,7 @@ import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import './Part2Results.css';
-import { CollapsibleSection, GuardrailBanner, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars } from './shared/ResultsShared.jsx';
+import { CollapsibleSection, GuardrailBanner, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, RiskGauge } from '@urology-ai/epsa-ui';
 import { AlertTriangleIcon, BarChart2Icon, FlaskConicalIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
@@ -179,6 +179,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
     riskCat, riskClass, epsaTierKey, psaValue, psaAdjusted, psaAdjustedFlag, psaTier,
     guardrailAlerts = [], lowPsaWarning, lowPsaWarningText, discordanceFlag, isOtherHormonal,
     priorPsa = null, rescreeningIntervalMessage = null,
+    part2Tier = null,
   } = result;
 
   const ageNum = Number(preResult?.age) || 0;
@@ -294,6 +295,18 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
             </div>
           </div>
         )}
+
+        <GuidelineRecommendationCard
+          tier={part2Tier}
+          detail={part2Tier && (
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }}>
+              <span><strong>Age-adjusted threshold:</strong> {part2Tier.ageAdjustedThreshold} ng/mL</span>
+              {part2Tier.confounders?.any && <span><strong>Confounder present:</strong> Yes</span>}
+              {part2Tier.confounders?.informationalOnly && <span><strong>Informational confounder noted:</strong> cycling/DRE</span>}
+              <span><strong>Strong risk factor:</strong> {part2Tier.strongRiskFactor?.any ? 'Yes' : 'No'}</span>
+            </div>
+          )}
+        />
 
         <div className="p2r-key-inputs">
           <div className="p2r-key-input">

@@ -73,6 +73,7 @@ export const predictBiopsyRisk = functions.https.onCall(
       prob: result.prob,
       percent: result.percent,
       interpretation: result.interpretation,
+      tier: result.tier,
       guideline_rate: result.guidelineRate,
       reliable: result.reliable,
       psad: result.psad,
