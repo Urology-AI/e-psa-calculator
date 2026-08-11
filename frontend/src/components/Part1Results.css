@@ -1919,6 +1919,54 @@
   background: rgba(29, 95, 138, 0.16);
   border-color: rgba(29, 95, 138, 0.4);
 }
+/* ─── Guideline Recommendation Card ─── */
+
+.guideline-recommendation-card {
+  margin: 0.875rem 0;
+  padding: 14px 16px;
+  background: var(--brand-50);
+  border: 1px solid var(--brand-400);
+  border-radius: 10px;
+}
+
+.guideline-recommendation-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--brand-700);
+  margin-bottom: 4px;
+}
+
+.guideline-recommendation-card__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.guideline-recommendation-card__label {
+  margin: 0 0 2px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--brand-700);
+}
+
+.guideline-recommendation-card__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-700);
+}
+
+.theme-dark .guideline-recommendation-card {
+  background: var(--surface-subtle);
+  border-color: rgba(2, 136, 209, 0.35);
+}
+
+.theme-dark .guideline-recommendation-card__desc {
+  color: var(--ink-400);
+}
+
 /* ─── Guideline Deviation Banner ─── */
 
 .guideline-deviation-banner {

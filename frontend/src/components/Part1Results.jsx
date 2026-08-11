@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
 import { AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -717,6 +717,7 @@ const Part1Results = ({
     guardrailAlerts = [],
     guidelineTrack = null,
     epsaExtendedProfile = null,
+    part1Tier = null,
   } = result;
 
   const rawScore = Number(result?.calculationDetails?.rawScore);
@@ -886,6 +887,16 @@ const Part1Results = ({
               </div>
             </div>
 
+            <GuidelineRecommendationCard
+              tier={part1Tier}
+              detail={part1Tier && (
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }}>
+                  <span><strong>Guideline criteria met:</strong> {part1Tier.guidelineCriteriaMet ? 'Yes' : 'No'}</span>
+                  <span><strong>Extended risk:</strong> {part1Tier.extendedRiskStrength}</span>
+                  {part1Tier.priorBiopsyHistory && <span><strong>Prior biopsy history:</strong> Yes</span>}
+                </div>
+              )}
+            />
           </>
         )}
       </div>

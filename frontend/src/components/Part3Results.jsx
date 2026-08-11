@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source for new code.
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
-import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu } from './shared/ResultsShared.jsx';
+import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, JourneyTimeline, CarePlanChecklist, UrologistFinder, RiskGauge, InfoIcon } from '@urology-ai/epsa-ui';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -710,6 +710,16 @@ const Part3Results = ({
             )}
           </div>
         </div>
+
+        <GuidelineRecommendationCard
+          tier={apiPrediction?.tier}
+          detail={apiPrediction && (
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }}>
+              <span><strong>Model:</strong> {apiPrediction.model_version}</span>
+              <span><strong>Guideline detection rate:</strong> {apiPrediction.guideline_rate}</span>
+            </div>
+          )}
+        />
       </div>
 
       {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
