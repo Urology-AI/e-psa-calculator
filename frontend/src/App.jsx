@@ -2051,7 +2051,7 @@ function App() {
           <div className="header-brand">
             <div className="header-brand-text">
               <span className="header-product-name">ePSA<span className="header-product-name-tm">™</span></span>
-              <span className="header-tagline">Early Prostate Screening Assessment</span>
+              <span className="header-tagline">Electronic Prostate Specific Awareness</span>
               <span className="header-attribution">Educational Decision Support · Developed by Tewari Lab, Icahn School of Medicine at Mount Sinai</span>
             </div>
           </div>
