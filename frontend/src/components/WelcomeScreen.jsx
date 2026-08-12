@@ -410,6 +410,20 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
           </p>
 
         </div>
+
+        {/* Scan-to-open — sits beside the CTA so a clinician can hand the tool
+            to a patient in the room without anyone typing a URL. */}
+        <aside className="ws-hero-qr" aria-label="Scan to open ePSA on your phone">
+          <img
+            className="ws-hero-qr__img"
+            src="/epsa-qr.svg"
+            alt="QR code linking to epsa.millionstrongmen.com"
+            width="118"
+            height="118"
+          />
+          <span className="ws-hero-qr__title">Scan to open on your phone</span>
+          <span className="ws-hero-qr__url">epsa.millionstrongmen.com</span>
+        </aside>
       </section>
 
       {/* ── Welcome + How it works ── */}
