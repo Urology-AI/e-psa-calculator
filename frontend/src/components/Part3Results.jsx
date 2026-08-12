@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source for new code.
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
-import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
+import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, JourneyTimeline, CarePlanChecklist, UrologistFinder, RiskGauge, InfoIcon } from '@urology-ai/epsa-ui';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -967,11 +967,13 @@ const Part3Results = ({
         </div>
       </CollapsibleSection>
 
-      {/* ── Model confidence — sits right after the Why? reasoning ── */}
-      <ModelConfidenceBadge
-        level={apiPrediction ? (apiPrediction.reliable ? 'High' : 'Moderate') : 'High'}
-        cohortNote="Validated on Mount Sinai biopsy registry"
-      />
+      {/* ── Model confidence (clinician framing) — sits right after the Why? reasoning ── */}
+      <ClinicalOnly>
+        <ModelConfidenceBadge
+          level={apiPrediction ? (apiPrediction.reliable ? 'High' : 'Moderate') : 'High'}
+          cohortNote="Validated on Mount Sinai biopsy registry"
+        />
+      </ClinicalOnly>
 
       {/* ── Clinical Notices: one consolidated box for every non-critical, patient-specific
            note instead of a separate card per item (hormonal therapy, low PSA, PSAD,
@@ -986,6 +988,9 @@ const Part3Results = ({
           showDiscontinuationSignal;
         if (!hasAnyNotice) return null;
         return (
+          // Clinician-facing caveats (PSA confounders, discordance, re-screening
+          // intervals). Patients get the plain result + SDM guide instead.
+          <ClinicalOnly>
           <div className="p2r-notices" role="note" aria-label="Clinical notices">
             <div className="p2r-notices-title">
               <AlertTriangleIcon size={14} className="p2r-notices-icon" />
@@ -1037,6 +1042,7 @@ const Part3Results = ({
               </CompactNotice>
             </ul>
           </div>
+          </ClinicalOnly>
         );
       })()}
 
@@ -1063,6 +1069,9 @@ const Part3Results = ({
             {hasContextNote && contextNote && (
               <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'inherit', opacity: 0.85, fontStyle: 'italic' }}>{contextNote}</p>
             )}
+            {/* Guideline-citation counts are clinician signal; patients get the
+                plain recommendation without the AUA/NCCN tally. */}
+            <ClinicalOnly>
             {(biopsyRecommended && biopsyGuidelineSupport) ? (
               <div style={{ marginTop: '8px' }}>
                 <GuidelineSupportBadge support={biopsyGuidelineSupport} count={biopsyGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
@@ -1072,6 +1081,7 @@ const Part3Results = ({
                 <GuidelineSupportBadge support={tierGuidelineSupport} count={tierGuidelineSupportCount} variant={heroVariant === 'blue' ? 'light' : 'dark'} />
               </div>
             ) : null)}
+            </ClinicalOnly>
           </div>
         </div>
         <div className="v2-psa-hero-ctas">

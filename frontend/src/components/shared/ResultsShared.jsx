@@ -487,7 +487,11 @@ export const GuidelineRecommendationCard = ({ tier, detail = null }) => {
         <span className="guideline-recommendation-card__eyebrow">Guideline-Matched Recommendation</span>
       </div>
       <p className="guideline-recommendation-card__label">{tier.label}</p>
-      {tier.description && <p className="guideline-recommendation-card__desc">{tier.description}</p>}
+      {/* The engine's description is clinician prose (PI-RADS, gray zone, interval
+          language). The label alone is the plain answer patients need. */}
+      {tier.description && modeAtLeast(viewMode, 'clinical') && (
+        <p className="guideline-recommendation-card__desc">{tier.description}</p>
+      )}
       {modeAtLeast(viewMode, 'clinical') && detail}
     </div>
   );
@@ -622,4 +626,15 @@ export const MoreActionsMenu = ({ children, label = 'More actions' }) => {
       )}
     </div>
   );
+};
+
+// ─── Clinical-Only Wrapper ─────────────────────────────────────────────────
+// Renders children only once the view mode reaches 'clinical'. Use for blocks
+// that are pure clinician content (guideline-deviation rationale, validation
+// /model-confidence framing, guideline-support counts) — patient view was
+// carrying all of it and reading as a wall of information. Anything a patient
+// still needs must stay outside this wrapper.
+export const ClinicalOnly = ({ children, minMode = 'clinical' }) => {
+  const { viewMode } = useDoctorMode();
+  return modeAtLeast(viewMode, minMode) ? <>{children}</> : null;
 };

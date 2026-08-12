@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
 import { AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
@@ -371,7 +371,11 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
   const plainMessage = recommendPSA === true
     ? 'Based on your answers, getting a PSA test is a good next step. Talk with your doctor about scheduling one.'
     : 'Based on your answers, your risk falls below the level where a PSA test is typically recommended right now. Regular check-ins with your doctor as you age are still a good idea.';
-  const message = psaRecommendMessage || plainMessage;
+  // The engine's message is written for clinicians (guideline names, statement
+  // numbers, evidence grades). Patient view gets the plain-language version;
+  // the guideline-cited text stays available under "Show clinical detail".
+  const { viewMode } = useDoctorMode();
+  const message = (viewMode === 'patient' ? plainMessage : (psaRecommendMessage || plainMessage));
   const papers = BEYOND_GUIDELINE_PAPERS[configKey] || null;
   return (
     <div
@@ -389,6 +393,9 @@ const PsaRecommendationBanner = ({ recommendPSA, psaRecommendReason, psaRecommen
       <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>{message}</p>
 
       <ClinicalDetail label="Show clinical detail" hideLabel="Hide clinical detail">
+        {psaRecommendMessage && psaRecommendMessage !== message && (
+          <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#374151', lineHeight: 1.5 }}>{psaRecommendMessage}</p>
+        )}
         {guidelineSupport && (
           <div style={{ marginBottom: '8px' }}>
             <GuidelineSupportBadge support={guidelineSupport} count={guidelineSupportCount} />
@@ -904,8 +911,11 @@ const Part1Results = ({
       {/* ── Why? (progressive disclosure: graphical headline only) ── */}
       {!belowMinAge && !aboveMaxScreeningAge && <WhySection itemImpacts={itemImpacts} />}
 
-      {/* ── Model confidence ── */}
-      {!belowMinAge && !aboveMaxScreeningAge && <ModelConfidenceBadge />}
+      {/* ── Model confidence (clinician framing — patients get the plain-language
+          result + SDM guide instead of a validation badge) ── */}
+      {!belowMinAge && !aboveMaxScreeningAge && (
+        <ClinicalOnly><ModelConfidenceBadge /></ClinicalOnly>
+      )}
 
       {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
       <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
@@ -965,7 +975,9 @@ const Part1Results = ({
           {psaRecommendReason === 'score_threshold' && (() => {
             const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden', 'Family history (breast/ovarian/pancreatic)', 'Ashkenazi Jewish ancestry']);
             const nonGuidelineFactors = (itemImpacts || []).filter(b => b.points > 0 && NON_GUIDELINE.has(b.item)).map(b => b.item);
-            return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
+            // Guideline-deviation rationale is clinician content — in patient
+            // view it reads as a second, contradictory recommendation.
+            return <ClinicalOnly><GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} /></ClinicalOnly>;
           })()}
 
           {onContinueToPostPSA && (
@@ -1015,7 +1027,11 @@ const Part1Results = ({
                 : inScreeningRange
                   ? 'A repeat PSA test every 2–4 years is typical for your age.'
                   : "At 70+, whether to keep screening is a personal decision — talk it through with your doctor.";
+            // The plain-language cadence is already the second bullet of the
+            // summary above, so this box is a duplicate in patient view — it
+            // earns its place only for the guideline-cited version.
             return (
+              <ClinicalOnly>
               <div style={{ background: 'var(--brand-50)', border: '1px solid var(--brand-100)', borderLeft: '3px solid var(--brand-600)', borderRadius: '8px', padding: '10px 14px', fontSize: 'var(--font-size-small)', color: 'var(--brand-700)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <AlertCircleIcon size={14} aria-hidden="true" style={{ color: 'var(--brand-600)', flexShrink: 0 }} />
@@ -1025,6 +1041,7 @@ const Part1Results = ({
                   <span><strong>Guideline-recommended next step:</strong> {nextStep}</span>
                 </ClinicalDetail>
               </div>
+              </ClinicalOnly>
             );
           })()}
         </div>
