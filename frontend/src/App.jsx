@@ -16,6 +16,7 @@ import AboutEpsaModal from './components/AboutEpsaModal.jsx';
 import { DoctorModeProvider } from './context/DoctorModeContext.jsx';
 import DoctorModeToggle from './components/DoctorModeToggle.jsx';
 import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
+import SaveResultsBanner from './components/SaveResultsBanner.jsx';
 import LegalHub from './components/legal/LegalHub.jsx';
 import LegalDocPage from './components/legal/LegalDocPage.jsx';
 import { webPrivacy, webTerms } from './components/legal/content/web.js';
@@ -80,6 +81,12 @@ const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
 // Format: YYYY-MM-DD of the consent text revision.
 const CONSENT_VERSION = '2026-06-01';
 const CONSENT_VERSION_KEY = 'epsa_consent_version';
+// Device-local copy of the run in progress. Results used to live only in React
+// state, so a reload or an accidental tab close lost a completed assessment
+// unless it had been saved to the cloud — which made the cloud save feel
+// mandatory. Answers are stored, not scores: results are recomputed on restore
+// so a model change can never leave a stale number on screen.
+const LOCAL_SESSION_KEY = 'epsa_local_session_v1';
 
 // Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
 const safeLS = {
@@ -117,6 +124,33 @@ function App() {
   const [showCredits, setShowCredits] = useState(false);
   const [showAboutEpsa, setShowAboutEpsa] = useState(false);
   const [showSaveToCloudConsent, setShowSaveToCloudConsent] = useState(false);
+  // Post-screening cloud offer: the assessment itself runs device-local with no
+  // account, consent screen, or session key up front (those were a barrier to
+  // starting a screening at all). Once there's a result worth keeping, we ask
+  // once — and only then does a session key exist to hand back.
+  const cloudOfferShownRef = useRef(false);
+  // True from "Start Assessment" until the run ends. Scoring calls the
+  // calculatePsaRecommendation callable, which signs the user in anonymously
+  // mid-assessment (psaEngineService.js) — that fires onAuthStateChanged, whose
+  // anonymous branch used to reassign authStep/storageMode and try to restore a
+  // previous session, yanking the user out of the form they were filling in.
+  // The sign-in is a technical detail of scoring, not a login event.
+  const assessmentInProgressRef = useRef(false);
+  // Human-readable 8-char key for the anonymous session, minted once results
+  // exist so the results screen can show it with the save question.
+  const [sessionKeyPending, setSessionKeyPending] = useState(false);
+  // True once this person has agreed to cloud storage — either by answering the
+  // save question, or by importing a session that already carries consent.
+  // Consent is a property of the person, not of the visit: re-asking someone
+  // who restored their own saved session reads like the save didn't take.
+  const [cloudConsentGiven, setCloudConsentGiven] = useState(false);
+  // Mirrored into a ref because the offer effect deliberately has a single
+  // boolean dep — reading the state directly there would capture a stale value
+  // when consent arrives from an import mid-flight.
+  const cloudConsentGivenRef = useRef(false);
+  useEffect(() => { cloudConsentGivenRef.current = cloudConsentGiven; }, [cloudConsentGiven]);
+  // Mirrored for the same stale-closure reason as cloudConsentGivenRef.
+  const sessionIdRef = useRef(null);
   const [stage, setStage] = useState('pre'); // 'pre' or 'post'
   const [pathwayMode, setPathwayMode] = useState(null); // null | 'pre_psa' | 'post_psa' | 'post_mri'
   const [currentStep, setCurrentStep] = useState(1);
@@ -262,6 +296,143 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Post-screening cloud offer: fires once, the first time a local-only run has
+  // a result on screen. Deliberately after the result renders — the question is
+  // "want to keep this?", which only makes sense once there's a "this".
+  // Once results exist: mint the session key, then ask whether to keep them.
+  // Collapsed to a single boolean dep on purpose — with [authStep, preResult]
+  // the results screen's own re-renders re-ran the effect and the cleanup
+  // cancelled the pending timer before it ever fired.
+  // `!sessionId` is what keeps this a one-time ask: a restored or
+  // already-saved session has nothing to offer, and re-prompting someone who
+  // saved (or imported with their key) reads like the save didn't take.
+  // ── Device-local session persistence ──────────────────────────────────────
+  // Keeps the current run recoverable across reloads without anything being
+  // uploaded. Cleared by Start Over / logout, and superseded once the session
+  // is saved to the cloud (the key becomes the way back in).
+  useEffect(() => {
+    if (authStep !== 'app') return;
+    if (!preData?.age && !preResult) return;
+    try {
+      safeLS.set(LOCAL_SESSION_KEY, JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        preData,
+        postData,
+        stage,
+        currentStep,
+        part1Step,
+        pathwayMode,
+        hasPreResult: !!preResult,
+        hasPostResult: !!postResult,
+        // Carry the cloud identity too, so a reload of a saved run comes back
+        // as saved rather than re-offering a save that already happened.
+        sessionId,
+        appSessionId,
+        cloudConsentGiven,
+      }));
+    } catch { /* ignore quota/private-mode failures */ }
+  }, [authStep, preData, postData, stage, currentStep, part1Step, pathwayMode, preResult, postResult, sessionId, appSessionId, cloudConsentGiven]);
+
+  const localRestoreAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (localRestoreAttemptedRef.current) return;
+    localRestoreAttemptedRef.current = true;
+    if (authStep !== 'welcome') return;
+    const raw = safeLS.get(LOCAL_SESSION_KEY);
+    if (!raw) return;
+    let saved;
+    try { saved = JSON.parse(raw); } catch { return; }
+    if (!saved?.preData?.age) return;
+
+    (async () => {
+      try {
+        assessmentInProgressRef.current = true;
+        setPreData(saved.preData);
+        if (saved.postData) setPostData(saved.postData);
+        setPathwayMode(saved.pathwayMode ?? null);
+        setStage(saved.stage || 'pre');
+        setPart1Step(saved.part1Step ?? 0);
+        setStorageMode('cloud');
+        if (saved.sessionId) setSessionId(saved.sessionId);
+        if (saved.appSessionId) setAppSessionId(saved.appSessionId);
+        if (saved.cloudConsentGiven) setCloudConsentGiven(true);
+        setConsentData({
+          consentToContact: false,
+          researchConsent: false,
+          consentBasis: 'acknowledged_pending_save_choice',
+          consentTimestamp: new Date().toISOString(),
+        });
+        if (saved.hasPreResult) {
+          const { preResult: pre, postResult: post } = await computeSessionResults(
+            saved.preData,
+            saved.hasPostResult ? saved.postData : undefined,
+          );
+          if (pre) setPreResult(pre);
+          if (post) setPostResult(post);
+        }
+        setCurrentStep(saved.currentStep ?? 1);
+        setAuthStep('app');
+      } catch (err) {
+        // A failed restore must not strand the user on a blank screen — fall
+        // back to the normal welcome flow and drop the unusable copy.
+        console.warn('Could not restore local session:', err);
+        assessmentInProgressRef.current = false;
+        safeLS.remove(LOCAL_SESSION_KEY);
+        setAuthStep('welcome');
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
+
+  // Only ask once a results screen is actually on display. In the post-PSA /
+  // post-MRI pathways Part 1 results are skipped, so `preResult` alone fired
+  // the prompt over the PSA entry form — mid-data-entry, before the user had
+  // seen anything worth keeping.
+  const onResultsScreen = stage === 'pre'
+    ? currentStep === 3
+    : (currentStep === 4 && !!postResult) || (currentStep === 2 && showPart2Interim && !!postResult);
+  // The results banner owns the key + save action while it's on screen, so the
+  // header must not repeat them — two "Save to Cloud" controls and two copies
+  // of the key read as two different sessions.
+  const showResultsBanner = authStep === 'app' && onResultsScreen && isFirebaseConfigured();
+  // Mint/attach the key for ANY results screen — a returning user whose session
+  // already exists still needs to see which session their new answers are going
+  // into. `!sessionId` only decides whether there's a save left to offer.
+  const shouldEnsureSessionKey = authStep === 'app' && onResultsScreen && !!preResult
+    && storageMode === 'cloud' && isFirebaseConfigured();
+  const shouldOfferCloudSave = shouldEnsureSessionKey && !sessionId;
+  useEffect(() => {
+    if (!shouldEnsureSessionKey || cloudOfferShownRef.current) return () => {};
+    cloudOfferShownRef.current = true;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        setSessionKeyPending(true);
+        await ensureAnonymousSessionKey();
+      } catch (err) {
+        // Without a key there's nothing to hand back, but the results on screen
+        // are unaffected — the save question simply doesn't apply.
+        console.warn('Could not create a session key:', err);
+        if (!cancelled) setSessionKeyPending(false);
+        return;
+      }
+      if (cancelled) return;
+      setSessionKeyPending(false);
+      if (cloudConsentGivenRef.current || sessionIdRef.current) {
+        // Already consented (imported or previously saved session) — keep it
+        // saved silently rather than re-asking a question they've answered.
+        handleSaveLocalToCloud();
+      }
+      // Otherwise nothing pops: the key now feeds SaveResultsBanner at the top
+      // of the results screen. A modal over a result the user just waited for
+      // is an interruption, and the save is optional by design.
+    }, 1200);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [shouldEnsureSessionKey]);
+
   // Check auth state on mount (only when Firebase is configured)
   useEffect(() => {
     if (!auth) return () => {};
@@ -272,6 +443,14 @@ function App() {
         const email = currentUser.email;
         setUserPhone(phone);
         setUserEmail(email);
+
+        // Mid-assessment sign-in (scoring callable) — adopt the user and stop.
+        // Routing, storage mode, and session restore would all fight the run
+        // that is already on screen.
+        if (assessmentInProgressRef.current) {
+          if (import.meta.env.DEV) console.log('[AuthFlow] sign-in during assessment — no reroute', { uid: currentUser.uid });
+          return;
+        }
         
         // Check if user has completed consent in Firestore
         let userData = null;
@@ -825,37 +1004,82 @@ function App() {
       }
     }
 
-    // Normal consent flow — enter Part 1 form
+    // Acknowledged — go straight into Part 1. The PSA overview is still one tap
+    // away from the welcome screen ("Learn more"), but it no longer sits between
+    // "I understand" and the first question.
     setStage('pre');
     setPathwayMode(null);
     setCurrentStep(1);
     setPart1Step(0);
-    
-    // Save consent to Firestore for any authenticated mode (phone, email, or anonymous)
-    if (user) {
+    setAuthStep('app');
+
+    // Only persist consent for a real cloud session (the deliberate sign-in
+    // path). The local-only run has no Firestore document to write to — calling
+    // upsertConsent with the placeholder 'local' uid just throws a permission
+    // error for a record nothing reads. Cloud-save consent is written at upload
+    // time instead, in handleSaveLocalToCloud.
+    if (user && user.uid !== 'local' && storageMode === 'cloud') {
       try {
         await upsertConsent(consent);
-        setPsaOverviewFrom('consent');
-        setAuthStep('psa_overview');
       } catch (error) {
         console.error('Error saving consent:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-
-        // Check if it's a permission error
-        if (error.code === 'permission-denied' || error.message.includes('permission')) {
+        if (error.code === 'permission-denied' || /permission/i.test(error.message || '')) {
           console.warn('Permission denied - Firestore rules may not be deployed.');
           setCloudSyncStatus('error');
         }
-
-        // Still proceed to app even if Firestore fails
-        setPsaOverviewFrom('consent');
-        setAuthStep('psa_overview');
       }
-    } else {
-      setPsaOverviewFrom('consent');
-      setAuthStep('psa_overview');
     }
+  };
+
+  /**
+   * "Start Assessment" — go straight into the screening.
+   *
+   * Previously this routed to sign-in or a cloud-vs-device storage choice
+   * before a single question was asked, which put an account and a storage
+   * decision in front of the one thing the tool exists to do. Everyone now
+   * runs in cloud mode: scoring already goes through the calculatePsaRecommendation
+   * callable (psaEngineService.js), which signs the user in anonymously anyway,
+   * so pretending the run is device-only was never accurate. What moved to the
+   * end is the part that actually needs a decision — whether to KEEP the
+   * results, asked on the results screen alongside the session key.
+   */
+  const startAssessment = () => {
+    setStorageMode('cloud');
+    setAppSessionId(null);
+    setConsentData({
+      // Acknowledgement only. Retention and research use are asked at the
+      // results screen; nothing is written to Firestore before that.
+      consentToContact: false,
+      researchConsent: false,
+      consentBasis: 'acknowledged_pending_save_choice',
+      consentTimestamp: new Date().toISOString(),
+    });
+    assessmentInProgressRef.current = true;
+    cloudOfferShownRef.current = false;
+    setStage('pre');
+    setPathwayMode(null);
+    setCurrentStep(1);
+    setPart1Step(0);
+    // The acknowledgement screen stays in front of the questions — a result is
+    // not interpretable by someone who was never told what this tool is. It is
+    // now a single "I understand" tap with no decisions attached.
+    setAuthStep('consent');
+  };
+
+  /**
+   * Wipe the device-local copy and start a clean run. A session already saved
+   * to the cloud is untouched and stays reachable with its key — this clears
+   * what's on *this device* and mints a new key for whatever comes next.
+   */
+  const handleClearLocalSession = () => {
+    safeLS.remove(LOCAL_SESSION_KEY);
+    cloudOfferShownRef.current = false;
+    assessmentInProgressRef.current = false;
+    setCloudConsentGiven(false);
+    setSessionId(null);
+    setAppSessionId(null);
+    setSaveToCloudError(null);
+    handleClearData({ deleteCloudSession: false });
   };
 
   const handleSessionUnlink = async () => {
@@ -868,6 +1092,7 @@ function App() {
     // Clear consent cache so user must re-consent on next visit
     safeLS.remove(CONSENT_CACHE_KEY);
     // Clear all session data and return to welcome
+    assessmentInProgressRef.current = false;
     setUser(null);
     setUserPhone(null);
     setUserEmail(null);
@@ -922,6 +1147,61 @@ function App() {
     console.log('Session unlinked, returned to welcome screen');
   };
 
+  /**
+   * Give the current anonymous user a human-readable 8-char session key.
+   *
+   * By the time results exist the user is already signed in anonymously — the
+   * scoring callable did that (psaEngineService.js). Reuse that user rather
+   * than calling signInAnonymously again, which would mint a second anonymous
+   * identity and orphan the one that just scored the assessment. Writes only
+   * the uid→key mapping; the assessment itself is not stored until the user
+   * answers the save question.
+   */
+  const ensureAnonymousSessionKey = async () => {
+    if (appSessionId && appSessionId !== 'Local') return appSessionId;
+    if (!auth || !db) throw new Error('Cloud storage is not available.');
+
+    let firebaseUser = auth.currentUser;
+    if (!firebaseUser) {
+      const authResult = await signInAnonymously(auth);
+      firebaseUser = authResult.user;
+    }
+
+    // Reuse the key already on the user doc if this uid has one.
+    try {
+      const existing = await getUser(firebaseUser.uid);
+      if (existing?.sessionId) {
+        setAppSessionId(existing.sessionId);
+        setUser(firebaseUser);
+        return existing.sessionId;
+      }
+    } catch (err) {
+      console.warn('Could not read existing session key:', err);
+    }
+
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let newSessionId = '';
+    for (let i = 0; i < 8; i++) {
+      newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    await setDoc(doc(db, 'users', firebaseUser.uid), {
+      uid: firebaseUser.uid,
+      sessionId: newSessionId,
+      authMethod: 'anonymous',
+      isAnonymous: true,
+      email: null,
+      phone: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      lastLoginAt: new Date().toISOString(),
+    }, { merge: true });
+
+    setAppSessionId(newSessionId);
+    setUser(firebaseUser);
+    return newSessionId;
+  };
+
   const createNewAnonymousSession = async () => {
     if (!auth || !db) throw new Error('Cloud storage is not available. Use Local Storage instead.');
     // Generate new human-readable session ID
@@ -973,7 +1253,7 @@ function App() {
     }
   };
 
-  const handleSaveLocalToCloud = async () => {
+  const handleSaveLocalToCloud = async (cloudConsent = null) => {
     if (!isFirebaseConfigured() || !auth || !functions || !preData || !preResult) {
       setSaveToCloudError("Cloud save is not available right now. Your results are still saved on this device — you can keep working and try again later.");
       return;
@@ -983,12 +1263,28 @@ function App() {
     try {
       let firebaseUser = auth.currentUser;
       if (!firebaseUser || firebaseUser.uid === 'local') {
-        await createNewAnonymousSession();
+        // Normally the scoring callable already signed them in and
+        // ensureAnonymousSessionKey minted the key — this is the fallback for
+        // a save triggered before either happened.
+        await ensureAnonymousSessionKey();
         firebaseUser = auth.currentUser;
       }
       if (!firebaseUser) {
         throw new Error('Could not create session.');
       }
+      // Record the consent captured in the modal before any data lands in
+      // Firestore, so a session never exists without the consent that allowed it.
+      if (cloudConsent) {
+        setConsentData(prev => ({ ...(prev || {}), ...cloudConsent }));
+        try {
+          await upsertConsent(cloudConsent);
+        } catch (consentErr) {
+          // Non-fatal: the session itself is still the user's to save. Surfaced
+          // in the console rather than blocking the save they just asked for.
+          console.warn('Could not record cloud-save consent:', consentErr);
+        }
+      }
+
       const newSessionId = await saveSession(firebaseUser.uid, preData);
       if (newSessionId) {
         setSessionId(newSessionId);
@@ -998,6 +1294,7 @@ function App() {
         await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0, postResult.engineVersion, postResult.modelVersion);
       }
       setStorageMode('cloud');
+      setCloudConsentGiven(true);
     } catch (err) {
       console.error('Save to cloud error:', err);
       // Translate Firebase errors into a calm, user-friendly message.
@@ -1126,9 +1423,25 @@ function App() {
             consentToContact: restored.consentToContact || false,
             consentTimestamp: restored.consentTimestamp || new Date().toISOString()
           };
+          // loginAnonymousBySessionId only returns consentToContact, so a
+          // restored session would render as "not shared for research" even for
+          // someone who opted in at save time. Read the user's own doc for the
+          // research flag rather than changing the deployed callable.
+          try {
+            const restoredUserData = await getUser(firebaseUser.uid);
+            if (restoredUserData) {
+              consent.researchConsent = restoredUserData.researchConsent === true;
+              consent.researchTimestamp = restoredUserData.researchTimestamp || null;
+            }
+          } catch (consentErr) {
+            console.warn('Could not read research consent for restored session:', consentErr);
+          }
           setConsentData(consent);
+          setCloudConsentGiven(true);
         } else {
           setConsentData(impliedConsent);
+          // Imported by key at all means they had saved before — keep syncing.
+          setCloudConsentGiven(true);
         }
         cacheConsent();
         setAuthStep('app');
@@ -1280,9 +1593,15 @@ function App() {
     }
   };
 
-  const handleClearData = async () => {
+  /**
+   * `deleteCloudSession: false` clears this device only and leaves a saved
+   * cloud session intact — that's what the results banner's "Clear session"
+   * does, since the user was told their key still works. Start Over keeps the
+   * default (delete), which is what "start over" means for a saved session.
+   */
+  const handleClearData = async ({ deleteCloudSession = true } = {}) => {
     // Delete current session via backend and clear user's session reference
-    if (storageMode === 'cloud' && user && sessionId) {
+    if (deleteCloudSession && storageMode === 'cloud' && user && sessionId) {
       try {
         await removeSession(user.uid, sessionId);
       } catch (error) {
@@ -1718,47 +2037,15 @@ function App() {
       case 'welcome':
         return (
           <>
+            {/* One way in. The old cloud-vs-device fork made a storage decision
+                the price of starting a screening; that question now comes after
+                there are results to store (SaveToCloudConsentModal). Omitting
+                onBeginLocal/onBeginCloud is what collapses the fork into a
+                single "Start Assessment" — see showStorageChoice in
+                WelcomeScreen.jsx. Returning users still restore a cloud session
+                via "Import Previous Session" below. */}
             <WelcomeScreen
-              onBegin={() => {
-                if (isFirebaseConfigured()) {
-                  setStorageMode('cloud');
-                  setAuthStep('login');
-                } else {
-                  setStorageMode('local');
-                  setUser({ uid: 'local', isAnonymous: true });
-                  setAppSessionId('Local');
-                  if (hasCachedConsent()) {
-                    setConsentData({
-                      consentToContact: true,
-                      consentBasis: 'implied_cached',
-                      consentTimestamp: new Date().toISOString()
-                    });
-                    setAuthStep('app');
-                  } else {
-                    setAuthStep('consent');
-                  }
-                }
-              }}
-              cloudAvailable={isFirebaseConfigured()}
-              onBeginLocal={() => {
-                setStorageMode('local');
-                setUser({ uid: 'local', isAnonymous: true });
-                setAppSessionId('Local');
-                if (hasCachedConsent()) {
-                  setConsentData({
-                    consentToContact: true,
-                    consentBasis: 'implied_cached',
-                    consentTimestamp: new Date().toISOString()
-                  });
-                  setAuthStep('app');
-                } else {
-                  setAuthStep('consent');
-                }
-              }}
-              onBeginCloud={() => {
-                setStorageMode('cloud');
-                setAuthStep('login');
-              }}
+              onBegin={startAssessment}
               onViewOverview={() => { setPsaOverviewFrom('welcome'); setAuthStep('psa_overview'); }}
             />
             <div className="welcome-secondary-actions">
@@ -1887,7 +2174,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={handleClearData}
+                onStartOver={() => handleClearData()}
                 onContinueToPostPSA={() => {
                   setPathwayMode('post_psa');
                   setStage('post');
@@ -2012,7 +2299,7 @@ function App() {
                   setCurrentStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={handleClearData}
+                onStartOver={() => handleClearData()}
                 onShowModelDocs={() => setShowModelDocs(true)}
               />
             ) : (
@@ -2031,7 +2318,7 @@ function App() {
                   setCurrentStep(3);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onStartOver={handleClearData}
+                onStartOver={() => handleClearData()}
               />
             ))}
           </div>
@@ -2070,7 +2357,7 @@ function App() {
             )}
             {authStep === 'app' && (
               <div className="stage-indicator">
-                {appSessionId && appSessionId !== 'Local' && (
+                {appSessionId && appSessionId !== 'Local' && !showResultsBanner && (
                   <span className="session-key-badge" title="Your session key — use this to resume your assessment">
                     Session: {appSessionId}
                   </span>
@@ -2090,7 +2377,7 @@ function App() {
                     {cloudSyncStatus !== 'idle' && <span className="cloud-icon-dot" aria-hidden="true" />}
                   </span>
                 )}
-                {storageMode === 'local' && isFirebaseConfigured() && preResult && (
+                {storageMode === 'cloud' && isFirebaseConfigured() && preResult && !sessionId && !showResultsBanner && (
                   <button
                     type="button"
                     className="cloud-icon-badge header-save-cloud-btn"
@@ -2216,6 +2503,19 @@ function App() {
               showPart2Interim={showPart2Interim}
             />
             {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
+
+            {/* Save offer / saved confirmation — a bar above the results rather
+                than a modal over them. */}
+            {showResultsBanner && (
+              <SaveResultsBanner
+                sessionKey={appSessionId && appSessionId !== 'Local' ? appSessionId : null}
+                saved={!!sessionId}
+                pending={saveToCloudPending || sessionKeyPending}
+                error={saveToCloudError}
+                onSave={() => setShowSaveToCloudConsent(true)}
+                onClearSession={handleClearLocalSession}
+              />
+            )}
             {/* Stage navigation — shown once a pathway is active */}
             {(pathwayMode !== null || preResult) && (
               <nav className="stage-nav" aria-label="Assessment stages">
@@ -2397,10 +2697,11 @@ function App() {
       )}
       {showSaveToCloudConsent && (
         <SaveToCloudConsentModal
+          sessionId={appSessionId}
           onCancel={() => setShowSaveToCloudConsent(false)}
-          onConfirm={() => {
+          onConfirm={(cloudConsent) => {
             setShowSaveToCloudConsent(false);
-            handleSaveLocalToCloud();
+            handleSaveLocalToCloud(cloudConsent);
           }}
         />
       )}
