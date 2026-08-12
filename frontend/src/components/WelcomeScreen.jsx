@@ -6,6 +6,8 @@ import {
   HeartHandshakeIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import RegionalGuidanceCard from './RegionalGuidanceCard';
+import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
 
 /* ─── Million Strong Men Modal ─── */
 export const MillionStrongModal = ({ onClose }) => {
@@ -101,6 +103,7 @@ export const MillionStrongModal = ({ onClose }) => {
 /* ─── Screening Guidelines Modal ─── */
 export const GuidelinesModal = ({ onClose }) => {
   const closeRef = useRef(null);
+  const guidance = useRegionalGuidance();
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -137,6 +140,20 @@ export const GuidelinesModal = ({ onClose }) => {
         </header>
 
         <div className="gl-modal-body">
+          {/* Where the reader actually lives comes first — the AUA/NCCN tables
+              below are the international reference, not everyone's local rule. */}
+          <section className="gl-section" aria-label="Guidance for your country or region">
+            <RegionalGuidanceCard
+              region={guidance.region}
+              country={guidance.country}
+              source={guidance.source}
+              loading={guidance.loading}
+              onSelectRegion={guidance.selectRegion}
+              onClearSelection={guidance.clearSelection}
+              accent="#1a3a52"
+            />
+          </section>
+
           {/* AUA/SUO */}
           <section className="gl-section" aria-label="AUA / SUO guidelines">
             <div className="gl-section-head">

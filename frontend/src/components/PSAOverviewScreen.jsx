@@ -6,6 +6,8 @@ import {
   HeartPulseIcon, BookOpenIcon, InfoIcon, XIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import RegionalGuidanceCard from './RegionalGuidanceCard';
+import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
 
 /* ─── Per-step brand identity ───
  * Each of the 4 steps gets its own color from the Mount Sinai palette.
@@ -78,6 +80,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
   const [direction, setDirection] = useState('next');
   const [showSources, setShowSources] = useState(false);
   const [understood, setUnderstood] = useState(false);
+  const guidance = useRegionalGuidance();
 
   const steps = [
     {
@@ -131,11 +134,12 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
       key: 'guidelines',
       icon: <BookOpenIcon size={26} />,
       eyebrow: 'Step 3 of 4',
-      title: t('psaOverview.steps.guidelines.title', 'What do the major guidelines say?'),
+      title: t('psaOverview.steps.guidelines.title', 'What do the guidelines say where you are?'),
       body: t(
         'psaOverview.steps.guidelines.body',
-        'Three major bodies publish prostate-cancer screening guidance. They broadly agree on a shared-decision approach. ePSA aligns with all of them.'
+        'Screening advice differs by country — some run organised programmes, others test only high-risk men. Below is the current guidance for your region, followed by the three international guidelines ePSA aligns with.'
       ),
+      regional: true,
       guidelines: [
         {
           name: 'AUA / SUO (2023, amended 2026)',
@@ -304,8 +308,25 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
             </div>
           )}
 
+          {/* Step 3: region-specific guidance, auto-detected and overridable */}
+          {step.regional && (
+            <RegionalGuidanceCard
+              region={guidance.region}
+              country={guidance.country}
+              source={guidance.source}
+              loading={guidance.loading}
+              onSelectRegion={guidance.selectRegion}
+              onClearSelection={guidance.clearSelection}
+              accent={meta.accent}
+            />
+          )}
+
           {/* Step 3: guideline cards — AUA=navy, NCCN=magenta, EAU=cyan */}
           {step.guidelines && (
+            <>
+            <h3 className="psa-overview-subhead">
+              {t('psaOverview.steps.guidelines.internationalHeading', 'International reference guidelines')}
+            </h3>
             <div className="psa-overview-guidelines">
               {step.guidelines.map((g, i) => (
                 <div
@@ -333,6 +354,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
                 </div>
               ))}
             </div>
+            </>
           )}
 
           {/* Step 4: benefits — each gets a different Sinai accent */}

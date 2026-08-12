@@ -638,3 +638,13 @@
 }
 
 .theme-dark .psa-overview-ack-text { color: var(--ink-700); }
+
+/* ─── Step 3: heading above the international reference guidelines ─── */
+.psa-overview-subhead {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--ms-gray-600, #5b6b7a);
+  margin: 1.25rem 0 0.5rem;
+}
