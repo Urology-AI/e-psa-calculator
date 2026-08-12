@@ -22,7 +22,7 @@
       "stagePost": "Stage 2: Risk Assessment"
     },
     "footer": {
-      "text": "ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+      "text": "ePSA Electronic Prostate Specific Awareness | A Non-Validated Educational Risk Tool",
       "modelDocs": "Model Documentation",
       "hipaa": "Data Privacy",
       "privacyPolicy": "Privacy Policy",
@@ -169,7 +169,7 @@
     },
     "estimatedTime": "Estimated time: ~5-7 minutes",
     "beginStage2Button": "Begin Risk Assessment →",
-    "footerText": "ePSA Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+    "footerText": "ePSA Electronic Prostate Specific Awareness | A Non-Validated Educational Risk Tool",
     "viewDocsButton": "View Risk Assessment Documentation"
   },
   "consent": {
@@ -260,7 +260,7 @@
     },
     "whoWeAre": {
       "title": "About ePSA",
-      "text": "ePSA (Prostate-Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\", \"we\", \"us\", or \"our\"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation."
+      "text": "ePSA (Electronic Prostate Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai (\"MOUNT SINAI\", \"we\", \"us\", or \"our\"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation."
     },
     "institutional": {
       "title": "Relationship to the Mount Sinai Privacy Policy",
@@ -1123,7 +1123,7 @@
     "logoAlt": "ePSA Logo",
     "millionStrongMenTitle": "Million Strong Men — ePSA",
     "questionnaireTitle": "ePSA Questionnaire",
-    "tagline": "Prostate-Specific Awareness | A Non-Validated Educational Risk Tool",
+    "tagline": "Electronic Prostate Specific Awareness | A Non-Validated Educational Risk Tool",
     "headerAttribution": "Ashutosh K. Tewari, MD · Icahn School of Medicine at Mount Sinai · Department of Urology",
     "headerDisclaimer": "Educational use only — not an FDA-cleared medical device. Internally validated on the Mount Sinai ePSA cohort; no external validation yet.",
     "phoneLabel": "Phone Number:",

@@ -6,6 +6,8 @@ import {
   HeartHandshakeIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import RegionalGuidanceCard from './RegionalGuidanceCard';
+import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
 
 /* ─── Million Strong Men Modal ─── */
 export const MillionStrongModal = ({ onClose }) => {
@@ -101,6 +103,7 @@ export const MillionStrongModal = ({ onClose }) => {
 /* ─── Screening Guidelines Modal ─── */
 export const GuidelinesModal = ({ onClose }) => {
   const closeRef = useRef(null);
+  const guidance = useRegionalGuidance();
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -124,7 +127,11 @@ export const GuidelinesModal = ({ onClose }) => {
             <span>Before you begin</span>
           </div>
           <h2 id="gl-modal-title" className="gl-modal-title">Prostate Cancer Screening Guidelines</h2>
-          <p className="gl-modal-sub">ePSA aligns its recommendations with AUA/SUO and NCCN screening guidelines and is available to anyone to use for prostate cancer screening guidance.</p>
+          <p className="gl-modal-sub">
+            ePSA&apos;s recommendations are built on the AUA/SUO and NCCN screening guidelines, set out in full below.
+            Screening advice differs by country, so for full transparency we also show you the current guidance where
+            you are — and where it differs from the guidelines ePSA scores against.
+          </p>
           <button
             ref={closeRef}
             type="button"
@@ -137,6 +144,22 @@ export const GuidelinesModal = ({ onClose }) => {
         </header>
 
         <div className="gl-modal-body">
+          {/* Where the reader actually lives comes first — the AUA/NCCN tables
+              below are the international reference, not everyone's local rule. */}
+          <section className="gl-section" aria-label="Guidance for your country or region">
+            <RegionalGuidanceCard
+              region={guidance.region}
+              country={guidance.country}
+              source={guidance.source}
+              loading={guidance.loading}
+              onSelectRegion={guidance.selectRegion}
+              onClearSelection={guidance.clearSelection}
+              accent="#1a3a52"
+            />
+          </section>
+
+          <h3 className="gl-subhead">The guidelines ePSA is built on</h3>
+
           {/* AUA/SUO */}
           <section className="gl-section" aria-label="AUA / SUO guidelines">
             <div className="gl-section-head">

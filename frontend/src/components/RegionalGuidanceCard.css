@@ -1,0 +1,292 @@
+/* ─── Regional screening guidance card ─── */
+
+.rg-card {
+  background: #fff;
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem 0.875rem;
+  margin: 0.875rem 0 1.125rem;
+  box-shadow: 0 1px 3px rgba(26, 58, 82, 0.06);
+}
+
+/* ── Header ── */
+.rg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--ms-gray-200);
+}
+
+.rg-head-where {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rg-head-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border-radius: 0.375rem;
+  background: var(--ms-gray-100, #f6f8fa);
+  /* Emoji flags render at very different metrics across platforms, so pin the
+     box and let the glyph centre itself inside it. */
+  font-size: 1.0625rem;
+  line-height: 1;
+}
+
+.rg-head-region {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ms-navy, #1a3a52);
+  line-height: 1.3;
+}
+
+.rg-head-source {
+  font-size: 0.6875rem;
+  color: var(--ms-gray-600, #5b6b7a);
+  margin-top: 0.0625rem;
+}
+
+.rg-head-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.rg-picker-label {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ms-gray-600, #5b6b7a);
+  font-weight: 600;
+}
+
+.rg-select {
+  font-size: 0.75rem;
+  padding: 0.3125rem 0.5rem;
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 0.375rem;
+  background: #fff;
+  color: var(--ms-navy, #1a3a52);
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 13rem;
+}
+
+.rg-select:focus-visible {
+  outline: 2px solid var(--rg-accent);
+  outline-offset: 1px;
+}
+
+.rg-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.6875rem;
+  color: var(--rg-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Posture badge ── */
+.rg-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rg-posture {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.rg-body-line {
+  font-size: 0.6875rem;
+  color: var(--ms-gray-600, #5b6b7a);
+  font-weight: 600;
+}
+
+.rg-posture-blurb {
+  font-size: 0.75rem;
+  color: var(--ms-gray-600, #5b6b7a);
+  margin: 0.375rem 0 0;
+  line-height: 1.45;
+}
+
+/* ── Key facts grid ── */
+.rg-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.875rem 0 0;
+}
+
+.rg-fact {
+  background: var(--ms-gray-100, #f6f8fa);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.625rem;
+}
+
+.rg-fact dt {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  color: var(--ms-gray-600, #5b6b7a);
+}
+
+.rg-fact dd {
+  margin: 0.1875rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ms-navy, #1a3a52);
+  line-height: 1.3;
+}
+
+.rg-summary {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ms-gray-700, #37474f);
+  margin: 0.875rem 0 0;
+}
+
+/* ── Expandable detail ── */
+.rg-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  background: none;
+  border: none;
+  padding: 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rg-chev {
+  transition: transform 0.18s ease;
+}
+
+.rg-chev--open {
+  transform: rotate(180deg);
+}
+
+.rg-detail {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--ms-gray-200);
+  animation: rg-detail-in 0.2s ease both;
+}
+
+@keyframes rg-detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rg-detail-block + .rg-detail-block {
+  margin-top: 0.75rem;
+}
+
+.rg-detail-title {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--ms-gray-600, #5b6b7a);
+  margin: 0 0 0.375rem;
+}
+
+.rg-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ms-gray-700, #37474f);
+}
+
+.rg-list li + li {
+  margin-top: 0.1875rem;
+}
+
+.rg-list--notes li + li {
+  margin-top: 0.375rem;
+}
+
+.rg-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rg-sources li + li {
+  margin-top: 0.3125rem;
+}
+
+.rg-sources a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3125rem;
+  font-size: 0.6875rem;
+  color: var(--rg-accent);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.rg-sources a:hover {
+  text-decoration: underline;
+}
+
+/* ── Privacy note ── */
+.rg-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3125rem;
+  margin: 0.875rem 0 0;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--ms-gray-200);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--ms-gray-600, #5b6b7a);
+}
+
+.rg-privacy svg {
+  flex: 0 0 auto;
+  margin-top: 0.125rem;
+}
+
+/* ── Narrow screens: stack the header ── */
+@media (max-width: 30rem) {
+  .rg-head {
+    flex-direction: column;
+  }
+
+  .rg-head-picker {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .rg-select {
+    max-width: 100%;
+    width: 100%;
+  }
+}

@@ -1,4 +1,4 @@
-# ePSA — Prostate-Specific Awareness Risk Assessment Tool
+# ePSA — Electronic Prostate Specific Awareness Risk Assessment Tool
 
 A web application for **prostate cancer risk education and stratification**: evidence-based questionnaires, configurable statistical models, optional cloud sync via Firebase, and an admin dashboard for operations. It is intended to support shared decision-making, not to replace clinical judgment.
 

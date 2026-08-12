@@ -9,7 +9,7 @@ export const webPrivacy = {
     },
     {
       title: 'About ePSA',
-      text: 'ePSA (Prostate-Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai ("Mount Sinai", "we", "us", or "our"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation.',
+      text: 'ePSA (Electronic Prostate Specific Awareness) is an educational and research tool owned and operated by the Department of Urology at the Icahn School of Medicine at Mount Sinai ("Mount Sinai", "we", "us", or "our"). The Principal Investigator is Ashutosh K. Tewari, MD. The cohort data underlying the ePSA risk models was collected under Mount Sinai GU Clinical IRB protocol STUDY-14-00050. ePSA is not a medical device, is not FDA-cleared, and is not a substitute for in-person medical evaluation.',
     },
     {
       title: 'Relationship to the Mount Sinai Privacy Policy',

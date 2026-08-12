@@ -6,6 +6,8 @@ import {
   HeartPulseIcon, BookOpenIcon, InfoIcon, XIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import RegionalGuidanceCard from './RegionalGuidanceCard';
+import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
 
 /* ─── Per-step brand identity ───
  * Each of the 4 steps gets its own color from the Mount Sinai palette.
@@ -72,12 +74,13 @@ const SourcesModal = ({ step, accent, onClose }) => {
  * Educational only — content sourced from AUA/SUO, NCCN, EAU guidelines
  * and the American Cancer Society. Not medical advice.
  */
-const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
+const PSAOverviewScreen = ({ onContinue, onBack, continueLabel, requireAck = true }) => {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState('next');
   const [showSources, setShowSources] = useState(false);
   const [understood, setUnderstood] = useState(false);
+  const guidance = useRegionalGuidance();
 
   const steps = [
     {
@@ -131,11 +134,12 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
       key: 'guidelines',
       icon: <BookOpenIcon size={26} />,
       eyebrow: 'Step 3 of 4',
-      title: t('psaOverview.steps.guidelines.title', 'What do the major guidelines say?'),
+      title: t('psaOverview.steps.guidelines.title', 'What do the guidelines say where you are?'),
       body: t(
         'psaOverview.steps.guidelines.body',
-        'Three major bodies publish prostate-cancer screening guidance. They broadly agree on a shared-decision approach. ePSA aligns with all of them.'
+        'ePSA scores your result against the AUA/SUO, NCCN and EAU guidelines. But screening advice differs by country — some run organised programmes, others test only high-risk men — so for full transparency we show you the current guidance where you are first, then the international guidelines ePSA is built on.'
       ),
+      regional: true,
       guidelines: [
         {
           name: 'AUA / SUO (2023, amended 2026)',
@@ -304,8 +308,25 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
             </div>
           )}
 
+          {/* Step 3: region-specific guidance, auto-detected and overridable */}
+          {step.regional && (
+            <RegionalGuidanceCard
+              region={guidance.region}
+              country={guidance.country}
+              source={guidance.source}
+              loading={guidance.loading}
+              onSelectRegion={guidance.selectRegion}
+              onClearSelection={guidance.clearSelection}
+              accent={meta.accent}
+            />
+          )}
+
           {/* Step 3: guideline cards — AUA=navy, NCCN=magenta, EAU=cyan */}
           {step.guidelines && (
+            <>
+            <h3 className="psa-overview-subhead">
+              {t('psaOverview.steps.guidelines.internationalHeading', 'The international guidelines ePSA is built on')}
+            </h3>
             <div className="psa-overview-guidelines">
               {step.guidelines.map((g, i) => (
                 <div
@@ -333,6 +354,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
                 </div>
               ))}
             </div>
+            </>
           )}
 
           {/* Step 4: benefits — each gets a different Sinai accent */}
@@ -386,8 +408,9 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           )}
         </p>
 
-        {/* Acknowledgment checkbox — only on last step */}
-        {isLast && (
+        {/* Acknowledgment checkbox — only on last step, and only the first
+            time through. Re-reading the overview later shouldn't re-gate you. */}
+        {isLast && requireAck && (
           <label className="psa-overview-ack">
             <input
               type="checkbox"
@@ -413,9 +436,9 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           <button
             type="button"
             className="psa-overview-btn psa-overview-btn--primary"
-            style={{ background: meta.accent, opacity: isLast && !understood ? 0.45 : 1 }}
+            style={{ background: meta.accent, opacity: isLast && requireAck && !understood ? 0.45 : 1 }}
             onClick={next}
-            disabled={isLast && !understood}
+            disabled={isLast && requireAck && !understood}
             autoFocus
           >
             <span>{isLast ? (continueLabel ?? t('psaOverview.begin', 'Begin assessment')) : t('psaOverview.next', 'Next')}</span>

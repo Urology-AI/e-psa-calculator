@@ -2101,8 +2101,18 @@ function App() {
         return (
           <PSAOverviewScreen
             onContinue={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'app')}
-            onBack={() => setAuthStep(psaOverviewFrom === 'welcome' ? 'welcome' : 'consent')}
-            continueLabel={psaOverviewFrom === 'welcome' ? 'Back to home' : undefined}
+            onBack={() => setAuthStep(
+              psaOverviewFrom === 'welcome' ? 'welcome'
+                : psaOverviewFrom === 'app' ? 'app'   // reopened mid-assessment
+                : 'consent'
+            )}
+            continueLabel={
+              psaOverviewFrom === 'welcome' ? 'Back to home'
+                : psaOverviewFrom === 'app' ? 'Back to my assessment'
+                : undefined
+            }
+            // The acknowledgment gate belongs to the first pass through onboarding.
+            requireAck={psaOverviewFrom === 'consent'}
           />
         );
       default:
@@ -2121,6 +2131,11 @@ function App() {
             setPathwayMode(mode);
             setCurrentStep(1);
             setPart1Step(0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onViewOverview={() => {
+            setPsaOverviewFrom('app');
+            setAuthStep('psa_overview');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
@@ -2323,7 +2338,7 @@ function App() {
           <div className="header-brand">
             <div className="header-brand-text">
               <span className="header-product-name">ePSA<span className="header-product-name-tm">™</span></span>
-              <span className="header-tagline">Electronic Prostate Screening Assessment</span>
+              <span className="header-tagline">Electronic Prostate Specific Awareness</span>
               <span className="header-attribution">Educational Decision Support · Developed by Tewari Lab, Icahn School of Medicine at Mount Sinai</span>
             </div>
           </div>

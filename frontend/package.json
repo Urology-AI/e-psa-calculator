@@ -1,7 +1,7 @@
 {
   "name": "epsa-react",
   "version": "1.0.0",
-  "description": "ePSA - Prostate-Specific Awareness Risk Assessment Tool",
+  "description": "ePSA - Electronic Prostate Specific Awareness Risk Assessment Tool",
   "private": true,
   "homepage": "https://urology-ai.github.io/e-psa-calculator",
   "type": "module",

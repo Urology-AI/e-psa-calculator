@@ -253,3 +253,80 @@
   border-left-color: var(--warning-600);
 }
 .theme-dark .pathway-continue-banner--biopsy .pathway-continue-banner-btn { background: var(--warning-600); }
+
+/* ─── "Learn more" re-entry into the PSA overview ───
+   The overview is easy to skip past on the way in, so this offers it again
+   without competing with the three pathway cards above it. */
+.pathway-learn-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.875rem 1.125rem;
+  border: 1px dashed var(--ms-gray-200, #dbe2e8);
+  border-radius: 0.75rem;
+  background: var(--ms-gray-100, #f6f8fa);
+}
+
+.pathway-learn-more__prompt {
+  font-size: 0.8125rem;
+  color: var(--ink-500, var(--ms-gray-600));
+  line-height: 1.4;
+}
+
+.pathway-learn-more__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.4375rem 0.875rem;
+  border: 1px solid var(--brand-600, #0288d1);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand-700, var(--ms-navy));
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+
+.pathway-learn-more__btn:hover {
+  background: var(--brand-600, #0288d1);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.pathway-learn-more__btn:focus-visible {
+  outline: 2px solid var(--brand-600, #0288d1);
+  outline-offset: 2px;
+}
+
+.pathway-learn-more__btn svg {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 30rem) {
+  .pathway-learn-more {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.625rem;
+  }
+}
+
+.theme-dark .pathway-learn-more {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.theme-dark .pathway-learn-more__btn {
+  background: transparent;
+  color: var(--ink-700);
+  border-color: var(--brand-400);
+}
+
+.theme-dark .pathway-learn-more__btn:hover {
+  background: var(--brand-600);
+  color: #fff;
+}

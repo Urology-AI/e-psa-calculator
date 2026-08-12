@@ -901,3 +901,15 @@
 }
 
 /* Dark mode fits naturally — banner is always dark */
+
+/* ─── Guidelines modal: divider heading above the AUA/NCCN tables ─── */
+.gl-subhead {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--ms-gray-600, #5b6b7a);
+  margin: 1.25rem 0 0.625rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--ms-gray-200);
+}

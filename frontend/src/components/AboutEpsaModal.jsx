@@ -13,7 +13,7 @@ const AboutEpsaModal = ({ onClose }) => (
         <section className="docs-section">
           <h3>Purpose</h3>
           <p>
-            ePSA (Prostate-Specific Awareness) is an educational decision-support tool that
+            ePSA (Electronic Prostate Specific Awareness) is an educational decision-support tool that
             estimates an individual's likelihood of clinically significant prostate cancer,
             combining personal risk factors, PSA, and MRI findings with current screening
             guidelines. It is designed to inform — not replace — a conversation with a
