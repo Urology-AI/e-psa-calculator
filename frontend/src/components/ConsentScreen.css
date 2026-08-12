@@ -105,6 +105,48 @@
   margin: 0;
 }
 
+/* ── Acknowledgement points (what ePSA is / is not) ── */
+.consent-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.consent-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 0.0625rem solid var(--ms-gray-200);
+  border-radius: 0.625rem;
+  background: white;
+}
+
+.consent-point-icon { color: var(--brand-600); flex-shrink: 0; margin-top: 0.15rem; }
+
+.consent-point span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.9375rem;
+  color: var(--ink-600);
+}
+
+.consent-point strong { color: var(--ms-navy); }
+
+.consent-point small {
+  font-size: 0.8125rem;
+  color: var(--ink-600);
+  line-height: 1.5;
+}
+
+.theme-dark .consent-point { background: var(--surface); border-color: var(--line-200); }
+.theme-dark .consent-point span { color: var(--ink-800); }
+.theme-dark .consent-point strong { color: var(--brand-400); }
+
 /* ── Storage / research choice ── */
 .consent-choice {
   display: flex;

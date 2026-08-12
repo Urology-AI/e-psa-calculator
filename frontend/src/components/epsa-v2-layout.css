@@ -1047,6 +1047,13 @@
     max-width: calc(1240px - 264px) !important;
   }
 
+  /* Same offset for the progress nav, which also lives outside
+     .results-container and otherwise runs underneath the fixed rail. */
+  .container:has(.assessment-sidebar) .journey-progress {
+    margin-left: 264px !important;
+    max-width: calc(1240px - 264px) !important;
+  }
+
   /* Quick Entry (Clinician View) stacks all three result sections inside its
      own 900px-max-width reading column (.qe-results-wrapper, QuickEntry.css) —
      too narrow to also fit a 232px sidebar without cramping the content down

@@ -1,132 +1,95 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './ConsentScreen.css';
 import {
-  HardDriveIcon,
-  CloudIcon,
   CheckCircle2Icon,
+  ShieldCheckIcon,
+  StethoscopeIcon,
+  HardDriveIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const ConsentScreen = ({ phone, email, onConsentComplete }) => {
+/**
+ * Up-front acknowledgement: what ePSA is and is not (educational, not an
+ * FDA-cleared device, not a diagnosis, not a replacement for a clinician).
+ * One tap, no choices to make — a person cannot meaningfully read a result
+ * they were never told the nature of, so this stays before the questions.
+ *
+ * What moved OUT of this screen: the storage choice and research-study
+ * enrollment. Asking someone to pick a data-retention model and opt into an
+ * IRB study before they have been asked a single question was a barrier in
+ * front of the screening itself, and it asks for a decision about keeping
+ * results that do not exist yet. Both are now asked once there are results
+ * worth keeping — see SaveToCloudConsentModal.
+ */
+const ConsentScreen = ({ onConsentComplete }) => {
   const { t } = useTranslation();
-  const [researchConsent, setResearchConsent] = useState(null); // null = not answered yet
-  const [emrLinkageConsent, setEmrLinkageConsent] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const consentData = {
-      consentToContact: true,
-      consentBasis: 'implied_by_use',
+    onConsentComplete({
+      // Acknowledgement only. Storage and research consent are captured later,
+      // at the point of upload — nothing leaves the device before that.
+      disclaimerAcknowledged: true,
+      disclaimerTimestamp: new Date().toISOString(),
+      consentToContact: false,
+      researchConsent: false,
+      consentBasis: 'local_only_no_upload',
       consentTimestamp: new Date().toISOString(),
-      researchConsent: researchConsent === true,
-      researchTimestamp: new Date().toISOString(),
-      followUpSurveyDisclosureShown: true,
-      followUpSurveyDisclosureTimestamp: new Date().toISOString(),
-      emrLinkageConsent: emrLinkageConsent,
-      emrLinkageConsentTimestamp: new Date().toISOString(),
-    };
-
-    onConsentComplete(consentData);
+    });
   };
 
   return (
     <div className="consent-container">
       <div className="consent-card">
         <div className="consent-header">
-          <h2>{t('consent.title')}</h2>
-          <p className="consent-intro">{t('consent.intro')}</p>
+          <h2>Before you start</h2>
+          <p className="consent-intro">
+            ePSA takes about five minutes and gives you a personalized picture of your prostate
+            cancer risk to bring to your clinician. Three things to know first.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="consent-form">
-          <div className="consent-why">
-            <p>
-              Your assessment can be kept <strong>only on this device</strong>, or{' '}
-              <strong>saved to the cloud</strong> under an anonymous session key (no name, email,
-              or phone stored). {t('consent.notMedicalDevice')}
-            </p>
-          </div>
-
-          <div className="consent-choice">
-            <p className="question-text">Where should your assessment be saved?</p>
-
-            <label className={`consent-choice-option ${researchConsent === false ? 'consent-choice-option--selected' : ''}`}>
-              <input
-                type="radio"
-                name="researchConsent"
-                value="local"
-                checked={researchConsent === false}
-                onChange={() => setResearchConsent(false)}
-              />
-              <HardDriveIcon size={18} className="consent-choice-icon" />
+          <ul className="consent-points">
+            <li className="consent-point">
+              <ShieldCheckIcon size={18} className="consent-point-icon" aria-hidden="true" />
               <span>
-                <strong>Local only</strong>
-                <small>Nothing leaves your device.</small>
+                <strong>This is not a medical test or a diagnosis.</strong>
+                <small>{t('consent.notMedicalDevice')} It estimates risk from population data — it cannot tell you whether you have cancer.</small>
               </span>
-            </label>
+            </li>
 
-            <label className={`consent-choice-option ${researchConsent === true ? 'consent-choice-option--selected' : ''}`}>
-              <input
-                type="radio"
-                name="researchConsent"
-                value="cloud"
-                checked={researchConsent === true}
-                onChange={() => setResearchConsent(true)}
-              />
-              <CloudIcon size={18} className="consent-choice-icon" />
+            <li className="consent-point">
+              <StethoscopeIcon size={18} className="consent-point-icon" aria-hidden="true" />
               <span>
-                <strong>Cloud &amp; research study</strong>
+                <strong>It's a starting point for a conversation.</strong>
+                <small>Your result is meant to be reviewed with a clinician, who can weigh it against your full history. Do not use it to decide for or against testing on your own.</small>
+              </span>
+            </li>
+
+            <li className="consent-point">
+              <HardDriveIcon size={18} className="consent-point-icon" aria-hidden="true" />
+              <span>
+                <strong>No account, and nothing is kept unless you say so.</strong>
                 <small>
-                  Saves your session (ID, status, results) to a secure cloud database and enrolls
-                  you in the Tewari Lab / Million Strong Men research study. De-identified data may
-                  be used to improve ePSA. You can disable this anytime and delete your saved
-                  session from the results screen.
+                  Your answers are sent to Mount Sinai's secure server to calculate your score,
+                  but they are not saved anywhere until you choose to keep them. No name, email,
+                  or phone number is collected. After you see your results you'll get a session
+                  key and be asked whether to save them — and separately, whether to share them
+                  for research. Both are optional.
                 </small>
               </span>
-            </label>
-
-            {researchConsent === null && (
-              <p className="consent-choice-skip">{t('consent.errorNoSelection')}</p>
-            )}
-          </div>
-
-          {researchConsent === true && (
-            <>
-              <div className="consent-followup-notice">
-                As part of the study protocol (IRB STUDY-14-00050), you may be contacted
-                by text message or email at approximately 3, 6, 12, and 36 months after
-                completing this questionnaire. We will ask only whether you received a PSA
-                test and any results. This follow-up is completely optional — you may opt
-                out at any time by replying STOP to any text message.
-              </div>
-
-              <div className="consent-emr-section">
-                <label className="consent-emr-label">
-                  <input
-                    type="checkbox"
-                    checked={emrLinkageConsent}
-                    onChange={(e) => setEmrLinkageConsent(e.target.checked)}
-                    className="consent-emr-checkbox"
-                  />
-                  <span>
-                    <strong>[Optional] Medical record linkage</strong> — I agree that the
-                    research team may verify clinical outcomes (PSA results, biopsy findings,
-                    treatments received) from my medical record to improve the ePSA model.
-                    This is completely optional and does not affect my questionnaire or results.
-                  </span>
-                </label>
-              </div>
-            </>
-          )}
+            </li>
+          </ul>
 
           <p className="consent-footnote">
             {t('consent.rightToWithdrawBody')}{' '}
             <a href="mailto:aditya.dixit@mssm.edu">{t('consent.researcherContactTitle')}</a>
           </p>
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={researchConsent === null}>
+          <button type="submit" className="btn btn-primary btn-block">
             <CheckCircle2Icon size={16} />
-            {t('consent.continueButton')}
+            I understand — start my assessment
           </button>
         </form>
       </div>
