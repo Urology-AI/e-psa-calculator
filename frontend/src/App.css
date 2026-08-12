@@ -1309,6 +1309,15 @@ body {
     display: none;
   }
 
+  /* Below ~420px the tagline wraps to three lines beside the view-mode toggle
+     and the header stops reading as a single tidy row — the wordmark alone
+     carries the identity at that width. */
+  @media (max-width: 420px) {
+    .header-tagline {
+      display: none;
+    }
+  }
+
   /* Let actions wrap onto a second line rather than clipping — overflow:hidden
      here used to cut off the pathway dropdown menu, the session/cloud status
      badges, and the Save to Cloud button on narrow screens. */

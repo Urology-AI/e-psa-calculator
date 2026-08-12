@@ -5,7 +5,7 @@ import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import './Part2Results.css';
-import { CollapsibleSection, GuardrailBanner, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
+import { CollapsibleSection, GuardrailBanner, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, GuidelineRecommendationCard } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, RiskGauge } from '@urology-ai/epsa-ui';
 import { AlertTriangleIcon, BarChart2Icon, FlaskConicalIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
@@ -380,8 +380,8 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
         <WhyImpactBars items={whyReasons} />
       </CollapsibleSection>
 
-      {/* ── Model confidence — sits right after the Why? reasoning ── */}
-      <ModelConfidenceBadge />
+      {/* ── Model confidence (clinician framing) — sits right after the Why? reasoning ── */}
+      <ClinicalOnly><ModelConfidenceBadge /></ClinicalOnly>
 
       {/* ── Critical guardrail alerts (e.g. PSA > 100) — always shown, never collapsed ── */}
       {guardrailAlerts?.length > 0 && guardrailAlerts
@@ -401,6 +401,9 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
           (priorPsa != null && rescreeningIntervalMessage) || showAge70Note || nonCriticalGuardrails.length > 0;
         if (!hasAnyNotice) return null;
         return (
+          // Clinician-facing caveats (PSA confounders, discordance, re-screening
+          // intervals). Patients get the plain result + SDM guide instead.
+          <ClinicalOnly>
           <div className="p2r-notices" role="note" aria-label="Clinical notices">
             <div className="p2r-notices-title">
               <AlertTriangleIcon size={13} className="p2r-notices-icon" />
@@ -441,6 +444,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
               <ClinicalNoticeLine key={alert.code} label={alert.title} short={alert.message} detail={alert.message} />
             ))}
           </div>
+          </ClinicalOnly>
         );
       })()}
 

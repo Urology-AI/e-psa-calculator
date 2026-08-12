@@ -1021,10 +1021,12 @@
     flex-direction: column;
     gap: 1.5rem;
     position: fixed;
-    top: 132px;
+    /* Clears the (static, ~130–190px tall) app header at scroll top — at 132px
+       the rail overlapped the product name/tagline before the page scrolled. */
+    top: 196px;
     left: max(24px, calc(50% - 620px));
     width: 232px;
-    max-height: calc(100vh - 156px);
+    max-height: calc(100vh - 220px);
     overflow-y: auto;
     padding: 1.25rem 1rem;
     background: #fff;
@@ -1041,6 +1043,13 @@
      Margin/max-width here must always win over the base .results-container
      centering rule when this modifier class is present. */
   .results-container--with-sidebar {
+    margin-left: 264px !important;
+    max-width: calc(1240px - 264px) !important;
+  }
+
+  /* Same offset for the progress nav, which also lives outside
+     .results-container and otherwise runs underneath the fixed rail. */
+  .container:has(.assessment-sidebar) .journey-progress {
     margin-left: 264px !important;
     max-width: calc(1240px - 264px) !important;
   }
