@@ -48,7 +48,14 @@ const PATHWAYS = [
   },
 ];
 
-const PathwaySelector = ({ onSelect }) => (
+const BookIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const PathwaySelector = ({ onSelect, onViewOverview }) => (
   <section className="pathway-selector" aria-labelledby="pathway-selector-heading">
     <div className="pathway-selector-header">
       <h2 id="pathway-selector-heading" className="pathway-selector-title">
@@ -58,6 +65,18 @@ const PathwaySelector = ({ onSelect }) => (
         Select the option that best describes your situation. Each pathway gives you a result tailored to where you are right now.
       </p>
     </div>
+    {/* The 4-step PSA overview is easy to skip past on the way in, so keep a
+        way back to it from here rather than only before consent. */}
+    {onViewOverview && (
+      <div className="pathway-learn-more">
+        <span className="pathway-learn-more__prompt">Not sure what PSA is, or what the guidelines say?</span>
+        <button type="button" className="pathway-learn-more__btn" onClick={onViewOverview}>
+          <BookIcon />
+          <span>Learn more — PSA overview &amp; screening guidelines</span>
+        </button>
+      </div>
+    )}
+
     <div className="pathway-cards" role="list">
       {PATHWAYS.map(({ mode, Icon, headline, body, button, accentClass }) => (
         <div

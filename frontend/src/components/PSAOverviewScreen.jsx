@@ -74,7 +74,7 @@ const SourcesModal = ({ step, accent, onClose }) => {
  * Educational only — content sourced from AUA/SUO, NCCN, EAU guidelines
  * and the American Cancer Society. Not medical advice.
  */
-const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
+const PSAOverviewScreen = ({ onContinue, onBack, continueLabel, requireAck = true }) => {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState('next');
@@ -408,8 +408,9 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           )}
         </p>
 
-        {/* Acknowledgment checkbox — only on last step */}
-        {isLast && (
+        {/* Acknowledgment checkbox — only on last step, and only the first
+            time through. Re-reading the overview later shouldn't re-gate you. */}
+        {isLast && requireAck && (
           <label className="psa-overview-ack">
             <input
               type="checkbox"
@@ -435,9 +436,9 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           <button
             type="button"
             className="psa-overview-btn psa-overview-btn--primary"
-            style={{ background: meta.accent, opacity: isLast && !understood ? 0.45 : 1 }}
+            style={{ background: meta.accent, opacity: isLast && requireAck && !understood ? 0.45 : 1 }}
             onClick={next}
-            disabled={isLast && !understood}
+            disabled={isLast && requireAck && !understood}
             autoFocus
           >
             <span>{isLast ? (continueLabel ?? t('psaOverview.begin', 'Begin assessment')) : t('psaOverview.next', 'Next')}</span>
