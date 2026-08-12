@@ -1484,3 +1484,67 @@ body {
     page-break-inside: avoid;
   }
 }
+
+/* ─── Welcome screen: scan-to-open QR ─── */
+.welcome-qr {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 30rem;
+  margin: 1.5rem auto 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--ms-gray-200, #dbe2e8);
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.welcome-qr__img {
+  flex: 0 0 auto;
+  width: 8.25rem;
+  height: 8.25rem;
+  border-radius: 0.5rem;
+}
+
+.welcome-qr__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.welcome-qr__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--brand-700, var(--ms-navy, #1a3a52));
+}
+
+.welcome-qr__sub {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-500, var(--ms-gray-600, #5b6b7a));
+}
+
+.welcome-qr__url {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brand-600, #0288d1);
+  word-break: break-all;
+}
+
+@media (max-width: 30rem) {
+  .welcome-qr {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.theme-dark .welcome-qr {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Keep the QR readable on dark backgrounds. */
+.theme-dark .welcome-qr__img {
+  background: #fff;
+  padding: 0.25rem;
+}

@@ -2070,6 +2070,23 @@ function App() {
                 </button>
               </div>
             </div>
+
+            {/* Scan-to-share — lets a clinician hand the tool to a patient in
+                the room without typing a URL. */}
+            <div className="welcome-qr">
+              <img
+                className="welcome-qr__img"
+                src="/epsa-qr.svg"
+                alt="QR code linking to epsa.millionstrongmen.com"
+                width="132"
+                height="132"
+              />
+              <div className="welcome-qr__text">
+                <span className="welcome-qr__title">Scan to open ePSA</span>
+                <span className="welcome-qr__sub">Point your phone camera here to open this tool, or share it with someone who needs it.</span>
+                <span className="welcome-qr__url">epsa.millionstrongmen.com</span>
+              </div>
+            </div>
           </>
         );
       case 'import':
