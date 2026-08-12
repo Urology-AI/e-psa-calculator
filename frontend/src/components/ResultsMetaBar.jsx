@@ -78,7 +78,10 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
           {hasLocalRegion && (
             <p className="results-meta-bar__notice" role="note">
               Your result is scored against the international guidelines (AUA/SUO, NCCN, EAU).
-              Screening practice in <strong>{region.name}</strong> is set by {region.body} ({region.year}),
+              {' '}
+              {/* Phrased to sit before the region name rather than after "in", so
+                  names that need an article ("the United States") still read right. */}
+              Local guidance for <strong>{region.name}</strong> comes from {region.body} ({region.year}),
               which may start testing at a different age or interval — so what your own clinician
               offers can differ from what you see here.
             </p>
