@@ -32,8 +32,20 @@ export const calculatePsaRecommendation = async (prePsa, postPsa) => {
   await ensureSignedIn();
   const payload = { prePsa };
   if (postPsa) payload.postPsa = postPsa;
-  const result = await calculatePsaRecommendationFn(payload);
-  return result.data;
+  try {
+    const result = await calculatePsaRecommendationFn(payload);
+    return result.data;
+  } catch (error) {
+    // The callable returns which fields it rejected in details.issues, but the
+    // FirebaseError message alone is just "Invalid PSA input data" — logging the
+    // issue paths (never the values, which are PHI) is the difference between a
+    // debuggable 400 and a blank console.
+    const issues = error?.details?.issues;
+    if (Array.isArray(issues) && issues.length > 0) {
+      console.error('calculatePsaRecommendation rejected input:', issues.map(i => `${i.path || '(form)'}: ${i.message}`).join('; '));
+    }
+    throw error;
+  }
 };
 
 /**

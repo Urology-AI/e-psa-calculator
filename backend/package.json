@@ -7,7 +7,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "tsc && cp package.json package-lock.json lib/ && ([ -f .npmrc ] && cp .npmrc lib/ || true)",
+    "build": "tsc && node scripts/prepare-deploy.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",

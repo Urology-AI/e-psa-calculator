@@ -11,7 +11,12 @@ import { z } from 'zod';
 
 const PrePsaInputSchema = z.object({
   age: z.union([z.number().int().min(18).max(120), z.string()]).transform(val => typeof val === 'string' ? parseInt(val, 10) : val),
-  race: z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say', 'african-american', 'american-indian', 'native-hawaiian', 'unknown']),
+  // Nullable/optional for the same wire reason as every other field below, plus:
+  // QuickEntry leaves race unset (`race: race || null`) unless the clinician picks
+  // one, so a plain required enum here 400'd the whole call. 'unknown' is a real
+  // member of this vocabulary and is exactly how the engine scores an unstated race.
+  race: z.enum(['black', 'white', 'asian', 'hispanic', 'other', 'prefer-not-to-say', 'african-american', 'american-indian', 'native-hawaiian', 'unknown'])
+    .nullable().optional().transform(val => val || 'unknown'),
   // .nullable() alongside .optional() throughout this schema: the callable-function
   // transport (Firebase httpsCallable) serializes any field that's `undefined` on the
   // client as `null` on the wire, so an unanswered/skipped optional question always
@@ -28,7 +33,16 @@ const PrePsaInputSchema = z.object({
   // scores on `bmi`, not raw weight (see itemImpacts: a "BMI" entry, never a
   // "Weight" one), so there's nothing to derive it for.
   weight: z.union([z.number().positive(), z.string(), z.null()]).optional().transform(val => (typeof val === 'string' ? parseFloat(val) : val) || undefined),
-  bmi: z.union([z.number().positive(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  // String/null accepted for the same reason as the height/weight fields: QuickEntry
+  // sends '' for a cleared BMI box and Part1Form sends the raw input string. Coerced
+  // here so a numeric-looking string doesn't 400; a genuinely missing BMI falls through
+  // to the engine's own validateInputs(), which reports it as a field error (below)
+  // instead of a bare "Invalid PSA input data".
+  bmi: z.union([z.number(), z.string(), z.null()]).optional().transform(val => {
+    if (val === null || val === undefined || val === '') return undefined;
+    const n = typeof val === 'string' ? parseFloat(val) : val;
+    return Number.isFinite(n) ? n : undefined;
+  }),
   heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).nullable().optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
   weightUnit: z.enum(['lbs', 'kg']).nullable().optional(),
   weightKg: z.union([z.number().positive(), z.string(), z.null()]).optional(),
@@ -124,12 +138,29 @@ export async function computeRecommendation(input: PsaRecommendationInput) {
   // consumed as a real dependency by both frontend and backend — no more
   // hand-synced vendored copies. This is the same logic used by e-psa web
   // and the MSSM screening tool, and by iOS via this Cloud Function.
+  const engine = await import('@urology-ai/epsa-engine');
   const {
     calculateDynamicEPsa, calculateDynamicEPsaPost, AUA_PSA_THRESHOLDS,
     ENGINE_VERSION, GUIDELINE_VERSION,
-  } = await import('@urology-ai/epsa-engine');
+  } = engine;
+  // validateInputs is exported at runtime (index.js re-exports all of
+  // epsaEngine.js) but isn't declared in the package's index.d.ts yet.
+  const { validateInputs } = engine as unknown as {
+    validateInputs: (formData: unknown) => { errors: string[] };
+  };
 
   const part1 = calculateDynamicEPsa(input.prePsa);
+  // calculateDynamicEPsa returns null when its own validateInputs() rejects the
+  // form (missing BMI, incomplete IPSS/SHIM, no comorbidity info, …). Spreading
+  // that null produced an empty part1 object and the UI rendered a bogus zero
+  // score instead of an error — surface the field-level reasons instead.
+  if (!part1) {
+    const { errors } = validateInputs(input.prePsa);
+    functions.logger.warn('calculatePsaRecommendation: engine rejected input', { errors });
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid PSA input data', {
+      issues: errors.map((message: string) => ({ path: '', message })),
+    });
+  }
   // part1.guardrailAlerts is already computed correctly inside
   // calculateDynamicEPsa (it derives hasTwoComorbidities from the raw
   // comorbidityScore before calling the engine's internal checkGuardrails).
@@ -193,12 +224,19 @@ export const calculatePsaRecommendation = functions.https.onCall(
       const issues = error instanceof z.ZodError
         ? error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message }))
         : [];
+      // Logged as well as returned: a client that swallows the details payload (the web
+      // app did) otherwise leaves a 400 with no trace of which field was rejected.
+      // Paths/messages only — never the values, which are PHI.
+      functions.logger.warn('calculatePsaRecommendation rejected input', { issues });
       throw new functions.https.HttpsError('invalid-argument', 'Invalid PSA input data', { issues });
     }
 
     try {
       return await computeRecommendation(input);
     } catch (error) {
+      // The invalid-argument error thrown above is a deliberate, already-logged
+      // client error — re-wrapping it as 'internal' would hide the field reasons.
+      if (error instanceof functions.https.HttpsError) throw error;
       functions.logger.error('calculatePsaRecommendation failed', { error });
       throw new functions.https.HttpsError('internal', 'Failed to calculate recommendation', error);
     }
