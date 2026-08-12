@@ -137,7 +137,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
       title: t('psaOverview.steps.guidelines.title', 'What do the guidelines say where you are?'),
       body: t(
         'psaOverview.steps.guidelines.body',
-        'Screening advice differs by country — some run organised programmes, others test only high-risk men. Below is the current guidance for your region, followed by the three international guidelines ePSA aligns with.'
+        'ePSA scores your result against the AUA/SUO, NCCN and EAU guidelines. But screening advice differs by country — some run organised programmes, others test only high-risk men — so for full transparency we show you the current guidance where you are first, then the international guidelines ePSA is built on.'
       ),
       regional: true,
       guidelines: [
@@ -325,7 +325,7 @@ const PSAOverviewScreen = ({ onContinue, onBack, continueLabel }) => {
           {step.guidelines && (
             <>
             <h3 className="psa-overview-subhead">
-              {t('psaOverview.steps.guidelines.internationalHeading', 'International reference guidelines')}
+              {t('psaOverview.steps.guidelines.internationalHeading', 'The international guidelines ePSA is built on')}
             </h3>
             <div className="psa-overview-guidelines">
               {step.guidelines.map((g, i) => (
