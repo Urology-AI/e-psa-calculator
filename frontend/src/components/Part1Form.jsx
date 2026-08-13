@@ -28,7 +28,7 @@ const IPSS_LABEL_KEY_BY_VALUE = {
 
 // Section badge components
 const SectionABadge = () => (
-  <span className="section-a-badge">AUA/SUO 2026</span>
+  <span className="section-a-badge">AUA/SUO 2026 + NCCN</span>
 );
 
 const SectionBBadge = () => (
@@ -54,15 +54,32 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     </span>
   );
 
-  const GuidelineBadge = () => (
-    <span
-      className="guideline-badge"
-      title={t('part1.guideline.badgeTooltip')}
-      aria-label={t('part1.guideline.badgeTooltip')}
-    >
-      {t('part1.guideline.badge')}
-    </span>
-  );
+  // Which guideline actually cites this factor, read off the field's own
+  // citation list so the badge can never claim a guideline the references
+  // don't back up. Fields with no guideline citation keep the plain badge.
+  const guidelineSourcesFor = (field) => {
+    const names = (fieldReferences[field]?.sources || []).map((s) => s.name || '');
+    const bodies = [];
+    if (names.some((n) => n.startsWith('AUA/SUO'))) bodies.push('AUA/SUO');
+    if (names.some((n) => n.startsWith('NCCN Guidelines®'))) bodies.push('NCCN');
+    return bodies;
+  };
+
+  const GuidelineBadge = ({ field }) => {
+    const bodies = field ? guidelineSourcesFor(field) : [];
+    const label = bodies.length
+      ? `${t('part1.guideline.badge')} · ${bodies.join(' + ')}`
+      : t('part1.guideline.badge');
+    return (
+      <span
+        className="guideline-badge"
+        title={t('part1.guideline.badgeTooltip')}
+        aria-label={t('part1.guideline.badgeTooltip')}
+      >
+        {label}
+      </span>
+    );
+  };
 
   const SkipLink = ({ field }) => {
     const skipped = isSkipped(field);
@@ -142,6 +159,11 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   );
   const [shimMode, setShimMode] = useState(() =>
     Array.isArray(formData.shim) && formData.shim.length === 5 && formData.shim.every(v => v !== null) ? 'full' : 'quick'
+  );
+  // Answering "No" to the breast/ovarian/pancreatic question leaves the array
+  // empty, so track that the question was touched (see the Section A tally).
+  const [familyCancerTouched, setFamilyCancerTouched] = useState(
+    () => (formData.familyHistoryCancerTypes?.length ?? 0) > 0
   );
 
   useEffect(() => {
@@ -410,6 +432,11 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const inflammationHistoryValid = localData.inflammationHistory !== null && localData.inflammationHistory !== undefined;
   const brcaValid = !!localData.brcaStatus;
   const comorbiditiesValid = localData.comorbidityScore !== null && localData.comorbidityScore !== undefined;
+  const ashkenaziJewishValid = localData.ashkenaziJewish !== null && localData.ashkenaziJewish !== undefined;
+  // "No" leaves the array empty, so an empty array can't tell an answer from
+  // an untouched question — track the interaction itself for the A tally.
+  const familyHistoryCancerTypesValid =
+    familyCancerTouched || localData.familyHistoryCancerTypes.length > 0;
 
   const totalQuestions = 25; // 12 core + 7 IPSS + 1 QoL + 5 SHIM
   const countAnswered = () => {
@@ -440,26 +467,31 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const answeredCount = countAnswered();
   const canProceedResult = canProceed();
 
-  // Section A: guideline factors (age, race, family history, IPSS)
-  const sectionATotal = 4;
+  // Section A: the factors AUA/SUO and NCCN actually cite as screening
+  // criteria — the same set that carries a GUIDELINE-BASED badge, so the
+  // A/B counts and the per-question badges always tell the same story.
+  const sectionATotal = 6;
   const sectionAAnswered = [
     ageValid,
     raceValid,
     familyHistoryValid || isSkipped('familyHistory'),
-    ipssComplete || isSkipped('ipss'),
+    brcaValid || isSkipped('brcaStatus'),
+    familyHistoryCancerTypesValid || isSkipped('familyHistoryCancerTypes'),
+    ashkenaziJewishValid || isSkipped('ashkenaziJewish'),
   ].filter(Boolean).length;
   const sectionADone = sectionAAnswered === sectionATotal;
 
-  // Section B: additional factors (height, weight, exercise, smoking, diet, BRCA, comorbidities, SHIM)
+  // Section B: everything the guidelines don't use for the screening decision
+  // (IPSS, height, weight, exercise, smoking, diet, comorbidities, SHIM).
   // Chemical exposure and inflammation history are optional — counted toward progress but not required for sectionBDone
   const sectionBTotal = 8;
   const sectionBAnswered = [
+    ipssComplete || isSkipped('ipss'),
     hasValidHeight(),
     hasValidWeight(),
     exerciseValid || isSkipped('exercise'),
     smokingValid || isSkipped('smoking'),
     dietValid || isSkipped('dietPattern'),
-    brcaValid || isSkipped('brcaStatus'),
     comorbiditiesValid || isSkipped('comorbidityScore'),
     shimComplete || isSkipped('shim'),
   ].filter(Boolean).length;
@@ -510,7 +542,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             onClick={() => scrollToSection(sectionBRef)}
           >
             <span className="section-tab-letter section-tab-letter--b">B</span>
-            <span className="section-tab-name">Lifestyle Factors</span>
+            <span className="section-tab-name">Symptoms &amp; Lifestyle</span>
             <span className={`section-tab-count ${sectionBDone ? 'section-tab-count--done' : ''}`}>
               {sectionBAnswered}/{sectionBTotal}
             </span>
@@ -548,7 +580,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       <div className="question-card" style={{ borderColor: ageValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">1</div>
-          <div className="question-text">{t('part1.fields.age.title')} <GuidelineBadge /></div>
+          <div className="question-text">{t('part1.fields.age.title')} <GuidelineBadge field="age" /></div>
           <InfoIcon {...fieldReferences.age} />
           {ageValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
@@ -593,7 +625,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       <div className="question-card" style={{ borderColor: raceValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">2</div>
-          <div className="question-text">{t('part1.fields.race.title')} <GuidelineBadge /></div>
+          <div className="question-text">{t('part1.fields.race.title')} <GuidelineBadge field="race" /></div>
           <InfoIcon {...fieldReferences.race} />
           {raceValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
@@ -661,7 +693,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
           <div className="question-number">3</div>
-          <div className="question-text">{t('part1.step1.familyHistory.title')} <GuidelineBadge /></div>
+          <div className="question-text">{t('part1.step1.familyHistory.title')} <GuidelineBadge field="familyHistory" /></div>
           <InfoIcon {...fieldReferences.familyHistory} />
           {familyHistoryValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
         </div>
@@ -695,12 +727,143 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
+      {/* Known pathogenic germline variant (AUA/SUO 2026 Statement 5) */}
+      <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">4</div>
+          <div className="question-text">Do you have a known pathogenic germline variant (inherited gene mutation)?</div>
+          <GuidelineBadge field="brcaStatus" />
+          <InfoIcon {...fieldReferences.brcaStatus} />
+          {brcaValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            AUA/SUO 2026 (Statement 5): BRCA1/2, Lynch syndrome genes (MLH1, MSH2, MSH6, PMS2), ATM, CHEK2, HOXB13, and NBS1 mutations are all associated with elevated prostate cancer risk and earlier screening starting at age 40–45.
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: 'yes', label: 'Yes — BRCA1 or BRCA2' },
+              { value: 'lynch', label: 'Yes — Lynch syndrome (MLH1/MSH2/MSH6/PMS2)' },
+              { value: 'other_elevated', label: 'Yes — ATM, CHEK2, HOXB13, PALB2, or NBS1' },
+              { value: 'other_unknown', label: 'Yes — other or unknown variant' },
+              { value: 'no', label: 'Tested — no pathogenic variant found' },
+              { value: 'unknown', label: 'Never tested / unsure' },
+            ].map(opt => (
+              <button key={opt.value} className={`option-btn ${localData.brcaStatus === opt.value ? 'selected' : ''}`} onClick={() => updateField('brcaStatus', opt.value)}>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {(localData.brcaStatus === 'yes' || localData.brcaStatus === 'lynch' || localData.brcaStatus === 'other_elevated' || localData.brcaStatus === 'other_unknown') && (
+            <div className="p1-amber-note">
+              Your germline variant qualifies you for earlier PSA screening starting at age 40–45 per AUA/SUO 2026 Statement 5 (Strong Recommendation; Grade B).
+            </div>
+          )}
+          {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+              {t('part1.errors.selectOption')}
+            </div>
+          )}
+          <SkipLink field="brcaStatus" />
+        </div>
+      </div>
+
+      {/* Family history of breast/ovarian/pancreatic cancer — hereditary syndrome proxy */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">4b</div>
+          <div className="question-text">Do you have a family history of breast, ovarian, or pancreatic cancer?</div>
+          <GuidelineBadge field="familyHistoryCancerTypes" />
+          <InfoIcon {...fieldReferences.familyHistoryCancerTypes} />
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            Family history of these cancers can indicate hereditary breast/ovarian cancer (HBOC) or Lynch syndrome — hereditary syndromes also linked to prostate cancer risk (LoPC 2026, Table 4; EDPC 2026). Select all that apply.
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: 'breast', label: 'Breast cancer' },
+              { value: 'ovarian', label: 'Ovarian cancer' },
+              { value: 'pancreatic', label: 'Pancreatic cancer' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`option-btn ${localData.familyHistoryCancerTypes.includes(opt.value) ? 'selected' : ''}`}
+                onClick={() => { setFamilyCancerTouched(true); toggleArrayField('familyHistoryCancerTypes', opt.value); }}
+                aria-pressed={localData.familyHistoryCancerTypes.includes(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+            <button
+              className={`option-btn ${localData.familyHistoryCancerTypes.length === 0 ? 'selected' : ''}`}
+              onClick={() => { setFamilyCancerTouched(true); setLocalData(prev => ({ ...prev, familyHistoryCancerTypes: [], skippedFields: clearSkip(prev, 'familyHistoryCancerTypes') })); }}
+              aria-pressed={localData.familyHistoryCancerTypes.length === 0}
+            >
+              {t('part1.options.no')}
+            </button>
+          </div>
+          <SkipLink field="familyHistoryCancerTypes" />
+        </div>
+      </div>
+
+      {/* Ashkenazi Jewish ancestry — BRCA founder-mutation prevalence flag */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">4c</div>
+          <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
+          <GuidelineBadge field="ashkenaziJewish" />
+          <InfoIcon {...fieldReferences.ashkenaziJewish} />
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40 vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication (LoPC 2026, Table 4).
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: true, label: 'Yes' },
+              { value: false, label: 'No' },
+            ].map(opt => (
+              <button
+                key={String(opt.value)}
+                className={`option-btn ${localData.ashkenaziJewish === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('ashkenaziJewish', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <SkipLink field="ashkenaziJewish" />
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          Section divider
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="part1-section-divider" aria-hidden="true" />
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION B — Additional Risk Factors
+          ═══════════════════════════════════════════════════════════ */}
+      <div ref={sectionBRef} data-section="B" className="part1-section-header part1-section-header--b">
+        <div className="part1-section-header-top">
+          <span className="part1-section-letter part1-section-letter--b">B</span>
+          <h4 className="part1-section-title">
+            Symptoms & Lifestyle Factors
+            <SectionBBadge />
+          </h4>
+        </div>
+        <p className="part1-section-subtitle part1-section-subtitle--b">
+          Urinary and sexual symptom checks plus lifestyle factors. These are associated with prostate cancer risk in published research but are not part of current AUA/NCCN screening guidelines — they add context to your result.
+        </p>
+      </div>
+
       {/* IPSS */}
       <div className="part1-step">
         <div className="question-card" style={{ borderColor: ipssComplete ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px', marginBottom: '8px', paddingBottom: '0.75rem' }}>
           <div className="question-header">
-            <div className="question-number">4</div>
-            <div className="question-text" style={{ flex: 1 }}>{t('part1.steps.ipss.sectionTitle')} <GuidelineBadge /></div>
+            <div className="question-number">5</div>
+            <div className="question-text" style={{ flex: 1 }}>{t('part1.steps.ipss.sectionTitle')} <NonGuidelineBadge /></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <InfoIcon {...fieldReferences.ipss} />
               {ipssComplete
@@ -739,7 +902,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
           <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
             <div className="question-header">
               <div className="question-number">Q8</div>
-              <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
+              <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <NonGuidelineBadge /></div>
               {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
             </div>
             <div className="question-body">
@@ -791,7 +954,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             <div className="question-card" style={{ borderColor: localData.ipssQol !== null ? '#27AE60' : '#E8ECF0', borderWidth: '2px', marginTop: '12px' }}>
               <div className="question-header">
                 <div className="question-number">Q8</div>
-                <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <GuidelineBadge /></div>
+                <div className="question-text">If you were to spend the rest of your life with your urinary condition the way it is now, how would you feel about that? <NonGuidelineBadge /></div>
                 {localData.ipssQol !== null && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
               </div>
               <div className="question-body">
@@ -813,31 +976,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          Section divider
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="part1-section-divider" aria-hidden="true" />
-
-      {/* ═══════════════════════════════════════════════════════════
-          SECTION B — Additional Risk Factors
-          ═══════════════════════════════════════════════════════════ */}
-      <div ref={sectionBRef} data-section="B" className="part1-section-header part1-section-header--b">
-        <div className="part1-section-header-top">
-          <span className="part1-section-letter part1-section-letter--b">B</span>
-          <h4 className="part1-section-title">
-            Lifestyle Factors
-            <SectionBBadge />
-          </h4>
-        </div>
-        <p className="part1-section-subtitle part1-section-subtitle--b">
-          These factors are associated with prostate cancer risk in published research but are not part of current AUA/NCCN screening guidelines. They add context to your result.
-        </p>
-      </div>
-
       {/* Height */}
       <div className="question-card" style={{ borderColor: heightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">5</div>
+          <div className="question-number">6</div>
           <div className="question-text">{t('part1.step2.heightQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
@@ -872,7 +1014,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Weight */}
       <div className="question-card" style={{ borderColor: weightValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">6</div>
+          <div className="question-number">7</div>
           <div className="question-text">{t('part1.step2.weightQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.heightWeight} />
@@ -909,7 +1051,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Exercise */}
       <div className="question-card" style={{ borderColor: exerciseValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">7</div>
+          <div className="question-number">8</div>
           <div className="question-text">{t('part1.fields.exercise.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.exercise} />
@@ -943,7 +1085,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Smoking */}
       <div className="question-card" style={{ borderColor: smokingValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">8</div>
+          <div className="question-number">9</div>
           <div className="question-text">{t('part1.fields.smoking.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.smoking} />
@@ -977,7 +1119,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Diet */}
       <div className="question-card" style={{ borderColor: dietValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">9</div>
+          <div className="question-number">10</div>
           <div className="question-text">{t('part1.fields.diet.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.diet} />
@@ -1016,7 +1158,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Inflammation history */}
       <div className="question-card" style={{ borderColor: inflammationHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">10</div>
+          <div className="question-number">11</div>
           <div className="question-text">{t('part1.step1.inflammationHistory.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.inflammationHistory} />
@@ -1052,7 +1194,7 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
       {/* Chemical / Agent Orange exposure */}
       <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">11</div>
+          <div className="question-number">12</div>
           <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.chemicalExposure} />
@@ -1086,115 +1228,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
-      {/* Known pathogenic germline variant (AUA/SUO 2026 Statement 5) */}
-      <div className="question-card" style={{ borderColor: brcaValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">12</div>
-          <div className="question-text">Do you have a known pathogenic germline variant (inherited gene mutation)?</div>
-          <GuidelineBadge />
-          <InfoIcon {...fieldReferences.brcaStatus} />
-          {brcaValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext>
-            AUA/SUO 2026 (Statement 5): BRCA1/2, Lynch syndrome genes (MLH1, MSH2, MSH6, PMS2), ATM, CHEK2, HOXB13, and NBS1 mutations are all associated with elevated prostate cancer risk and earlier screening starting at age 40–45.
-          </QuestionSubtext>
-          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
-            {[
-              { value: 'yes', label: 'Yes — BRCA1 or BRCA2' },
-              { value: 'lynch', label: 'Yes — Lynch syndrome (MLH1/MSH2/MSH6/PMS2)' },
-              { value: 'other_elevated', label: 'Yes — ATM, CHEK2, HOXB13, PALB2, or NBS1' },
-              { value: 'other_unknown', label: 'Yes — other or unknown variant' },
-              { value: 'no', label: 'Tested — no pathogenic variant found' },
-              { value: 'unknown', label: 'Never tested / unsure' },
-            ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.brcaStatus === opt.value ? 'selected' : ''}`} onClick={() => updateField('brcaStatus', opt.value)}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {(localData.brcaStatus === 'yes' || localData.brcaStatus === 'lynch' || localData.brcaStatus === 'other_elevated' || localData.brcaStatus === 'other_unknown') && (
-            <div className="p1-amber-note">
-              Your germline variant qualifies you for earlier PSA screening starting at age 40–45 per AUA/SUO 2026 Statement 5 (Strong Recommendation; Grade B).
-            </div>
-          )}
-          {attemptedNext && !brcaValid && !isSkipped('brcaStatus') && (
-            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
-              {t('part1.errors.selectOption')}
-            </div>
-          )}
-          <SkipLink field="brcaStatus" />
-        </div>
-      </div>
-
-      {/* Family history of breast/ovarian/pancreatic cancer — hereditary syndrome proxy */}
-      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">12b</div>
-          <div className="question-text">Do you have a family history of breast, ovarian, or pancreatic cancer?</div>
-          <NonGuidelineBadge />
-          <InfoIcon {...fieldReferences.familyHistoryCancerTypes} />
-        </div>
-        <div className="question-body">
-          <QuestionSubtext>
-            Family history of these cancers can indicate hereditary breast/ovarian cancer (HBOC) or Lynch syndrome — hereditary syndromes also linked to prostate cancer risk (LoPC 2026, Table 4; EDPC 2026). Select all that apply.
-          </QuestionSubtext>
-          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
-            {[
-              { value: 'breast', label: 'Breast cancer' },
-              { value: 'ovarian', label: 'Ovarian cancer' },
-              { value: 'pancreatic', label: 'Pancreatic cancer' },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                className={`option-btn ${localData.familyHistoryCancerTypes.includes(opt.value) ? 'selected' : ''}`}
-                onClick={() => toggleArrayField('familyHistoryCancerTypes', opt.value)}
-                aria-pressed={localData.familyHistoryCancerTypes.includes(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-            <button
-              className={`option-btn ${localData.familyHistoryCancerTypes.length === 0 ? 'selected' : ''}`}
-              onClick={() => setLocalData(prev => ({ ...prev, familyHistoryCancerTypes: [], skippedFields: clearSkip(prev, 'familyHistoryCancerTypes') }))}
-              aria-pressed={localData.familyHistoryCancerTypes.length === 0}
-            >
-              {t('part1.options.no')}
-            </button>
-          </div>
-          <SkipLink field="familyHistoryCancerTypes" />
-        </div>
-      </div>
-
-      {/* Ashkenazi Jewish ancestry — BRCA founder-mutation prevalence flag */}
-      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">12c</div>
-          <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
-          <NonGuidelineBadge />
-          <InfoIcon {...fieldReferences.ashkenaziJewish} />
-        </div>
-        <div className="question-body">
-          <QuestionSubtext>
-            Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40 vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication (LoPC 2026, Table 4).
-          </QuestionSubtext>
-          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
-            {[
-              { value: true, label: 'Yes' },
-              { value: false, label: 'No' },
-            ].map(opt => (
-              <button
-                key={String(opt.value)}
-                className={`option-btn ${localData.ashkenaziJewish === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('ashkenaziJewish', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <SkipLink field="ashkenaziJewish" />
-        </div>
-      </div>
 
       {/* Comorbidities */}
       <div className="question-card" style={{ borderColor: comorbiditiesValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
