@@ -77,7 +77,13 @@ service cloud.firestore {
     }
     
     // ============================================
-    // USERS COLLECTION (PHI - Backend Only)
+    // USERS COLLECTION
+    //
+    // NOTE: clients DO write here — App.jsx self-writes consent flags and
+    // currentSessionId against the caller's own uid. An earlier version of
+    // this comment claimed "Backend Only", which did not match the rules
+    // below and made review harder. Self-writes are scoped to
+    // request.auth.uid == userId; there is no client delete.
     // ============================================
     match /users/{userId} {
       allow get: if isAuthenticated() && 
@@ -102,8 +108,13 @@ service cloud.firestore {
     // ============================================
     // SECURE PHONE DATA COLLECTION
     // ============================================
+    // `write` implies create + update + delete, so the previous
+    // `allow read, write` here granted deletes to any admin — the
+    // `allow delete: if false` underneath it was a no-op, because
+    // overlapping allows OR together and can only widen access, never
+    // narrow it. Spelled out per-operation so the deny actually holds.
     match /securePhoneData/{userId} {
-      allow read, write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+      allow read, create, update: if isAuthenticated() && (isAdmin() || isSuperAdmin());
       allow delete: if false;
     }
     
@@ -116,14 +127,37 @@ service cloud.firestore {
     }
 
     // ============================================
-    // APP FEATURE FLAGS (Public Read, Admin Write)
-    // Published by the epsa-admin-dashboard (Mount Sinai MSAL admins write via
-    // a Pages Function using a service account, which bypasses these rules —
-    // this rule only covers direct/manual writes from an authenticated admin).
+    // APP CONFIG / FEATURE FLAGS
+    //
+    // Single source of truth for this path. There were previously TWO separate
+    // `match /appConfig/{docId}` blocks in this file (one for 'featureFlags',
+    // one for 'sinai'). Firestore ORs overlapping matches, so the looser of the
+    // two write conditions silently won: appConfig/sinai was writable by any
+    // isAuthorizedAdmin() even though its own block said isSuperAdmin(). They
+    // are merged here so each document's intended condition actually applies.
+    //
+    // Documents:
+    //   appConfig/featureFlags → published by the epsa-admin-dashboard.
+    //                            Public read; admin write.
+    //   appConfig/sinai        → { redcapEnabled, updatedAt, updatedBy }.
+    //                            Public read so unauthenticated patients can
+    //                            pick the live-REDCap vs offline-CSV flow.
+    //                            Super-admin write only.
+    //
+    // The admin dashboard writes these through a Pages Function using a service
+    // account (Admin SDK bypasses rules); these conditions govern only direct
+    // client writes.
+    //
+    // These docs carry flags, never tokens or secrets — they are world-readable.
     // ============================================
     match /appConfig/{docId} {
-      allow get: if docId == 'featureFlags';
-      allow create, update, delete: if isAuthenticated() && isAuthorizedAdmin();
+      allow get: if docId in ['featureFlags', 'sinai'];
+      allow list: if isAuthenticated() && isAuthorizedAdmin();
+
+      allow create, update, delete: if isAuthenticated() && (
+        (docId == 'featureFlags' && isAuthorizedAdmin()) ||
+        (docId == 'sinai' && isSuperAdmin())
+      );
     }
 
     // ============================================
@@ -192,20 +226,9 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isAuthorizedAdmin();
     }
 
-    // App-level feature flags. Currently used for:
-    //   appConfig/sinai → { redcapEnabled: bool, updatedAt, updatedBy }
-    // The frontend reads this to choose between the live REDCap submit
-    // path (PR #1) and the offline-CSV fallback (active when redcapEnabled
-    // is false or the doc is missing).
-    //
-    // Public read so unauthenticated patients can determine which flow to
-    // present. Super-admin write only. The doc must not contain secrets —
-    // it carries flags, not tokens.
-    match /appConfig/{docId} {
-      allow get: if docId == 'sinai';
-      allow list: if isAuthenticated() && isAuthorizedAdmin();
-      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
-    }
+    // (appConfig rules live in the APP CONFIG / FEATURE FLAGS block above —
+    // deliberately a single match block for this path. Do not re-add a second
+    // one; overlapping matches OR together and quietly loosen access.)
 
     // ============================================
     // ADMIN OTP CODES (written/deleted by Cloud Functions only)
