@@ -72,7 +72,6 @@ import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, serverTimestamp,
 import { getCalculatorConfig } from './utils/dynamicCalculator';
 import { computeSessionResults } from './services/psaEngineService';
 import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
-import { isTursoConfigured, pullSessionByRef } from './services/tursoService';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 import { fetchBiopsyPrediction } from './utils/biopsyApi';
 
@@ -1313,29 +1312,12 @@ function App() {
     console.log('Import successful:', importType, importedData);
     setImportedData(importedData);
 
-    if (importType === 'clinical') {
-      // Clinical screening ref (EP-YYYYMMDD-XXXX): pull the session from Turso,
-      // then re-enter as a JSON import so it stays local until "Move to cloud".
-      try {
-        if (!isTursoConfigured()) {
-          throw new Error('Cloud sync is not configured on this deployment. Use Import for a JSON file instead.');
-        }
-        const sessionRef = (importedData?.sessionRef || '').toUpperCase().trim();
-        const record = await pullSessionByRef(sessionRef);
-        const formData = record?.formData ?? record?.step1;
-        if (!formData) {
-          throw new Error('No screening session found for that reference. Check the code on your results card.');
-        }
-        const asJson = record.step2
-          ? { version: record.version ?? 'epsa-session-v1', part: 'complete', part1Data: formData, part2Data: record.step2 }
-          : { version: record.version ?? 'epsa-session-v1', part: 'part1', formData };
-        return handleImportSuccess(asJson, 'json');
-      } catch (error) {
-        console.error('Clinical session import error:', error);
-        setImportError(error?.message || 'Failed to load the screening session.');
-        return;
-      }
-    }
+    // NOTE: importType 'clinical' (EP-YYYYMMDD-XXXX screening refs) was removed.
+    // Resolving one meant querying the clinical sessions database directly from
+    // the browser, which required a Turso credential in the bundle — public to
+    // anyone who loaded the page. Clinical session data is now reachable only
+    // through the Entra-authenticated clinical tooling. DataImportScreen
+    // rejects these refs up front with an explanation.
 
     if (importType === 'session') {
       // Session ID restore requires Firebase

@@ -1,14 +1,25 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Public read for demo videos
-    match /media1.mp4 { allow read; }
-    match /media2.mp4 { allow read; }
-    match /media3.mp4 { allow read; }
+    // Public read for the demo videos embedded in DemoShowcase.jsx.
+    match /media1.mp4 { allow read: if true; }
+    match /media2.mp4 { allow read: if true; }
+    match /media3.mp4 { allow read: if true; }
 
-    // All other paths require authentication
+    // Everything else: no client access at all.
+    //
+    // The app performs no Storage reads or writes outside the three demo
+    // videos above — there is no upload path in frontend/ or backend/. The
+    // previous `if request.auth != null` catch-all was effectively open,
+    // because anonymous auth is enabled (see firebase.json), so any visitor
+    // could mint a UID and then read and write every object in the bucket.
+    //
+    // Server-side code uses the Admin SDK, which bypasses these rules, so
+    // denying clients here costs nothing. If a genuine client upload path is
+    // ever added, give it its own narrow match block — do not reopen this
+    // catch-all.
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

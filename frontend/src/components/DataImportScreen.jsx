@@ -67,8 +67,19 @@ const DataImportScreen = ({ onBack, onImportSuccess, hideCloudSection = false })
     try {
       const normalizedSessionId = (sessionId || '').toUpperCase().trim();
       if (/^EP-\d{8}-[A-Z0-9]{4}$/.test(normalizedSessionId)) {
-        // Clinical screening ref (EP-YYYYMMDD-XXXX) — resolved from Turso on the next screen.
-        onImportSuccess({ sessionRef: normalizedSessionId }, 'clinical');
+        // Clinical screening refs (EP-YYYYMMDD-XXXX) are no longer resolvable
+        // from the patient app. Reading one meant querying the clinical
+        // sessions database from the browser, which required shipping a
+        // database credential in the bundle. Every path to that data now sits
+        // behind Mount Sinai Entra authentication on the clinical side.
+        throw new Error(
+          t('dataImport.errors.clinicalRefNotSupported', {
+            defaultValue:
+              'Screening reference codes can only be opened by clinical staff. '
+              + 'Please ask your care team to continue this screening for you, '
+              + 'or import a JSON file you exported earlier.',
+          }),
+        );
       } else if (/^[A-Z0-9]{8}$/.test(normalizedSessionId)) {
         // 8-character cloud session key — resolved through backend on the next screen.
         onImportSuccess({ sessionId: normalizedSessionId }, 'session');
