@@ -20,7 +20,7 @@
  * Exit: 0 all checks pass, 1 one or more FAILED, 2 could not run.
  */
 
-const API_KEY = process.env.FIREBASE_API_KEY;
+let API_KEY = process.env.FIREBASE_API_KEY;
 const PROJECT = process.env.FIREBASE_PROJECT_ID || 'epsa-30d0b';
 const BUCKET = process.env.FIREBASE_STORAGE_BUCKET || `${PROJECT}.firebasestorage.app`;
 const APP_ORIGIN = process.env.APP_ORIGIN || 'https://epsa-30d0b.web.app';
@@ -35,18 +35,41 @@ const STORAGE_HOST = process.env.PROBE_STORAGE_HOST || 'https://firebasestorage.
 const FIRESTORE = `${FIRESTORE_HOST}/v1/projects/${PROJECT}/databases/(default)/documents`;
 const STORAGE = `${STORAGE_HOST}/v0/b/${BUCKET}/o`;
 
-if (!API_KEY) {
-  console.error('FATAL: FIREBASE_API_KEY is required (it is public — the Web API key).');
-  process.exit(2);
+/**
+ * Recover the Firebase Web API key from the deployed bundle when it is not
+ * supplied. The key is public by design — it identifies the project and
+ * authorizes nothing, which is the whole premise of the rules this script
+ * checks — so reading it from the app the probe is already fetching removes a
+ * configuration step that would otherwise make the nightly run fail closed for
+ * a non-reason.
+ */
+async function discoverApiKey(origin) {
+  const grab = (text) => (text.match(/AIza[0-9A-Za-z_-]{35}/) || [])[0];
+  const html = await fetch(origin).then((r) => r.text());
+  const direct = grab(html);
+  if (direct) return direct;
+  for (const path of [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.js)"/g)].map((m) => m[1])) {
+    const key = grab(await fetch(`${origin}${path}`).then((r) => r.text()));
+    if (key) return key;
+  }
+  return null;
 }
 
 let failed = 0;
 let passed = 0;
 let skipped = 0;
 
+// Failures are grouped so the summary can name the right remedy. A missing
+// security header and an open Firestore collection need completely different
+// actions, and telling someone to redeploy rules when the rules are fine sends
+// them chasing the wrong thing.
+const failuresByArea = { rules: 0, transport: 0 };
+let area = 'rules';
+
 const pass = (msg) => { passed++; console.log(`  PASS  ${msg}`); };
 const fail = (msg, detail) => {
   failed++;
+  failuresByArea[area] += 1;
   console.log(`  FAIL  ${msg}`);
   if (detail) console.log(`        ${detail}`);
 };
@@ -194,6 +217,7 @@ async function checkStorage(token) {
 }
 
 async function checkHeaders(origin) {
+  area = 'transport';
   console.log(`\nTransport — ${origin}`);
   let res;
   try {
@@ -227,6 +251,18 @@ async function main() {
   console.log(`project: ${PROJECT}   bucket: ${BUCKET}`);
   console.log(`time:    ${new Date().toISOString()}`);
 
+  if (!API_KEY) {
+    try {
+      API_KEY = await discoverApiKey(APP_ORIGIN);
+    } catch { /* handled below */ }
+    if (!API_KEY) {
+      console.error(`\nFATAL: no Firebase Web API key supplied, and none found at ${APP_ORIGIN}.`);
+      console.error('Set FIREBASE_API_KEY, or check that the app is deploying correctly.');
+      process.exit(2);
+    }
+    console.log(`\nWeb API key recovered from the deployed app (public value).`);
+  }
+
   let session;
   try {
     session = await signInAnonymously();
@@ -244,12 +280,22 @@ async function main() {
   await checkHeaders(APP_ORIGIN);
 
   console.log(`\n${passed} passed, ${failed} failed, ${skipped} skipped`);
+
   if (failed > 0) {
-    console.log('\nPRODUCTION DOES NOT MATCH THE RULES IN THIS REPO.');
-    console.log('Redeploy rules:  firebase deploy --only firestore:rules,storage');
+    if (failuresByArea.rules > 0) {
+      console.log('\nDEPLOYED RULES DO NOT MATCH THIS REPO.');
+      console.log('Redeploy:  firebase deploy --only firestore:rules,storage');
+    }
+    if (failuresByArea.transport > 0) {
+      console.log('\nHOSTING HEADERS ARE MISSING OR STALE.');
+      console.log('These come from the `headers` block in firebase.json and ship');
+      console.log('with a hosting deploy, not a rules deploy:');
+      console.log('  firebase deploy --only hosting:app');
+    }
     process.exit(1);
   }
-  console.log('Production matches the committed security rules.');
+
+  console.log('Production matches the committed security rules and headers.');
 }
 
 main().catch((e) => {
