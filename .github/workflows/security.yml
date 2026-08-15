@@ -80,12 +80,31 @@ jobs:
         with:
           node-version: 20
 
+      # @epsa/engine resolves to the private @urology-ai/epsa-engine GitHub
+      # Packages registry (npm: alias in package.json), so installing needs the
+      # same auth firebase-deploy.yml sets up. Without it npm 404s and the scan
+      # would have nothing to inspect.
+      - name: Write .npmrc for private registry
+        run: |
+          echo "@urology-ai:registry=https://npm.pkg.github.com" > frontend/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${EPSA_ENGINE_DEPLOY_KEY}" >> frontend/.npmrc
+        env:
+          EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
+
+      # npm install, not npm ci: the lockfile predates the npm: alias switch,
+      # same as the deploy workflow.
       - name: Build frontend
         working-directory: frontend
         run: |
-          npm ci || npm install
+          npm install
           npm run build
 
+      - name: Remove local .npmrc
+        if: always()
+        run: rm -f frontend/.npmrc
+
+      # scan-bundle.sh treats a missing or empty build directory as a failure,
+      # so a broken build can never be mistaken for a clean scan.
       - name: Scan built output
         run: ./security/scan-bundle.sh frontend/build
 
@@ -109,9 +128,6 @@ jobs:
   dependencies:
     name: Dependency audit
     runs-on: ubuntu-latest
-    # Advisories appear independently of our changes; surface them without
-    # blocking an unrelated PR from merging.
-    continue-on-error: true
     strategy:
       matrix:
         workspace: [frontend, backend]
@@ -122,6 +138,9 @@ jobs:
         with:
           node-version: 20
 
+      # Advisories appear independently of our changes. Report them in the log
+      # but never fail the check — a red X here would train people to ignore
+      # the whole workflow, including the checks that do gate merges.
       - name: npm audit (${{ matrix.workspace }})
         working-directory: ${{ matrix.workspace }}
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high || true
