@@ -2322,11 +2322,15 @@ function App() {
             <div className="header-brand-text">
               <span className="header-product-name">ePSA<span className="header-product-name-tm">™</span></span>
               <span className="header-tagline">Electronic Prostate Specific Awareness</span>
-              <span className="header-attribution">Educational Decision Support · Developed by Tewari Lab, Icahn School of Medicine at Mount Sinai</span>
+              <span className="header-attribution">Educational &amp; Research Tool · Developed by Tewari Lab, Icahn School of Medicine at Mount Sinai</span>
             </div>
           </div>
           <div className="header-actions">
-            {(showQuickEntry || authStep === 'app') && <DoctorModeToggle />}
+            {(showQuickEntry || authStep === 'app') && (
+              <DoctorModeToggle
+                onSelectPatient={showQuickEntry ? () => setShowQuickEntry(false) : undefined}
+              />
+            )}
             <HeaderSettingsMenu />
             {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
               <button

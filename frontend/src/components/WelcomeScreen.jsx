@@ -442,7 +442,8 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
                   <button type="button" className="gl-inline-link" onClick={() => setShowGuidelinesModal(true)}>
                     <BookOpenIcon size={11} style={{ marginRight: 2, verticalAlign: '-1px' }} aria-hidden="true" />
                     AUA/NCCN screening guidelines
-                  </button>.
+                  </button>{' '}
+                  and our own research data about prostate cancer risk factors.
                 </span>
               </div>
             </div>

@@ -410,6 +410,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const heightValid = hasValidHeight();
   const weightValid = hasValidWeight();
   const bmiValid = localData.bmi > 0;
+  const bmiColor = !bmiValid ? undefined
+    : localData.bmi < 25 ? '#27AE60'
+    : localData.bmi < 30 ? '#F2994A'
+    : '#E74C3C';
   const ipssComplete = ipssMode === 'quick'
     ? localData.ipssQol !== null && localData.ipssQol !== undefined
     : localData.ipss.every(v => v !== null && v !== undefined);
@@ -689,6 +693,36 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
+      {/* Ashkenazi Jewish ancestry — BRCA founder-mutation prevalence flag */}
+      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">2c</div>
+          <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
+          <GuidelineBadge field="ashkenaziJewish" />
+          <InfoIcon {...fieldReferences.ashkenaziJewish} />
+        </div>
+        <div className="question-body">
+          <QuestionSubtext>
+            Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40 vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication (LoPC 2026, Table 4).
+          </QuestionSubtext>
+          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
+            {[
+              { value: true, label: 'Yes' },
+              { value: false, label: 'No' },
+            ].map(opt => (
+              <button
+                key={String(opt.value)}
+                className={`option-btn ${localData.ashkenaziJewish === opt.value ? 'selected' : ''}`}
+                onClick={() => updateField('ashkenaziJewish', opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <SkipLink field="ashkenaziJewish" />
+        </div>
+      </div>
+
       {/* Family history */}
       <div className="question-card" style={{ borderColor: familyHistoryValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
@@ -804,36 +838,6 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </button>
           </div>
           <SkipLink field="familyHistoryCancerTypes" />
-        </div>
-      </div>
-
-      {/* Ashkenazi Jewish ancestry — BRCA founder-mutation prevalence flag */}
-      <div className="question-card" style={{ borderColor: '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">4c</div>
-          <div className="question-text">Are you of Ashkenazi Jewish ancestry?</div>
-          <GuidelineBadge field="ashkenaziJewish" />
-          <InfoIcon {...fieldReferences.ashkenaziJewish} />
-        </div>
-        <div className="question-body">
-          <QuestionSubtext>
-            Ashkenazi Jewish ancestry carries a substantially higher BRCA1/2 founder-mutation prevalence (~1 in 40 vs ~1 in 400–800 in the general population) and is listed as a germline-testing indication (LoPC 2026, Table 4).
-          </QuestionSubtext>
-          <div className="option-grid c2" style={{ marginBottom: '10px' }}>
-            {[
-              { value: true, label: 'Yes' },
-              { value: false, label: 'No' },
-            ].map(opt => (
-              <button
-                key={String(opt.value)}
-                className={`option-btn ${localData.ashkenaziJewish === opt.value ? 'selected' : ''}`}
-                onClick={() => updateField('ashkenaziJewish', opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <SkipLink field="ashkenaziJewish" />
         </div>
       </div>
 
@@ -1041,9 +1045,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               <input id="field-weight-lbs" type="number" className="input-field" placeholder={t('part1.step2.weightImperialPlaceholder')} value={localData.weight} onChange={(e) => updateField('weight', e.target.value)} />
             </>
           )}
-          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiValid ? '#27AE60' : undefined }}>
+          <div className="question-note" style={{ marginTop: '8px', fontSize: '0.875rem', color: bmiColor }}>
             {t('part1.step2.bmiLabel')}: <strong>{localData.bmi > 0 ? localData.bmi.toFixed(1) : '—'}</strong>
-            {bmiValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+            {bmiValid && <CheckIcon size={15} color={bmiColor} style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
           </div>
         </div>
       </div>
@@ -1191,48 +1195,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
         </div>
       </div>
 
-      {/* Chemical / Agent Orange exposure */}
-      <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
-        <div className="question-header">
-          <div className="question-number">12</div>
-          <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
-          <NonGuidelineBadge />
-          <InfoIcon {...fieldReferences.chemicalExposure} />
-          {chemicalValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
-        </div>
-        <div className="question-body">
-          <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
-          <div className="option-grid c2">
-            {[
-              { value: 'agent_orange', label: t('part1.chemicalExposureOptions.agentOrange'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
-              { value: 'nine_eleven', label: t('part1.chemicalExposureOptions.nineEleven'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
-              { value: 'other_chemical', label: t('part1.chemicalExposureOptions.otherChemical'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceUnspecified') },
-              { value: 'none', label: t('part1.chemicalExposureOptions.none'), Icon: CheckCircle2 },
-              { value: 'unknown', label: t('part1.chemicalExposureOptions.unknown'), Icon: HelpCircle },
-            ].map(opt => (
-              <button key={opt.value} className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`} onClick={() => updateField('chemicalExposure', opt.value)}>
-                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <opt.Icon size={18} />
-                  <span>{opt.label}</span>
-                  {opt.evidence && <span style={{ fontSize: '0.65rem', opacity: 0.75, fontWeight: 400 }}>{opt.evidence}</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-          {attemptedNext && !chemicalValid && !isSkipped('chemicalExposure') && (
-            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
-              {t('part1.errors.selectOption')}
-            </div>
-          )}
-          <SkipLink field="chemicalExposure" />
-        </div>
-      </div>
-
-
       {/* Comorbidities */}
       <div className="question-card" style={{ borderColor: comorbiditiesValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
         <div className="question-header">
-          <div className="question-number">13</div>
+          <div className="question-number">12</div>
           <div className="question-text">{t('part1.fields.comorbidities.title')}</div>
           <NonGuidelineBadge />
           <InfoIcon {...fieldReferences.comorbidities} />
@@ -1270,6 +1236,43 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
             </div>
           )}
           <SkipLink field="comorbidityScore" />
+        </div>
+      </div>
+
+      {/* Chemical / Agent Orange exposure */}
+      <div className="question-card" style={{ borderColor: chemicalValid ? '#27AE60' : attemptedNext ? '#E74C3C' : '#E8ECF0', borderWidth: '2px' }}>
+        <div className="question-header">
+          <div className="question-number">13</div>
+          <div className="question-text">{t('part1.step3.chemicalQuestion')}</div>
+          <NonGuidelineBadge />
+          <InfoIcon {...fieldReferences.chemicalExposure} />
+          {chemicalValid && <CheckIcon size={15} color="#27AE60" style={{ marginLeft: '8px', flexShrink: 0 }} aria-hidden="true" />}
+        </div>
+        <div className="question-body">
+          <QuestionSubtext i18nKey="part1.fields.chemicalExposure.helper" />
+          <div className="option-grid c2">
+            {[
+              { value: 'agent_orange', label: t('part1.chemicalExposureOptions.agentOrange'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'nine_eleven', label: t('part1.chemicalExposureOptions.nineEleven'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceProven') },
+              { value: 'other_chemical', label: t('part1.chemicalExposureOptions.otherChemical'), Icon: AlertTriangle, evidence: t('part1.chemicalExposureOptions.evidenceUnspecified') },
+              { value: 'none', label: t('part1.chemicalExposureOptions.none'), Icon: CheckCircle2 },
+              { value: 'unknown', label: t('part1.chemicalExposureOptions.unknown'), Icon: HelpCircle },
+            ].map(opt => (
+              <button key={opt.value} className={`option-btn ${localData.chemicalExposure === opt.value ? 'selected' : ''}`} onClick={() => updateField('chemicalExposure', opt.value)}>
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <opt.Icon size={18} />
+                  <span>{opt.label}</span>
+                  {opt.evidence && <span style={{ fontSize: '0.65rem', opacity: 0.75, fontWeight: 400 }}>{opt.evidence}</span>}
+                </span>
+              </button>
+            ))}
+          </div>
+          {attemptedNext && !chemicalValid && !isSkipped('chemicalExposure') && (
+            <div role="alert" aria-live="polite" style={{ color: '#E74C3C', fontSize: '0.75rem', marginTop: '8px' }}>
+              {t('part1.errors.selectOption')}
+            </div>
+          )}
+          <SkipLink field="chemicalExposure" />
         </div>
       </div>
 

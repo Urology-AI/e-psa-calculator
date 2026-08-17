@@ -10,7 +10,6 @@ import { httpsCallable } from 'firebase/functions';
 import './Part3Results.css';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
-import PrintableForm from './PrintableForm';
 import AUAScreeningFlowchart, { AUAInitialBiopsyGuidelines } from './AUAFlowchart';
 import { Part2GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './ResultsLoading';
@@ -201,7 +200,6 @@ const Part3Results = ({
   const { t } = useTranslation();
   const { viewMode } = useDoctorMode();
   const canExportRawData = modeAtLeast(viewMode, 'clinical');
-  const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const recommendRef = useRef(null);
   const [researchSubmitState, setResearchSubmitState] = useState('idle'); // idle | pending | success | error
@@ -255,15 +253,6 @@ const Part3Results = ({
     const rows = buildPart2CsvRows(postData, preResult, result, {});
     downloadCsv(`ePSA_Part3_Results_${new Date().toISOString().slice(0, 10)}.csv`, rows);
   };
-
-  if (showPrintableForm) {
-    return (
-      <PrintableForm
-        formData={{ ...(preData || {}), ...(postData || {}), ipssTotal: preResult?.ipssTotal, shimTotal: preResult?.shimTotal, score: preResult?.score, scoreRange: preResult?.scoreRange, confidenceRange: preResult?.confidenceRange, risk: preResult?.risk, action: preResult?.action, bmi: preResult?.bmi ?? preData?.bmi, age: preResult?.age ?? preData?.age }}
-        onBack={() => setShowPrintableForm(false)}
-      />
-    );
-  }
 
   if (!result) return (
     <div className="p2r-container">
@@ -1317,7 +1306,6 @@ const Part3Results = ({
         <div className="results-actions-row">
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>Print Results</span></button>
           <MoreActionsMenu label="More actions">
-            <button type="button" className="p2r-menu-item" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>Printable Form</span></button>
             <button
               type="button"
               className="p2r-menu-item"
