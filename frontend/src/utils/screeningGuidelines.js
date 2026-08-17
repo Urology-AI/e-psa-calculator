@@ -208,10 +208,11 @@ export const REGION_GUIDANCE = [
     ],
   },
   {
-    id: 'nordics',
-    name: 'Sweden & the Nordics',
-    scope: 'region',
-        body: 'Regional Cancer Centres (Sweden) — Organised Prostate Testing (OPT)',
+    id: 'se',
+    name: 'Sweden',
+    scope: 'country',
+    isoCode: 'SE',
+    body: 'Regional Cancer Centres (Sweden) — Organised Prostate Testing (OPT)',
     year: '2025',
     posture: POSTURE.ORGANISED,
     startAge: '50 (invited)',
@@ -230,6 +231,30 @@ export const REGION_GUIDANCE = [
     ],
     sources: [
       { text: 'Regionala cancercentrum — Organiserad prostatacancertestning (OPT)', url: 'https://cancercentrum.se/samverkan/cancerdiagnoser/prostata/organiserad-prostatacancertestning/' },
+      { text: 'EAU Guidelines on Prostate Cancer — screening chapter', url: 'https://uroweb.org/guidelines/prostate-cancer' },
+    ],
+  },
+  {
+    id: 'nordics',
+    name: 'Nordics (other)',
+    scope: 'region',
+    body: 'National health authorities; EAU guidance',
+    year: '2025',
+    posture: POSTURE.SHARED,
+    startAge: '50',
+    highRiskAge: '45',
+    interval: 'Risk-adapted (2–4 years)',
+    stopAge: '~70–74',
+    summary:
+      'Norway, Denmark, Finland and Iceland do not run Sweden\'s invitation-based Organised Prostate Testing programme. Practice generally follows EAU\'s risk-adapted approach: a baseline PSA from age 50 (45 if higher risk), with the re-test interval set by the baseline value and MRI before biopsy.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'BRCA2 carriers',
+    ],
+    notes: [
+      'Some regions are watching Sweden\'s OPT results closely as a possible model for their own organised programmes.',
+    ],
+    sources: [
       { text: 'EAU Guidelines on Prostate Cancer — screening chapter', url: 'https://uroweb.org/guidelines/prostate-cancer' },
     ],
   },
@@ -701,7 +726,8 @@ export const COUNTRY_TO_REGION = {
   DE: 'de', AT: 'de', CH: 'de',
 
   // Nordics
-  SE: 'nordics', NO: 'nordics', DK: 'nordics', FI: 'nordics', IS: 'nordics',
+  SE: 'se',
+  NO: 'nordics', DK: 'nordics', FI: 'nordics', IS: 'nordics',
 
   // Rest of EU / EEA
   FR: 'eu', ES: 'eu', IT: 'eu', PT: 'eu', NL: 'eu', BE: 'eu', LU: 'eu',
