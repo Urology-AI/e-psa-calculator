@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  ExternalLinkIcon, ChevronDownIcon,
+  ExternalLinkIcon, ChevronDownIcon, MapPinIcon,
   CalendarClockIcon, UserPlusIcon, RepeatIcon, ShieldAlertIcon, InfoIcon,
 } from 'lucide-react';
-import { listRegions, POSTURE } from '../utils/screeningGuidelines';
-import { flagFromCountryCode } from '../utils/geoCountry';
+import { listRegions, POSTURE, headerIconFor } from '../utils/screeningGuidelines';
 import './RegionalGuidanceCard.css';
 
 /* Posture → badge color. Proactive postures read green, restrictive read amber. */
@@ -59,12 +58,6 @@ const RegionalGuidanceCard = ({
   const regions = listRegions();
   const detectedByIp = source === 'ip' || source === 'cache';
 
-  // Prefer the actual detected country's flag (🇳🇬 for a Nigerian visitor rather
-  // than the generic 🌍 on the Sub-Saharan Africa card). Fall back to the
-  // region's own emoji, and to a globe for the international entry.
-  const detectedFlag = source === 'override' ? null : flagFromCountryCode(country);
-  const flag = detectedFlag || region.emoji || '🌐';
-
   return (
     <section
       className="rg-card"
@@ -75,7 +68,7 @@ const RegionalGuidanceCard = ({
       <header className="rg-head">
         <div className="rg-head-where">
           <span className="rg-head-flag" aria-hidden="true">
-            {loading ? '🌐' : flag}
+            {headerIconFor(region) || <MapPinIcon size={20} strokeWidth={2} />}
           </span>
           <div>
             <div className="rg-head-region">
@@ -98,11 +91,14 @@ const RegionalGuidanceCard = ({
             value={region.id}
             onChange={(e) => onSelectRegion?.(e.target.value)}
           >
-            {regions.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.emoji ? `${r.emoji}  ${r.name}` : r.name}
-              </option>
-            ))}
+            {regions.map((r) => {
+              const icon = headerIconFor(r);
+              return (
+                <option key={r.id} value={r.id}>
+                  {icon ? `${icon}  ${r.name}` : r.name}
+                </option>
+              );
+            })}
           </select>
           {source === 'override' && onClearSelection && (
             <button type="button" className="rg-reset" onClick={onClearSelection}>

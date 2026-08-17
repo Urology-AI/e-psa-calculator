@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ClinicalDetail } from './shared/ResultsShared.jsx';
+import { MapPinIcon } from 'lucide-react';
 import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
-import { DEFAULT_REGION_ID } from '../utils/screeningGuidelines';
+import { DEFAULT_REGION_ID, headerIconFor } from '../utils/screeningGuidelines';
 import './ResultsMetaBar.css';
 
 const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }) => {
@@ -45,8 +46,10 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
       <p className="results-meta-bar__basis">
         <span className="results-meta-bar__basis-label">Guidance basis</span>
         <span className="results-meta-bar__basis-value">
-          {hasLocalRegion && region.emoji && (
-            <span aria-hidden="true" style={{ marginRight: '0.25rem' }}>{region.emoji}</span>
+          {hasLocalRegion && (
+            <span aria-hidden="true" style={{ marginRight: '0.25rem' }}>
+              {headerIconFor(region) || <MapPinIcon size={13} strokeWidth={2} style={{ verticalAlign: '-2px' }} />}
+            </span>
           )}
           {guidanceBasis}
         </span>

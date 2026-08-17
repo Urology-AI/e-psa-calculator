@@ -14,6 +14,8 @@
  * Last reviewed: August 2026.
  */
 
+import { flagFromCountryCode } from './geoCountry';
+
 /* Posture badges — how the health system positions PSA testing.
  * Ordered loosely from most to least proactive. */
 export const POSTURE = {
@@ -51,6 +53,7 @@ export const POSTURE = {
  *   id            — stable key
  *   name          — display name
  *   scope         — 'country' | 'region'
+ *   isoCode       — ISO 3166-1 alpha-2 code (country-scope entries only; drives the flag icon)
  *   body          — issuing guideline body
  *   year          — year/version of the guidance reflected here
  *   posture       — POSTURE.* record
@@ -68,8 +71,8 @@ export const REGION_GUIDANCE = [
     id: 'us',
     name: 'United States',
     scope: 'country',
-    emoji: '🇺🇸',
-    body: 'AUA / SUO, NCCN, USPSTF',
+    isoCode: 'US',
+        body: 'AUA / SUO, NCCN, USPSTF',
     year: '2026',
     posture: POSTURE.SHARED,
     startAge: '45–50',
@@ -97,8 +100,8 @@ export const REGION_GUIDANCE = [
     id: 'ca',
     name: 'Canada',
     scope: 'country',
-    emoji: '🇨🇦',
-    body: 'Canadian Urological Association (CUA) / CTFPHC',
+    isoCode: 'CA',
+        body: 'Canadian Urological Association (CUA) / CTFPHC',
     year: '2022 (CUA) · 2014 (CTFPHC)',
     posture: POSTURE.SHARED,
     startAge: '50',
@@ -125,8 +128,8 @@ export const REGION_GUIDANCE = [
     id: 'uk',
     name: 'United Kingdom',
     scope: 'country',
-    emoji: '🇬🇧',
-    body: 'UK National Screening Committee (UK NSC)',
+    isoCode: 'GB',
+        body: 'UK National Screening Committee (UK NSC)',
     year: '2026',
     posture: POSTURE.TARGETED,
     startAge: 'No population screening',
@@ -152,8 +155,7 @@ export const REGION_GUIDANCE = [
     id: 'eu',
     name: 'European Union',
     scope: 'region',
-    emoji: '🇪🇺',
-    body: 'EAU / EU Council / PRAISE-U',
+        body: 'EAU / EU Council / PRAISE-U',
     year: '2026',
     posture: POSTURE.SHARED,
     startAge: '50',
@@ -181,8 +183,8 @@ export const REGION_GUIDANCE = [
     id: 'de',
     name: 'Germany',
     scope: 'country',
-    emoji: '🇩🇪',
-    body: 'German S3 Guideline / Leitlinienprogramm Onkologie',
+    isoCode: 'DE',
+        body: 'German S3 Guideline / Leitlinienprogramm Onkologie',
     year: '2025',
     posture: POSTURE.SHARED,
     startAge: '45',
@@ -209,8 +211,7 @@ export const REGION_GUIDANCE = [
     id: 'nordics',
     name: 'Sweden & the Nordics',
     scope: 'region',
-    emoji: '🇸🇪',
-    body: 'Regional Cancer Centres (Sweden) — Organised Prostate Testing (OPT)',
+        body: 'Regional Cancer Centres (Sweden) — Organised Prostate Testing (OPT)',
     year: '2025',
     posture: POSTURE.ORGANISED,
     startAge: '50 (invited)',
@@ -233,38 +234,87 @@ export const REGION_GUIDANCE = [
     ],
   },
   {
-    id: 'anz',
-    name: 'Australia & New Zealand',
-    scope: 'region',
-    emoji: '🇦🇺',
+    id: 'au',
+    name: 'Australia',
+    scope: 'country',
+    isoCode: 'AU',
     body: 'PCFA / Cancer Council Australia — NHMRC-approved',
-    year: '2025 guideline, NHMRC-approved 2026',
+    year: '2026',
     posture: POSTURE.RECOMMENDED,
-    startAge: '50 (baseline offered from 40)',
-    highRiskAge: '40',
+    startAge: '50 (baseline offered from 40 to interested men)',
+    highRiskAge: '40–45',
     interval: 'Every 2 years, ages 50–69',
-    stopAge: '~69 (older by individual decision)',
+    stopAge: 'Individualised from 70 (life expectancy > 7 yrs)',
     summary:
-      'Australia\'s 2025 early-detection guideline is the most proactive of any major country. GPs are advised to initiate the conversation and offer two-yearly PSA testing to all men aged 50–69 — and, in a world-first, to offer a baseline PSA at age 40 to men who are interested. Routine digital rectal exams in primary care are no longer recommended; MRI before biopsy is.',
+      'The 2026 Australian guideline, approved by the NHMRC on 18 May 2026, is the most proactive of any major country. GPs are advised to initiate the conversation and offer two-yearly PSA testing to all men aged 50–69 — and, in a world-first, to offer a baseline PSA at age 40 to any man who is interested. Higher-risk men are tested earlier and more often, with lower PSA action thresholds. MRI before biopsy is standard.',
     highRisk: [
-      'Aboriginal and Torres Strait Islander men — testing every 2 years from age 40',
-      'Family history of prostate cancer',
+      'Family history — a brother or father diagnosed before 65, or two or more second-degree relatives who died of it',
+      'Sub-Saharan African ancestry',
       'BRCA2 carriers',
     ],
     notes: [
-      'These guidelines supersede the 2016 PSA testing guidelines and were approved by the NHMRC in May 2026.',
-      'New Zealand has no organised programme; practice there generally follows a shared-decision model closer to the earlier Australian guidance.',
+      'These guidelines supersede the 2016 PSA testing guidelines.',
+      'Higher-risk men are tested every 2 years from age 45 with lower PSA action levels by age band (roughly 1.0, 2.0 and 5.5 µg/L) rather than the standard 3.0 µg/L used from 50–69.',
     ],
     sources: [
-      { text: 'PCFA — Clinical guidelines for the early detection of prostate cancer', url: 'https://www.prostate.org.au/resources/clinical-guidelines-for-the-early-detection-of-prostate-cancer/' },
+      { text: '2026 Guidelines for the Early Detection of Prostate Cancer in Australia (PCFA, NHMRC-approved)', url: 'https://www.prostate.org.au/wp-content/uploads/2026/08/2026-Guidelines-for-the-Early-Detection-of-Prostate-Cancer.pdf' },
       { text: 'PCFA — Australia set to lead the world in prostate cancer detection', url: 'https://www.pcfa.org.au/news-media/news/australia-set-to-lead-the-world-in-prostate-cancer-detection/' },
     ],
   },
   {
-    id: 'south_asia',
-    name: 'India & South Asia',
+    id: 'nz',
+    name: 'New Zealand',
+    scope: 'country',
+    isoCode: 'NZ',
+    body: 'NZ Prostate Cancer Working Group / bpacnz — no organised programme',
+    year: '2020 (bpacnz clinical guidance)',
+    posture: POSTURE.SHARED,
+    startAge: '50 (no family history)',
+    highRiskAge: '40 (with family history)',
+    interval: 'Every 2–4 years to 70 (annual + DRE from 40–70 if family history)',
+    stopAge: '~70 (may extend if life expectancy > 10 yrs)',
+    summary:
+      'New Zealand has no organised, invitation-based screening programme — targeted rather than population-wide testing is considered most appropriate, since trials show population screening causes more harm than benefit. Men without a family history can discuss PSA testing from 50 to 70, at two-to-four year intervals. Men with a family history should have the conversation from 40, with annual PSA and DRE.',
+    highRisk: [
+      'Family history — roughly double the risk with one affected relative, 5–11x with multiple first-degree relatives',
+      'Māori men — similar incidence to non-Māori but roughly twice the mortality, largely from delayed diagnosis and reduced access',
+    ],
+    notes: [
+      'Testing beyond age 70 may still be appropriate for men with significant family history, a prior abnormal result, or a life expectancy over 10 years.',
+      'Equity of access for Māori men is a recognised gap in current guidance and practice.',
+    ],
+    sources: [
+      { text: 'Testing for prostate cancer: helping patients to decide (bpacnz)', url: 'https://bpac.org.nz/2020/prostate.aspx' },
+    ],
+  },
+  {
+    id: 'pacific',
+    name: 'Pacific Islands',
     scope: 'region',
-    emoji: '🇮🇳',
+    body: 'No unified regional guideline; care generally follows Australian/NZ practice',
+    year: '2024',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: '~50',
+    highRiskAge: '40–45',
+    interval: 'Not defined by programme',
+    stopAge: 'Individualised',
+    summary:
+      'Smaller Pacific Island nations (Fiji, Papua New Guinea, Samoa, Tonga, Vanuatu, and others) have no organised screening programme or dedicated national guideline. Where PSA testing is available, practice generally follows the shared-decision approach used in Australia and New Zealand, filtered through local health-system capacity.',
+    highRisk: [
+      'Family history of prostate cancer',
+    ],
+    notes: [
+      'Access to PSA testing and follow-up (MRI, biopsy) varies a great deal by country and is often limited outside major hospitals.',
+    ],
+    sources: [
+      { text: 'PCFA — Clinical guidelines for the early detection of prostate cancer', url: 'https://www.prostate.org.au/resources/clinical-guidelines-for-the-early-detection-of-prostate-cancer/' },
+    ],
+  },
+  {
+    id: 'in',
+    name: 'India',
+    scope: 'country',
+    isoCode: 'IN',
     body: 'Urological Society of India (USI)',
     year: '2022',
     posture: POSTURE.OPPORTUNISTIC,
@@ -279,7 +329,33 @@ export const REGION_GUIDANCE = [
       'Urinary symptoms — the most common route to diagnosis here',
     ],
     notes: [
-      'A large share of cases in the region present at an advanced stage, so new or worsening urinary symptoms deserve prompt attention rather than watchful waiting.',
+      'A large share of cases present at an advanced stage, so new or worsening urinary symptoms deserve prompt attention rather than watchful waiting.',
+      'Age-specific PSA reference ranges validated for Indian men are still an open research need — Western thresholds are applied by default.',
+    ],
+    sources: [
+      { text: 'Urological Society of India guidelines for prostate cancer (executive summary)', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9787438/' },
+      { text: 'Prostate Cancer Consensus Conference for Developing Countries (JCO Global Oncology)', url: 'https://ascopubs.org/doi/10.1200/GO.20.00527' },
+    ],
+  },
+  {
+    id: 'south_asia',
+    name: 'South Asia (other)',
+    scope: 'region',
+    body: 'Regional urological societies',
+    year: '2022',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: 'No population screening; discuss from ~50',
+    highRiskAge: '~45 with family history',
+    interval: 'Not defined by programme',
+    stopAge: 'Individualised',
+    summary:
+      'For the rest of South Asia (Pakistan, Bangladesh, Sri Lanka, Nepal, Bhutan, the Maldives, Afghanistan), there is no organised national screening programme, and recorded incidence is lower than in Western countries. Practice broadly mirrors India\'s opportunistic model: PSA testing is ordered when raised by a man or his physician, or when urinary symptoms appear.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'Urinary symptoms — the most common route to diagnosis in this region',
+    ],
+    notes: [
+      'A large share of cases present at an advanced stage, so new or worsening urinary symptoms deserve prompt attention rather than watchful waiting.',
       'Age-specific PSA reference ranges validated for South Asian men are still an open research need — Western thresholds are applied by default.',
     ],
     sources: [
@@ -291,8 +367,7 @@ export const REGION_GUIDANCE = [
     id: 'ssa',
     name: 'Sub-Saharan Africa',
     scope: 'region',
-    emoji: '🌍',
-    body: 'Regional consensus (PCCCDC) & national urological societies',
+        body: 'Regional consensus (PCCCDC) & national urological societies',
     year: '2021 consensus',
     posture: POSTURE.OPPORTUNISTIC,
     startAge: '40–45 (earlier than Western guidance)',
@@ -319,8 +394,7 @@ export const REGION_GUIDANCE = [
     id: 'mena',
     name: 'Middle East & North Africa',
     scope: 'region',
-    emoji: '🌍',
-    body: 'Regional expert consensus; national health authorities',
+        body: 'Regional expert consensus; national health authorities',
     year: '2024',
     posture: POSTURE.SHARED,
     startAge: '~50 (regional consensus supports discussing before 50)',
@@ -343,10 +417,34 @@ export const REGION_GUIDANCE = [
     ],
   },
   {
-    id: 'russia_cis',
-    name: 'Russia, CIS & Eastern Europe',
+    id: 'ru',
+    name: 'Russia',
+    scope: 'country',
+    isoCode: 'RU',
+    body: 'National health ministry — no organised programme',
+    year: '2024',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: '~50',
+    highRiskAge: '45',
+    interval: 'Not defined by programme',
+    stopAge: '~65–70',
+    summary:
+      'Russia has no formally established national prostate screening programme. PSA testing has been available since the 1990s and is done opportunistically, including through routine health check-ups, generally raised from around age 50.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'Urinary symptoms',
+    ],
+    notes: [
+      'Because there is no organised programme, availability and follow-up depend heavily on the individual clinic.',
+    ],
+    sources: [
+      { text: 'Prostate cancer incidence and mortality in the Baltic states, Belarus, the Russian Federation and Ukraine', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6797259/' },
+    ],
+  },
+  {
+    id: 'cis',
+    name: 'CIS & Eastern Europe',
     scope: 'region',
-    emoji: '🇷🇺',
     body: 'National health ministries; regional pilot programmes',
     year: '2024',
     posture: POSTURE.OPPORTUNISTIC,
@@ -355,7 +453,7 @@ export const REGION_GUIDANCE = [
     interval: 'Varies by national programme',
     stopAge: '~65–70',
     summary:
-      'Russia has no formally established national prostate screening programme — PSA testing has been available since the 1990s and is done opportunistically, including through routine health check-ups. Several neighbouring countries have gone further: Lithuania runs a long-standing population-based programme, Kazakhstan has run population screening, and Belarus and Croatia have piloted PSA screening in defined age bands.',
+      'Practice varies widely across the CIS and non-EU Eastern Europe. Several countries have gone further than opportunistic testing: Lithuania runs a long-standing population-based programme, Kazakhstan has run population screening, and Belarus and Croatia have piloted PSA screening in defined age bands. Elsewhere, testing is opportunistic and raised from around age 50.',
     highRisk: [
       'Family history of prostate cancer',
       'Urinary symptoms',
@@ -370,11 +468,11 @@ export const REGION_GUIDANCE = [
     ],
   },
   {
-    id: 'latam',
-    name: 'Latin America',
-    scope: 'region',
-    emoji: '🇧🇷',
-    body: 'Sociedade Brasileira de Urologia (SBU) & national societies',
+    id: 'br',
+    name: 'Brazil',
+    scope: 'country',
+    isoCode: 'BR',
+    body: 'Sociedade Brasileira de Urologia (SBU)',
     year: '2024',
     posture: POSTURE.SHARED,
     startAge: '50',
@@ -382,7 +480,7 @@ export const REGION_GUIDANCE = [
     interval: 'Annual (SBU)',
     stopAge: 'Individualised (life expectancy > 10 yrs)',
     summary:
-      'The Brazilian Society of Urology recommends men seek an individualised assessment at age 50 — 45 if at higher risk — and then have annual PSA testing. This is more frequent than most Western guidelines. Public health authorities in the region are generally more cautious than the urological societies, so what is offered depends heavily on whether care is public or private.',
+      'The Brazilian Society of Urology recommends men seek an individualised assessment at age 50 — 45 if at higher risk — and then have annual PSA testing. This is more frequent than most Western guidelines. The Ministry of Health has historically not endorsed population screening, so what is offered depends heavily on whether care is public or private.',
     highRisk: [
       'African ancestry',
       'Family history of prostate cancer',
@@ -398,22 +496,45 @@ export const REGION_GUIDANCE = [
     ],
   },
   {
-    id: 'east_asia',
-    name: 'East Asia',
+    id: 'latam',
+    name: 'Latin America (other)',
     scope: 'region',
-    emoji: '🌏',
-    body: 'Japanese Urological Association (JUA); Chinese Urological Association (CUA)',
+    body: 'National urological societies',
+    year: '2024',
+    posture: POSTURE.SHARED,
+    startAge: '50',
+    highRiskAge: '45',
+    interval: 'Not defined by programme',
+    stopAge: 'Individualised (life expectancy > 10 yrs)',
+    summary:
+      'For the rest of Latin America and the Caribbean, there is generally no organised national screening programme, and public health authorities tend to be more cautious than national urological societies. Practice broadly mirrors Brazil\'s shared-decision approach: an individualised assessment from age 50, or 45 if at higher risk. What is offered depends heavily on whether care is public or private.',
+    highRisk: [
+      'African ancestry',
+      'Family history of prostate cancer',
+    ],
+    notes: [
+      'Access to PSA testing and follow-up varies a great deal by country and between public and private care.',
+    ],
+    sources: [
+      { text: 'Prostate Cancer Consensus Conference for Developing Countries (JCO Global Oncology)', url: 'https://ascopubs.org/doi/10.1200/GO.20.00527' },
+    ],
+  },
+  {
+    id: 'jp',
+    name: 'Japan',
+    scope: 'country',
+    isoCode: 'JP',
+    body: 'Japanese Urological Association (JUA)',
     year: '2024',
     posture: POSTURE.OPPORTUNISTIC,
     startAge: '50',
     highRiskAge: '45 with family history',
-    interval: 'Annual (China, CUA) / municipal cycle (Japan)',
+    interval: 'Municipal cycle (varies by locality)',
     stopAge: '~74–80',
     summary:
-      'The Japanese Urological Association recommends PSA screening from age 50, delivered through municipal Community Health Basic Screening — coverage varies a lot by municipality. In China, CUA guidance recommends annual PSA for men over 50, or over 45 with a family history, with risk-adapted screening for ages 50–74 in higher-incidence urban areas.',
+      'The Japanese Urological Association recommends PSA screening from age 50, delivered through municipal Community Health Basic Screening — coverage varies a lot by municipality. There is no single national programme; whether PSA screening is offered, and how, depends on where you live.',
     highRisk: [
       'Family history of prostate cancer',
-      'Lower urinary tract symptoms (an explicit trigger in CUA guidance)',
     ],
     notes: [
       'Japan\'s municipal programmes use age-banded PSA cutoffs rather than a flat 4 ng/mL: 3.0 for 50–64, 3.5 for 65–69, 4.0 for 70+.',
@@ -422,15 +543,88 @@ export const REGION_GUIDANCE = [
     sources: [
       { text: 'JUA guidelines on PSA-based screening for prostate cancer', url: 'https://onlinelibrary.wiley.com/doi/10.1111/j.1442-2042.2010.02613.x' },
       { text: 'PSA-based population screening: current status in Japan and future perspective in Asia', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4430954/' },
+    ],
+  },
+  {
+    id: 'cn',
+    name: 'China',
+    scope: 'country',
+    isoCode: 'CN',
+    body: 'Chinese Urological Association (CUA)',
+    year: '2024',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: '50',
+    highRiskAge: '45 with family history',
+    interval: 'Annual (CUA)',
+    stopAge: '~74',
+    summary:
+      'CUA guidance recommends annual PSA testing for men over 50, or over 45 with a family history, with risk-adapted screening for ages 50–74 in higher-incidence urban areas. There is no organised national programme — testing happens opportunistically through routine health checks.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'Lower urinary tract symptoms (an explicit trigger in CUA guidance)',
+    ],
+    notes: [
+      'Screening uptake is markedly higher in major urban centres than in rural areas.',
+    ],
+    sources: [
       { text: 'Chinese expert consensus on prostate cancer management', url: 'https://onlinelibrary.wiley.com/doi/10.1002/uro2.76' },
+    ],
+  },
+  {
+    id: 'kr',
+    name: 'South Korea',
+    scope: 'country',
+    isoCode: 'KR',
+    body: 'Korean Urological Oncology Society (KUOS) — proposed guideline',
+    year: '2024–2025 (Delphi consensus, pending adoption)',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: 'No formal national guideline; discuss from ~50',
+    highRiskAge: '40–45 with family history or genetic mutation',
+    interval: 'Not yet formalised (proposal: 4–5 years for average risk)',
+    stopAge: 'Individualised',
+    summary:
+      'South Korea has no national PSA screening programme — testing is opportunistic and typically paid out of pocket during a personal health checkup from age 50, which creates a notable income-based gap in who gets tested. The Korean Urological Oncology Society has completed a Delphi consensus proposing screening from 55–69 for average-risk men (40–45 if higher risk) at a longer interval than the AUA\'s two years, and is in negotiations with health authorities on adoption.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'Known cancer-predisposing genetic mutations',
+    ],
+    notes: [
+      'Diagnosis rates differ sharply by income — about 191 per 100,000 for high-income men versus 27 per 100,000 for middle-income men, reflecting unequal access to opportunistic testing.',
+      'The KUOS proposal is not yet adopted policy; what is offered today depends on the individual clinic or health-checkup provider.',
+    ],
+    sources: [
+      { text: 'Prostate cancer now Korea\'s top male cancer; urologists push for state-funded screening (Korea Biomedical Review)', url: 'https://www.koreabiomed.com/news/articleView.html?idxno=32049' },
+    ],
+  },
+  {
+    id: 'east_asia',
+    name: 'East & Southeast Asia (other)',
+    scope: 'region',
+    body: 'Regional urological societies',
+    year: '2024',
+    posture: POSTURE.OPPORTUNISTIC,
+    startAge: '50',
+    highRiskAge: '45 with family history',
+    interval: 'Not defined by programme',
+    stopAge: 'Individualised',
+    summary:
+      'For the rest of East and Southeast Asia (South Korea, Taiwan, Hong Kong, and Southeast Asian countries), there is generally no organised national screening programme. Practice broadly follows the same shared-decision approach as Japan and China\'s opportunistic model: PSA testing from around age 50, or 45 with a family history, raised through routine health check-ups.',
+    highRisk: [
+      'Family history of prostate cancer',
+      'Lower urinary tract symptoms',
+    ],
+    notes: [
+      'Local availability and reimbursement vary widely across this group of countries — check with your own clinician or national society.',
+    ],
+    sources: [
+      { text: 'PSA-based population screening: current status in Japan and future perspective in Asia', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4430954/' },
     ],
   },
   {
     id: 'intl',
     name: 'International (general guidance)',
     scope: 'region',
-    emoji: '🌐',
-    body: 'AUA/SUO, NCCN and EAU — points of agreement',
+        body: 'AUA/SUO, NCCN and EAU — points of agreement',
     year: '2026',
     posture: POSTURE.SHARED,
     startAge: '45–50',
@@ -457,6 +651,41 @@ export const REGION_GUIDANCE = [
 
 export const DEFAULT_REGION_ID = 'intl';
 
+/* Which side of the globe a multi-country region roughly sits on
+ * (🌍 Europe/Africa/Middle East, 🌎 the Americas, 🌏 Asia/Australia/Pacific).
+ * Countries get a plain map-pin icon instead (see RegionalGuidanceCard),
+ * and anything unmapped falls back to 🌐. The EU is the one region with its
+ * own official flag, so it's called out separately below rather than
+ * grouped in here. */
+const REGION_GLOBE = {
+  nordics: '🌍', ssa: '🌍', mena: '🌍',
+  latam: '🌎',
+  pacific: '🌏', south_asia: '🌏', east_asia: '🌏', cis: '🌏',
+};
+
+/* Regions that have their own real flag despite covering multiple
+ * countries — 'EU' isn't an ISO country code, but flagFromCountryCode('EU')
+ * still resolves to the correct flag sequence (🇪🇺). */
+const REGION_FLAG = {
+  eu: 'EU',
+};
+
+/**
+ * Header icon for a region record: the country's flag for a single-country
+ * entry (via its isoCode), the EU flag for the EU entry, a continent-
+ * appropriate globe for other multi-country regions, or null if a country
+ * entry has no isoCode yet (caller renders a generic pin instead of
+ * guessing at a flag).
+ */
+export function headerIconFor(region) {
+  if (!region) return null;
+  if (region.scope === 'country') {
+    return region.isoCode ? flagFromCountryCode(region.isoCode) : null;
+  }
+  if (REGION_FLAG[region.id]) return flagFromCountryCode(REGION_FLAG[region.id]);
+  return REGION_GLOBE[region.id] || '🌐';
+}
+
 /* ISO 3166-1 alpha-2 → region id.
  * Countries not listed fall back to DEFAULT_REGION_ID. */
 export const COUNTRY_TO_REGION = {
@@ -481,22 +710,24 @@ export const COUNTRY_TO_REGION = {
   AD: 'eu', MC: 'eu', SM: 'eu', LI: 'eu',
 
   // Russia, CIS & non-EU Eastern Europe
-  RU: 'russia_cis', BY: 'russia_cis', UA: 'russia_cis', MD: 'russia_cis',
-  KZ: 'russia_cis', UZ: 'russia_cis', KG: 'russia_cis', TJ: 'russia_cis',
-  TM: 'russia_cis', AM: 'russia_cis', AZ: 'russia_cis', GE: 'russia_cis',
-  RS: 'russia_cis', BA: 'russia_cis', ME: 'russia_cis', MK: 'russia_cis',
-  AL: 'russia_cis', XK: 'russia_cis',
+  RU: 'ru',
+  BY: 'cis', UA: 'cis', MD: 'cis',
+  KZ: 'cis', UZ: 'cis', KG: 'cis', TJ: 'cis',
+  TM: 'cis', AM: 'cis', AZ: 'cis', GE: 'cis',
+  RS: 'cis', BA: 'cis', ME: 'cis', MK: 'cis',
+  AL: 'cis', XK: 'cis',
 
   // Australia & New Zealand / Oceania
-  AU: 'anz', NZ: 'anz', FJ: 'anz', PG: 'anz', WS: 'anz', TO: 'anz',
-  VU: 'anz', SB: 'anz', NC: 'anz', PF: 'anz',
+  AU: 'au', NZ: 'nz', FJ: 'pacific', PG: 'pacific', WS: 'pacific', TO: 'pacific',
+  VU: 'pacific', SB: 'pacific', NC: 'pacific', PF: 'pacific',
 
   // South Asia
-  IN: 'south_asia', PK: 'south_asia', BD: 'south_asia', LK: 'south_asia',
+  IN: 'in',
+  PK: 'south_asia', BD: 'south_asia', LK: 'south_asia',
   NP: 'south_asia', BT: 'south_asia', MV: 'south_asia', AF: 'south_asia',
 
   // East & Southeast Asia
-  JP: 'east_asia', CN: 'east_asia', KR: 'east_asia', TW: 'east_asia',
+  JP: 'jp', CN: 'cn', KR: 'kr', TW: 'east_asia',
   HK: 'east_asia', MO: 'east_asia', MN: 'east_asia', SG: 'east_asia',
   MY: 'east_asia', TH: 'east_asia', VN: 'east_asia', PH: 'east_asia',
   ID: 'east_asia', KH: 'east_asia', LA: 'east_asia', MM: 'east_asia', BN: 'east_asia',
@@ -517,7 +748,8 @@ export const COUNTRY_TO_REGION = {
   MU: 'ssa', LS: 'ssa', SZ: 'ssa',
 
   // Latin America & Caribbean
-  BR: 'latam', MX: 'latam', AR: 'latam', CL: 'latam', CO: 'latam',
+  BR: 'br',
+  MX: 'latam', AR: 'latam', CL: 'latam', CO: 'latam',
   PE: 'latam', VE: 'latam', EC: 'latam', BO: 'latam', PY: 'latam',
   UY: 'latam', CR: 'latam', PA: 'latam', GT: 'latam', HN: 'latam',
   SV: 'latam', NI: 'latam', DO: 'latam', CU: 'latam', JM: 'latam',

@@ -65,6 +65,20 @@ const isValidCode = (code) => typeof code === 'string' && /^[A-Za-z]{2}$/.test(c
 
 const normalise = (code) => (isValidCode(code) ? code.toUpperCase() : null);
 
+/**
+ * Turn an ISO 3166-1 alpha-2 code into its flag emoji, by mapping each
+ * letter to its regional-indicator symbol (A → 🇦, B → 🇧, …). "US" → "🇺🇸".
+ * Returns null for anything that isn't a two-letter code.
+ */
+export function flagFromCountryCode(code) {
+  const upper = normalise(code);
+  if (!upper) return null;
+  const REGIONAL_INDICATOR_A = 0x1f1e6;
+  return String.fromCodePoint(
+    ...[...upper].map((ch) => REGIONAL_INDICATOR_A + ch.charCodeAt(0) - 'A'.charCodeAt(0))
+  );
+}
+
 /* ── Manual override ──────────────────────────────────────────────── */
 
 /** The region id the user explicitly picked, if any. Beats IP detection. */
@@ -140,24 +154,6 @@ export function countryFromLocale() {
     }
   }
   return null;
-}
-
-/* ── Flags ────────────────────────────────────────────────────────── */
-
-/**
- * Turn an ISO 3166-1 alpha-2 code into its flag emoji, by mapping each
- * letter to its regional-indicator symbol (A → 🇦, B → 🇧, …). "NG" → "🇳🇬".
- *
- * Returns null for anything that isn't a two-letter code, so callers can
- * fall back to a globe.
- */
-export function flagFromCountryCode(code) {
-  const upper = normalise(code);
-  if (!upper) return null;
-  const REGIONAL_INDICATOR_A = 0x1f1e6;
-  return String.fromCodePoint(
-    ...[...upper].map((ch) => REGIONAL_INDICATOR_A + ch.charCodeAt(0) - 'A'.charCodeAt(0))
-  );
 }
 
 /* ── Network lookup ───────────────────────────────────────────────── */
