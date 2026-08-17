@@ -210,7 +210,7 @@
 }
 .v2-tier-score { font-size: 0.9375rem; color: var(--ink-700); margin-bottom: 0.5rem; }
 .v2-tier-score strong { font-size: 1.25rem; font-weight: 800; }
-.v2-tier-narr { font-size: 0.8125rem; color: var(--ink-500); line-height: 1.5; margin: 0; }
+.v2-tier-narr { font-size: 0.9375rem; color: var(--ink-500); line-height: 1.55; margin: 0; }
 @media (max-width: 580px) {
   .v2-gauge-layout { flex-direction: column; align-items: stretch; }
   .v2-gauge-layout .risk-gauge-figure { width: 100%; }
@@ -1024,7 +1024,11 @@
     /* Clears the (static, ~130–190px tall) app header at scroll top — at 132px
        the rail overlapped the product name/tagline before the page scrolled. */
     top: 196px;
-    left: max(24px, calc(50% - 620px));
+    /* Must track .container's own left padding (App.css), not a viewport-center
+       guess — .results-container--with-sidebar is left-anchored via a fixed
+       264px margin-left, not centered, so a 50%-based left here drifted past
+       the content's real edge at viewports around 1180–1800px and overlapped it. */
+    left: clamp(0.75rem, 3vw, 2rem);
     width: 232px;
     max-height: calc(100vh - 220px);
     overflow-y: auto;

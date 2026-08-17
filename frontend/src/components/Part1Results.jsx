@@ -10,7 +10,6 @@ import './PathwaySelector.css';
 import { RISK_COLORS } from '../utils/riskColors';
 import { fieldReferences } from '../utils/fieldReferences';
 import { PSA_BANNER_CONFIG_DATA } from '@epsa/engine';
-import PrintableForm from './PrintableForm';
 import { AUAGuidelineCriteria } from './AUAFlowchart';
 import { Part1GuidelineJourney } from './GuidelineJourney';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, PART1_LOADING_STEPS } from './ResultsLoading';
@@ -21,7 +20,7 @@ import { useDoctorMode, modeAtLeast } from '../context/DoctorModeContext.jsx';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
 import {
-  ArrowLeftIcon, RefreshCwIcon, PrinterIcon, FileTextIcon, DownloadIcon,
+  ArrowLeftIcon, RefreshCwIcon, PrinterIcon, DownloadIcon,
   CloudIcon, ChevronDownIcon, ChevronUpIcon, InfoIcon, CheckCircle2Icon,
   AlertTriangleIcon, AlertCircleIcon, ExternalLinkIcon, MapPinIcon,
   FlaskConicalIcon, MicroscopeIcon, ArrowRightIcon, CheckIcon, CircleIcon, XIcon,
@@ -607,7 +606,6 @@ const Part1Results = ({
   const { viewMode } = useDoctorMode();
   const showContributionPct = modeAtLeast(viewMode, 'clinical');
   const canExportRawData = modeAtLeast(viewMode, 'clinical');
-  const [showPrintableForm, setShowPrintableForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAllImpacts, setShowAllImpacts] = useState(false);
   const breakdownRef = useRef(null);
@@ -658,7 +656,6 @@ const Part1Results = ({
     downloadCsv(filename, rows);
   };
 
-  if (showPrintableForm) return <PrintableForm formData={formData} onBack={() => setShowPrintableForm(false)} />;
   if (!result) return (
     <div className="results-container">
       <div role="alert" style={{ margin: '2rem auto', maxWidth: '480px', padding: '24px', background: '#fffbeb', border: '1.5px solid #d97706', borderRadius: '12px', textAlign: 'center' }}>
@@ -724,7 +721,6 @@ const Part1Results = ({
     guardrailAlerts = [],
     guidelineTrack = null,
     epsaExtendedProfile = null,
-    part1Tier = null,
   } = result;
 
   const rawScore = Number(result?.calculationDetails?.rawScore);
@@ -785,11 +781,6 @@ const Part1Results = ({
       <div className="results-container results-container--with-sidebar" role="main">
 
       <ResultsMetaBar sessionId={sessionId} computedAt={result?.computedAt} part="Before PSA Test" />
-
-      {/* ── Guardrail Alerts ── */}
-      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
-        <GuardrailBanner key={alert.code} alert={alert} />
-      ))}
 
       {/* ── Research consent / REDCap status ── */}
       {storageMode === 'cloud' && (
@@ -893,32 +884,30 @@ const Part1Results = ({
                 })()}
               </div>
             </div>
-
-            <GuidelineRecommendationCard
-              tier={part1Tier}
-              detail={part1Tier && (
-                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '8px', fontSize: '0.8125rem', color: 'var(--ink-700)' }}>
-                  <span><strong>Guideline criteria met:</strong> {part1Tier.guidelineCriteriaMet ? 'Yes' : 'No'}</span>
-                  <span><strong>Extended risk:</strong> {part1Tier.extendedRiskStrength}</span>
-                  {part1Tier.priorBiopsyHistory && <span><strong>Prior biopsy history:</strong> Yes</span>}
-                </div>
-              )}
-            />
           </>
         )}
       </div>
 
+      {/* ── Guardrail Alerts (shown after the recommendation, not before it,
+           so patients see their result first) ── */}
+      {guardrailAlerts?.length > 0 && guardrailAlerts.map(alert => (
+        <GuardrailBanner key={alert.code} alert={alert} />
+      ))}
+
       {/* ── Why? (progressive disclosure: graphical headline only) ── */}
       {!belowMinAge && !aboveMaxScreeningAge && <WhySection itemImpacts={itemImpacts} />}
 
-      {/* ── Model confidence (clinician framing — patients get the plain-language
-          result + SDM guide instead of a validation badge) ── */}
+      {/* ── Model confidence (clinician framing) ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (
         <ClinicalOnly><ModelConfidenceBadge /></ClinicalOnly>
       )}
 
-      {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
-      <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
+      {/* ── Shared Decision-Making — MVP: patient view keeps the page to the
+          recommendation + Why + Next Step; the full SDM talking-points guide
+          is clinical-view detail, not removed. ── */}
+      <ClinicalOnly>
+        <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
+      </ClinicalOnly>
 
       {/* ── Recommended Next Step ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (
@@ -1047,11 +1036,15 @@ const Part1Results = ({
         </div>
       )}
 
-      {/* ── Advanced Clinical Details ── */}
+      {/* ── Advanced Clinical Details — MVP: patient view keeps only "Find a
+          Urologist" here (the sidebar's Find Urologist button scrolls to its
+          #find-urologist anchor and must keep working); the guideline
+          walkthrough and score breakdown are clinical-view detail. ── */}
       <div className="detail-sections res-reveal" style={{ '--delay': '500ms' }}>
+        <ClinicalOnly>
         <div className="section-heading-row section-heading-row--umbrella">
           <LayersIcon size={17} aria-hidden="true" className="section-heading-icon" />
-          <span className="section-heading-title">{t('part1Results.advancedClinicalDetailsHeading', viewMode === 'patient' ? 'For Healthcare Professionals' : 'Advanced Clinical Details')}</span>
+          <span className="section-heading-title">{t('part1Results.advancedClinicalDetailsHeading', 'Advanced Clinical Details')}</span>
         </div>
 
         <CollapsibleSection
@@ -1178,6 +1171,7 @@ const Part1Results = ({
           </div>
           );
         })()}
+        </ClinicalOnly>
 
         <CollapsibleSection id="find-urologist" title={<><UserIcon size={15} aria-hidden="true" className="collapsible-title-icon" />Find a Board-Certified Urologist Near You</>}>
           <UrologistFinder flowMode={flowMode} />
@@ -1200,7 +1194,6 @@ const Part1Results = ({
           <button className="btn-results btn-results--outline" onClick={onEditAnswers}><ArrowLeftIcon size={16} /><span>{t('part1Results.btnEditAnswers')}</span></button>
           <button className="btn-results btn-results--solid" onClick={() => window.print()}><PrinterIcon size={16} /><span>{t('part1Results.btnPrintResults')}</span></button>
           <MoreActionsMenu>
-            <button className="btn-results btn-results--outline" onClick={() => setShowPrintableForm(true)}><FileTextIcon size={16} /><span>{t('part1Results.btnPrintableForm')}</span></button>
             {canExportRawData && (storageMode === 'local' || storageMode === 'cloud') && (
               <>
                 <button

@@ -11,7 +11,11 @@ const OPTIONS = [
 // preferences (text size, theme, language). Research-tier content (model
 // methodology, validation cohorts, raw export) lives in epsa-admin-dashboard,
 // not here.
-const DoctorModeToggle = () => {
+// onSelectPatient: when set, clicking "Patient" also leaves whatever
+// clinician-only screen is currently covering the patient flow (e.g. Clinician
+// View quick-entry) — otherwise viewMode flips but the covering screen stays up
+// and the toggle looks broken.
+const DoctorModeToggle = ({ onSelectPatient }) => {
   const { viewMode, setViewMode } = useDoctorMode();
   return (
     <div className="doctor-mode-toggle" role="group" aria-label="View mode">
@@ -21,7 +25,10 @@ const DoctorModeToggle = () => {
           type="button"
           className={`doctor-mode-toggle__btn${viewMode === mode ? ' doctor-mode-toggle__btn--active' : ''}`}
           aria-pressed={viewMode === mode}
-          onClick={() => setViewMode(mode)}
+          onClick={() => {
+            setViewMode(mode);
+            if (mode === 'patient' && onSelectPatient) onSelectPatient();
+          }}
           title={title}
         >
           {label}
