@@ -9,16 +9,19 @@ const JourneyProgress = ({ stage, currentStep, pathwayMode, preResult, postResul
   // to) the combined PSA + MRI pathway — a PSA-only pathway never shows it.
   const isMriPathway = pathwayMode === 'post_mri' || postResult?.pathwayMode === 'post_mri';
 
-  // Reaching the Part 2/3 results screen (interim PSA-only results, or the
-  // final combined/biopsy results) means every step up to the pathway's last
-  // is done — regardless of which currentStep number got us here.
-  const resultsReached = showPart2Interim || currentStep >= 4;
+  // Reaching the final combined/biopsy results screen means every step up to
+  // the pathway's last is done — regardless of which currentStep got us here.
+  const resultsReached = currentStep >= 4;
 
   let activeIdx;
   if (pathwayMode === null && !preResult) {
     activeIdx = 0;
   } else if (stage === 'pre') {
     activeIdx = currentStep >= 3 ? 2 : currentStep <= 1 ? 1 : 1;
+  } else if (showPart2Interim) {
+    // Interim PSA-only results — MRI (if this pathway includes it) hasn't
+    // happened yet, so PSA/Biomarkers is the current step, not "done".
+    activeIdx = biomarkersEnabled ? 4 : 3;
   } else if (resultsReached) {
     activeIdx = Infinity; // clamped to steps.length - 1 below
   } else if (biomarkersEnabled) {
