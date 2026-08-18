@@ -166,6 +166,13 @@ function App() {
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
 
+  // Safety net: guarantee every step/stage/pathway transition lands the user
+  // at the top of the page, even if a specific navigation handler forgets its
+  // own window.scrollTo call.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [stage, currentStep, pathwayMode]);
+
   if (typeof window !== 'undefined' && window.location.pathname.startsWith('/legal')) {
     return <LegalRoute pathname={window.location.pathname} />;
   }

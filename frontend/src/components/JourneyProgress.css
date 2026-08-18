@@ -11,10 +11,12 @@
 .journey-steps {
   display: flex;
   align-items: center;
+  justify-content: center;
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0 0.125rem;
   min-width: max-content;
+  width: fit-content;
 }
 
 /* ─── Individual step ─── */

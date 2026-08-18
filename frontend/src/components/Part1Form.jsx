@@ -830,9 +830,9 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
               </button>
             ))}
             <button
-              className={`option-btn ${localData.familyHistoryCancerTypes.length === 0 ? 'selected' : ''}`}
+              className={`option-btn ${familyCancerTouched && localData.familyHistoryCancerTypes.length === 0 ? 'selected' : ''}`}
               onClick={() => { setFamilyCancerTouched(true); setLocalData(prev => ({ ...prev, familyHistoryCancerTypes: [], skippedFields: clearSkip(prev, 'familyHistoryCancerTypes') })); }}
-              aria-pressed={localData.familyHistoryCancerTypes.length === 0}
+              aria-pressed={familyCancerTouched && localData.familyHistoryCancerTypes.length === 0}
             >
               {t('part1.options.no')}
             </button>
