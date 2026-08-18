@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
-import { AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard, NarrationPlayer } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { ASSESSMENT_STEPS, AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -904,10 +904,13 @@ const Part1Results = ({
 
       {/* ── Shared Decision-Making — MVP: patient view keeps the page to the
           recommendation + Why + Next Step; the full SDM talking-points guide
-          is clinical-view detail, not removed. ── */}
+          is clinical-view detail, not removed. Narration stays visible in
+          both views — patients are the primary audience for hearing their
+          results explained, not just clinicians. ── */}
       <ClinicalOnly>
-        <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
+        <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide result={result} />
       </ClinicalOnly>
+      <NarrationPlayer result={result} />
 
       {/* ── Recommended Next Step ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (

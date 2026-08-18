@@ -2,9 +2,440 @@
  * Shared result screen components — used by Part1Results and Part2Results.
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
-import React, { useState, useEffect } from 'react';
-import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
+import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/narrationScript';
+import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS } from '../../utils/voiceServers';
+
+// ─── Narration ──────────────────────────────────────────────────────────────
+// Local voice narration of the SDM guide, built from `result`. Calls
+// whichever server is selected (gear icon next to the player) — defaults to
+// Kokoro's cloud deployment (cheap, always-on, no setup), and can be pointed
+// at the local Tewari Voice service or any other entry an admin has
+// published for the actual cloned Dr. Tewari voice.
+const VOICE_SERVER_URL_STORAGE_KEY = 'epsa_voice_server_url';
+const DEFAULT_VOICE_SERVER_URL = DEFAULT_VOICE_SERVERS[0].url;
+
+// Kokoro's built-in voices (the Tewari Voice service ignores this field
+// since it only ever speaks as the one cloned identity — harmless to send
+// either way). Trimmed to the better-trained American English voices;
+// see hexgrad/kokoro for the full 54-voice, 9-language list.
+const KOKORO_VOICES = [
+  { id: 'af_heart', label: 'Heart (female)' },
+  { id: 'af_bella', label: 'Bella (female)' },
+  { id: 'af_nicole', label: 'Nicole (female)' },
+  { id: 'af_sarah', label: 'Sarah (female)' },
+  { id: 'am_michael', label: 'Michael (male)' },
+  { id: 'am_adam', label: 'Adam (male)' },
+  { id: 'am_echo', label: 'Echo (male)' },
+  { id: 'am_onyx', label: 'Onyx (male)' },
+];
+const VOICE_OPTION_STORAGE_KEY = 'epsa_voice_option';
+const DEFAULT_VOICE_OPTION = KOKORO_VOICES[0].id;
+
+function getVoiceServerUrl() {
+  try {
+    return localStorage.getItem(VOICE_SERVER_URL_STORAGE_KEY) || DEFAULT_VOICE_SERVER_URL;
+  } catch (err) {
+    return DEFAULT_VOICE_SERVER_URL;
+  }
+}
+
+function setVoiceServerUrl(url) {
+  try {
+    localStorage.setItem(VOICE_SERVER_URL_STORAGE_KEY, url);
+  } catch (err) {
+    // Storage unavailable (private browsing, etc.) — falls back to default next load.
+  }
+}
+
+function getVoiceOption() {
+  try {
+    return localStorage.getItem(VOICE_OPTION_STORAGE_KEY) || DEFAULT_VOICE_OPTION;
+  } catch (err) {
+    return DEFAULT_VOICE_OPTION;
+  }
+}
+
+function setVoiceOption(voiceId) {
+  try {
+    localStorage.setItem(VOICE_OPTION_STORAGE_KEY, voiceId);
+  } catch (err) {
+    // Storage unavailable — falls back to default next load.
+  }
+}
+
+// Builds a canonical 44-byte PCM WAV header for the given data length.
+function buildWavHeader(dataLength, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) {
+  const blockAlign = numChannels * (bitsPerSample / 8);
+  const byteRate = sampleRate * blockAlign;
+  const buffer = new ArrayBuffer(44);
+  const view = new DataView(buffer);
+  const writeString = (offset, str) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitsPerSample, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+  return new Uint8Array(buffer);
+}
+
+// Stitches an array of WAV ArrayBuffers (same format) into a single WAV blob
+// by concatenating their PCM payloads under one shared header — produces one
+// continuous clip instead of several files played back-to-back. Returns both
+// the Blob (needed to also attempt video generation) and its object URL.
+function stitchWavBuffers(arrayBuffers) {
+  const pcmParts = arrayBuffers.map((buf) => new Uint8Array(buf, 44));
+  const totalLength = pcmParts.reduce((sum, part) => sum + part.length, 0);
+  const header = buildWavHeader(totalLength);
+  const combined = new Uint8Array(header.length + totalLength);
+  combined.set(header, 0);
+  let offset = header.length;
+  for (const part of pcmParts) {
+    combined.set(part, offset);
+    offset += part.length;
+  }
+  const blob = new Blob([combined], { type: 'audio/wav' });
+  return { blob, url: URL.createObjectURL(blob) };
+}
+
+// Warmer, natural-sounding status text instead of a raw "X of Y, ~Zs left"
+// countdown — reads like Dr. Tewari is actually getting ready, not like a
+// stalled progress bar. Ordered by progress fraction reached.
+const PREPARING_MESSAGES = [
+  { at: 0, text: 'Reviewing your results…' },
+  { at: 0.34, text: 'Putting your conversation together…' },
+  { at: 0.67, text: 'Almost ready…' },
+];
+
+function getPreparingMessage(fraction) {
+  let message = PREPARING_MESSAGES[0].text;
+  for (const step of PREPARING_MESSAGES) {
+    if (fraction >= step.at) message = step.text;
+  }
+  return message;
+}
+
+export const NarrationPlayer = ({ result, preResult }) => {
+  const [state, setState] = useState('idle'); // idle | preparing | playing | error
+  const [errorMessage, setErrorMessage] = useState('');
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [hasCachedClip, setHasCachedClip] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [serverUrlInput, setServerUrlInput] = useState(getVoiceServerUrl);
+  const [voiceOptionInput, setVoiceOptionInput] = useState(getVoiceOption);
+  const [serverOptions, setServerOptions] = useState(getVoiceServers);
+  const audioRef = useRef(null);
+  // Synchronous guard against overlapping runs — React state updates are
+  // async, so `disabled` alone cannot stop a second click fired before the
+  // re-render commits. Two concurrent synthesis calls into the same
+  // Chatterbox model instance can corrupt one of the resulting WAVs.
+  const busyRef = useRef(false);
+  // Caches each segment's blob URL per narration key so replays are instant
+  // instead of re-synthesizing every click. Keyed on the patient's actual
+  // facts too, not just the reason key, so a different patient (or a
+  // recalculated result) doesn't replay a stale cached clip.
+  const cacheRef = useRef({ key: null, urls: null });
+  // Live streaming playback state: urls fill in one at a time as each
+  // segment finishes synthesizing (fetched sequentially — concurrent calls
+  // into the same model instance corrupt output), and playback advances
+  // through them as they become available instead of waiting for all of
+  // them up front. index tracks which segment is currently playing/queued.
+  const streamRef = useRef({ urls: [], index: 0 });
+  const segments = getNarrationSegments(result, preResult);
+  const narrationKey = `${resolveNarrationKey(result || {})}:${JSON.stringify(extractPatientFacts(result, preResult))}`;
+
+  if (!segments || segments.length === 0) return null;
+
+  const synthesizeSegmentUrl = async (text) => {
+    let response;
+    try {
+      response = await fetch(`${getVoiceServerUrl()}/voice/audio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: getVoiceOption() }),
+      });
+    } catch (err) {
+      throw new Error(`Could not reach the voice service at ${getVoiceServerUrl()} — check the source in settings.`);
+    }
+    if (!response.ok) throw new Error(`Voice service returned ${response.status}`);
+    const { url } = stitchWavBuffers([await response.arrayBuffer()]);
+    return url;
+  };
+
+  // Plays streamRef segment `i`, waiting for it to finish synthesizing if it
+  // isn't ready yet (a brief gap, rather than the old wait-for-everything
+  // behavior). Advances automatically on the audio element's `ended` event.
+  const playStreamIndex = async (i) => {
+    const s = streamRef.current;
+    if (i >= segments.length) {
+      cacheRef.current = { key: narrationKey, urls: s.urls.slice() };
+      setHasCachedClip(true);
+      busyRef.current = false;
+      setState('idle');
+      return;
+    }
+    s.index = i;
+    if (s.urls[i] == null) {
+      setState('preparing');
+      await new Promise((resolve) => {
+        const check = () => (s.urls[i] != null ? resolve() : setTimeout(check, 150));
+        check();
+      });
+    }
+    if (!audioRef.current) return;
+    audioRef.current.src = s.urls[i];
+    setState('playing');
+    await audioRef.current.play();
+  };
+
+  const handleStreamEnded = () => {
+    playStreamIndex(streamRef.current.index + 1).catch((err) => {
+      console.error('narration_playback_failed', err);
+      busyRef.current = false;
+      setErrorMessage('The narration audio could not be played. Please try again.');
+      setState('error');
+    });
+  };
+
+  const handleStart = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setErrorMessage('');
+
+    // Cached from a previous click on this same result — replay instantly,
+    // no re-synthesis needed.
+    if (cacheRef.current.key === narrationKey && cacheRef.current.urls?.length === segments.length) {
+      streamRef.current = { urls: cacheRef.current.urls.slice(), index: 0 };
+      try {
+        await playStreamIndex(0);
+      } catch (err) {
+        console.error('narration_playback_failed', err);
+        busyRef.current = false;
+        setErrorMessage('The narration audio could not be played. Please try again.');
+        setState('error');
+      }
+      return;
+    }
+
+    streamRef.current = { urls: new Array(segments.length).fill(null), index: 0 };
+    setProgress({ done: 0, total: segments.length });
+    // Fetch segments sequentially in the background (concurrent calls into
+    // the same model instance corrupt output) — playback starts as soon as
+    // segment 0 is ready and advances through the rest as they arrive.
+    (async () => {
+      try {
+        for (let i = 0; i < segments.length; i++) {
+          streamRef.current.urls[i] = await synthesizeSegmentUrl(segments[i]);
+          setProgress({ done: i + 1, total: segments.length });
+        }
+      } catch (err) {
+        console.error('narration_synthesis_failed', err);
+        busyRef.current = false;
+        setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
+          ? err.message
+          : 'The narration audio could not be played. Please try again.');
+        setState('error');
+      }
+    })();
+
+    try {
+      await playStreamIndex(0);
+    } catch (err) {
+      console.error('narration_playback_failed', err);
+      busyRef.current = false;
+      setErrorMessage('The narration audio could not be played. Please try again.');
+      setState('error');
+    }
+  };
+
+  const isBusy = state === 'preparing' || state === 'playing';
+  const isCachedForThisResult = cacheRef.current.key === narrationKey && hasCachedClip;
+  const progressFraction = progress.total > 0 ? progress.done / progress.total : 0;
+  const label = state === 'preparing'
+    ? getPreparingMessage(progressFraction)
+    : state === 'playing'
+      ? 'Playing…'
+      : isCachedForThisResult
+        ? 'Play again'
+        : 'Play narration';
+
+  const handleSaveSettings = () => {
+    setVoiceServerUrl(serverUrlInput.trim() || DEFAULT_VOICE_SERVER_URL);
+    setVoiceOption(voiceOptionInput);
+    // A different server/voice may sound different — don't replay a clip
+    // synthesized by the old source.
+    cacheRef.current = { key: null, urls: null };
+    setHasCachedClip(false);
+    setShowSettings(false);
+  };
+
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <button
+        type="button"
+        onClick={handleStart}
+        disabled={isBusy}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          background: '#16a34a', color: '#fff', border: 'none',
+          borderRadius: '6px', padding: '6px 12px', fontSize: '12px',
+          fontWeight: 600, cursor: isBusy ? 'default' : 'pointer',
+        }}
+      >
+        <Volume2Icon size={14} aria-hidden="true" />
+        {label}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setServerUrlInput(getVoiceServerUrl());
+          setVoiceOptionInput(getVoiceOption());
+          setShowSettings(true);
+          refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
+        }}
+        aria-label="Voice settings"
+        title="Voice settings"
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginLeft: '6px', width: '26px', height: '26px', verticalAlign: 'middle',
+          background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+        }}
+      >
+        <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
+      </button>
+      {state === 'preparing' && (
+        <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
+          <span className="voice-pulse-dot" style={{ animationDelay: '0ms' }} />
+          <span className="voice-pulse-dot" style={{ animationDelay: '160ms' }} />
+          <span className="voice-pulse-dot" style={{ animationDelay: '320ms' }} />
+        </div>
+      )}
+      <style>{`
+        .voice-pulse-dot {
+          width: 5px; height: 5px; border-radius: 50%; background: #16a34a;
+          display: inline-block; animation: voice-pulse 1.1s ease-in-out infinite;
+        }
+        @keyframes voice-pulse {
+          0%, 80%, 100% { opacity: 0.25; transform: scale(0.75); }
+          40% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+      {state === 'error' && (
+        <span style={{ marginLeft: '8px', fontSize: '11px', color: '#b91c1c' }}>
+          {errorMessage}
+        </span>
+      )}
+      {showSettings && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Voice source settings"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: '10px', padding: '18px 20px',
+              width: '340px', maxWidth: '90vw', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>Voice source</span>
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                aria-label="Close"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+              >
+                <XIcon size={16} aria-hidden="true" style={{ color: '#6b7280' }} />
+              </button>
+            </div>
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 10px', lineHeight: 1.5 }}>
+              Which server voices the narration. Pick from the servers your admin
+              has published, or enter a custom address.
+            </p>
+            <select
+              value={serverOptions.some((s) => s.url === serverUrlInput) ? serverUrlInput : '__custom__'}
+              onChange={(e) => setServerUrlInput(e.target.value === '__custom__' ? '' : e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '8px', background: '#fff',
+              }}
+            >
+              {serverOptions.map((s) => (
+                <option key={s.url} value={s.url}>{s.name} — {s.url}</option>
+              ))}
+              <option value="__custom__">Custom…</option>
+            </select>
+            {!serverOptions.some((s) => s.url === serverUrlInput) && (
+              <input
+                type="text"
+                value={serverUrlInput}
+                onChange={(e) => setServerUrlInput(e.target.value)}
+                placeholder={DEFAULT_VOICE_SERVER_URL}
+                style={{
+                  width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                  border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '12px',
+                }}
+              />
+            )}
+            <select
+              value={voiceOptionInput}
+              onChange={(e) => setVoiceOptionInput(e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '12px', background: '#fff',
+              }}
+            >
+              {KOKORO_VOICES.map((v) => (
+                <option key={v.id} value={v.id}>{v.label}</option>
+              ))}
+            </select>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                style={{
+                  fontSize: '12px', padding: '6px 12px', borderRadius: '6px',
+                  border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                style={{
+                  fontSize: '12px', padding: '6px 12px', borderRadius: '6px',
+                  border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <audio ref={audioRef} onEnded={handleStreamEnded} style={{ display: 'none' }} />
+    </div>
+  );
+};
 
 // ─── Collapsible Section ──────────────────────────────────────────────────────
 // `minMode` marks a section as clinician-oriented content (guideline
@@ -151,8 +582,13 @@ const SHARE_STEPS = [
   { key: 'evaluate', label: 'Evaluate', listKey: null },
 ];
 
-export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
+export const SdmConversationGuide = ({ sdmGuide, fallback = null, result = null, preResult = null }) => {
   if (!sdmGuide) return fallback;
+  // sdmGuide.seek.prompt is a static per-reason-key string from epsa-engine
+  // (no actual patient facts). When result/preResult are passed, swap in the
+  // same personalized text used for the audio narration's opener — same
+  // facts (age, ancestry, family history, PSA, risk tier), same wording.
+  const personalizedSeekText = (result || preResult) ? getPersonalizedSeekText(result, preResult) : null;
   return (
     <div
       role="note"
@@ -176,10 +612,11 @@ export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
         const step = sdmGuide[key];
         if (!step) return null;
         const items = listKey ? step[listKey] : null;
+        const promptText = (key === 'seek' && personalizedSeekText) ? personalizedSeekText : step.prompt;
         return (
           <div key={key} style={{ margin: '6px 0', paddingTop: '6px', borderTop: '1px solid #bbf7d0' }}>
             <div style={{ fontWeight: 600 }}>{label}</div>
-            <div>{step.prompt}</div>
+            <div>{promptText}</div>
             {Array.isArray(items) && items.length > 0 && (
               <ul style={{ margin: '4px 0 0', paddingLeft: '18px' }}>
                 {items.map((item, i) => <li key={i}>{item}</li>)}
@@ -251,7 +688,7 @@ const ASK_YOUR_DOCTOR_QUESTIONS = [
  * @param {object|null} sdmGuide - result?.sdmGuide from the engine, same prop
  *   already passed to SdmConversationGuide elsewhere.
  */
-export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false }) => {
+export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false, result = null, preResult = null }) => {
   const [expanded, setExpanded] = useState(false);
   return (
     <div
@@ -326,7 +763,7 @@ export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false }) =
 
           {sdmGuide && (
             <div style={{ marginBottom: '12px' }}>
-              <SdmConversationGuide sdmGuide={sdmGuide} />
+              <SdmConversationGuide sdmGuide={sdmGuide} result={result} preResult={preResult} />
             </div>
           )}
 

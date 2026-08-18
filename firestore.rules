@@ -137,25 +137,30 @@ service cloud.firestore {
     // are merged here so each document's intended condition actually applies.
     //
     // Documents:
-    //   appConfig/featureFlags → published by the epsa-admin-dashboard.
-    //                            Public read; admin write.
-    //   appConfig/sinai        → { redcapEnabled, updatedAt, updatedBy }.
-    //                            Public read so unauthenticated patients can
-    //                            pick the live-REDCap vs offline-CSV flow.
-    //                            Super-admin write only.
+    //   appConfig/featureFlags  → published by the epsa-admin-dashboard.
+    //                             Public read; admin write.
+    //   appConfig/sinai         → { redcapEnabled, updatedAt, updatedBy }.
+    //                             Public read so unauthenticated patients can
+    //                             pick the live-REDCap vs offline-CSV flow.
+    //                             Super-admin write only.
+    //   appConfig/voiceServers  → { servers: [{ name, url }] } — the Dr.
+    //                             Tewari voice server options the ePSA app
+    //                             offers in its narration settings.
+    //                             Public read; admin write.
     //
     // The admin dashboard writes these through a Pages Function using a service
     // account (Admin SDK bypasses rules); these conditions govern only direct
     // client writes.
     //
-    // These docs carry flags, never tokens or secrets — they are world-readable.
+    // These docs carry flags/URLs, never tokens or secrets — they are world-readable.
     // ============================================
     match /appConfig/{docId} {
-      allow get: if docId in ['featureFlags', 'sinai'];
+      allow get: if docId in ['featureFlags', 'sinai', 'voiceServers'];
       allow list: if isAuthenticated() && isAuthorizedAdmin();
 
       allow create, update, delete: if isAuthenticated() && (
         (docId == 'featureFlags' && isAuthorizedAdmin()) ||
+        (docId == 'voiceServers' && isAuthorizedAdmin()) ||
         (docId == 'sinai' && isSuperAdmin())
       );
     }
