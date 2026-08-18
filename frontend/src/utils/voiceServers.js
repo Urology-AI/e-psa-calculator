@@ -9,8 +9,11 @@ export const VOICE_SERVERS_CACHE_KEY = 'epsa_voice_servers';
 export const VOICE_SERVERS_DOC_PATH = { collection: 'appConfig', doc: 'voiceServers' };
 
 // Always available even if Firestore hasn't published anything yet, or the
-// app is offline — this is what makes local development work out of the box.
+// app is offline. Kokoro (cloud) is first/default — cheap, always-on (Modal,
+// per-second billed, scales to zero), no local server needed. "Local (dev)"
+// is there for developing against the actual cloned Dr. Tewari voice.
 export const DEFAULT_VOICE_SERVERS = [
+  { name: 'Kokoro (cloud)', url: 'https://adityakiwi--kokoro-tts-kokoroserver-web.modal.run' },
   { name: 'Local (dev)', url: 'http://localhost:8000' },
 ];
 

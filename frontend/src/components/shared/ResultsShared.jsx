@@ -6,16 +6,33 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
 import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/tewariNarration';
-import { isBrowserVoiceAvailable, speakWithBrowserVoice, cancelBrowserVoice } from '../../utils/browserVoice';
-import { getVoiceServers, refreshVoiceServers } from '../../utils/voiceServers';
+import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS } from '../../utils/voiceServers';
 
 // ─── Narration ──────────────────────────────────────────────────────────────
-// Local voice narration of the SDM guide, built from `result`. The AI-voice
-// option requires a Tewari Voice service reachable at the configured server
-// URL (gear icon next to the player) — defaults to localhost for local dev,
-// but can be pointed at wherever that service is actually running.
+// Local voice narration of the SDM guide, built from `result`. Calls
+// whichever server is selected (gear icon next to the player) — defaults to
+// Kokoro's cloud deployment (cheap, always-on, no setup), and can be pointed
+// at the local Tewari Voice service or any other entry an admin has
+// published for the actual cloned Dr. Tewari voice.
 const VOICE_SERVER_URL_STORAGE_KEY = 'epsa_voice_server_url';
-const DEFAULT_VOICE_SERVER_URL = 'http://localhost:8000';
+const DEFAULT_VOICE_SERVER_URL = DEFAULT_VOICE_SERVERS[0].url;
+
+// Kokoro's built-in voices (the Tewari Voice service ignores this field
+// since it only ever speaks as the one cloned identity — harmless to send
+// either way). Trimmed to the better-trained American English voices;
+// see hexgrad/kokoro for the full 54-voice, 9-language list.
+const KOKORO_VOICES = [
+  { id: 'af_heart', label: 'Heart (female)' },
+  { id: 'af_bella', label: 'Bella (female)' },
+  { id: 'af_nicole', label: 'Nicole (female)' },
+  { id: 'af_sarah', label: 'Sarah (female)' },
+  { id: 'am_michael', label: 'Michael (male)' },
+  { id: 'am_adam', label: 'Adam (male)' },
+  { id: 'am_echo', label: 'Echo (male)' },
+  { id: 'am_onyx', label: 'Onyx (male)' },
+];
+const VOICE_OPTION_STORAGE_KEY = 'epsa_voice_option';
+const DEFAULT_VOICE_OPTION = KOKORO_VOICES[0].id;
 
 function getVoiceServerUrl() {
   try {
@@ -30,6 +47,22 @@ function setVoiceServerUrl(url) {
     localStorage.setItem(VOICE_SERVER_URL_STORAGE_KEY, url);
   } catch (err) {
     // Storage unavailable (private browsing, etc.) — falls back to default next load.
+  }
+}
+
+function getVoiceOption() {
+  try {
+    return localStorage.getItem(VOICE_OPTION_STORAGE_KEY) || DEFAULT_VOICE_OPTION;
+  } catch (err) {
+    return DEFAULT_VOICE_OPTION;
+  }
+}
+
+function setVoiceOption(voiceId) {
+  try {
+    localStorage.setItem(VOICE_OPTION_STORAGE_KEY, voiceId);
+  } catch (err) {
+    // Storage unavailable — falls back to default next load.
   }
 }
 
@@ -81,7 +114,7 @@ function stitchWavBuffers(arrayBuffers) {
 // countdown — reads like Dr. Tewari is actually getting ready, not like a
 // stalled progress bar. Ordered by progress fraction reached.
 const PREPARING_MESSAGES = [
-  { at: 0, text: 'Dr. Tewari is reviewing your results…' },
+  { at: 0, text: 'Reviewing your results…' },
   { at: 0.34, text: 'Putting your conversation together…' },
   { at: 0.67, text: 'Almost ready…' },
 ];
@@ -96,15 +129,12 @@ function getPreparingMessage(fraction) {
 
 export const NarrationPlayer = ({ result, preResult }) => {
   const [state, setState] = useState('idle'); // idle | preparing | playing | error
-  // 'tewari' uses the cloned AI voice (server round-trip, slower, most
-  // natural). 'male'/'female' use the browser's built-in text-to-speech —
-  // instant, no server dependency, but synthetic-sounding.
-  const [voiceMode, setVoiceMode] = useState('tewari');
   const [errorMessage, setErrorMessage] = useState('');
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [hasCachedClip, setHasCachedClip] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [serverUrlInput, setServerUrlInput] = useState(getVoiceServerUrl);
+  const [voiceOptionInput, setVoiceOptionInput] = useState(getVoiceOption);
   const [serverOptions, setServerOptions] = useState(getVoiceServers);
   const audioRef = useRef(null);
   // Synchronous guard against overlapping runs — React state updates are
@@ -112,39 +142,71 @@ export const NarrationPlayer = ({ result, preResult }) => {
   // re-render commits. Two concurrent synthesis calls into the same
   // Chatterbox model instance can corrupt one of the resulting WAVs.
   const busyRef = useRef(false);
-  // Caches the stitched clip per narration key so replays are instant
+  // Caches each segment's blob URL per narration key so replays are instant
   // instead of re-synthesizing every click. Keyed on the patient's actual
   // facts too, not just the reason key, so a different patient (or a
   // recalculated result) doesn't replay a stale cached clip.
-  const cacheRef = useRef({ key: null, url: null });
+  const cacheRef = useRef({ key: null, urls: null });
+  // Live streaming playback state: urls fill in one at a time as each
+  // segment finishes synthesizing (fetched sequentially — concurrent calls
+  // into the same model instance corrupt output), and playback advances
+  // through them as they become available instead of waiting for all of
+  // them up front. index tracks which segment is currently playing/queued.
+  const streamRef = useRef({ urls: [], index: 0 });
   const segments = getNarrationSegments(result, preResult);
   const narrationKey = `${resolveNarrationKey(result || {})}:${JSON.stringify(extractPatientFacts(result, preResult))}`;
 
-  // Stop the browser voice from continuing to talk after navigating away.
-  useEffect(() => cancelBrowserVoice, []);
-
   if (!segments || segments.length === 0) return null;
 
-  const synthesizeSegment = async (text) => {
+  const synthesizeSegmentUrl = async (text) => {
     let response;
     try {
       response = await fetch(`${getVoiceServerUrl()}/voice/audio`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice: getVoiceOption() }),
       });
     } catch (err) {
       throw new Error(`Could not reach the voice service at ${getVoiceServerUrl()} — check the source in settings.`);
     }
     if (!response.ok) throw new Error(`Voice service returned ${response.status}`);
-    return response.arrayBuffer();
+    const { url } = stitchWavBuffers([await response.arrayBuffer()]);
+    return url;
   };
 
-  const playUrl = async (url) => {
+  // Plays streamRef segment `i`, waiting for it to finish synthesizing if it
+  // isn't ready yet (a brief gap, rather than the old wait-for-everything
+  // behavior). Advances automatically on the audio element's `ended` event.
+  const playStreamIndex = async (i) => {
+    const s = streamRef.current;
+    if (i >= segments.length) {
+      cacheRef.current = { key: narrationKey, urls: s.urls.slice() };
+      setHasCachedClip(true);
+      busyRef.current = false;
+      setState('idle');
+      return;
+    }
+    s.index = i;
+    if (s.urls[i] == null) {
+      setState('preparing');
+      await new Promise((resolve) => {
+        const check = () => (s.urls[i] != null ? resolve() : setTimeout(check, 150));
+        check();
+      });
+    }
     if (!audioRef.current) return;
-    audioRef.current.src = url;
+    audioRef.current.src = s.urls[i];
     setState('playing');
     await audioRef.current.play();
+  };
+
+  const handleStreamEnded = () => {
+    playStreamIndex(streamRef.current.index + 1).catch((err) => {
+      console.error('narration_playback_failed', err);
+      busyRef.current = false;
+      setErrorMessage('The narration audio could not be played. Please try again.');
+      setState('error');
+    });
   };
 
   const handleStart = async () => {
@@ -152,28 +214,12 @@ export const NarrationPlayer = ({ result, preResult }) => {
     busyRef.current = true;
     setErrorMessage('');
 
-    // Generic browser voice — instant, no server round-trip, no segment
-    // chunking needed (Web Speech API has no sentence-count limit).
-    if (voiceMode !== 'tewari') {
-      setState('playing');
-      try {
-        await speakWithBrowserVoice(segments.join(' '), voiceMode);
-      } catch (err) {
-        console.error('browser_voice_playback_failed', err);
-        setErrorMessage(err instanceof Error ? err.message : 'Playback failed. Please try again.');
-        setState('error');
-      } finally {
-        busyRef.current = false;
-        setState((s) => (s === 'playing' ? 'idle' : s));
-      }
-      return;
-    }
-
     // Cached from a previous click on this same result — replay instantly,
     // no re-synthesis needed.
-    if (cacheRef.current.key === narrationKey && cacheRef.current.url) {
+    if (cacheRef.current.key === narrationKey && cacheRef.current.urls?.length === segments.length) {
+      streamRef.current = { urls: cacheRef.current.urls.slice(), index: 0 };
       try {
-        await playUrl(cacheRef.current.url);
+        await playStreamIndex(0);
       } catch (err) {
         console.error('narration_playback_failed', err);
         busyRef.current = false;
@@ -183,35 +229,39 @@ export const NarrationPlayer = ({ result, preResult }) => {
       return;
     }
 
-    setState('preparing');
+    streamRef.current = { urls: new Array(segments.length).fill(null), index: 0 };
     setProgress({ done: 0, total: segments.length });
-    try {
-      const buffers = [];
-      for (let i = 0; i < segments.length; i++) {
-        buffers.push(await synthesizeSegment(segments[i]));
-        setProgress({ done: i + 1, total: segments.length });
+    // Fetch segments sequentially in the background (concurrent calls into
+    // the same model instance corrupt output) — playback starts as soon as
+    // segment 0 is ready and advances through the rest as they arrive.
+    (async () => {
+      try {
+        for (let i = 0; i < segments.length; i++) {
+          streamRef.current.urls[i] = await synthesizeSegmentUrl(segments[i]);
+          setProgress({ done: i + 1, total: segments.length });
+        }
+      } catch (err) {
+        console.error('narration_synthesis_failed', err);
+        busyRef.current = false;
+        setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
+          ? err.message
+          : 'The narration audio could not be played. Please try again.');
+        setState('error');
       }
-      const { url } = stitchWavBuffers(buffers);
-      cacheRef.current = { key: narrationKey, url };
-      setHasCachedClip(true);
-      await playUrl(url);
+    })();
+
+    try {
+      await playStreamIndex(0);
     } catch (err) {
       console.error('narration_playback_failed', err);
       busyRef.current = false;
-      setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
-        ? err.message
-        : 'The narration audio could not be played. Please try again.');
+      setErrorMessage('The narration audio could not be played. Please try again.');
       setState('error');
     }
   };
 
-  const handleEnded = () => {
-    busyRef.current = false;
-    setState('idle');
-  };
-
   const isBusy = state === 'preparing' || state === 'playing';
-  const isCachedForThisResult = voiceMode === 'tewari' && cacheRef.current.key === narrationKey && hasCachedClip;
+  const isCachedForThisResult = cacheRef.current.key === narrationKey && hasCachedClip;
   const progressFraction = progress.total > 0 ? progress.done / progress.total : 0;
   const label = state === 'preparing'
     ? getPreparingMessage(progressFraction)
@@ -221,50 +271,18 @@ export const NarrationPlayer = ({ result, preResult }) => {
         ? 'Play again'
         : 'Play narration';
 
-  const handleVoiceModeChange = (mode) => {
-    if (mode === voiceMode) return;
-    cancelBrowserVoice();
-    if (audioRef.current) audioRef.current.pause();
-    busyRef.current = false;
-    setState('idle');
-    setVoiceMode(mode);
-  };
-
   const handleSaveSettings = () => {
     setVoiceServerUrl(serverUrlInput.trim() || DEFAULT_VOICE_SERVER_URL);
-    // A different server may have a different clip cached — don't replay a
-    // clip synthesized by the old source.
-    cacheRef.current = { key: null, url: null };
+    setVoiceOption(voiceOptionInput);
+    // A different server/voice may sound different — don't replay a clip
+    // synthesized by the old source.
+    cacheRef.current = { key: null, urls: null };
     setHasCachedClip(false);
     setShowSettings(false);
   };
 
   return (
     <div style={{ marginTop: '8px' }}>
-      <div style={{ display: 'inline-flex', gap: '4px', marginRight: '8px', verticalAlign: 'middle' }}>
-        {[
-          { mode: 'tewari', label: 'Dr. Tewari' },
-          { mode: 'female', label: 'Female voice' },
-          { mode: 'male', label: 'Male voice' },
-        ].map(({ mode, label: modeLabel }) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => handleVoiceModeChange(mode)}
-            disabled={mode !== 'tewari' && !isBrowserVoiceAvailable()}
-            aria-pressed={voiceMode === mode}
-            style={{
-              fontSize: '11px', padding: '3px 8px', borderRadius: '999px',
-              border: `1px solid ${voiceMode === mode ? '#16a34a' : '#d1d5db'}`,
-              background: voiceMode === mode ? '#f0fdf4' : '#fff',
-              color: voiceMode === mode ? '#166534' : '#6b7280',
-              cursor: 'pointer', fontWeight: voiceMode === mode ? 600 : 400,
-            }}
-          >
-            {modeLabel}
-          </button>
-        ))}
-      </div>
       <button
         type="button"
         onClick={handleStart}
@@ -279,25 +297,24 @@ export const NarrationPlayer = ({ result, preResult }) => {
         <Volume2Icon size={14} aria-hidden="true" />
         {label}
       </button>
-      {voiceMode === 'tewari' && (
-        <button
-          type="button"
-          onClick={() => {
-            setServerUrlInput(getVoiceServerUrl());
-            setShowSettings(true);
-            refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
-          }}
-          aria-label="Voice source settings"
-          title="Voice source settings"
-          style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            marginLeft: '6px', width: '26px', height: '26px', verticalAlign: 'middle',
-            background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
-          }}
-        >
-          <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => {
+          setServerUrlInput(getVoiceServerUrl());
+          setVoiceOptionInput(getVoiceOption());
+          setShowSettings(true);
+          refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
+        }}
+        aria-label="Voice settings"
+        title="Voice settings"
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginLeft: '6px', width: '26px', height: '26px', verticalAlign: 'middle',
+          background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+        }}
+      >
+        <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
+      </button>
       {state === 'preparing' && (
         <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
           <span className="tewari-pulse-dot" style={{ animationDelay: '0ms' }} />
@@ -350,7 +367,7 @@ export const NarrationPlayer = ({ result, preResult }) => {
               </button>
             </div>
             <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 10px', lineHeight: 1.5 }}>
-              Where the Dr. Tewari voice server is running. Pick from the servers your admin
+              Which server voices the narration. Pick from the servers your admin
               has published, or enter a custom address.
             </p>
             <select
@@ -378,6 +395,18 @@ export const NarrationPlayer = ({ result, preResult }) => {
                 }}
               />
             )}
+            <select
+              value={voiceOptionInput}
+              onChange={(e) => setVoiceOptionInput(e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '12px', background: '#fff',
+              }}
+            >
+              {KOKORO_VOICES.map((v) => (
+                <option key={v.id} value={v.id}>{v.label}</option>
+              ))}
+            </select>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
@@ -403,7 +432,7 @@ export const NarrationPlayer = ({ result, preResult }) => {
           </div>
         </div>
       )}
-      <audio ref={audioRef} onEnded={handleEnded} style={{ display: 'none' }} />
+      <audio ref={audioRef} onEnded={handleStreamEnded} style={{ display: 'none' }} />
     </div>
   );
 };

@@ -904,11 +904,13 @@ const Part1Results = ({
 
       {/* ── Shared Decision-Making — MVP: patient view keeps the page to the
           recommendation + Why + Next Step; the full SDM talking-points guide
-          is clinical-view detail, not removed. ── */}
+          is clinical-view detail, not removed. Narration stays visible in
+          both views — patients are the primary audience for hearing their
+          results explained, not just clinicians. ── */}
       <ClinicalOnly>
         <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide result={result} />
-        <NarrationPlayer result={result} />
       </ClinicalOnly>
+      <NarrationPlayer result={result} />
 
       {/* ── Recommended Next Step ── */}
       {!belowMinAge && !aboveMaxScreeningAge && (
