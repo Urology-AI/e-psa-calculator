@@ -744,7 +744,13 @@ const Part1Results = ({
     const k = key || tier;
     if (k === 'low' || k === 'LOWER') return t('part1Results.tierDescriptionV2.low');
     if (k === 'intermediate' || k === 'MODERATE') return t('part1Results.tierDescriptionV2.intermediate');
-    return t('part1Results.tierDescriptionV2.high');
+    // A high/elevated result driven by a guideline-recognized anchor (age, ancestry,
+    // family history, germline mutation — see isHighRiskFlagged in the engine) is
+    // guideline-supported, not purely ePSA's own research scoring — say so instead
+    // of the generic "not a guideline-based screening rule" line.
+    return isHighRiskFlagged
+      ? t('part1Results.tierDescriptionV2.highGuidelineDriven')
+      : t('part1Results.tierDescriptionV2.high');
   };
 
   // ── Contextual triggers: when ePSA's output diverges from guideline,
