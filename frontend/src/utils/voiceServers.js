@@ -1,5 +1,5 @@
 /**
- * Voice server list for Dr. Tewari's narration.
+ * Voice server list for the narration player.
  * Reads the admin-published options from Firestore appConfig/voiceServers
  * (published by the admin dashboard), same public-read/admin-write pattern
  * as featureFlags.js and calculatorConfig.

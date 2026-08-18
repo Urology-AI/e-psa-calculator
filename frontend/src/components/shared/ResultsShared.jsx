@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
-import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/tewariNarration';
+import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/narrationScript';
 import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS } from '../../utils/voiceServers';
 
 // ─── Narration ──────────────────────────────────────────────────────────────
@@ -317,17 +317,17 @@ export const NarrationPlayer = ({ result, preResult }) => {
       </button>
       {state === 'preparing' && (
         <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
-          <span className="tewari-pulse-dot" style={{ animationDelay: '0ms' }} />
-          <span className="tewari-pulse-dot" style={{ animationDelay: '160ms' }} />
-          <span className="tewari-pulse-dot" style={{ animationDelay: '320ms' }} />
+          <span className="voice-pulse-dot" style={{ animationDelay: '0ms' }} />
+          <span className="voice-pulse-dot" style={{ animationDelay: '160ms' }} />
+          <span className="voice-pulse-dot" style={{ animationDelay: '320ms' }} />
         </div>
       )}
       <style>{`
-        .tewari-pulse-dot {
+        .voice-pulse-dot {
           width: 5px; height: 5px; border-radius: 50%; background: #16a34a;
-          display: inline-block; animation: tewari-pulse 1.1s ease-in-out infinite;
+          display: inline-block; animation: voice-pulse 1.1s ease-in-out infinite;
         }
-        @keyframes tewari-pulse {
+        @keyframes voice-pulse {
           0%, 80%, 100% { opacity: 0.25; transform: scale(0.75); }
           40% { opacity: 1; transform: scale(1); }
         }

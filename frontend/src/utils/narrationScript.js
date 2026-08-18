@@ -59,6 +59,16 @@ function ancestryOrGeneticRiskFactor(facts) {
 // seekPrompt in epsa-engine/src/epsaEngine.js, rewritten as spoken monologue
 // and parameterized on the patient's actual age/risk factors/PSA value where
 // that data is available (falls back to generic phrasing otherwise).
+// All valid resolveNarrationKey() outputs — exported only so tests can sweep
+// every key without duplicating this list.
+export const NARRATION_KEYS = [
+  'score_threshold', 'baseline_psa_45_50', 'age_guideline_50_69', 'high_risk_early_screening',
+  'family_history_override', 'older_shared_decision', 'symptomatic_out_of_guideline',
+  'low_risk_followup', 'not_recommended', 'psa_elevated', 'combined_risk_elevated',
+  'high_risk_profile', 'discordance', 'pirads_5', 'pirads_4', 'combined_score_high',
+  'high_risk_discordance',
+];
+
 const OPENERS = {
   score_threshold: (f) => [
     `I want to flag something from your results. ${f.age ? `At ${f.age}, your` : 'Your'} ePSA score${f.epsaScore != null ? ` of ${f.epsaScore} percent` : ''} raised a discussion about PSA testing, though no major guideline requires it based on your profile alone.`,
@@ -155,9 +165,20 @@ const STAGE_EXPLAINERS = {
   ],
 };
 
+// Not sentence-initial (leading a segment with the raw acronym "PSA" was a
+// confirmed TTS garbling trigger during testing — same risk applies to any
+// acronym-first sentence) and reads the guideline year as "twenty twenty
+// six" rather than the raw "2026" the model might otherwise stumble on.
+const GUIDELINE_MENTIONS = {
+  psa: 'This guidance follows the twenty twenty six A U A and N C C N screening recommendations.',
+  mri: 'This guidance follows the twenty twenty six A U A and N C C N imaging recommendations.',
+  biopsy: 'This guidance follows the twenty twenty six A U A and N C C N biopsy recommendations.',
+};
+
 const CLOSINGS = {
-  screening: 'Whatever we decide today is not carved in stone. We can revisit this together at your next visit, or sooner if anything changes.',
-  biopsy: 'If results come back concerning, that does not mean panic or a rushed decision. We will sit down together and talk through the next step, just like we are doing right now.',
+  psa: `Whatever we decide today is not carved in stone. We can revisit this together at your next visit, or sooner if anything changes. ${GUIDELINE_MENTIONS.psa}`,
+  mri: `Whatever we decide today is not carved in stone. We can revisit this together at your next visit, or sooner if anything changes. ${GUIDELINE_MENTIONS.mri}`,
+  biopsy: `If results come back concerning, that does not mean panic or a rushed decision. We will sit down together and talk through the next step, just like we are doing right now. ${GUIDELINE_MENTIONS.biopsy}`,
   none: 'If you have any concerns at all about your prostate cancer risk, it is always worth raising with me, even if nothing was flagged today.',
 };
 
@@ -228,7 +249,7 @@ export function getNarrationSegments(result, preResult) {
   const facts = extractPatientFacts(result, preResult);
   const stage = KEY_STAGE[key] || 'none';
   const explainer = stage === 'none' ? [] : (STAGE_EXPLAINERS[stage] || []);
-  const closing = stage === 'biopsy' ? CLOSINGS.biopsy : (stage === 'none' ? CLOSINGS.none : CLOSINGS.screening);
+  const closing = CLOSINGS[stage] || CLOSINGS.none;
 
   return repackIntoChunks([...OPENERS[key](facts), ...explainer, closing]);
 }
