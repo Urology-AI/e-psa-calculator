@@ -1,20 +1,9 @@
 import React, { useState } from 'react';
 import { ClinicalDetail } from './shared/ResultsShared.jsx';
-import { MapPinIcon } from 'lucide-react';
-import { useRegionalGuidance } from '../hooks/useRegionalGuidance';
-import { DEFAULT_REGION_ID, headerIconFor } from '../utils/screeningGuidelines';
 import './ResultsMetaBar.css';
 
 const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }) => {
   const [open, setOpen] = useState(false);
-  const { region, loading: regionLoading } = useRegionalGuidance();
-
-  // Only name a country once we actually have one — otherwise the result is
-  // based on the international guidelines alone, and should say so.
-  const hasLocalRegion = !regionLoading && region && region.id !== DEFAULT_REGION_ID;
-  const guidanceBasis = hasLocalRegion
-    ? `International guidelines + ${region.name}`
-    : 'International guidelines';
 
   const ts = (() => {
     const d = computedAt ? new Date(computedAt) : new Date();
@@ -42,19 +31,6 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
         <span className="results-meta-bar__toggle-caret" aria-hidden="true">{open ? '▲' : '▼'}</span>
       </button>
 
-      {/* Always visible: which guidelines this result was measured against. */}
-      <p className="results-meta-bar__basis">
-        <span className="results-meta-bar__basis-label">Guidance basis</span>
-        <span className="results-meta-bar__basis-value">
-          {hasLocalRegion && (
-            <span aria-hidden="true" style={{ marginRight: '0.25rem' }}>
-              {headerIconFor(region) || <MapPinIcon size={13} strokeWidth={2} style={{ verticalAlign: '-2px' }} />}
-            </span>
-          )}
-          {guidanceBasis}
-        </span>
-      </p>
-
       {open && (
         <div className="results-meta-bar__body">
           <div className="results-meta-bar__top">
@@ -70,25 +46,8 @@ const ResultsMetaBar = ({ sessionId = null, computedAt = null, part = 'Part 1' }
               <span className="results-meta-bar__chip-label">Pathway</span>
               <span className="results-meta-bar__chip-value">{part}</span>
             </div>
-            <div className="results-meta-bar__chip results-meta-bar__chip--muted">
-              <span className="results-meta-bar__chip-label">Region</span>
-              <span className="results-meta-bar__chip-value">
-                {hasLocalRegion ? region.name : 'Not detected'}
-              </span>
-            </div>
           </div>
 
-          {hasLocalRegion && (
-            <p className="results-meta-bar__notice" role="note">
-              Your result is scored against the international guidelines (AUA/SUO, NCCN, EAU).
-              {' '}
-              {/* Phrased to sit before the region name rather than after "in", so
-                  names that need an article ("the United States") still read right. */}
-              Local guidance for <strong>{region.name}</strong> comes from {region.body} ({region.year}),
-              which may start testing at a different age or interval — so what your own clinician
-              offers can differ from what you see here.
-            </p>
-          )}
           <p className="results-meta-bar__notice" role="note">
             <strong>Educational use only — not a medical device or diagnosis.</strong>
             {' '}
