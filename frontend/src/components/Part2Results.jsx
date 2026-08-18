@@ -5,7 +5,7 @@ import './epsa-v2-layout.css';
 import './Part1Results.css';
 import './Part3Results.css';
 import './Part2Results.css';
-import { CollapsibleSection, GuardrailBanner, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, GuidelineRecommendationCard, TewariNarrationPlayer } from './shared/ResultsShared.jsx';
+import { CollapsibleSection, GuardrailBanner, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, GuidelineRecommendationCard, NarrationPlayer } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, RiskGauge } from '@urology-ai/epsa-ui';
 import { AlertTriangleIcon, BarChart2Icon, FlaskConicalIcon } from 'lucide-react';
 import ResultsLoading, { LOADING_SEEN_KEY_PSA, PSA_LOADING_STEPS } from './ResultsLoading';
@@ -371,7 +371,7 @@ const Part2Results = ({ result, postData, preResult, onContinueToMRI, onBack, on
 
       {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
       <SdmCard stageNote="Review your PSA result together with your clinician." sdmGuide={result?.sdmGuide} result={result} preResult={preResult} />
-      <TewariNarrationPlayer result={result} preResult={preResult} />
+      <NarrationPlayer result={result} preResult={preResult} />
 
       {/* ── Why? — the single expandable reasoning section behind the headline result ── */}
       <CollapsibleSection

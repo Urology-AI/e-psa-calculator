@@ -3,17 +3,35 @@
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon } from 'lucide-react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
 import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/tewariNarration';
-import { isTewariVideoEnabled, synthesizeTalkingHeadVideo } from '../../utils/tewariVideo';
 import { isBrowserVoiceAvailable, speakWithBrowserVoice, cancelBrowserVoice } from '../../utils/browserVoice';
+import { getVoiceServers, refreshVoiceServers } from '../../utils/voiceServers';
 
-// ─── Hear from Dr. Tewari ──────────────────────────────────────────────────
-// Local-only voice narration of the SDM guide, built from `result`. Requires
-// the Tewari Voice service running on localhost during development — not
-// wired to any deployed backend yet.
-const TEWARI_VOICE_URL = 'http://localhost:8000/voice/audio';
+// ─── Narration ──────────────────────────────────────────────────────────────
+// Local voice narration of the SDM guide, built from `result`. The AI-voice
+// option requires a Tewari Voice service reachable at the configured server
+// URL (gear icon next to the player) — defaults to localhost for local dev,
+// but can be pointed at wherever that service is actually running.
+const VOICE_SERVER_URL_STORAGE_KEY = 'epsa_voice_server_url';
+const DEFAULT_VOICE_SERVER_URL = 'http://localhost:8000';
+
+function getVoiceServerUrl() {
+  try {
+    return localStorage.getItem(VOICE_SERVER_URL_STORAGE_KEY) || DEFAULT_VOICE_SERVER_URL;
+  } catch (err) {
+    return DEFAULT_VOICE_SERVER_URL;
+  }
+}
+
+function setVoiceServerUrl(url) {
+  try {
+    localStorage.setItem(VOICE_SERVER_URL_STORAGE_KEY, url);
+  } catch (err) {
+    // Storage unavailable (private browsing, etc.) — falls back to default next load.
+  }
+}
 
 // Builds a canonical 44-byte PCM WAV header for the given data length.
 function buildWavHeader(dataLength, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) {
@@ -76,7 +94,7 @@ function getPreparingMessage(fraction) {
   return message;
 }
 
-export const TewariNarrationPlayer = ({ result, preResult }) => {
+export const NarrationPlayer = ({ result, preResult }) => {
   const [state, setState] = useState('idle'); // idle | preparing | playing | error
   // 'tewari' uses the cloned AI voice (server round-trip, slower, most
   // natural). 'male'/'female' use the browser's built-in text-to-speech —
@@ -85,11 +103,10 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [hasCachedClip, setHasCachedClip] = useState(false);
-  // WIP — set once a lip-sync provider is configured (see tewariVideo.js);
-  // stays null (audio-only playback) until then.
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [serverUrlInput, setServerUrlInput] = useState(getVoiceServerUrl);
+  const [serverOptions, setServerOptions] = useState(getVoiceServers);
   const audioRef = useRef(null);
-  const videoRef = useRef(null);
   // Synchronous guard against overlapping runs — React state updates are
   // async, so `disabled` alone cannot stop a second click fired before the
   // re-render commits. Two concurrent synthesis calls into the same
@@ -99,7 +116,7 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
   // instead of re-synthesizing every click. Keyed on the patient's actual
   // facts too, not just the reason key, so a different patient (or a
   // recalculated result) doesn't replay a stale cached clip.
-  const cacheRef = useRef({ key: null, url: null, videoUrl: null });
+  const cacheRef = useRef({ key: null, url: null });
   const segments = getNarrationSegments(result, preResult);
   const narrationKey = `${resolveNarrationKey(result || {})}:${JSON.stringify(extractPatientFacts(result, preResult))}`;
 
@@ -111,13 +128,13 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
   const synthesizeSegment = async (text) => {
     let response;
     try {
-      response = await fetch(TEWARI_VOICE_URL, {
+      response = await fetch(`${getVoiceServerUrl()}/voice/audio`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
     } catch (err) {
-      throw new Error('Could not reach the voice service — is it running on localhost:8000?');
+      throw new Error(`Could not reach the voice service at ${getVoiceServerUrl()} — check the source in settings.`);
     }
     if (!response.ok) throw new Error(`Voice service returned ${response.status}`);
     return response.arrayBuffer();
@@ -156,18 +173,11 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
     // no re-synthesis needed.
     if (cacheRef.current.key === narrationKey && cacheRef.current.url) {
       try {
-        setVideoUrl(cacheRef.current.videoUrl);
-        if (cacheRef.current.videoUrl && videoRef.current) {
-          setState('playing');
-          videoRef.current.src = cacheRef.current.videoUrl;
-          await videoRef.current.play();
-        } else {
-          await playUrl(cacheRef.current.url);
-        }
+        await playUrl(cacheRef.current.url);
       } catch (err) {
-        console.error('tewari_voice_playback_failed', err);
+        console.error('narration_playback_failed', err);
         busyRef.current = false;
-        setErrorMessage('Dr. Tewari\'s audio could not be played. Please try again.');
+        setErrorMessage('The narration audio could not be played. Please try again.');
         setState('error');
       }
       return;
@@ -181,36 +191,16 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
         buffers.push(await synthesizeSegment(segments[i]));
         setProgress({ done: i + 1, total: segments.length });
       }
-      const { blob, url } = stitchWavBuffers(buffers);
-
-      // WIP — best-effort only. Disabled by default (no provider configured
-      // yet), and any failure here silently falls back to audio-only, which
-      // is the fully working, tested path.
-      let videoResultUrl = null;
-      if (isTewariVideoEnabled()) {
-        try {
-          videoResultUrl = await synthesizeTalkingHeadVideo(blob);
-        } catch (videoErr) {
-          console.warn('tewari_video_unavailable_falling_back_to_audio', videoErr);
-        }
-      }
-
-      cacheRef.current = { key: narrationKey, url, videoUrl: videoResultUrl };
+      const { url } = stitchWavBuffers(buffers);
+      cacheRef.current = { key: narrationKey, url };
       setHasCachedClip(true);
-      setVideoUrl(videoResultUrl);
-      if (videoResultUrl && videoRef.current) {
-        setState('playing');
-        videoRef.current.src = videoResultUrl;
-        await videoRef.current.play();
-      } else {
-        await playUrl(url);
-      }
+      await playUrl(url);
     } catch (err) {
-      console.error('tewari_voice_playback_failed', err);
+      console.error('narration_playback_failed', err);
       busyRef.current = false;
       setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
         ? err.message
-        : 'Dr. Tewari\'s audio could not be played. Please try again.');
+        : 'The narration audio could not be played. Please try again.');
       setState('error');
     }
   };
@@ -229,9 +219,7 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
       ? 'Playing…'
       : isCachedForThisResult
         ? 'Play again'
-        : voiceMode === 'tewari'
-          ? 'Hear from Dr. Tewari'
-          : 'Play narration';
+        : 'Play narration';
 
   const handleVoiceModeChange = (mode) => {
     if (mode === voiceMode) return;
@@ -240,6 +228,15 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
     busyRef.current = false;
     setState('idle');
     setVoiceMode(mode);
+  };
+
+  const handleSaveSettings = () => {
+    setVoiceServerUrl(serverUrlInput.trim() || DEFAULT_VOICE_SERVER_URL);
+    // A different server may have a different clip cached — don't replay a
+    // clip synthesized by the old source.
+    cacheRef.current = { key: null, url: null };
+    setHasCachedClip(false);
+    setShowSettings(false);
   };
 
   return (
@@ -282,6 +279,25 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
         <Volume2Icon size={14} aria-hidden="true" />
         {label}
       </button>
+      {voiceMode === 'tewari' && (
+        <button
+          type="button"
+          onClick={() => {
+            setServerUrlInput(getVoiceServerUrl());
+            setShowSettings(true);
+            refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
+          }}
+          aria-label="Voice source settings"
+          title="Voice source settings"
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            marginLeft: '6px', width: '26px', height: '26px', verticalAlign: 'middle',
+            background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+          }}
+        >
+          <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
+        </button>
+      )}
       {state === 'preparing' && (
         <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
           <span className="tewari-pulse-dot" style={{ animationDelay: '0ms' }} />
@@ -304,13 +320,89 @@ export const TewariNarrationPlayer = ({ result, preResult }) => {
           {errorMessage}
         </span>
       )}
-      {/* WIP — only rendered visibly once a lip-sync provider is configured
-          (tewariVideo.js); videoUrl stays null otherwise and this has no src. */}
-      <video
-        ref={videoRef}
-        onEnded={handleEnded}
-        style={videoUrl ? { marginTop: '8px', maxWidth: '320px', borderRadius: '8px' } : { display: 'none' }}
-      />
+      {showSettings && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Voice source settings"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: '10px', padding: '18px 20px',
+              width: '340px', maxWidth: '90vw', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>Voice source</span>
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                aria-label="Close"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+              >
+                <XIcon size={16} aria-hidden="true" style={{ color: '#6b7280' }} />
+              </button>
+            </div>
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 10px', lineHeight: 1.5 }}>
+              Where the Dr. Tewari voice server is running. Pick from the servers your admin
+              has published, or enter a custom address.
+            </p>
+            <select
+              value={serverOptions.some((s) => s.url === serverUrlInput) ? serverUrlInput : '__custom__'}
+              onChange={(e) => setServerUrlInput(e.target.value === '__custom__' ? '' : e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '8px', background: '#fff',
+              }}
+            >
+              {serverOptions.map((s) => (
+                <option key={s.url} value={s.url}>{s.name} — {s.url}</option>
+              ))}
+              <option value="__custom__">Custom…</option>
+            </select>
+            {!serverOptions.some((s) => s.url === serverUrlInput) && (
+              <input
+                type="text"
+                value={serverUrlInput}
+                onChange={(e) => setServerUrlInput(e.target.value)}
+                placeholder={DEFAULT_VOICE_SERVER_URL}
+                style={{
+                  width: '100%', boxSizing: 'border-box', padding: '7px 9px', fontSize: '12px',
+                  border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '12px',
+                }}
+              />
+            )}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                style={{
+                  fontSize: '12px', padding: '6px 12px', borderRadius: '6px',
+                  border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                style={{
+                  fontSize: '12px', padding: '6px 12px', borderRadius: '6px',
+                  border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <audio ref={audioRef} onEnded={handleEnded} style={{ display: 'none' }} />
     </div>
   );

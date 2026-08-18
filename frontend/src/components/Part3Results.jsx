@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source for new code.
 // Local definitions below kept for backwards compat until full migration.
 export { CollapsibleSection, GuardrailBanner, GuidelineSupportBadge } from './shared/ResultsShared.jsx'; // re-export for consumers
-import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, GuidelineRecommendationCard, TewariNarrationPlayer } from './shared/ResultsShared.jsx';
+import { CollapsibleSection as SharedCollapsibleSection, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, GuidelineRecommendationCard, NarrationPlayer } from './shared/ResultsShared.jsx';
 import { AssessmentSidebar, JourneyTimeline, CarePlanChecklist, UrologistFinder, RiskGauge, InfoIcon } from '@urology-ai/epsa-ui';
 import { functions } from '../config/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -713,7 +713,7 @@ const Part3Results = ({
 
       {/* ── Shared Decision-Making (central theme — sits right below the assessment) ── */}
       <SdmCard stageNote="Discuss MRI findings and whether a biopsy is appropriate." sdmGuide={result?.sdmGuide} result={result} preResult={preResult} />
-      <TewariNarrationPlayer result={result} preResult={preResult} />
+      <NarrationPlayer result={result} preResult={preResult} />
 
       {/* ── Why? — progressive disclosure for supporting detail behind the top-line result ── */}
       <CollapsibleSection
