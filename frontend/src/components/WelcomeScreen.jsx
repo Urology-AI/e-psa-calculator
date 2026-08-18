@@ -334,12 +334,54 @@ export const SdmModal = ({ onClose }) => {
   );
 };
 
+/* ─── QR Code Modal (fullscreen poster) ─── */
+export const QrModal = ({ onClose }) => {
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    closeRef.current?.focus();
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div className="gl-modal-root" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+      <div className="gl-modal-backdrop" onClick={onClose} />
+      <div className="qr-modal-panel">
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          aria-label="Close QR code"
+          className="gl-modal-close qr-modal-close"
+        >
+          <XIcon size={16} />
+        </button>
+        <img
+          className="qr-modal-img"
+          src="/epsa-qr.svg"
+          alt="QR code linking to epsa.millionstrongmen.com"
+        />
+        <h2 id="qr-modal-title" className="qr-modal-title">Scan to open on your phone</h2>
+        <span className="qr-modal-url">epsa.millionstrongmen.com</span>
+      </div>
+    </div>
+  );
+};
+
 const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cloudAvailable }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir(i18n.resolvedLanguage || i18n.language) === 'rtl';
   const [showMsmModal, setShowMsmModal] = useState(false);
   const [showGuidelinesModal, setShowGuidelinesModal] = useState(false);
   const [showSdmModal, setShowSdmModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const handleBegin = () => {
     if (onBegin) return onBegin();
@@ -376,6 +418,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
       {showMsmModal && <MillionStrongModal onClose={() => setShowMsmModal(false)} />}
       {showGuidelinesModal && <GuidelinesModal onClose={() => setShowGuidelinesModal(false)} />}
       {showSdmModal && <SdmModal onClose={() => setShowSdmModal(false)} />}
+      {showQrModal && <QrModal onClose={() => setShowQrModal(false)} />}
 
       {/* ── Hero card ── */}
       <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
@@ -413,7 +456,19 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
 
         {/* Scan-to-open — sits beside the CTA so a clinician can hand the tool
             to a patient in the room without anyone typing a URL. */}
-        <aside className="ws-hero-qr" aria-label="Scan to open ePSA on your phone">
+        <aside
+          className="ws-hero-qr"
+          aria-label="Scan to open ePSA on your phone. Tap to enlarge QR code."
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowQrModal(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowQrModal(true);
+            }
+          }}
+        >
           <img
             className="ws-hero-qr__img"
             src="/epsa-qr.svg"
