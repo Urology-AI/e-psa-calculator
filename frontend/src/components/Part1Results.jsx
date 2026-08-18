@@ -973,9 +973,7 @@ const Part1Results = ({
           {psaRecommendReason === 'score_threshold' && (() => {
             const NON_GUIDELINE = new Set(['IPSS total', 'BMI', 'Exercise', 'Smoking', 'Diet pattern', 'Inflammation history', '9/11 / Chemical exposure', 'SHIM total', 'Comorbidity burden', 'Family history (breast/ovarian/pancreatic)', 'Ashkenazi Jewish ancestry']);
             const nonGuidelineFactors = (itemImpacts || []).filter(b => b.points > 0 && NON_GUIDELINE.has(b.item)).map(b => b.item);
-            // Guideline-deviation rationale is clinician content — in patient
-            // view it reads as a second, contradictory recommendation.
-            return <ClinicalOnly><GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} /></ClinicalOnly>;
+            return <GuidelineDeviationBanner age={age} nonGuidelineFactors={nonGuidelineFactors} />;
           })()}
 
           {onContinueToPostPSA && (
