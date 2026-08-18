@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Shared result components — canonical source; local definitions below kept for
 // backwards compatibility until a full merge is completed.
-import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
-import { AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
+import { GuidelineSupportBadge as SharedGuidelineSupportBadge, ClinicalDetail, ClinicalOnly, SdmConversationGuide, SdmCard, DisclaimerTeaser, ModelConfidenceBadge, WhyImpactBars, MoreActionsMenu, CollapsibleSection as SharedCollapsibleSection, GuidelineComparisonTable, GuidelineRecommendationCard, TewariNarrationPlayer } from './shared/ResultsShared.jsx'; // eslint-disable-line no-unused-vars
+import { ASSESSMENT_STEPS, AssessmentSidebar, UrologistFinder, RiskGauge } from '@urology-ai/epsa-ui';
 import './Part1Results.css';
 import './epsa-v2-layout.css';
 import './PathwaySelector.css';
@@ -906,7 +906,8 @@ const Part1Results = ({
           recommendation + Why + Next Step; the full SDM talking-points guide
           is clinical-view detail, not removed. ── */}
       <ClinicalOnly>
-        <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide />
+        <SdmCard stageNote="Discuss whether PSA screening is appropriate." sdmGuide={result?.sdmGuide} showFullGuide result={result} />
+        <TewariNarrationPlayer result={result} />
       </ClinicalOnly>
 
       {/* ── Recommended Next Step ── */}

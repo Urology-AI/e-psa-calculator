@@ -2,9 +2,319 @@
  * Shared result screen components — used by Part1Results and Part2Results.
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
-import React, { useState, useEffect } from 'react';
-import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
+import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/tewariNarration';
+import { isTewariVideoEnabled, synthesizeTalkingHeadVideo } from '../../utils/tewariVideo';
+import { isBrowserVoiceAvailable, speakWithBrowserVoice, cancelBrowserVoice } from '../../utils/browserVoice';
+
+// ─── Hear from Dr. Tewari ──────────────────────────────────────────────────
+// Local-only voice narration of the SDM guide, built from `result`. Requires
+// the Tewari Voice service running on localhost during development — not
+// wired to any deployed backend yet.
+const TEWARI_VOICE_URL = 'http://localhost:8000/voice/audio';
+
+// Builds a canonical 44-byte PCM WAV header for the given data length.
+function buildWavHeader(dataLength, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) {
+  const blockAlign = numChannels * (bitsPerSample / 8);
+  const byteRate = sampleRate * blockAlign;
+  const buffer = new ArrayBuffer(44);
+  const view = new DataView(buffer);
+  const writeString = (offset, str) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitsPerSample, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+  return new Uint8Array(buffer);
+}
+
+// Stitches an array of WAV ArrayBuffers (same format) into a single WAV blob
+// by concatenating their PCM payloads under one shared header — produces one
+// continuous clip instead of several files played back-to-back. Returns both
+// the Blob (needed to also attempt video generation) and its object URL.
+function stitchWavBuffers(arrayBuffers) {
+  const pcmParts = arrayBuffers.map((buf) => new Uint8Array(buf, 44));
+  const totalLength = pcmParts.reduce((sum, part) => sum + part.length, 0);
+  const header = buildWavHeader(totalLength);
+  const combined = new Uint8Array(header.length + totalLength);
+  combined.set(header, 0);
+  let offset = header.length;
+  for (const part of pcmParts) {
+    combined.set(part, offset);
+    offset += part.length;
+  }
+  const blob = new Blob([combined], { type: 'audio/wav' });
+  return { blob, url: URL.createObjectURL(blob) };
+}
+
+// Warmer, natural-sounding status text instead of a raw "X of Y, ~Zs left"
+// countdown — reads like Dr. Tewari is actually getting ready, not like a
+// stalled progress bar. Ordered by progress fraction reached.
+const PREPARING_MESSAGES = [
+  { at: 0, text: 'Dr. Tewari is reviewing your results…' },
+  { at: 0.34, text: 'Putting your conversation together…' },
+  { at: 0.67, text: 'Almost ready…' },
+];
+
+function getPreparingMessage(fraction) {
+  let message = PREPARING_MESSAGES[0].text;
+  for (const step of PREPARING_MESSAGES) {
+    if (fraction >= step.at) message = step.text;
+  }
+  return message;
+}
+
+export const TewariNarrationPlayer = ({ result, preResult }) => {
+  const [state, setState] = useState('idle'); // idle | preparing | playing | error
+  // 'tewari' uses the cloned AI voice (server round-trip, slower, most
+  // natural). 'male'/'female' use the browser's built-in text-to-speech —
+  // instant, no server dependency, but synthetic-sounding.
+  const [voiceMode, setVoiceMode] = useState('tewari');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [hasCachedClip, setHasCachedClip] = useState(false);
+  // WIP — set once a lip-sync provider is configured (see tewariVideo.js);
+  // stays null (audio-only playback) until then.
+  const [videoUrl, setVideoUrl] = useState(null);
+  const audioRef = useRef(null);
+  const videoRef = useRef(null);
+  // Synchronous guard against overlapping runs — React state updates are
+  // async, so `disabled` alone cannot stop a second click fired before the
+  // re-render commits. Two concurrent synthesis calls into the same
+  // Chatterbox model instance can corrupt one of the resulting WAVs.
+  const busyRef = useRef(false);
+  // Caches the stitched clip per narration key so replays are instant
+  // instead of re-synthesizing every click. Keyed on the patient's actual
+  // facts too, not just the reason key, so a different patient (or a
+  // recalculated result) doesn't replay a stale cached clip.
+  const cacheRef = useRef({ key: null, url: null, videoUrl: null });
+  const segments = getNarrationSegments(result, preResult);
+  const narrationKey = `${resolveNarrationKey(result || {})}:${JSON.stringify(extractPatientFacts(result, preResult))}`;
+
+  // Stop the browser voice from continuing to talk after navigating away.
+  useEffect(() => cancelBrowserVoice, []);
+
+  if (!segments || segments.length === 0) return null;
+
+  const synthesizeSegment = async (text) => {
+    let response;
+    try {
+      response = await fetch(TEWARI_VOICE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+    } catch (err) {
+      throw new Error('Could not reach the voice service — is it running on localhost:8000?');
+    }
+    if (!response.ok) throw new Error(`Voice service returned ${response.status}`);
+    return response.arrayBuffer();
+  };
+
+  const playUrl = async (url) => {
+    if (!audioRef.current) return;
+    audioRef.current.src = url;
+    setState('playing');
+    await audioRef.current.play();
+  };
+
+  const handleStart = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setErrorMessage('');
+
+    // Generic browser voice — instant, no server round-trip, no segment
+    // chunking needed (Web Speech API has no sentence-count limit).
+    if (voiceMode !== 'tewari') {
+      setState('playing');
+      try {
+        await speakWithBrowserVoice(segments.join(' '), voiceMode);
+      } catch (err) {
+        console.error('browser_voice_playback_failed', err);
+        setErrorMessage(err instanceof Error ? err.message : 'Playback failed. Please try again.');
+        setState('error');
+      } finally {
+        busyRef.current = false;
+        setState((s) => (s === 'playing' ? 'idle' : s));
+      }
+      return;
+    }
+
+    // Cached from a previous click on this same result — replay instantly,
+    // no re-synthesis needed.
+    if (cacheRef.current.key === narrationKey && cacheRef.current.url) {
+      try {
+        setVideoUrl(cacheRef.current.videoUrl);
+        if (cacheRef.current.videoUrl && videoRef.current) {
+          setState('playing');
+          videoRef.current.src = cacheRef.current.videoUrl;
+          await videoRef.current.play();
+        } else {
+          await playUrl(cacheRef.current.url);
+        }
+      } catch (err) {
+        console.error('tewari_voice_playback_failed', err);
+        busyRef.current = false;
+        setErrorMessage('Dr. Tewari\'s audio could not be played. Please try again.');
+        setState('error');
+      }
+      return;
+    }
+
+    setState('preparing');
+    setProgress({ done: 0, total: segments.length });
+    try {
+      const buffers = [];
+      for (let i = 0; i < segments.length; i++) {
+        buffers.push(await synthesizeSegment(segments[i]));
+        setProgress({ done: i + 1, total: segments.length });
+      }
+      const { blob, url } = stitchWavBuffers(buffers);
+
+      // WIP — best-effort only. Disabled by default (no provider configured
+      // yet), and any failure here silently falls back to audio-only, which
+      // is the fully working, tested path.
+      let videoResultUrl = null;
+      if (isTewariVideoEnabled()) {
+        try {
+          videoResultUrl = await synthesizeTalkingHeadVideo(blob);
+        } catch (videoErr) {
+          console.warn('tewari_video_unavailable_falling_back_to_audio', videoErr);
+        }
+      }
+
+      cacheRef.current = { key: narrationKey, url, videoUrl: videoResultUrl };
+      setHasCachedClip(true);
+      setVideoUrl(videoResultUrl);
+      if (videoResultUrl && videoRef.current) {
+        setState('playing');
+        videoRef.current.src = videoResultUrl;
+        await videoRef.current.play();
+      } else {
+        await playUrl(url);
+      }
+    } catch (err) {
+      console.error('tewari_voice_playback_failed', err);
+      busyRef.current = false;
+      setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
+        ? err.message
+        : 'Dr. Tewari\'s audio could not be played. Please try again.');
+      setState('error');
+    }
+  };
+
+  const handleEnded = () => {
+    busyRef.current = false;
+    setState('idle');
+  };
+
+  const isBusy = state === 'preparing' || state === 'playing';
+  const isCachedForThisResult = voiceMode === 'tewari' && cacheRef.current.key === narrationKey && hasCachedClip;
+  const progressFraction = progress.total > 0 ? progress.done / progress.total : 0;
+  const label = state === 'preparing'
+    ? getPreparingMessage(progressFraction)
+    : state === 'playing'
+      ? 'Playing…'
+      : isCachedForThisResult
+        ? 'Play again'
+        : voiceMode === 'tewari'
+          ? 'Hear from Dr. Tewari'
+          : 'Play narration';
+
+  const handleVoiceModeChange = (mode) => {
+    if (mode === voiceMode) return;
+    cancelBrowserVoice();
+    if (audioRef.current) audioRef.current.pause();
+    busyRef.current = false;
+    setState('idle');
+    setVoiceMode(mode);
+  };
+
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <div style={{ display: 'inline-flex', gap: '4px', marginRight: '8px', verticalAlign: 'middle' }}>
+        {[
+          { mode: 'tewari', label: 'Dr. Tewari' },
+          { mode: 'female', label: 'Female voice' },
+          { mode: 'male', label: 'Male voice' },
+        ].map(({ mode, label: modeLabel }) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => handleVoiceModeChange(mode)}
+            disabled={mode !== 'tewari' && !isBrowserVoiceAvailable()}
+            aria-pressed={voiceMode === mode}
+            style={{
+              fontSize: '11px', padding: '3px 8px', borderRadius: '999px',
+              border: `1px solid ${voiceMode === mode ? '#16a34a' : '#d1d5db'}`,
+              background: voiceMode === mode ? '#f0fdf4' : '#fff',
+              color: voiceMode === mode ? '#166534' : '#6b7280',
+              cursor: 'pointer', fontWeight: voiceMode === mode ? 600 : 400,
+            }}
+          >
+            {modeLabel}
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={handleStart}
+        disabled={isBusy}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          background: '#16a34a', color: '#fff', border: 'none',
+          borderRadius: '6px', padding: '6px 12px', fontSize: '12px',
+          fontWeight: 600, cursor: isBusy ? 'default' : 'pointer',
+        }}
+      >
+        <Volume2Icon size={14} aria-hidden="true" />
+        {label}
+      </button>
+      {state === 'preparing' && (
+        <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
+          <span className="tewari-pulse-dot" style={{ animationDelay: '0ms' }} />
+          <span className="tewari-pulse-dot" style={{ animationDelay: '160ms' }} />
+          <span className="tewari-pulse-dot" style={{ animationDelay: '320ms' }} />
+        </div>
+      )}
+      <style>{`
+        .tewari-pulse-dot {
+          width: 5px; height: 5px; border-radius: 50%; background: #16a34a;
+          display: inline-block; animation: tewari-pulse 1.1s ease-in-out infinite;
+        }
+        @keyframes tewari-pulse {
+          0%, 80%, 100% { opacity: 0.25; transform: scale(0.75); }
+          40% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+      {state === 'error' && (
+        <span style={{ marginLeft: '8px', fontSize: '11px', color: '#b91c1c' }}>
+          {errorMessage}
+        </span>
+      )}
+      {/* WIP — only rendered visibly once a lip-sync provider is configured
+          (tewariVideo.js); videoUrl stays null otherwise and this has no src. */}
+      <video
+        ref={videoRef}
+        onEnded={handleEnded}
+        style={videoUrl ? { marginTop: '8px', maxWidth: '320px', borderRadius: '8px' } : { display: 'none' }}
+      />
+      <audio ref={audioRef} onEnded={handleEnded} style={{ display: 'none' }} />
+    </div>
+  );
+};
 
 // ─── Collapsible Section ──────────────────────────────────────────────────────
 // `minMode` marks a section as clinician-oriented content (guideline
@@ -151,8 +461,13 @@ const SHARE_STEPS = [
   { key: 'evaluate', label: 'Evaluate', listKey: null },
 ];
 
-export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
+export const SdmConversationGuide = ({ sdmGuide, fallback = null, result = null, preResult = null }) => {
   if (!sdmGuide) return fallback;
+  // sdmGuide.seek.prompt is a static per-reason-key string from epsa-engine
+  // (no actual patient facts). When result/preResult are passed, swap in the
+  // same personalized text used for the audio narration's opener — same
+  // facts (age, ancestry, family history, PSA, risk tier), same wording.
+  const personalizedSeekText = (result || preResult) ? getPersonalizedSeekText(result, preResult) : null;
   return (
     <div
       role="note"
@@ -176,10 +491,11 @@ export const SdmConversationGuide = ({ sdmGuide, fallback = null }) => {
         const step = sdmGuide[key];
         if (!step) return null;
         const items = listKey ? step[listKey] : null;
+        const promptText = (key === 'seek' && personalizedSeekText) ? personalizedSeekText : step.prompt;
         return (
           <div key={key} style={{ margin: '6px 0', paddingTop: '6px', borderTop: '1px solid #bbf7d0' }}>
             <div style={{ fontWeight: 600 }}>{label}</div>
-            <div>{step.prompt}</div>
+            <div>{promptText}</div>
             {Array.isArray(items) && items.length > 0 && (
               <ul style={{ margin: '4px 0 0', paddingLeft: '18px' }}>
                 {items.map((item, i) => <li key={i}>{item}</li>)}
@@ -251,7 +567,7 @@ const ASK_YOUR_DOCTOR_QUESTIONS = [
  * @param {object|null} sdmGuide - result?.sdmGuide from the engine, same prop
  *   already passed to SdmConversationGuide elsewhere.
  */
-export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false }) => {
+export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false, result = null, preResult = null }) => {
   const [expanded, setExpanded] = useState(false);
   return (
     <div
@@ -326,7 +642,7 @@ export const SdmCard = ({ stageNote, sdmGuide = null, showFullGuide = false }) =
 
           {sdmGuide && (
             <div style={{ marginBottom: '12px' }}>
-              <SdmConversationGuide sdmGuide={sdmGuide} />
+              <SdmConversationGuide sdmGuide={sdmGuide} result={result} preResult={preResult} />
             </div>
           )}
 
