@@ -816,6 +816,55 @@
 .theme-dark .gl-cta { background: var(--ms-cyan); }
 .theme-dark .gl-cta:hover { background: #059fd8; }
 
+/* ─── QR poster modal ─── */
+.qr-modal-panel {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  color: var(--ms-black);
+  border-radius: 16px;
+  border: 1px solid var(--ms-gray-200);
+  box-shadow: 0 20px 48px rgba(0, 0, 45, 0.18);
+  width: 100%;
+  max-width: 26rem;
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 2rem 2.25rem;
+  text-align: center;
+  animation: gl-rise 220ms ease-out;
+}
+
+.qr-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.qr-modal-img {
+  width: min(70vw, 20rem);
+  height: min(70vw, 20rem);
+  background: #fff;
+  border-radius: 0.75rem;
+}
+
+.qr-modal-title {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ms-navy);
+}
+
+.qr-modal-url {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--brand-600, #0288d1);
+}
+
 @media (max-width: 480px) {
   .gl-modal-panel { max-height: 92vh; border-radius: 10px; }
   .gl-modal-header { padding: 1.1rem 1.1rem 0.85rem; }
@@ -939,6 +988,18 @@
   border-left: 1px solid var(--ms-gray-200, #dbe2e8);
   padding-left: 1.5rem;
   text-align: center;
+  cursor: pointer;
+  transition: transform 120ms ease-out;
+}
+
+.ws-hero-qr:hover {
+  transform: scale(1.03);
+}
+
+.ws-hero-qr:focus-visible {
+  outline: 2px solid var(--ms-cyan, #0288d1);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
 }
 
 .ws-hero-qr__img {
