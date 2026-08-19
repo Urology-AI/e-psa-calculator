@@ -145,6 +145,15 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
     shim: formData.shim || Array(5).fill(null),
     guidelineRegion: formData.guidelineRegion || 'us',
     skippedFields: Array.isArray(formData.skippedFields) ? [...formData.skippedFields] : [],
+    // 'quick' = single proxy question; 'full' = all questions. Persisted
+    // explicitly (not inferred from whether the ipss/shim arrays are fully
+    // populated) because answering the quick question derives values for
+    // every full-mode slot too — array-fullness can't tell quick and full
+    // apart once the user has actually answered, which flipped this back to
+    // 'full' (expanding every question) whenever the form remounted, e.g.
+    // navigating back to edit answers.
+    ipssMode: formData.ipssMode || 'quick',
+    shimMode: formData.shimMode || 'quick',
   });
 
   const [formErrors, setFormErrors] = useState([]);
@@ -152,14 +161,10 @@ const Part1Form = ({ formData, setFormData, onNext }) => {
   const sectionARef = useRef(null);
   const sectionBRef = useRef(null);
   const [activeSectionTab, setActiveSectionTab] = useState('A');
-  // 'quick' = single proxy question; 'full' = all questions
-  // Infer initial mode from imported data: if all 7 ipss are non-null → full, else quick
-  const [ipssMode, setIpssMode] = useState(() =>
-    Array.isArray(formData.ipss) && formData.ipss.every(v => v !== null) ? 'full' : 'quick'
-  );
-  const [shimMode, setShimMode] = useState(() =>
-    Array.isArray(formData.shim) && formData.shim.length === 5 && formData.shim.every(v => v !== null) ? 'full' : 'quick'
-  );
+  const ipssMode = localData.ipssMode;
+  const shimMode = localData.shimMode;
+  const setIpssMode = (mode) => setLocalData(p => ({ ...p, ipssMode: mode }));
+  const setShimMode = (mode) => setLocalData(p => ({ ...p, shimMode: mode }));
   // Answering "No" to the breast/ovarian/pancreatic question leaves the array
   // empty, so track that the question was touched (see the Section A tally).
   const [familyCancerTouched, setFamilyCancerTouched] = useState(

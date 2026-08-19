@@ -251,6 +251,7 @@
 
 .question-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 0.625rem;
   margin-bottom: 0.75rem;
@@ -272,6 +273,8 @@
 }
 
 .question-text {
+  min-width: 0;
+  flex: 1 1 auto;
   font-size: 0.90625rem;
   font-weight: 700;
   line-height: 1.45;
