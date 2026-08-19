@@ -285,6 +285,21 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
     }
   }
 
+  // Consent (research use, contact) is upserted onto the user doc immediately
+  // before this call in the client's save-to-cloud flow — pull it in here so
+  // the session itself carries a snapshot of what the user had agreed to at
+  // the moment it was created, rather than only living on the user doc.
+  let researchConsent: boolean | null = null;
+  let consentToContact: boolean | null = null;
+  try {
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    researchConsent = userData?.researchConsent ?? null;
+    consentToContact = userData?.consentToContact ?? null;
+  } catch (_error) {
+    // Non-fatal: session is still created, consent snapshot just stays null
+  }
+
   // Create session document with 90-day expiry (rolling — reset on each update)
   const sessionRef = db.collection('sessions').doc();
   const ninetyDaysFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
@@ -294,6 +309,8 @@ export const createSession = functions.https.onCall(async (data: { step1: unknow
     pathwayMode: data.pathwayMode || null,
     step1: stripUndefined(step1Data),
     result: data.result || null,
+    researchConsent,
+    consentToContact,
     expiresAt: admin.firestore.Timestamp.fromDate(ninetyDaysFromNow),
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
