@@ -3,7 +3,7 @@
  * Extracted to eliminate duplication and ensure bug fixes apply once.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, SettingsIcon, XIcon } from 'lucide-react';
+import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, PauseIcon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
 import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/narrationScript';
 import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS } from '../../utils/voiceServers';
@@ -66,50 +66,6 @@ function setVoiceOption(voiceId) {
   }
 }
 
-// Builds a canonical 44-byte PCM WAV header for the given data length.
-function buildWavHeader(dataLength, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) {
-  const blockAlign = numChannels * (bitsPerSample / 8);
-  const byteRate = sampleRate * blockAlign;
-  const buffer = new ArrayBuffer(44);
-  const view = new DataView(buffer);
-  const writeString = (offset, str) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + dataLength, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, numChannels, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, byteRate, true);
-  view.setUint16(32, blockAlign, true);
-  view.setUint16(34, bitsPerSample, true);
-  writeString(36, 'data');
-  view.setUint32(40, dataLength, true);
-  return new Uint8Array(buffer);
-}
-
-// Stitches an array of WAV ArrayBuffers (same format) into a single WAV blob
-// by concatenating their PCM payloads under one shared header — produces one
-// continuous clip instead of several files played back-to-back. Returns both
-// the Blob (needed to also attempt video generation) and its object URL.
-function stitchWavBuffers(arrayBuffers) {
-  const pcmParts = arrayBuffers.map((buf) => new Uint8Array(buf, 44));
-  const totalLength = pcmParts.reduce((sum, part) => sum + part.length, 0);
-  const header = buildWavHeader(totalLength);
-  const combined = new Uint8Array(header.length + totalLength);
-  combined.set(header, 0);
-  let offset = header.length;
-  for (const part of pcmParts) {
-    combined.set(part, offset);
-    offset += part.length;
-  }
-  const blob = new Blob([combined], { type: 'audio/wav' });
-  return { blob, url: URL.createObjectURL(blob) };
-}
-
 // Warmer, natural-sounding status text instead of a raw "X of Y, ~Zs left"
 // countdown — reads like Dr. Tewari is actually getting ready, not like a
 // stalled progress bar. Ordered by progress fraction reached.
@@ -128,37 +84,87 @@ function getPreparingMessage(fraction) {
 }
 
 export const NarrationPlayer = ({ result, preResult }) => {
-  const [state, setState] = useState('idle'); // idle | preparing | playing | error
+  const [state, setState] = useState('idle'); // idle | preparing | playing | paused | error
   const [errorMessage, setErrorMessage] = useState('');
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [hasCachedClip, setHasCachedClip] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [serverUrlInput, setServerUrlInput] = useState(getVoiceServerUrl);
   const [voiceOptionInput, setVoiceOptionInput] = useState(getVoiceOption);
   const [serverOptions, setServerOptions] = useState(getVoiceServers);
-  const audioRef = useRef(null);
+  const audioCtxRef = useRef(null);
   // Synchronous guard against overlapping runs — React state updates are
   // async, so `disabled` alone cannot stop a second click fired before the
   // re-render commits. Two concurrent synthesis calls into the same
   // Chatterbox model instance can corrupt one of the resulting WAVs.
   const busyRef = useRef(false);
-  // Caches each segment's blob URL per narration key so replays are instant
-  // instead of re-synthesizing every click. Keyed on the patient's actual
-  // facts too, not just the reason key, so a different patient (or a
-  // recalculated result) doesn't replay a stale cached clip.
-  const cacheRef = useRef({ key: null, urls: null });
-  // Live streaming playback state: urls fill in one at a time as each
-  // segment finishes synthesizing (fetched sequentially — concurrent calls
-  // into the same model instance corrupt output), and playback advances
-  // through them as they become available instead of waiting for all of
-  // them up front. index tracks which segment is currently playing/queued.
-  const streamRef = useRef({ urls: [], index: 0 });
+  // Caches each segment's decoded AudioBuffer per narration key so replays
+  // are instant instead of re-synthesizing (and re-decoding) every click.
+  // Keyed on the patient's actual facts too, not just the reason key, so a
+  // different patient (or a recalculated result) doesn't replay a stale clip.
+  const cacheRef = useRef({ key: null, buffers: null, durations: null });
+  // Live playback state. Segments are fetched and decoded sequentially
+  // (concurrent calls into the same model instance corrupt output), but each
+  // is scheduled on the Web Audio clock to start exactly when the previous
+  // one ends — gapless, unlike swapping an <audio> element's `src` per
+  // segment, which stalls for a decode/load on every transition.
+  const streamRef = useRef({ buffers: [], durations: [], sources: [], nextStartTime: 0, baseTime: 0 });
   const segments = getNarrationSegments(result, preResult);
   const narrationKey = `${resolveNarrationKey(result || {})}:${JSON.stringify(extractPatientFacts(result, preResult))}`;
 
+  // Releases the audio graph when this result card unmounts (view switch,
+  // navigation away) instead of leaking a running AudioContext.
+  useEffect(() => () => {
+    streamRef.current.sources.forEach((s) => { try { s.stop(); } catch (err) { /* already stopped/ended */ } });
+    if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') audioCtxRef.current.close();
+  }, []);
+
+  // Drives the progress bar off the AudioContext's own clock — it pauses and
+  // resumes in lockstep with ctx.suspend()/resume(), so no separate pause
+  // bookkeeping is needed.
+  useEffect(() => {
+    if (state !== 'playing') return undefined;
+    let raf;
+    const tick = () => {
+      const ctx = audioCtxRef.current;
+      if (ctx) setElapsed(Math.max(0, ctx.currentTime - streamRef.current.baseTime));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [state]);
+
   if (!segments || segments.length === 0) return null;
 
-  const synthesizeSegmentUrl = async (text) => {
+  const ensureAudioCtx = () => {
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtxRef.current;
+  };
+
+  const scheduleSegment = (ctx, i, buffer) => {
+    const s = streamRef.current;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    const startAt = Math.max(s.nextStartTime, ctx.currentTime);
+    source.start(startAt);
+    s.nextStartTime = startAt + buffer.duration;
+    s.sources[i] = source;
+    if (i === segments.length - 1) {
+      source.onended = () => {
+        cacheRef.current = { key: narrationKey, buffers: s.buffers.slice(), durations: s.durations.slice() };
+        setHasCachedClip(true);
+        busyRef.current = false;
+        setState('idle');
+        setElapsed(0);
+      };
+    }
+  };
+
+  const synthesizeSegmentBuffer = async (ctx, text) => {
     let response;
     try {
       response = await fetch(`${getVoiceServerUrl()}/voice/audio`, {
@@ -170,158 +176,165 @@ export const NarrationPlayer = ({ result, preResult }) => {
       throw new Error(`Could not reach the voice service at ${getVoiceServerUrl()} — check the source in settings.`);
     }
     if (!response.ok) throw new Error(`Voice service returned ${response.status}`);
-    const { url } = stitchWavBuffers([await response.arrayBuffer()]);
-    return url;
+    const arrayBuffer = await response.arrayBuffer();
+    return ctx.decodeAudioData(arrayBuffer);
   };
 
-  // Plays streamRef segment `i`, waiting for it to finish synthesizing if it
-  // isn't ready yet (a brief gap, rather than the old wait-for-everything
-  // behavior). Advances automatically on the audio element's `ended` event.
-  const playStreamIndex = async (i) => {
-    const s = streamRef.current;
-    if (i >= segments.length) {
-      cacheRef.current = { key: narrationKey, urls: s.urls.slice() };
-      setHasCachedClip(true);
-      busyRef.current = false;
-      setState('idle');
-      return;
-    }
-    s.index = i;
-    if (s.urls[i] == null) {
-      setState('preparing');
-      await new Promise((resolve) => {
-        const check = () => (s.urls[i] != null ? resolve() : setTimeout(check, 150));
-        check();
-      });
-    }
-    if (!audioRef.current) return;
-    audioRef.current.src = s.urls[i];
-    setState('playing');
-    await audioRef.current.play();
-  };
-
-  const handleStreamEnded = () => {
-    playStreamIndex(streamRef.current.index + 1).catch((err) => {
-      console.error('narration_playback_failed', err);
-      busyRef.current = false;
-      setErrorMessage('The narration audio could not be played. Please try again.');
-      setState('error');
-    });
+  const failPlayback = (err, synthesis) => {
+    console.error(synthesis ? 'narration_synthesis_failed' : 'narration_playback_failed', err);
+    busyRef.current = false;
+    setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
+      ? err.message
+      : 'The narration audio could not be played. Please try again.');
+    setState('error');
   };
 
   const handleStart = async () => {
     if (busyRef.current) return;
     busyRef.current = true;
     setErrorMessage('');
+    const ctx = ensureAudioCtx();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const baseTime = ctx.currentTime + 0.05;
 
-    // Cached from a previous click on this same result — replay instantly,
-    // no re-synthesis needed.
-    if (cacheRef.current.key === narrationKey && cacheRef.current.urls?.length === segments.length) {
-      streamRef.current = { urls: cacheRef.current.urls.slice(), index: 0 };
+    // Cached from a previous click on this same result — schedule the
+    // already-decoded buffers straight away, no re-synthesis or re-decode.
+    if (cacheRef.current.key === narrationKey && cacheRef.current.buffers?.length === segments.length) {
+      streamRef.current = {
+        buffers: cacheRef.current.buffers.slice(),
+        durations: cacheRef.current.durations.slice(),
+        sources: [],
+        nextStartTime: baseTime,
+        baseTime,
+      };
+      setElapsed(0);
+      setState('playing');
       try {
-        await playStreamIndex(0);
+        streamRef.current.buffers.forEach((buffer, i) => scheduleSegment(ctx, i, buffer));
       } catch (err) {
-        console.error('narration_playback_failed', err);
-        busyRef.current = false;
-        setErrorMessage('The narration audio could not be played. Please try again.');
-        setState('error');
+        failPlayback(err, false);
       }
       return;
     }
 
-    streamRef.current = { urls: new Array(segments.length).fill(null), index: 0 };
+    streamRef.current = { buffers: new Array(segments.length).fill(null), durations: [], sources: [], nextStartTime: baseTime, baseTime };
     setProgress({ done: 0, total: segments.length });
-    // Fetch segments sequentially in the background (concurrent calls into
-    // the same model instance corrupt output) — playback starts as soon as
-    // segment 0 is ready and advances through the rest as they arrive.
-    (async () => {
-      try {
-        for (let i = 0; i < segments.length; i++) {
-          streamRef.current.urls[i] = await synthesizeSegmentUrl(segments[i]);
-          setProgress({ done: i + 1, total: segments.length });
-        }
-      } catch (err) {
-        console.error('narration_synthesis_failed', err);
-        busyRef.current = false;
-        setErrorMessage(err instanceof Error && err.message.startsWith('Could not reach')
-          ? err.message
-          : 'The narration audio could not be played. Please try again.');
-        setState('error');
-      }
-    })();
-
+    setElapsed(0);
+    setState('preparing');
     try {
-      await playStreamIndex(0);
+      for (let i = 0; i < segments.length; i++) {
+        const buffer = await synthesizeSegmentBuffer(ctx, segments[i]);
+        streamRef.current.buffers[i] = buffer;
+        streamRef.current.durations[i] = buffer.duration;
+        setProgress({ done: i + 1, total: segments.length });
+        if (i === 0) setState('playing');
+        scheduleSegment(ctx, i, buffer);
+      }
     } catch (err) {
-      console.error('narration_playback_failed', err);
-      busyRef.current = false;
-      setErrorMessage('The narration audio could not be played. Please try again.');
-      setState('error');
+      failPlayback(err, true);
     }
   };
 
-  const isBusy = state === 'preparing' || state === 'playing';
+  const handlePauseResume = async () => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
+    if (state === 'playing') {
+      await ctx.suspend();
+      setState('paused');
+    } else if (state === 'paused') {
+      await ctx.resume();
+      setState('playing');
+    }
+  };
+
   const isCachedForThisResult = cacheRef.current.key === narrationKey && hasCachedClip;
   const progressFraction = progress.total > 0 ? progress.done / progress.total : 0;
+  const totalDuration = (isCachedForThisResult ? cacheRef.current.durations : streamRef.current.durations)
+    .reduce((sum, d) => sum + (d || 0), 0);
   const label = state === 'preparing'
     ? getPreparingMessage(progressFraction)
     : state === 'playing'
       ? 'Playing…'
-      : isCachedForThisResult
-        ? 'Play again'
-        : 'Play narration';
+      : state === 'paused'
+        ? 'Paused'
+        : isCachedForThisResult
+          ? 'Play again'
+          : 'Play narration';
 
   const handleSaveSettings = () => {
     setVoiceServerUrl(serverUrlInput.trim() || DEFAULT_VOICE_SERVER_URL);
     setVoiceOption(voiceOptionInput);
     // A different server/voice may sound different — don't replay a clip
     // synthesized by the old source.
-    cacheRef.current = { key: null, urls: null };
+    cacheRef.current = { key: null, buffers: null, durations: null };
     setHasCachedClip(false);
     setShowSettings(false);
   };
 
+  const formatTime = (secs) => {
+    const s = Math.max(0, Math.floor(secs));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  };
+
   return (
     <div style={{ marginTop: '8px' }}>
-      <button
-        type="button"
-        onClick={handleStart}
-        disabled={isBusy}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          background: '#16a34a', color: '#fff', border: 'none',
-          borderRadius: '6px', padding: '6px 12px', fontSize: '12px',
-          fontWeight: 600, cursor: isBusy ? 'default' : 'pointer',
-        }}
-      >
-        <Volume2Icon size={14} aria-hidden="true" />
-        {label}
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setServerUrlInput(getVoiceServerUrl());
-          setVoiceOptionInput(getVoiceOption());
-          setShowSettings(true);
-          refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
-        }}
-        aria-label="Voice settings"
-        title="Voice settings"
-        style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          marginLeft: '6px', width: '26px', height: '26px', verticalAlign: 'middle',
-          background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
-        }}
-      >
-        <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
-      </button>
-      {state === 'preparing' && (
-        <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
-          <span className="voice-pulse-dot" style={{ animationDelay: '0ms' }} />
-          <span className="voice-pulse-dot" style={{ animationDelay: '160ms' }} />
-          <span className="voice-pulse-dot" style={{ animationDelay: '320ms' }} />
-        </div>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <button
+          type="button"
+          onClick={state === 'playing' || state === 'paused' ? handlePauseResume : handleStart}
+          disabled={state === 'preparing'}
+          aria-label={state === 'playing' ? 'Pause narration' : state === 'paused' ? 'Resume narration' : 'Play narration'}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px', flex: '0 0 auto',
+            background: '#16a34a', color: '#fff', border: 'none',
+            borderRadius: '6px', padding: '6px 12px', fontSize: '12px',
+            fontWeight: 600, cursor: state === 'preparing' ? 'default' : 'pointer',
+          }}
+        >
+          {state === 'playing'
+            ? <PauseIcon size={14} aria-hidden="true" />
+            : <Volume2Icon size={14} aria-hidden="true" />}
+          {label}
+        </button>
+        {(state === 'playing' || state === 'paused') && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 auto', minWidth: '80px', maxWidth: '220px' }}>
+            <div style={{ flex: '1 1 auto', height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{
+                width: totalDuration > 0 ? `${Math.min(100, (elapsed / totalDuration) * 100)}%` : '0%',
+                height: '100%', background: '#16a34a', transition: 'width 120ms linear',
+              }} />
+            </div>
+            <span style={{ fontSize: '11px', color: '#6b7280', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              {formatTime(elapsed)}{totalDuration > 0 ? ` / ${formatTime(totalDuration)}` : ''}
+            </span>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setServerUrlInput(getVoiceServerUrl());
+            setVoiceOptionInput(getVoiceOption());
+            setShowSettings(true);
+            refreshVoiceServers().then((servers) => { if (servers) setServerOptions(servers); });
+          }}
+          aria-label="Voice settings"
+          title="Voice settings"
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto',
+            width: '26px', height: '26px', verticalAlign: 'middle',
+            background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+          }}
+        >
+          <SettingsIcon size={13} aria-hidden="true" style={{ color: '#6b7280' }} />
+        </button>
+        {state === 'preparing' && (
+          <div role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span className="voice-pulse-dot" style={{ animationDelay: '0ms' }} />
+            <span className="voice-pulse-dot" style={{ animationDelay: '160ms' }} />
+            <span className="voice-pulse-dot" style={{ animationDelay: '320ms' }} />
+          </div>
+        )}
+      </div>
       <style>{`
         .voice-pulse-dot {
           width: 5px; height: 5px; border-radius: 50%; background: #16a34a;
@@ -432,7 +445,6 @@ export const NarrationPlayer = ({ result, preResult }) => {
           </div>
         </div>
       )}
-      <audio ref={audioRef} onEnded={handleStreamEnded} style={{ display: 'none' }} />
     </div>
   );
 };
