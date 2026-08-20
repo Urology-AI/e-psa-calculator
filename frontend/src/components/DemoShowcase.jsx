@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './DemoShowcase.css';
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon, DownloadIcon } from 'lucide-react';
 
 const BEAT_MS = 750;
 const READ_RESULT_MS = 2600;
@@ -223,9 +223,14 @@ export default function DemoShowcase() {
 
         <div className="ds-bottom-cta">
           <p className="ds-bottom-cta-text">Ready to assess a patient?</p>
-          <a href="/" className="ds-btn-primary">
-            Open ePSA <ArrowRightIcon size={16} />
-          </a>
+          <div className="ds-bottom-cta-actions">
+            <a href="/" className="ds-btn-primary">
+              Open ePSA <ArrowRightIcon size={16} />
+            </a>
+            <a href="/epsa-flyer.pdf" download className="ds-btn-secondary">
+              Download flyer (PDF) <DownloadIcon size={16} />
+            </a>
+          </div>
           <p className="ds-disclaimer">
             For educational and clinical decision-support use only. Does not replace physician judgment.
             Developed by Dr. Ashutosh K. Tewari and team · Tewari Lab, Icahn School of Medicine at Mount Sinai.
