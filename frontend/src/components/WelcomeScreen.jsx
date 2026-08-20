@@ -61,7 +61,7 @@ export const MillionStrongModal = ({ onClose }) => {
               </a>
             </div>
             <p className="gl-disclaimer" style={{ margin: 0 }}>
-              Million Strong Men is a public health initiative working to make prostate cancer screening — and tools like ePSA — freely available to men everywhere.{' '}
+              Million Strong Men is a public health initiative working to make prostate cancer screening, and tools like ePSA, freely available to men everywhere.{' '}
               <a
                 className="gl-inline-link-anchor"
                 href="https://www.cancer.org/cancer/types/prostate-cancer/about/key-statistics.html"
@@ -81,7 +81,7 @@ export const MillionStrongModal = ({ onClose }) => {
             </ul>
           </div>
           <p className="gl-disclaimer">
-            ePSA is built and offered as part of this effort — this assessment will always be free to use.
+            ePSA is built and offered as part of this effort. This assessment will always be free to use.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export const GuidelinesModal = ({ onClose }) => {
           <p className="gl-modal-sub">
             ePSA&apos;s recommendations are built on the AUA/SUO and NCCN screening guidelines, set out in full below.
             Screening advice differs by country, so for full transparency we also show you the current guidance where
-            you are — and where it differs from the guidelines ePSA scores against.
+            you are, and where it differs from the guidelines ePSA scores against.
           </p>
           <button
             ref={closeRef}
@@ -216,11 +216,11 @@ export const GuidelinesModal = ({ onClose }) => {
 
           {/* High-risk callout */}
           <div className="gl-callout">
-            <span className="gl-callout-title">High-risk factors — earlier screening recommended</span>
+            <span className="gl-callout-title">High-risk factors: earlier screening recommended</span>
             <ul className="gl-list">
               <li><strong>Black / African American ancestry</strong></li>
               <li><strong>First-degree family history</strong> of prostate cancer</li>
-              <li><strong>Germline mutations</strong> — BRCA1, BRCA2, ATM, Lynch Syndrome</li>
+              <li><strong>Germline mutations</strong>: BRCA1, BRCA2, ATM, Lynch Syndrome</li>
             </ul>
           </div>
 
@@ -232,7 +232,7 @@ export const GuidelinesModal = ({ onClose }) => {
         <footer className="gl-modal-footer">
           <span className="gl-reviewed">Last reviewed: March 2026</span>
           <button type="button" onClick={onClose} className="gl-cta">
-            Got it — start assessment
+            Got it, start assessment
           </button>
         </footer>
       </div>
@@ -266,7 +266,7 @@ export const SdmModal = ({ onClose }) => {
             <span>Before you begin</span>
           </div>
           <h2 id="sdm-modal-title" className="gl-modal-title">Shared Decision Making</h2>
-          <p className="gl-modal-sub">Per AUA/SUO 2023 (amended 2026), PSA screening decisions should be made together with your clinician — not by a number alone.</p>
+          <p className="gl-modal-sub">Per AUA/SUO 2023 (amended 2026), PSA screening decisions should be made together with your clinician, not by a number alone.</p>
           <button
             ref={closeRef}
             type="button"
@@ -293,16 +293,16 @@ export const SdmModal = ({ onClose }) => {
               </a>
             </div>
             <p className="gl-disclaimer">
-              The AUA recommends that clinicians engage patients in shared decision making before ordering a PSA test — weighing the potential benefits (earlier detection of clinically significant cancer) against the potential harms (false positives, overdiagnosis, and the risks of biopsy or overtreatment of indolent disease) in light of the patient's own values and preferences.
+              The AUA recommends that clinicians engage patients in shared decision making before ordering a PSA test, weighing the potential benefits (earlier detection of clinically significant cancer) against the potential harms (false positives, overdiagnosis, and the risks of biopsy or overtreatment of indolent disease) in light of the patient's own values and preferences.
             </p>
           </section>
 
           <div className="gl-callout">
             <span className="gl-callout-title">When SDM is emphasized</span>
             <ul className="gl-list">
-              <li><strong>Ages 45–50:</strong> Strong recommendation for shared, informed decision making before baseline PSA — especially for higher-risk men.</li>
+              <li><strong>Ages 45–50:</strong> Strong recommendation for shared, informed decision making before baseline PSA, especially for higher-risk men.</li>
               <li><strong>Ages 70–75:</strong> Continue screening only via SDM, factoring in overall health and life expectancy.</li>
-              <li><strong>Over 75:</strong> Individualize or discontinue via SDM — screening is unlikely to benefit men with under a 10–15 year life expectancy.</li>
+              <li><strong>Over 75:</strong> Individualize or discontinue via SDM: screening is unlikely to benefit men with under a 10–15 year life expectancy.</li>
             </ul>
           </div>
 
@@ -319,7 +319,7 @@ export const SdmModal = ({ onClose }) => {
           </section>
 
           <p className="gl-disclaimer">
-            ePSA is built to support this conversation, not replace it — bring your results to your clinician as a starting point for an SDM discussion.
+            ePSA is built to support this conversation, not replace it. Bring your results to your clinician as a starting point for an SDM discussion.
           </p>
         </div>
 
@@ -421,7 +421,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
       {showQrModal && <QrModal onClose={() => setShowQrModal(false)} />}
 
       {/* ── Hero card ── */}
-      <section className="ws-hero-card" aria-label="ePSA — Prostate Cancer Screening Tool">
+      <section className="ws-hero-card" aria-label="ePSA: Prostate Cancer Screening Tool">
         {/* White body: title, description, CTA */}
         <div className="ws-hero-card-body">
           <h1 className="ws-hero-title">{t('welcome.heroTitle')}</h1>
@@ -493,7 +493,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
               <div className="ws-flow-step-text">
                 <strong>What ePSA is</strong>
                 <span>
-                  A free, guided prostate cancer screening assessment. It walks you through your risk profile and clinical data to give you a personalized picture of your prostate health — no account required, and it's built on{' '}
+                  A free, guided prostate cancer screening assessment. It walks you through your risk profile and clinical data to give you a personalized picture of your prostate health. No account required, and it's built on{' '}
                   <button type="button" className="gl-inline-link" onClick={() => setShowGuidelinesModal(true)}>
                     <BookOpenIcon size={11} style={{ marginRight: 2, verticalAlign: '-1px' }} aria-hidden="true" />
                     AUA/NCCN screening guidelines
@@ -508,7 +508,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
               <div className="ws-flow-step-text">
                 <strong>Million Strong Men</strong>
                 <span>
-                  ePSA is offered free as part of the Million Strong Men initiative, working to make prostate cancer screening accessible to every man — regardless of insurance, income, or access to a doctor.{' '}
+                  ePSA is offered free as part of the Million Strong Men initiative, working to make prostate cancer screening accessible to every man, regardless of insurance, income, or access to a doctor.{' '}
                   <button type="button" className="gl-inline-link" onClick={() => setShowMsmModal(true)}>
                     Learn more
                   </button>
@@ -525,7 +525,7 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
                   <button type="button" className="gl-inline-link" onClick={() => setShowSdmModal(true)}>
                     Shared Decision Making
                   </button>
-                  {' '}— a conversation between you and your doctor about screening, weighing your personal risk, values, and preferences.
+                  {', a conversation between you and your doctor about screening, weighing your personal risk, values, and preferences.'}
                 </span>
               </div>
             </div>
