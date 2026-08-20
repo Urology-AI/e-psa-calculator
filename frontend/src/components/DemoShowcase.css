@@ -545,6 +545,35 @@
   box-shadow: 0 0.5rem 1.25rem rgba(15, 79, 122, 0.35);
 }
 
+.ds-bottom-cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ds-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: #0f4f7a;
+  text-decoration: none;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.625rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 0.0625rem solid #cfe0ee;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.ds-btn-secondary:hover {
+  background: #f4f8fb;
+  border-color: #0f4f7a;
+  transform: translateY(-0.125rem);
+}
+
 .ds-disclaimer {
   margin: 1.25rem 0 0;
   font-size: 0.75rem;

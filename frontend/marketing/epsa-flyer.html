@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+  Source for frontend/public/epsa-flyer.pdf.
+
+  To regenerate the PDF after editing this file:
+    cd frontend/marketing
+    wkhtmltopdf --enable-local-file-access --disable-smart-shrinking \
+      --page-size Letter --margin-top 0 --margin-bottom 0 --margin-left 0 --margin-right 0 \
+      epsa-flyer.html ../public/epsa-flyer.pdf
+
+  wkhtmltopdf sometimes emits a trailing blank page; if `pdfinfo` reports
+  more than 1 page, drop the extra page (e.g. with pypdf) before committing.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    width: 8.5in;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #0f2942;
+    background: #ffffff;
+  }
+  .band {
+    height: 0.14in;
+    background: #1e5b8f;
+  }
+  .header-table { width: 7.2in; margin: 0.08in 0.65in 0.04in 0.65in; }
+  .header-logo-cell { width: 1.1in; vertical-align: middle; }
+  .header-logo-cell img { width: 0.85in; height: 0.85in; object-fit: contain; display: block; }
+  .header-text-cell { vertical-align: middle; }
+  .header .brand-name { font-size: 34pt; font-weight: 800; letter-spacing: -0.5px; }
+  .header .brand-sub { font-size: 11.5pt; color: #4a6a85; margin-top: 2px; }
+
+  .hero-table {
+    margin: 0.03in 0.65in 0.1in 0.65in;
+    width: 7.2in;
+    background: #14406b;
+    border-radius: 16px;
+    color: #ffffff;
+  }
+  .hero-text-cell { width: 3.55in; text-align: center; vertical-align: middle; padding: 0.2in 0.13in; }
+  .hero-title { font-size: 18pt; font-weight: 800; line-height: 1.15; margin: 0 0 0.1in 0; text-align: center; }
+  .hero-body { font-size: 10.5pt; line-height: 1.35; color: #dbe9f7; margin: 0; text-align: center; }
+
+  .qr-cell { width: 2.25in; vertical-align: middle; padding: 0.13in; }
+  .qr-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 0.28in;
+    text-align: center;
+    width: 2.25in;
+  }
+  .qr-box img { width: 1.9in; height: 1.9in; display: block; margin: 0 auto; }
+  .qr-box .scan-text { font-size: 11pt; font-weight: 700; color: #0f2942; margin-top: 0.14in; }
+  .qr-box .scan-url { font-size: 9.5pt; color: #1e5b8f; margin-top: 2px; }
+
+  .stat-strip {
+    margin: 0 0.65in 0.16in 0.65in;
+    width: 7.2in;
+    border-collapse: separate;
+    border-spacing: 0.15in 0;
+  }
+  .stat-strip td { width: 33.33%; padding: 0; }
+  .stat-card {
+    background: #f4f8fb;
+    border: 1px solid #dfe9f2;
+    border-radius: 12px;
+    padding: 0.1in 0.15in;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 22pt; font-weight: 800; color: #1e5b8f; }
+  .stat-card .label { font-size: 10pt; color: #4a6a85; margin-top: 6px; line-height: 1.35; }
+
+  .features {
+    margin: 0 0.65in 0.08in 0.65in;
+  }
+  .features h2 {
+    font-size: 15pt; font-weight: 800; margin: 0 0 0.14in 0; color: #0f2942;
+  }
+  .feature-table {
+    width: 7.2in;
+    border-collapse: separate;
+    border-spacing: 0.14in;
+  }
+  .feature-item {
+    background: #ffffff;
+    border: 1px solid #e3ecf3;
+    border-radius: 12px;
+    padding: 0.09in;
+    vertical-align: top;
+    width: 50%;
+  }
+  .feature-icon {
+    width: 0.4in; height: 0.4in; border-radius: 10px;
+    background: #eaf2fa; color: #1e5b8f;
+    text-align: center; line-height: 0.4in;
+    font-size: 15pt; font-weight: 800;
+  }
+  .feature-icon-cell { width: 0.56in; vertical-align: top; padding: 0; }
+  .feature-body-cell { padding: 0; vertical-align: top; }
+  .feature-title { font-size: 12pt; font-weight: 700; color: #0f2942; margin-bottom: 5px; }
+  .feature-desc { font-size: 9.5pt; color: #52708a; line-height: 1.4; }
+
+  .footer {
+    margin: 0.04in 0 0 0;
+    padding: 0.07in 0.65in;
+    background: #f4f8fb;
+    border-top: 3px solid #1e5b8f;
+    overflow: hidden;
+  }
+  .footer-left { float: left; font-size: 9.5pt; color: #5a7a95; line-height: 1.5; width: 4.3in; }
+  .footer-left strong { color: #0f2942; }
+  .footer-right { float: right; text-align: right; font-size: 10pt; color: #5a7a95; white-space: nowrap; }
+  .footer-right .msm { font-weight: 700; color: #c53a3a; font-size: 11pt; white-space: nowrap; }
+
+  .steps {
+    margin: 0 0.65in 0.1in 0.65in;
+  }
+  .steps h2 {
+    font-size: 15pt; font-weight: 800; margin: 0 0 0.14in 0; color: #0f2942;
+  }
+  .step-table {
+    width: 7.2in;
+    border-collapse: separate;
+    border-spacing: 0.2in 0;
+  }
+  .step-cell {
+    width: 33.33%;
+    background: #f4f8fb;
+    border: 1px solid #dfe9f2;
+    border-radius: 12px;
+    padding: 0.06in;
+    vertical-align: top;
+    text-align: center;
+  }
+  .step-num {
+    width: 0.32in; height: 0.32in; border-radius: 50%;
+    background: #1e5b8f; color: #ffffff;
+    text-align: center; line-height: 0.32in;
+    font-size: 12pt; font-weight: 800;
+    margin: 0 auto 0.1in auto;
+  }
+  .step-title { font-size: 12pt; font-weight: 700; color: #0f2942; margin-bottom: 5px; text-align: center; }
+  .step-desc { font-size: 9.5pt; color: #52708a; line-height: 1.4; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="band"></div>
+
+  <table class="header-table"><tr>
+    <td class="header-logo-cell"><img src="../public/logo.png" alt="ePSA logo"></td>
+    <td class="header-text-cell">
+      <div class="brand-name">ePSA<sup style="font-size:11pt;">&trade;</sup></div>
+      <div class="brand-sub">Electronic Prostate Specific Awareness<br>Tewari Lab, Icahn School of Medicine at Mount Sinai</div>
+    </td>
+  </tr></table>
+
+  <table class="hero-table"><tr>
+    <td class="hero-text-cell">
+      <div class="hero-title">Know your baseline PSA risk before your next urology visit</div>
+      <p class="hero-body">
+        ePSA is an easy-to-use educational online tool that helps men understand their personal risk for prostate cancer before they even get tested.
+        A short set of guided questions gives you a personalized picture of your prostate health in just a few minutes, grounded in AUA and NCCN screening standards.
+      </p>
+    </td>
+    <td class="qr-cell">
+      <div class="qr-box">
+        <img src="../public/epsa-qr.svg" alt="QR code linking to epsa.millionstrongmen.com">
+        <div class="scan-text">Scan to start</div>
+        <div class="scan-url">epsa.millionstrongmen.com</div>
+      </div>
+    </td>
+  </tr></table>
+
+  <table class="stat-strip"><tr>
+    <td>
+      <div class="stat-card">
+        <div class="num">1 in 8</div>
+        <div class="label">Men will be diagnosed with prostate cancer in their lifetime</div>
+      </div>
+    </td>
+    <td>
+      <div class="stat-card">
+        <div class="num">~2 min</div>
+        <div class="label">To complete your risk profile</div>
+      </div>
+    </td>
+    <td>
+      <div class="stat-card">
+        <div class="num">Free</div>
+        <div class="label">Always free, no insurance required</div>
+      </div>
+    </td>
+  </tr></table>
+
+  <div class="features">
+    <h2>Why ePSA</h2>
+    <table class="feature-table">
+      <tr>
+        <td class="feature-item">
+          <table><tr>
+            <td class="feature-icon-cell"><div class="feature-icon">&#10003;</div></td>
+            <td class="feature-body-cell">
+              <div class="feature-title">Adaptive assessment</div>
+              <div class="feature-desc">Each response reshapes what comes next, so your results reflect your own health picture.</div>
+            </td>
+          </tr></table>
+        </td>
+        <td class="feature-item">
+          <table><tr>
+            <td class="feature-icon-cell"><div class="feature-icon">&#10003;</div></td>
+            <td class="feature-body-cell">
+              <div class="feature-title">Clinically grounded</div>
+              <div class="feature-desc">Backed by trusted clinical research and Mount Sinai's own patient data.</div>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+      <tr>
+        <td class="feature-item">
+          <table><tr>
+            <td class="feature-icon-cell"><div class="feature-icon">&#10003;</div></td>
+            <td class="feature-body-cell">
+              <div class="feature-title">Personalized for you</div>
+              <div class="feature-desc">Results adapt to where you are in your journey: pre-PSA, post-PSA, or post-MRI.</div>
+            </td>
+          </tr></table>
+        </td>
+        <td class="feature-item">
+          <table><tr>
+            <td class="feature-icon-cell"><div class="feature-icon">&#10003;</div></td>
+            <td class="feature-body-cell">
+              <div class="feature-title">Private by design</div>
+              <div class="feature-desc">No account required. Use on your device, or save anonymously with a session key.</div>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="steps">
+    <h2>How it works</h2>
+    <table class="step-table"><tr>
+      <td class="step-cell">
+        <div class="step-num">1</div>
+        <div class="step-title">Tell us about yourself</div>
+        <div class="step-desc">A few quick questions about your health and lifestyle.</div>
+      </td>
+      <td class="step-cell">
+        <div class="step-num">2</div>
+        <div class="step-title">Add clinical data (optional)</div>
+        <div class="step-desc">Include your PSA level and MRI PI-RADS score if you have them, to refine your estimate.</div>
+      </td>
+      <td class="step-cell">
+        <div class="step-num">3</div>
+        <div class="step-title">Get your risk profile</div>
+        <div class="step-desc">Receive a plain-language risk tier and printable summary for your next doctor visit.</div>
+      </td>
+    </tr></table>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">
+      Educational and research tool only, not a medical diagnosis<br>Always discuss screening decisions with your clinician.
+    </div>
+    <div class="footer-right">
+      <div class="msm">Million Strong Men Initiative</div>
+      <div>millionstrongmen.com</div>
+    </div>
+  </div>
+</body>
+</html>

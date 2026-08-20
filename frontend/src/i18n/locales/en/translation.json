@@ -71,12 +71,12 @@
   "welcome": {
     "heroBadge": "Educational Clinical Support Tool",
     "heroTitle": "Know your baseline PSA risk before your next urology visit",
-    "heroDescription": "Get a personalized picture of your prostate cancer risk so you can have a more informed PSA conversation with your clinician — not a verdict, a starting point.",
+    "heroDescription": "Get a personalized picture of your prostate cancer risk so you can have a more informed PSA conversation with your clinician: not a verdict, a starting point.",
     "psaIntro": {
       "kicker": "Before you start",
       "heading": "What is PSA, and why does this matter?",
-      "body": "Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue — though not proof — of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.",
-      "seeDoctorNudge": "If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor — don't wait on this tool."
+      "body": "Prostate-specific antigen (PSA) is a protein your prostate makes that shows up in a simple blood test. Higher levels can be a clue, though not proof, of prostate cancer or other prostate conditions. ePSA looks at your age, family history, ancestry, and symptoms to estimate how relevant a PSA test is for you right now, so the conversation with your doctor starts with context.",
+      "seeDoctorNudge": "If you already have urinary symptoms or a known family history of prostate cancer, please talk to your doctor, don't wait on this tool."
     },
     "featureGuidedQuestions": "Guided questions",
     "featureTime": "~5 minutes",
@@ -96,7 +96,7 @@
     "trustClearRiskSummary": "Clear risk summary output",
     "flow": {
       "step1Title": "Risk Profile",
-      "step1Body": "Guided questions covering demographics, lifestyle, family history, and urinary symptoms — takes about 2 minutes and adapts based on your answers.",
+      "step1Body": "Guided questions covering demographics, lifestyle, family history, and urinary symptoms. Takes about 2 minutes and adapts based on your answers.",
       "step2Title": "Clinical Data",
       "step2Body": "Optionally add your PSA level and MRI PI-RADS score to refine the estimate. Don't have these yet? You can skip this step and still get a baseline risk picture.",
       "step3Title": "Personalised Results",
