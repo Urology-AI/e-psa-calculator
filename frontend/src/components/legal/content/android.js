@@ -1,6 +1,6 @@
 export const androidPrivacy = {
   title: 'ePSA Android App — Privacy Policy',
-  updated: 'July 23, 2026',
+  updated: 'August 21, 2026',
   sections: [
     {
       text: 'ePSA is an educational app about prostate cancer screening from the Tewari Lab, Icahn School of Medicine at Mount Sinai. It is not a diagnostic tool and does not replace medical advice from a qualified clinician. This policy covers the ePSA Android app (com.epsa) specifically — the web app and iOS app are separate products with their own privacy policies (see below).',
@@ -8,8 +8,8 @@ export const androidPrivacy = {
     {
       title: 'Information We Collect',
       list: [
-        { label: 'Screening responses (Screening tab):', text: 'Age, race/ethnicity, family history, height/weight, urinary symptom answers (IPSS), sexual health answers (SHIM, optional), lifestyle factors, and — if you choose to enter them — PSA value, MRI/PI-RADS result, and prostate volume. These are sent to our backend (a Google Cloud Function, via Firebase) to compute your personalized result. We do not store these responses on our servers — the calculation is stateless.' },
-        { label: 'Chat questions (Ask tab):', text: "If on-device AI (Gemini Nano) is available on your phone, your question is processed entirely on your device and never leaves it. Otherwise, your question is sent to Google's Gemini API to generate a response. If neither on-device nor cloud AI is available, your question is answered from a small offline knowledge base stored on your device only." },
+        { label: 'Screening responses (Screening tab):', text: 'Age, race/ethnicity, family history (including BRCA and hereditary cancer status), height/weight, urinary symptom answers (IPSS), sexual health answers (SHIM, optional), lifestyle factors, comorbidity information, and — if you choose to enter them — PSA value, MRI/PI-RADS result, and prostate volume. These are sent to our backend (a Google Cloud Function, via Firebase) to compute your personalized result. We do not store these responses on our servers — the calculation is stateless.' },
+        { label: 'Chat questions (Ask tab):', text: "Chat runs on-device using Gemini Nano (Google AICore), where available on your phone — your question and the AI's response never leave your device. There is no cloud AI fallback in this app. If on-device intelligence isn't available on your phone, your question is answered from a small offline knowledge base stored on your device only, with no network request made." },
         { label: 'Anonymous identifier:', text: 'On first launch, the app creates an anonymous Firebase account (a random ID, no name/email/phone) so it can call our backend without requiring sign-up.' },
         { label: 'Locally stored, never transmitted:', text: 'Your selected journey stage (e.g. "just screened", "awaiting PSA") and language preference are stored only on your device (Android SharedPreferences) and never sent anywhere.' },
       ],
@@ -20,7 +20,7 @@ export const androidPrivacy = {
     },
     {
       title: 'Data Sharing',
-      text: "We do not sell your data. Screening responses and chat questions pass through Google Cloud infrastructure (Firebase Functions, Gemini API) solely to generate your result/response. We do not share data with any other third party.",
+      text: "We do not sell your data. Screening responses pass through Google Cloud infrastructure (Firebase Functions) solely to generate your result. Chat questions never leave your device. We do not share data with any other third party.",
     },
     {
       title: 'Data Retention & Deletion',
@@ -32,7 +32,7 @@ export const androidPrivacy = {
     },
     {
       title: 'Security',
-      text: "All network calls use HTTPS/TLS encryption (Firebase Functions and Google's Gemini API).",
+      text: "All network calls use HTTPS/TLS encryption (Firebase Functions). On-device and offline chat responses involve no network call at all.",
     },
     {
       title: 'Changes to This Policy',
@@ -49,12 +49,17 @@ export const androidPrivacy = {
         { label: 'ePSA iOS App —', text: 'see /legal/ios/privacy' },
       ],
     },
+    {
+      note: "This Privacy Policy is a working draft prepared for review by Mount Sinai's Office of General Counsel. It describes the app's current data handling in good faith but has not yet been reviewed or approved. Do not rely on this document as a final legal notice. The institutional Mount Sinai Privacy Policy at mountsinai.org/privacy continues to apply in parallel.",
+      noteLabel: 'Draft for Mount Sinai counsel review:',
+      noteType: 'info',
+    },
   ],
 };
 
 export const androidTerms = {
   title: 'ePSA Android App — Terms of Service',
-  updated: 'July 23, 2026',
+  updated: 'August 21, 2026',
   sections: [
     {
       text: 'These terms govern your use of the ePSA Android app (com.epsa), published by the Tewari Lab, Icahn School of Medicine at Mount Sinai.',
@@ -73,7 +78,7 @@ export const androidTerms = {
     },
     {
       title: 'AI Chat ("Ask" tab)',
-      text: "Responses in the Ask tab are generated by an AI model (on-device or via Google's Gemini API, or an offline knowledge base) and may be incomplete, out of date, or incorrect. Do not rely on AI chat responses as medical advice.",
+      text: "Responses in the Ask tab are generated on-device (Gemini Nano via Google AICore, where available) or from an offline knowledge base — never by a cloud AI service — and may be incomplete, out of date, or incorrect. Do not rely on AI chat responses as medical advice.",
     },
     {
       title: 'No Warranty',
@@ -85,7 +90,7 @@ export const androidTerms = {
     },
     {
       title: 'Third-Party Services',
-      text: 'The app relies on Google Firebase and the Google Gemini API to function. Your use of the app is also subject to Google\'s applicable terms for those services.',
+      text: "The app relies on Google Firebase (Cloud Functions, Authentication) and, where available on your device, Google AICore's on-device Gemini Nano model to function. Your use of the app is also subject to Google's applicable terms for those services.",
     },
     {
       title: 'Changes to These Terms',

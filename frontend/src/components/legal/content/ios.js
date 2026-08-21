@@ -1,6 +1,6 @@
 export const iosPrivacy = {
   title: 'ePSA iOS App — Privacy Policy',
-  updated: 'July 23, 2026',
+  updated: 'August 21, 2026',
   sections: [
     {
       text: 'ePSA is an educational app about prostate cancer screening and care, from the Tewari Lab, Icahn School of Medicine at Mount Sinai / Mount Sinai Urology. It is not a diagnostic tool and does not replace medical advice from a qualified clinician. This policy covers the ePSA iOS app (bundle ID ios.epsa) specifically — the web app and Android app are separate products with their own privacy policies (see below).',
@@ -8,7 +8,7 @@ export const iosPrivacy = {
     {
       title: 'Information We Collect',
       list: [
-        { label: 'Screening/health profile (calculator):', text: 'Age, race/ethnicity, family history (including BRCA and hereditary cancer status), Ashkenazi Jewish status, height/weight/BMI, urinary symptom answers (IPSS), sexual health answers (SHIM, optional), lifestyle factors, comorbidity information, diet, and — if you choose to enter them — PSA value, MRI/PI-RADS result, and prostate volume. This is sent to the same calculatePsaRecommendation Google Cloud Function (via Firebase) that the ePSA web app uses. We do not store these responses on our servers.' },
+        { label: 'Screening/health profile (calculator):', text: 'Age, race/ethnicity, family history (including BRCA and hereditary cancer status), Ashkenazi Jewish status, height/weight/BMI, urinary symptom answers (IPSS), sexual health answers (SHIM, optional), lifestyle factors, comorbidity information, diet, and — if you choose to enter them — PSA value, MRI/PI-RADS result, and prostate volume. This is sent to the same calculatePsaRecommendation Google Cloud Function (via Firebase) that the ePSA web app uses, and now returns a shared-decision-making conversation guide and a guideline-recognized-factors score alongside your full ePSA score. We do not store these responses on our servers. A plain-text summary of your result and conversation guide is cached only on your device and never transmitted, though it is appended to the on-device context used by the "Ask" chat feature below.' },
         { label: 'Chat questions ("Ask" tab):', text: "Chat runs entirely on-device using Apple's Foundation Models (on supported iOS versions). Your questions and the AI's responses never leave your device — there is no cloud AI fallback in this app. If on-device intelligence isn't available, the app reports that chat is unavailable rather than sending your question anywhere." },
         { label: 'Anonymous identifier:', text: 'On each app launch, the app creates or reuses an anonymous Firebase account (a random ID, no name/email/phone) so it can call the calculator backend without requiring sign-up.' },
         { label: 'Locally stored, never transmitted:', text: 'Your journey stage, language and appearance preferences, notification setting, saved questions, usage counters, and your full chat history are stored only on your device (UserDefaults and on-device SwiftData storage) and never sent to us or anyone else.' },
@@ -49,6 +49,11 @@ export const iosPrivacy = {
         { label: 'ePSA Web App —', text: 'see /legal/web/privacy' },
         { label: 'ePSA Android App —', text: 'see /legal/android/privacy' },
       ],
+    },
+    {
+      note: "This Privacy Policy is a working draft prepared for review by Mount Sinai's Office of General Counsel. It describes the app's current data handling in good faith but has not yet been reviewed or approved. Do not rely on this document as a final legal notice. The institutional Mount Sinai Privacy Policy at mountsinai.org/privacy continues to apply in parallel.",
+      noteLabel: 'Draft for Mount Sinai counsel review:',
+      noteType: 'info',
     },
   ],
 };

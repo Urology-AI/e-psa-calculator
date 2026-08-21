@@ -118,49 +118,14 @@ const SaveToCloudConsentModal = ({ sessionId, onConfirm, onCancel }) => {
               </>
             )}
 
-            <div className="consent-emr-section">
-              <label className="consent-emr-label">
-                <input
-                  type="checkbox"
-                  checked={researchConsent}
-                  onChange={(e) => {
-                    setResearchConsent(e.target.checked);
-                    if (!e.target.checked) setEmrLinkageConsent(false);
-                  }}
-                  className="consent-emr-checkbox"
-                />
-                <span>
-                  <strong>[Optional] Also use my results for research</strong> — enrolls me in the
-                  Tewari Lab / Million Strong Men study (IRB STUDY-14-00050). De-identified data
-                  may be used to improve ePSA for future patients. I may be contacted at about 3,
-                  6, 12, and 36 months to ask only whether I received a PSA test and its result.
-                  Opt out anytime by replying STOP.
-                </span>
-              </label>
-            </div>
-
-            {researchConsent && (
-              <div className="consent-emr-section">
-                <label className="consent-emr-label">
-                  <input
-                    type="checkbox"
-                    checked={emrLinkageConsent}
-                    onChange={(e) => setEmrLinkageConsent(e.target.checked)}
-                    className="consent-emr-checkbox"
-                  />
-                  <span>
-                    <strong>[Optional] Medical record linkage</strong> — the research team may
-                    verify clinical outcomes (PSA results, biopsy findings, treatments) from my
-                    medical record to improve the ePSA model. This does not affect my results.
-                  </span>
-                </label>
-              </div>
-            )}
+            {/* Research enrollment + EMR linkage opt-ins are disabled for now — the
+                backend research-contact flow requires phone-number auth that this
+                app doesn't currently use, so offering these checkboxes would be a
+                promise the app can't keep. Re-enable alongside that backend work. */}
 
             <div className="info-box info">
-              Saving and research are separate — you can save without joining the study. Either
-              way your results stay on screen for this visit, and a saved session can be deleted
-              from the results screen later.
+              Your results stay on screen for this visit only, and a saved session can be
+              deleted from the results screen later.
             </div>
           </section>
         </div>
