@@ -32,7 +32,7 @@ A web application for **prostate cancer risk education and stratification**: evi
 | Environment | URL | Notes |
 |-------------|-----|--------|
 | **Firebase (production)** | [epsa-30d0b.web.app](https://epsa-30d0b.web.app) | Full app with Firebase Auth, Firestore, and Cloud Functions |
-| **GitHub Pages (static)** | [urology-ai.github.io/e-psa-calculator](https://urology-ai.github.io/e-psa-calculator/) | Static build; Firebase disabled; local/browser storage for continuity |
+| **Sinai landing page (static)** | *(pending — see below)* | Lean public Part 1 build linked from mountsinai.org; no Firebase, no accounts |
 
 ---
 
@@ -116,8 +116,7 @@ e-psa-calculator/
 │   ├── README.md
 │   ├── refit_part1_psa_model.py
 │   └── refit_part2_cancer_model.py.py
-├── docs/                     # GitHub Pages artifact (from frontend build:gh-pages)
-├── .github/workflows/        # Firebase deploy + GitHub Pages
+├── .github/workflows/        # Firebase deploy + security scans
 ├── firebase.json
 ├── firestore.rules
 ├── database.rules.json
@@ -235,7 +234,6 @@ Point the frontend at emulators with the `VITE_USE_*_EMULATOR` variables in `fro
 ### Automatic CI
 
 - **`firebase-deploy.yml`** — On pushes to `main`, builds `frontend` and `admin-dashboard`, deploys both Hosting targets to project `epsa-30d0b`. On pull requests from the **same** repository, deploys **preview** channels; fork PRs skip preview deploy (token limitation).
-- **`gh-pages-deploy.yml`** — Builds `npm run build:gh-pages` in `frontend`, uploads the **`docs/`** output to GitHub Pages.
 
 ### Secrets (typical)
 
@@ -251,14 +249,24 @@ firebase deploy --only firestore
 firebase deploy --only functions
 ```
 
-### Manual GitHub Pages static build
+### Sinai landing-page static build
+
+The public build linked from mountsinai.org's PSA screening page. Lean by
+design: Part 1 only, no Firebase, no accounts, no i18n bundle — one
+questionnaire, one result, one call to action.
 
 ```bash
 cd frontend
-npm run build:gh-pages
+npm run dev:sinai      # local, port 5173
+npm run build:sinai    # -> frontend/dist-sinai
 ```
 
-The script builds with the GitHub Pages Vite config and refreshes `docs/index.html`. Deploy via the GitHub Pages workflow or your preferred Pages source.
+Scoring is delegated to `@epsa/engine`, so this build cannot disagree with the
+full calculator or the bus screening tool about the same patient.
+
+Deploy `dist-sinai/` to any static host. Point a stable vanity URL at it and
+give Sinai web **only that URL** — editing a page in their CMS is a ticket and
+a review cycle, and you do not want to spend that twice if the hosting moves.
 
 ---
 
@@ -293,7 +301,7 @@ Production build smoke checks:
 ```bash
 cd frontend
 npm run build
-npm run build:gh-pages
+npm run build:sinai
 ```
 
 ---
