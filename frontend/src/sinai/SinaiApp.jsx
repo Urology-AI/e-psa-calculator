@@ -108,7 +108,11 @@ export default function SinaiApp() {
       age: a.age,
       race: a.race,
       bmi,
-      familyHistory: a.familyHistory,
+      // The engine counts affected first-degree relatives; it does not parse
+      // 'yes'/'no'. Passing the string scored identically to no family history
+      // at all, silently dropping one of the strongest factors in the model.
+      // The screening tool avoids this with its own FH_MAP for the same reason.
+      familyHistory: a.familyHistory === 'yes' ? 1 : 0,
       brcaStatus: a.brcaStatus,
       exercise: a.exercise,
       hypertension: a.hypertension,
@@ -117,7 +121,6 @@ export default function SinaiApp() {
       diabetes: a.diabetes,
       ipss: a.ipss,
       shim: a.shim,
-      smokingStatus: 'never',
     }),
     [a, bmi],
   );
