@@ -5,9 +5,6 @@
   "targets": {
     "epsa-30d0b": {
       "hosting": {
-        "admin": [
-          "epsa-admin-89185"
-        ],
         "app": [
           "epsa-30d0b"
         ],
