@@ -264,9 +264,26 @@ npm run build:sinai    # -> frontend/dist-sinai
 Scoring is delegated to `@epsa/engine`, so this build cannot disagree with the
 full calculator or the bus screening tool about the same patient.
 
-Deploy `dist-sinai/` to any static host. Point a stable vanity URL at it and
-give Sinai web **only that URL** — editing a page in their CMS is a ticket and
-a review cycle, and you do not want to spend that twice if the hosting moves.
+#### Deployment
+
+It ships as a third Firebase Hosting target (`sinai`, site `epsa-sinai`)
+alongside `app` and `admin`, deployed by `firebase-deploy.yml` on every push to
+`main`. Pull requests get their own expiring preview URL, commented on the PR —
+that is how the department and the Sinai web team review a change before it is
+live, with nothing to install and no account needed.
+
+**One-time setup:** create the `epsa-sinai` site under project `epsa-30d0b`
+(Firebase console → Hosting → Add another site). `.firebaserc` already maps the
+`sinai` target to it; the deploy fails with `site not found` until it exists.
+
+Once live, point a stable vanity URL at the site and give Sinai web **only that
+URL** — editing a page in their CMS is a ticket and a review cycle, and you do
+not want to spend that twice if the hosting ever moves.
+
+The `sinai` target sets its own headers, deliberately different from `app`:
+`frame-ancestors` allows `mountsinai.org` so their web team can embed the page
+rather than link out to it, and the CSP sets `connect-src 'none'` so the
+no-network guarantee is enforced by the browser, not just by the source.
 
 ---
 
