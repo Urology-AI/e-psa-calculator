@@ -15,7 +15,9 @@
     "build:gh-pages": "vite build --config vite.config.gh-pages.js && cd ../docs && mv index.gh-pages.html index.html && echo 'GitHub Pages build completed in ../docs directory'",
     "preview": "vite preview",
     "predeploy": "npm run build:gh-pages",
-    "deploy": "gh-pages -d ../docs"
+    "deploy": "gh-pages -d ../docs",
+    "dev:sinai": "vite --config vite.config.sinai.js",
+    "build:sinai": "vite build --config vite.config.sinai.js"
   },
   "dependencies": {
     "@epsa/engine": "npm:@urology-ai/epsa-engine@^0.2.0",
