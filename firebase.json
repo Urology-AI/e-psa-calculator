@@ -96,6 +96,10 @@
             {
               "key": "Content-Security-Policy",
               "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'self'; frame-ancestors 'self' https://www.mountsinai.org https://*.mountsinai.org"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
             }
           ]
         },
@@ -105,15 +109,6 @@
             {
               "key": "Cache-Control",
               "value": "public, max-age=31536000, immutable"
-            }
-          ]
-        },
-        {
-          "source": "/index.html",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
             }
           ]
         }
