@@ -7,15 +7,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:demo": "vite --config vite.config.demo.js",
     "test": "vitest run",
     "test:patients": "node src/runPatientTests.mjs",
     "test:watch": "vitest",
     "build": "vite build",
-    "build:gh-pages": "vite build --config vite.config.gh-pages.js && cd ../docs && mv index.gh-pages.html index.html && echo 'GitHub Pages build completed in ../docs directory'",
     "preview": "vite preview",
-    "predeploy": "npm run build:gh-pages",
-    "deploy": "gh-pages -d ../docs"
+    "dev:sinai": "vite --config vite.config.sinai.js",
+    "build:sinai": "vite build --config vite.config.sinai.js"
   },
   "dependencies": {
     "@epsa/engine": "npm:@urology-ai/epsa-engine@^0.2.0",
@@ -47,7 +45,6 @@
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.5.3",
-    "gh-pages": "^6.1.0",
     "postcss": "^8.5.19",
     "tailwindcss": "^4.3.2",
     "vite": "^5.0.8",

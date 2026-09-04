@@ -186,6 +186,13 @@ jobs:
         VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
 
+    # No VITE_FIREBASE_* here on purpose: this build has no Firebase, no
+    # accounts, and no network calls at all. Passing credentials it cannot use
+    # would only put them in a bundle served to anonymous public traffic.
+    - name: Build Sinai landing-page bundle
+      run: npm run build:sinai
+      working-directory: frontend
+
     # repoToken is deliberately NOT passed to the deploy action: with a token it
     # calls the GitHub check-runs/comments API and any API hiccup crashes the
     # whole job even when the Firebase deploy succeeded.
@@ -204,6 +211,15 @@ jobs:
         projectId: epsa-30d0b
         target: app
 
+    - name: Deploy Sinai landing page (live)
+      if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
+        channelId: live
+        projectId: epsa-30d0b
+        target: sinai
+
     - name: Skip preview deploy for fork PRs
       if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       run: echo 'Skipping Firebase preview deploy for fork PR because secrets are unavailable.'
@@ -217,18 +233,33 @@ jobs:
         projectId: epsa-30d0b
         target: app
 
+    # The preview channel is how the Sinai web team and department reviewers
+    # see a change before it is live: every PR gets its own expiring URL,
+    # commented below, with nothing to install and no account needed.
+    - name: Deploy Sinai landing page (preview)
+      id: sinai_preview
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EPSA_30D0B }}'
+        projectId: epsa-30d0b
+        target: sinai
+
     - name: Publish preview URL
       if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         APP_URLS: ${{ steps.app_preview.outputs.urls }}
+        SINAI_URLS: ${{ steps.sinai_preview.outputs.urls }}
         EXPIRES: ${{ steps.app_preview.outputs.expire_time }}
       run: |
         APP=$(echo "$APP_URLS" | jq -r 'join(" ")' 2>/dev/null || echo "$APP_URLS")
-        BODY="Preview URL for commit ${{ github.event.pull_request.head.sha }}:
+        SINAI=$(echo "$SINAI_URLS" | jq -r 'join(" ")' 2>/dev/null || echo "$SINAI_URLS")
+        BODY="Preview URLs for commit ${{ github.event.pull_request.head.sha }}:
 
         - App: ${APP}
+        - Sinai landing page: ${SINAI}
 
         Expires: ${EXPIRES}"
         echo "$BODY" >> "$GITHUB_STEP_SUMMARY"

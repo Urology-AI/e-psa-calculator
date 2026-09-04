@@ -32,7 +32,7 @@ A web application for **prostate cancer risk education and stratification**: evi
 | Environment | URL | Notes |
 |-------------|-----|--------|
 | **Firebase (production)** | [epsa-30d0b.web.app](https://epsa-30d0b.web.app) | Full app with Firebase Auth, Firestore, and Cloud Functions |
-| **GitHub Pages (static)** | [urology-ai.github.io/e-psa-calculator](https://urology-ai.github.io/e-psa-calculator/) | Static build; Firebase disabled; local/browser storage for continuity |
+| **Sinai landing page (static)** | *(pending — see below)* | Lean public Part 1 build linked from mountsinai.org; no Firebase, no accounts |
 
 ---
 
@@ -52,7 +52,7 @@ A web application for **prostate cancer risk education and stratification**: evi
 
 ### For clinicians and researchers
 
-- **Admin dashboard** (`admin-dashboard`) — Separate Vite app, deployed as a second Firebase Hosting target, for authorized staff to inspect usage-oriented data (implementation-specific; see that package and backend callable functions).
+- **Admin dashboard** — Lives in its own repository, [Urology-AI/epsa-admin-dashboard](https://github.com/Urology-AI/epsa-admin-dashboard), which unifies the admin surfaces for this calculator, the mobile-bus screening tool, and REDCap. It is not built or deployed from here.
 - **Model transparency** — Coefficients and thresholds live in frontend config; see [Models and training](#models-and-training) to refit from data.
 
 ---
@@ -71,9 +71,9 @@ A web application for **prostate cancer risk education and stratification**: evi
 
 Build output for Firebase Hosting: **`frontend/build`** (see `firebase.json`).
 
-### Admin dashboard (`admin-dashboard`)
+### Admin dashboard
 
-React 18 + Vite; build output: **`admin-dashboard/dist`**. Shares Firebase project configuration patterns with the main app.
+Moved to [Urology-AI/epsa-admin-dashboard](https://github.com/Urology-AI/epsa-admin-dashboard) in `cfb061b`. See that repository for its build and deploy steps.
 
 ### Backend (`backend`)
 
@@ -91,7 +91,7 @@ React 18 + Vite; build output: **`admin-dashboard/dist`**. Shares Firebase proje
 - **Authentication** — Email/password and anonymous auth are reflected in project config; phone flows may be used depending on deployment.
 - **Firestore** — Primary application data store; rules in `firestore.rules`.
 - **Realtime Database** — Rules present (`database.rules.json`); use depends on feature set.
-- **Hosting** — Two targets: `app` (patient app), `admin` (admin dashboard).
+- **Hosting** — Two targets: `app` (full patient app) and `sinai` (the lean public build linked from mountsinai.org).
 - **Cloud Functions** — PHI-sensitive or privileged operations implemented in `backend/src` (compiled to `lib`).
 
 ---
@@ -107,7 +107,6 @@ e-psa-calculator/
 │   │   ├── services/        # Analytics and integrations
 │   │   └── utils/           # Calculator engine, export helpers, tests
 │   └── package.json
-├── admin-dashboard/          # Admin React app (Vite → dist/)
 │   └── package.json
 ├── backend/                  # Firebase Cloud Functions (TypeScript)
 │   ├── src/index.ts
@@ -116,8 +115,7 @@ e-psa-calculator/
 │   ├── README.md
 │   ├── refit_part1_psa_model.py
 │   └── refit_part2_cancer_model.py.py
-├── docs/                     # GitHub Pages artifact (from frontend build:gh-pages)
-├── .github/workflows/        # Firebase deploy + GitHub Pages
+├── .github/workflows/        # Firebase deploy + security scans
 ├── firebase.json
 ├── firestore.rules
 ├── database.rules.json
@@ -129,7 +127,7 @@ e-psa-calculator/
 ## Prerequisites
 
 - **Node.js 20** (aligned with GitHub Actions and Cloud Functions runtime)
-- **npm** (lockfiles are committed under `frontend` and `admin-dashboard`)
+- **npm** (lockfile is committed under `frontend`)
 - **Git**
 - **Firebase CLI** for emulators and manual deploys: `npm install -g firebase-tools` (or use `npx firebase`)
 - **Python 3** (optional) — only if you refit models using `training/`
@@ -145,7 +143,6 @@ git clone https://github.com/Urology-AI/e-psa-calculator.git
 cd e-psa-calculator
 
 cd frontend && npm install && cd ..
-cd admin-dashboard && npm install && cd ..
 cd backend && npm install && cd ..
 ```
 
@@ -162,16 +159,7 @@ npm run dev
 
 Dev server defaults to **http://localhost:3000** (`vite.config.js`).
 
-### 4. Run the admin dashboard
-
-```bash
-cd admin-dashboard
-npm run dev
-```
-
-Dev server defaults to **http://localhost:3001** (`admin-dashboard/vite.config.js`).
-
-### 5. Build Cloud Functions (when touching backend)
+### 4. Build Cloud Functions (when touching backend)
 
 ```bash
 cd backend
@@ -234,8 +222,7 @@ Point the frontend at emulators with the `VITE_USE_*_EMULATOR` variables in `fro
 
 ### Automatic CI
 
-- **`firebase-deploy.yml`** — On pushes to `main`, builds `frontend` and `admin-dashboard`, deploys both Hosting targets to project `epsa-30d0b`. On pull requests from the **same** repository, deploys **preview** channels; fork PRs skip preview deploy (token limitation).
-- **`gh-pages-deploy.yml`** — Builds `npm run build:gh-pages` in `frontend`, uploads the **`docs/`** output to GitHub Pages.
+- **`firebase-deploy.yml`** — On pushes to `main`, builds `frontend` and deploys the `app` and `sinai` Hosting targets to project `epsa-30d0b`. On pull requests from the **same** repository, deploys **preview** channels; fork PRs skip preview deploy (token limitation).
 
 ### Secrets (typical)
 
@@ -251,14 +238,41 @@ firebase deploy --only firestore
 firebase deploy --only functions
 ```
 
-### Manual GitHub Pages static build
+### Sinai landing-page static build
+
+The public build linked from mountsinai.org's PSA screening page. Lean by
+design: Part 1 only, no Firebase, no accounts, no i18n bundle — one
+questionnaire, one result, one call to action.
 
 ```bash
 cd frontend
-npm run build:gh-pages
+npm run dev:sinai      # local, port 5173
+npm run build:sinai    # -> frontend/dist-sinai
 ```
 
-The script builds with the GitHub Pages Vite config and refreshes `docs/index.html`. Deploy via the GitHub Pages workflow or your preferred Pages source.
+Scoring is delegated to `@epsa/engine`, so this build cannot disagree with the
+full calculator or the bus screening tool about the same patient.
+
+#### Deployment
+
+It ships as a third Firebase Hosting target (`sinai`, site `epsa-sinai`)
+alongside `app` and `admin`, deployed by `firebase-deploy.yml` on every push to
+`main`. Pull requests get their own expiring preview URL, commented on the PR —
+that is how the department and the Sinai web team review a change before it is
+live, with nothing to install and no account needed.
+
+**One-time setup:** create the `epsa-sinai` site under project `epsa-30d0b`
+(Firebase console → Hosting → Add another site). `.firebaserc` already maps the
+`sinai` target to it; the deploy fails with `site not found` until it exists.
+
+Once live, point a stable vanity URL at the site and give Sinai web **only that
+URL** — editing a page in their CMS is a ticket and a review cycle, and you do
+not want to spend that twice if the hosting ever moves.
+
+The `sinai` target sets its own headers, deliberately different from `app`:
+`frame-ancestors` allows `mountsinai.org` so their web team can embed the page
+rather than link out to it, and the CSP sets `connect-src 'none'` so the
+no-network guarantee is enforced by the browser, not just by the source.
 
 ---
 
@@ -286,14 +300,14 @@ npm run test:patients
 npm run test:watch
 ```
 
-The **`admin-dashboard`** package currently exposes `dev`, `build`, and `preview` only (no `npm test` script). The **`backend`** package exposes `build`, emulator helpers, and deploy scripts (no `npm test` in `package.json`).
+The **`backend`** package exposes `build`, emulator helpers, and deploy scripts (no `npm test` in `package.json`).
 
 Production build smoke checks:
 
 ```bash
 cd frontend
 npm run build
-npm run build:gh-pages
+npm run build:sinai
 ```
 
 ---

@@ -2,7 +2,7 @@
  * Dynamic ePSA Calculator
  *
  * Local wrapper around @epsa/engine — used by:
- *  - App.gh-pages.jsx, the static GitHub Pages build, which has no Firebase
+ *  - src/sinai/, the static Mount Sinai landing-page build, which has no Firebase
  *    backend and so cannot call the shared calculatePsaRecommendation Cloud
  *    Function; it computes locally against the default config.
  *  - QuickEntry.jsx's client-side validateInputs() call, for instant form
