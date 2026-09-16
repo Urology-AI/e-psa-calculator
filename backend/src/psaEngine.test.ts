@@ -98,3 +98,14 @@ test('RequestSchema accepts every diet option the web form offers', () => {
     assert.ok(parsed.success, `dietPattern '${dietPattern}' was rejected`);
   }
 });
+
+// Part1Form's family-history options include 'Unknown' ('unknown'), which the
+// engine scores as no family history. The schema only allowed 0-3.
+test('RequestSchema accepts every family-history option the web form offers', () => {
+  for (const familyHistory of [0, 1, 2, 'unknown', null]) {
+    const parsed = RequestSchema.safeParse({
+      prePsa: { age: 55, race: 'white', bmi: 26, ipss: [0, 0, 0, 0, 0, 0, 0], shim: [4, 4, 4, 4, 4], exercise: 1, familyHistory, comorbidityScore: 0, brcaStatus: 'no' },
+    });
+    assert.ok(parsed.success, `familyHistory '${familyHistory}' was rejected`);
+  }
+});

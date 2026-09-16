@@ -110,7 +110,7 @@ const PreDataSchema = z.object({
   heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
   weightUnit: z.enum(['lbs', 'kg']).optional(),
   weightKg: z.union([z.number().positive(), z.string(), z.null()]).optional(),
-  familyHistory: z.union([z.number().int().min(0).max(3), z.null()]).transform(val => val === null ? 0 : val),
+  familyHistory: z.union([z.number().int().min(0).max(3), z.literal('unknown'), z.null()]).transform(val => val === null ? 0 : val),
   brcaStatus: z.enum(['none', 'brca1', 'brca2', 'both', 'unknown']).optional().transform(val => val || 'unknown'),
   ipss: z.array(z.union([z.number().int().min(0).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 0 : val)),
   shim: z.array(z.union([z.number().int().min(1).max(5), z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),

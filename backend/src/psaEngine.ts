@@ -46,7 +46,7 @@ const PrePsaInputSchema = z.object({
   heightUnit: z.enum(['ft', 'cm', 'imperial', 'metric']).nullable().optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
   weightUnit: z.enum(['lbs', 'kg']).nullable().optional(),
   weightKg: z.union([z.number().positive(), z.string(), z.null()]).optional(),
-  familyHistory: z.union([z.number().int().min(0).max(3), z.null()]).transform(val => val === null ? 0 : val),
+  familyHistory: z.union([z.number().int().min(0).max(3), z.literal('unknown'), z.null()]).transform(val => val === null ? 0 : val),
   // Must match the vocabulary the engine's brcaPositive check actually tests for
   // ('yes'/'lynch'/'other_elevated'/'other_unknown' => positive), NOT an invented
   // brca1/brca2/both scheme — those values silently fail to trigger the +16 anchor
