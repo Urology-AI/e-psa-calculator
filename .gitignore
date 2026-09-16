@@ -93,3 +93,6 @@ scripts/serviceAccount.json
 SOFTWARE_QUALITY.md
 AUDIT_REPORT.md
 frontend/dist-sinai
+
+# dedupeSessionKeys.js --apply backups (contain session keys)
+dedupeSessionKeys-backup-*.json

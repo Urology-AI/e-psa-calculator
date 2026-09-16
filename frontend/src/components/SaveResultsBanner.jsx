@@ -46,8 +46,8 @@ const SaveResultsBanner = ({ sessionKey, saved, pending, error, onSave, onClearS
       <span className="save-results-banner__confirm">
         <span className="save-results-banner__confirm-text">
           Clear this session? {saved
-            ? 'Your saved copy stays reachable with the key above, but this device starts a new session.'
-            : 'These answers and results are deleted from this browser.'}
+            ? 'Your saved copy is deleted from the cloud right away and the key above stops working.'
+            : 'These answers and results are erased from this browser.'}
         </span>
         <button type="button" className="save-results-banner__btn save-results-banner__btn--danger" onClick={onClearSession}>
           Yes, clear it
@@ -61,7 +61,7 @@ const SaveResultsBanner = ({ sessionKey, saved, pending, error, onSave, onClearS
         type="button"
         className="save-results-banner__link"
         onClick={() => setConfirmingClear(true)}
-        title="Clear this session from this device and start a new one"
+        title="Delete this session and start a new one"
       >
         <Trash2Icon size={12} aria-hidden="true" />
         Clear session
@@ -90,7 +90,7 @@ const SaveResultsBanner = ({ sessionKey, saved, pending, error, onSave, onClearS
         <strong>Your results aren't saved yet.</strong>{' '}
         {error
           ? error
-          : 'They stay in this browser for now — save them to reopen this assessment on any device.'}
+          : 'Nothing is sent anywhere unless you choose to save. A copy stays in this browser for 15 minutes so a reload doesn\'t lose them, then it is erased.'}
       </div>
       {keyChip}
       <button

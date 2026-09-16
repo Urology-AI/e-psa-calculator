@@ -86,6 +86,7 @@ const CONSENT_VERSION_KEY = 'epsa_consent_version';
 // mandatory. Answers are stored, not scores: results are recomputed on restore
 // so a model change can never leave a stale number on screen.
 const LOCAL_SESSION_KEY = 'epsa_local_session_v1';
+const LOCAL_SESSION_TTL_MS = 15 * 60 * 1000;
 
 // Safe localStorage wrappers — fail silently in private/incognito mode or when quota is full.
 const safeLS = {
@@ -313,16 +314,22 @@ function App() {
   // already-saved session has nothing to offer, and re-prompting someone who
   // saved (or imported with their key) reads like the save didn't take.
   // ── Device-local session persistence ──────────────────────────────────────
-  // Keeps the current run recoverable across reloads without anything being
-  // uploaded. Cleared by Start Over / logout, and superseded once the session
-  // is saved to the cloud (the key becomes the way back in).
+  // Keeps the current run recoverable across an accidental reload without
+  // anything being uploaded. The copy expires LOCAL_SESSION_TTL_MS after the
+  // last change (same window as the inactivity logout) so a shared device
+  // never hands one patient's answers to the next. Cleared by Start Over /
+  // Clear session / logout. Only answers are kept — never the cloud key.
   useEffect(() => {
     if (authStep !== 'app') return;
+    // Saved to the cloud: the key is the way back, so drop the device copy
+    // (restoring it would look unsaved and offer a duplicate save).
+    if (sessionId) { safeLS.remove(LOCAL_SESSION_KEY); return; }
     if (!preData?.age && !preResult) return;
     try {
       safeLS.set(LOCAL_SESSION_KEY, JSON.stringify({
         version: 1,
         savedAt: new Date().toISOString(),
+        expiresAt: Date.now() + LOCAL_SESSION_TTL_MS,
         preData,
         postData,
         stage,
@@ -331,14 +338,9 @@ function App() {
         pathwayMode,
         hasPreResult: !!preResult,
         hasPostResult: !!postResult,
-        // Carry the cloud identity too, so a reload of a saved run comes back
-        // as saved rather than re-offering a save that already happened.
-        sessionId,
-        appSessionId,
-        cloudConsentGiven,
       }));
     } catch { /* ignore quota/private-mode failures */ }
-  }, [authStep, preData, postData, stage, currentStep, part1Step, pathwayMode, preResult, postResult, sessionId, appSessionId, cloudConsentGiven]);
+  }, [authStep, preData, postData, stage, currentStep, part1Step, pathwayMode, preResult, postResult, sessionId]);
 
   const localRestoreAttemptedRef = useRef(false);
   useEffect(() => {
@@ -348,9 +350,27 @@ function App() {
     const raw = safeLS.get(LOCAL_SESSION_KEY);
     if (!raw) return;
     let saved;
-    try { saved = JSON.parse(raw); } catch { return; }
-    if (!saved?.preData?.age) return;
+    try { saved = JSON.parse(raw); } catch { safeLS.remove(LOCAL_SESSION_KEY); return; }
+    // Expired or pre-expiry-format copies are deleted, not restored.
+    if (!saved?.preData?.age || !(Number(saved.expiresAt) > Date.now())) {
+      safeLS.remove(LOCAL_SESSION_KEY);
+      return;
+    }
+    setPendingLocalRestore(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // A recent copy exists on this device — ask rather than restore silently,
+  // since on a shared device it may belong to the previous person.
+  const [pendingLocalRestore, setPendingLocalRestore] = useState(null);
+  const handleDiscardLocalRestore = () => {
+    safeLS.remove(LOCAL_SESSION_KEY);
+    setPendingLocalRestore(null);
+  };
+  const handleAcceptLocalRestore = () => {
+    const saved = pendingLocalRestore;
+    setPendingLocalRestore(null);
+    if (!saved) return;
     (async () => {
       try {
         assessmentInProgressRef.current = true;
@@ -360,9 +380,6 @@ function App() {
         setStage(saved.stage || 'pre');
         setPart1Step(saved.part1Step ?? 0);
         setStorageMode('cloud');
-        if (saved.sessionId) setSessionId(saved.sessionId);
-        if (saved.appSessionId) setAppSessionId(saved.appSessionId);
-        if (saved.cloudConsentGiven) setCloudConsentGiven(true);
         setConsentData({
           consentToContact: false,
           researchConsent: false,
@@ -388,7 +405,17 @@ function App() {
         setAuthStep('welcome');
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  };
+
+  // Sweep an expired copy even if this tab stays open past the TTL.
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        const saved = JSON.parse(safeLS.get(LOCAL_SESSION_KEY) || 'null');
+        if (saved && !(Number(saved.expiresAt) > Date.now())) safeLS.remove(LOCAL_SESSION_KEY);
+      } catch { safeLS.remove(LOCAL_SESSION_KEY); }
+    }, 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
@@ -427,9 +454,10 @@ function App() {
       }
       if (cancelled) return;
       setSessionKeyPending(false);
-      if (cloudConsentGivenRef.current || sessionIdRef.current) {
-        // Already consented (imported or previously saved session) — keep it
-        // saved silently rather than re-asking a question they've answered.
+      if (cloudConsentGivenRef.current && !sessionIdRef.current) {
+        // Already consented but nothing saved yet — keep it saved silently
+        // rather than re-asking. A restored session (sessionId set) is already
+        // in the cloud; creating another here duplicated the record.
         handleSaveLocalToCloud();
       }
       // Otherwise nothing pops: the key now feeds SaveResultsBanner at the top
@@ -869,6 +897,7 @@ function App() {
   };
 
   const saveProgressStep = async (partialData, step) => {
+    if (!cloudConsentGivenRef.current) return; // never store before opt-in
     if (storageMode !== 'cloud' || !user || user.uid === 'local' || !db) return;
     setCloudSyncStatus('saving');
     try {
@@ -929,12 +958,19 @@ function App() {
   const removeSession = async (uid, sessionDocId) => {
     if (!db) return;
     setCloudSyncStatus('saving');
-    await deleteDoc(doc(db, 'sessions', sessionDocId));
-    await updateDoc(doc(db, 'users', uid), {
+    if (sessionDocId) await deleteDoc(doc(db, 'sessions', sessionDocId));
+    // Rules forbid client deletes on users/, so strip everything that ties
+    // this uid to the patient: the restore key and the consent record.
+    await setDoc(doc(db, 'users', uid), {
       currentSessionId: deleteField(),
+      sessionId: deleteField(),
+      consentToContact: deleteField(),
+      consentTimestamp: deleteField(),
+      researchConsent: deleteField(),
+      researchTimestamp: deleteField(),
       updatedAt: serverTimestamp(),
-    });
-    setCloudSyncStatus('saved');
+    }, { merge: true });
+    setCloudSyncStatus('idle');
   };
 
   const handleAuthSuccess = async (user, authInfo) => {
@@ -1024,7 +1060,7 @@ function App() {
     // upsertConsent with the placeholder 'local' uid just throws a permission
     // error for a record nothing reads. Cloud-save consent is written at upload
     // time instead, in handleSaveLocalToCloud.
-    if (user && user.uid !== 'local' && storageMode === 'cloud') {
+    if (cloudConsentGivenRef.current && user && user.uid !== 'local' && storageMode === 'cloud') {
       try {
         await upsertConsent(consent);
       } catch (error) {
@@ -1077,8 +1113,22 @@ function App() {
    * to the cloud is untouched and stays reachable with its key — this clears
    * what's on *this device* and mints a new key for whatever comes next.
    */
-  const handleClearLocalSession = () => {
+  const handleClearLocalSession = async () => {
+    // Delete the saved cloud copy right away, then drop the anonymous identity
+    // so nothing on this device or server still points at the patient.
+    const uid = auth?.currentUser?.uid;
+    if (uid && (sessionIdRef.current || cloudConsentGivenRef.current)) {
+      try {
+        await removeSession(uid, sessionIdRef.current);
+      } catch (err) {
+        console.error('Error deleting saved session:', err);
+      }
+    }
+    try {
+      if (auth?.currentUser?.isAnonymous) await auth.currentUser.delete();
+    } catch { /* recent-login required; signOut on logout still unlinks */ }
     safeLS.remove(LOCAL_SESSION_KEY);
+    cloudConsentGivenRef.current = false;
     cloudOfferShownRef.current = false;
     assessmentInProgressRef.current = false;
     setCloudConsentGiven(false);
@@ -1185,23 +1235,15 @@ function App() {
       console.warn('Could not read existing session key:', err);
     }
 
+    // Minted in memory only. The uid→key mapping is written in
+    // handleSaveLocalToCloud, so a patient who never saves leaves no record.
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const bytes = new Uint32Array(8);
+    crypto.getRandomValues(bytes);
     let newSessionId = '';
     for (let i = 0; i < 8; i++) {
-      newSessionId += chars.charAt(Math.floor(Math.random() * chars.length));
+      newSessionId += chars.charAt(bytes[i] % chars.length);
     }
-
-    await setDoc(doc(db, 'users', firebaseUser.uid), {
-      uid: firebaseUser.uid,
-      sessionId: newSessionId,
-      authMethod: 'anonymous',
-      isAnonymous: true,
-      email: null,
-      phone: null,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      lastLoginAt: new Date().toISOString(),
-    }, { merge: true });
 
     setAppSessionId(newSessionId);
     setUser(firebaseUser);
@@ -1261,7 +1303,7 @@ function App() {
 
   const handleSaveLocalToCloud = async (cloudConsent = null) => {
     if (!isFirebaseConfigured() || !auth || !functions || !preData || !preResult) {
-      setSaveToCloudError("Cloud save is not available right now. Your results are still saved on this device — you can keep working and try again later.");
+      setSaveToCloudError("Cloud save is not available right now. Nothing was uploaded — your results are still here, and you can try again.");
       return;
     }
     setSaveToCloudPending(true);
@@ -1278,6 +1320,22 @@ function App() {
       if (!firebaseUser) {
         throw new Error('Could not create session.');
       }
+      const sessionKey = appSessionId && appSessionId !== 'Local'
+        ? appSessionId
+        : await ensureAnonymousSessionKey();
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        uid: firebaseUser.uid,
+        sessionId: sessionKey,
+        authMethod: 'anonymous',
+        isAnonymous: true,
+        email: null,
+        phone: null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastLoginAt: new Date().toISOString(),
+      }, { merge: true });
+      // Opted in from here on: later steps (PSA, MRI) update this session.
+      cloudConsentGivenRef.current = true;
       // Record the consent captured in the modal before any data lands in
       // Firestore, so a session never exists without the consent that allowed it.
       if (cloudConsent) {
@@ -1307,8 +1365,8 @@ function App() {
       // The internal err.message is kept in the console for debugging.
       const networkLike = /network|offline|unavailable|timeout|fetch/i.test(err?.message || '');
       const friendly = networkLike
-        ? "We couldn't reach the cloud — looks like a network issue. Your results are still saved on this device. Try again in a moment."
-        : "We couldn't save to the cloud. Your results are still saved on this device — you can keep working and try again later.";
+        ? "We couldn't reach the cloud — looks like a network issue. Nothing was uploaded — your results are still here. Try again in a moment."
+        : "We couldn't save to the cloud. Nothing was uploaded — your results are still here, and you can try again.";
       setSaveToCloudError(friendly);
     } finally {
       setSaveToCloudPending(false);
@@ -1590,7 +1648,7 @@ function App() {
    */
   const handleClearData = async ({ deleteCloudSession = true } = {}) => {
     // Delete current session via backend and clear user's session reference
-    if (deleteCloudSession && storageMode === 'cloud' && user && sessionId) {
+    if (deleteCloudSession && storageMode === 'cloud' && user && (sessionId || cloudConsentGivenRef.current)) {
       try {
         await removeSession(user.uid, sessionId);
       } catch (error) {
@@ -1647,6 +1705,8 @@ function App() {
     if (user) {
       safeLS.remove(`sessionId_${user.uid}`);
     }
+
+    safeLS.remove(LOCAL_SESSION_KEY);
 
     // Reset loading animations so they play again on next run
     safeLS.remove(LOADING_SEEN_KEY_P1);
@@ -1717,6 +1777,7 @@ function App() {
       }
       safeLS.remove(CONSENT_CACHE_KEY);
       safeLS.remove(CONSENT_VERSION_KEY);
+      safeLS.remove(LOCAL_SESSION_KEY);
   };
 
 
@@ -1727,7 +1788,26 @@ function App() {
     }));
   };
 
-  const handlePart1Next = async () => {
+  // Scoring is a network call. If it fails after retries, tell the patient
+  // and keep their answers on screen instead of leaving a dead button.
+  const [calcError, setCalcError] = useState(null);
+  const withCalcErrorGuard = (fn) => async (...args) => {
+    setCalcError(null);
+    try {
+      return await fn(...args);
+    } catch (err) {
+      console.error('Scoring failed:', err?.code || err);
+      setIsCalculatingPart3(false);
+      const invalid = err?.code === 'functions/invalid-argument';
+      setCalcError(invalid
+        ? 'Some answers could not be scored. Please review your answers and try again.'
+        : "We couldn't calculate your results right now — the service may be busy. Your answers are still here; please try again in a moment.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return undefined;
+    }
+  };
+
+  const handlePart1Next = withCalcErrorGuard(async () => {
     {
       // Calculate Part 1 results via the shared Cloud Function
       // SHIM is hardcoded to zeros — removed from the form per design change
@@ -1756,8 +1836,10 @@ function App() {
         });
       }
       
-      // Save Part 1 session to Firestore (cloud mode only)
-      if (storageMode === 'cloud' && user && user.uid !== 'local' && db) {
+      // Save Part 1 session to Firestore — only once the patient opted in.
+      // The scoring callable signs in anonymously, so `user` is set for every
+      // run; without the consent check this stored answers nobody agreed to.
+      if (cloudConsentGivenRef.current && storageMode === 'cloud' && user && user.uid !== 'local' && db) {
         try {
           if (!sessionId) {
             // No partial session yet — create a fresh STEP1_COMPLETE session
@@ -1794,7 +1876,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
     }
-  };
+  });
   
   const handlePart1Back = () => {
     if (part1Step > 0) {
@@ -1804,7 +1886,16 @@ function App() {
   };
   
 
-  const handlePostNext = async () => {
+  const persistStep2IfOptedIn = async (result) => {
+    if (!result || !cloudConsentGivenRef.current || !sessionIdRef.current || storageMode !== 'cloud' || !user) return;
+    try {
+      await updateSessionStep2(sessionIdRef.current, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
+    } catch (error) {
+      console.error('Error saving PSA result to Firestore:', error);
+    }
+  };
+
+  const handlePostNext = withCalcErrorGuard(async () => {
     // Ensure Part 1 is complete before calculating Part 2
     if (!preResult) {
       // Redirect back to Part 1 results — no alert needed as the stage change is self-explanatory
@@ -1824,6 +1915,7 @@ function App() {
         // takes raw Part 1 form data and recomputes Part 1 + Part 2 together.)
         const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
         setPostResult(interimResult);
+        await persistStep2IfOptedIn(interimResult);
         setShowPart2Interim(true);
         setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1843,6 +1935,7 @@ function App() {
       // PSA + baseline, no MRI yet) and show it before moving to Part 3 (MRI).
       const { postResult: interimResult } = await computeSessionResults(preData, { ...postData, pathwayMode: 'post_psa' });
       setPostResult(interimResult);
+      await persistStep2IfOptedIn(interimResult);
       setShowPart2Interim(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentStep === part2TotalSteps) {
@@ -1906,7 +1999,7 @@ function App() {
       }
       
       // Save Part 2 session to Firestore (cloud mode only)
-      if (storageMode === 'cloud' && user && sessionId) {
+      if (cloudConsentGivenRef.current && storageMode === 'cloud' && user && sessionId) {
         try {
           await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
         } catch (error) {
@@ -1918,7 +2011,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
     }
-  };
+  });
 
   const handlePostPrevious = () => {
     if (currentStep > 1) {
@@ -2322,6 +2415,22 @@ function App() {
   return (
     <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
+      {pendingLocalRestore && authStep === 'welcome' && (
+        <div role="dialog" aria-modal="true" aria-labelledby="resume-title"
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: 'var(--surface, #fff)', color: 'inherit', borderRadius: 12, padding: 24, maxWidth: 420, width: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <h2 id="resume-title" style={{ marginTop: 0, fontSize: '1.2rem' }}>Continue your session?</h2>
+            <p style={{ margin: '0 0 20px' }}>
+              An unfinished assessment from the last 15 minutes is on this device.
+              If it isn't yours, start a new one — the old answers are erased.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button type="button" className="save-results-banner__btn" onClick={handleAcceptLocalRestore}>Continue my session</button>
+              <button type="button" className="save-results-banner__btn save-results-banner__btn--danger" onClick={handleDiscardLocalRestore}>Start a new one</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container">
         <BackButton onBack={handleGlobalBack} show={shouldShowBackButton()} />
         <header className={`app-header ${shouldShowBackButton() ? 'with-back-button' : ''}`}>
@@ -2377,7 +2486,7 @@ function App() {
                     className="cloud-icon-badge header-save-cloud-btn"
                     onClick={() => setShowSaveToCloudConsent(true)}
                     disabled={saveToCloudPending}
-                    title={saveToCloudError || 'Saved on this device only — click to save a copy to the cloud'}
+                    title={saveToCloudError || 'Not saved — click to save a copy to the cloud'}
                   >
                     <HardDriveIcon size={14} />
                     <span className="header-save-cloud-label">
@@ -2386,7 +2495,7 @@ function App() {
                   </button>
                 )}
                 {storageMode === 'local' && (!isFirebaseConfigured() || !preResult) && (
-                  <span className="cloud-icon-badge" title="Saved on this device only">
+                  <span className="cloud-icon-badge" title="Not saved">
                     <HardDriveIcon size={14} />
                   </span>
                 )}
@@ -2497,6 +2606,15 @@ function App() {
               showPart2Interim={showPart2Interim}
             />
             {import.meta.env.DEV && showTestPanel && <FirebaseTestPanel />}
+
+            {calcError && (
+              <div className="save-results-banner" role="alert">
+                <div className="save-results-banner__text">{calcError}</div>
+                <button type="button" className="save-results-banner__link" onClick={() => setCalcError(null)}>
+                  Dismiss
+                </button>
+              </div>
+            )}
 
             {/* Save offer / saved confirmation — a bar above the results rather
                 than a modal over them. */}

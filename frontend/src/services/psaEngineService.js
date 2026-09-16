@@ -23,6 +23,27 @@ async function ensureSignedIn() {
   return result.user;
 }
 
+// Transient failures — cold starts and instance scale-up when many people
+// score at once — are retried with jittered backoff. Bad input is not.
+const RETRYABLE = new Set([
+  'functions/unavailable', 'functions/resource-exhausted', 'functions/deadline-exceeded',
+  'functions/internal', 'functions/unknown', 'functions/aborted',
+]);
+const MAX_ATTEMPTS = 4;
+
+async function callWithRetry(payload) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const result = await calculatePsaRecommendationFn(payload);
+      return result.data;
+    } catch (error) {
+      if (attempt >= MAX_ATTEMPTS || !RETRYABLE.has(error?.code)) throw error;
+      const delay = 500 * 2 ** (attempt - 1) + Math.random() * 500;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 /**
  * @param {object} prePsa - Part 1 form data (age, race, bmi, ipss, shim, etc.)
  * @param {object} [postPsa] - Part 2 data (psa, pirads, prostateVolume, etc.) — omit to compute Part 1 only
@@ -33,8 +54,7 @@ export const calculatePsaRecommendation = async (prePsa, postPsa) => {
   const payload = { prePsa };
   if (postPsa) payload.postPsa = postPsa;
   try {
-    const result = await calculatePsaRecommendationFn(payload);
-    return result.data;
+    return await callWithRetry(payload);
   } catch (error) {
     // The callable returns which fields it rejected in details.issues, but the
     // FirebaseError message alone is just "Invalid PSA input data" — logging the

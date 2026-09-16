@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { initializeFirestore, connectFirestoreEmulator, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { initializeAuth, browserSessionPersistence, browserPopupRedirectResolver, connectAuthEmulator } from 'firebase/auth';
+import { initializeFirestore, connectFirestoreEmulator, memoryLocalCache } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Firebase configuration
@@ -59,13 +59,19 @@ let app, auth, db, functions, analytics;
 
 if (isFirebaseConfigured()) {
   app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  // Enable IndexedDB-backed offline persistence so the app (especially bus mode)
-  // continues to work with poor or no network signal. (HIPAA + reliability requirement)
+  // Tab-scoped auth: the anonymous identity survives a reload (so a reload
+  // doesn't mint a new account and burn Firebase's per-IP sign-up quota) but
+  // dies with the tab, so the next person on a shared device can't be signed
+  // back into someone else's session. Returning patients use their key.
+  auth = initializeAuth(app, {
+    persistence: browserSessionPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver,
+  });
+  // Memory-only cache: patient documents must never be written to the
+  // device's IndexedDB, where they would outlive the tab (and a deletion) on
+  // shared or clinic devices.
   db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager()
-    })
+    localCache: memoryLocalCache(),
   });
   functions = getFunctions(app);
   
