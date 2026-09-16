@@ -1398,6 +1398,10 @@ function App() {
       // Handle session ID login through backend-assisted restoration.
       const requestedSessionId = (importedData?.sessionId || '').toUpperCase().trim();
       
+      // The anonymous sign-in below fires onAuthStateChanged, which would
+      // route away from the import screen before a failure (wrong or deleted
+      // key) could be shown. Hold routing for the duration of the restore.
+      assessmentInProgressRef.current = true;
       try {
         if (!/^[A-Z0-9]{8}$/.test(requestedSessionId)) {
           throw new Error('Please enter a valid 8-character Session ID.');
@@ -1504,7 +1508,10 @@ function App() {
           details: error?.details,
           stack: error?.stack
         });
-        setImportError(`Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
+        assessmentInProgressRef.current = false;
+        setImportError(error?.code === 'functions/not-found'
+          ? 'No saved session matches that key. It may have been mistyped, deleted, or expired.'
+          : `Failed to load session: ${error?.details || error?.message || 'Unknown error'}`);
         return;
       }
       return;
