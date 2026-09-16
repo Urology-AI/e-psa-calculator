@@ -622,7 +622,11 @@ export const loginAnonymousBySessionId = functions.https.onCall(async (data: Ano
         migratedFromUid: matchedUserId
       }, { merge: true });
 
+      // Hand the key over: leaving it on the old doc too made the
+      // `.limit(1)` lookup above pick the stale copy on the next restore.
       migrateBatch.set(matchedDoc.ref, {
+        sessionId: admin.firestore.FieldValue.delete(),
+        currentSessionId: admin.firestore.FieldValue.delete(),
         migratedToUid: currentUserId,
         migratedAt: nowTs,
         lastLoginAt: nowIso
