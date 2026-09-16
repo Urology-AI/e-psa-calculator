@@ -87,3 +87,14 @@ for (const { name, raw } of PROFILES) {
     }
   });
 }
+
+// Part1Form offers these diet options; any value the schema rejects makes the
+// whole callable 400 ("Some answers could not be scored"). 'asian' was missing.
+test('RequestSchema accepts every diet option the web form offers', () => {
+  for (const dietPattern of ['western', 'mediterranean', 'asian', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other', '']) {
+    const parsed = RequestSchema.safeParse({
+      prePsa: { age: 55, race: 'white', bmi: 26, ipss: [0, 0, 0, 0, 0, 0, 0], shim: [4, 4, 4, 4, 4], exercise: 1, familyHistory: 0, comorbidityScore: 0, brcaStatus: 'no', dietPattern },
+    });
+    assert.ok(parsed.success, `dietPattern '${dietPattern}' was rejected`);
+  }
+});
