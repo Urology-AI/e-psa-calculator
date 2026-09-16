@@ -356,6 +356,10 @@ function App() {
       safeLS.remove(LOCAL_SESSION_KEY);
       return;
     }
+    // Hold routing until the patient answers: with tab-scoped auth the
+    // sign-in listener fires again on reload and would otherwise move them
+    // off the welcome screen (to Choose Path) before the prompt is shown.
+    assessmentInProgressRef.current = true;
     setPendingLocalRestore(saved);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -364,6 +368,7 @@ function App() {
   // since on a shared device it may belong to the previous person.
   const [pendingLocalRestore, setPendingLocalRestore] = useState(null);
   const handleDiscardLocalRestore = () => {
+    assessmentInProgressRef.current = false;
     safeLS.remove(LOCAL_SESSION_KEY);
     setPendingLocalRestore(null);
   };
@@ -2415,7 +2420,7 @@ function App() {
   return (
     <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
-      {pendingLocalRestore && authStep === 'welcome' && (
+      {pendingLocalRestore && (
         <div role="dialog" aria-modal="true" aria-labelledby="resume-title"
           style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: 'var(--surface, #fff)', color: 'inherit', borderRadius: 12, padding: 24, maxWidth: 420, width: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
