@@ -67,7 +67,7 @@ const PrePsaInputSchema = z.object({
   chemicalExposure: z.enum(['agent_orange', 'nine_eleven', 'other_chemical', 'none', 'unknown', 'yes', 'no']).nullable().optional(),
   // '' is the frontend's own "not answered" sentinel for this field (sent alongside,
   // not instead of, the null-on-the-wire case above) — accept both.
-  dietPattern: z.union([z.enum(['western', 'mediterranean', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']), z.literal('')]).nullable().optional().transform(val => val || ''),
+  dietPattern: z.union([z.enum(['western', 'mediterranean', 'asian', 'dash', 'plant-based', 'pescatarian', 'low-carb-keto', 'other']), z.literal('')]).nullable().optional().transform(val => val || ''),
   // Count (0-2+) of diagnosed cardiometabolic conditions (hypertension, hyperlipidemia,
   // CAD, diabetes) — the engine's validateInputs() requires this OR all four individual
   // boolean fields; without either, calculateDynamicEPsa() silently returns null and every
