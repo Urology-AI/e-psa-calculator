@@ -10,7 +10,7 @@ import DataImportScreen from './components/DataImportScreen.jsx';
 import UniversalAuth from './components/UniversalAuth.jsx';
 import ConsentScreen from './components/ConsentScreen.jsx';
 import PSAOverviewScreen from './components/PSAOverviewScreen.jsx';
-import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon, InfoIcon } from 'lucide-react';
+import { BookIcon, ShieldCheckIcon, UsersIcon, CloudIcon, HardDriveIcon, UploadIcon, FileTextIcon, ChevronDownIcon, ExternalLinkIcon, CheckIcon, ZapIcon, InfoIcon, MicroscopeIcon } from 'lucide-react';
 import CreditsModal from './components/CreditsModal.jsx';
 import AboutEpsaModal from './components/AboutEpsaModal.jsx';
 import { DoctorModeProvider } from './context/DoctorModeContext.jsx';
@@ -62,6 +62,7 @@ const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
 import QuickEntry from './components/QuickEntry.jsx';
+import BiopsyPrediction from './components/BiopsyPrediction.jsx';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -166,6 +167,7 @@ function App() {
 
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
+  const [showBiopsyTool, setShowBiopsyTool] = useState(false);
 
   // Safety net: guarantee every step/stage/pathway transition lands the user
   // at the top of the page, even if a specific navigation handler forgets its
@@ -2162,6 +2164,14 @@ function App() {
                   <ZapIcon size={14} />
                   <span>Clinician View</span>
                 </button>
+                <button
+                  type="button"
+                  className="ws-btn-pill ws-btn-pill--quiet"
+                  onClick={() => setShowBiopsyTool(true)}
+                >
+                  <MicroscopeIcon size={14} />
+                  <span>{t('biopsyTool.open')}</span>
+                </button>
               </div>
             </div>
 
@@ -2599,7 +2609,9 @@ function App() {
           </div>
         )}
 
-        {showQuickEntry ? (
+        {showBiopsyTool ? (
+          <BiopsyPrediction onClose={() => setShowBiopsyTool(false)} />
+        ) : showQuickEntry ? (
           <QuickEntry
             calculatorConfig={calculatorConfig}
             onClose={() => setShowQuickEntry(false)}
