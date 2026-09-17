@@ -13,7 +13,7 @@ export const VOICE_SERVERS_DOC_PATH = { collection: 'appConfig', doc: 'voiceServ
 // per-second billed, scales to zero), no local server needed. "Local (dev)"
 // is there for developing against the actual cloned Dr. Tewari voice.
 export const DEFAULT_VOICE_SERVERS = [
-  { name: 'Kokoro (cloud)', url: 'https://adityakiwi--kokoro-tts-kokoroserver-web.modal.run' },
+  { name: 'Voice (cloud)', url: 'https://adidix99--voice-tts.modal.run' },
   { name: 'Local (dev)', url: 'http://localhost:8000' },
 ];
 
