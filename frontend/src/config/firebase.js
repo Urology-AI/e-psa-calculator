@@ -3,6 +3,7 @@ import { getAnalytics } from 'firebase/analytics';
 import { initializeAuth, browserSessionPersistence, browserPopupRedirectResolver, connectAuthEmulator } from 'firebase/auth';
 import { initializeFirestore, connectFirestoreEmulator, memoryLocalCache } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 // Firebase configuration
 // Uses environment variables only - no hardcoded values
@@ -21,6 +22,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// reCAPTCHA Enterprise site key registered for this web app in Firebase App
+// Check. Public identifier (it ships in every page), not a secret.
+const RECAPTCHA_ENTERPRISE_SITE_KEY =
+  import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY || '6Lfzu8AtAAAAANpQ5hIH7CRiqQjUV_Gwq3Q4shws';
 
 // Check if Firebase is properly configured
 const isFirebaseConfigured = () => {
@@ -59,6 +65,20 @@ let app, auth, db, functions, analytics;
 
 if (isFirebaseConfigured()) {
   app = initializeApp(firebaseConfig);
+  // App Check: attests requests come from this web app (reCAPTCHA Enterprise,
+  // invisible score-based). Must run before any other Firebase service is
+  // used. The site key is public by design. Skipped on localhost (reCAPTCHA
+  // won't attest it), so local dev and emulators keep working.
+  if (!isLocalhost) {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (error) {
+      console.error('App Check initialization failed:', error);
+    }
+  }
   // Tab-scoped auth: the anonymous identity survives a reload (so a reload
   // doesn't mint a new account and burn Firebase's per-IP sign-up quota) but
   // dies with the tab, so the next person on a shared device can't be signed

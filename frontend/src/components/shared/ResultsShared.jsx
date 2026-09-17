@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUpIcon, ChevronDownIcon, AlertTriangleIcon, AlertCircleIcon, InfoIcon, CheckIcon, CircleIcon, StethoscopeIcon, ArrowRightIcon, ShieldCheckIcon, MoreHorizontalIcon, Volume2Icon, PauseIcon, SettingsIcon, XIcon } from 'lucide-react';
 import { useDoctorMode, modeAtLeast } from '../../context/DoctorModeContext.jsx';
 import { getNarrationSegments, resolveNarrationKey, extractPatientFacts, getPersonalizedSeekText } from '../../utils/narrationScript';
-import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS } from '../../utils/voiceServers';
+import { getVoiceServers, refreshVoiceServers, DEFAULT_VOICE_SERVERS, voiceAuthHeaders } from '../../utils/voiceServers';
 
 // ─── Narration ──────────────────────────────────────────────────────────────
 // Local voice narration of the SDM guide, built from `result`. Calls
@@ -169,7 +169,7 @@ export const NarrationPlayer = ({ result, preResult }) => {
     try {
       response = await fetch(`${getVoiceServerUrl()}/voice/audio`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await voiceAuthHeaders()) },
         body: JSON.stringify({ text, voice: getVoiceOption() }),
       });
     } catch (err) {
