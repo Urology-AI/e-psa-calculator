@@ -1443,5 +1443,25 @@
       "range": "Range",
       "points": "Points"
     }
+  },
+  "biopsyTool": {
+    "title": "Biopsy Prediction",
+    "subtitle": "GG≥2 biopsy risk from PSA, PI-RADS and prostate volume — for clinicians",
+    "open": "Biopsy Prediction",
+    "psa": "PSA (ng/mL)",
+    "pirads": "PI-RADS",
+    "volume": "Volume (mL)",
+    "optional": "optional",
+    "result": "P(GG≥2)",
+    "actions": "Actions",
+    "calculate": "Calculate",
+    "calculateAll": "Calculate all",
+    "calculating": "Calculating…",
+    "addPatient": "Add patient",
+    "remove": "Remove patient",
+    "exportCsv": "Export CSV",
+    "error": "Prediction unavailable",
+    "unreliable": "Outside the model's well-supported range",
+    "disclaimer": "Estimates the probability of Grade Group ≥2 cancer on biopsy to support shared decision-making; it does not replace clinical judgement. Nothing entered here is saved."
   }
 }
