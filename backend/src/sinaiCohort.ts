@@ -346,9 +346,6 @@ async function checkAdmin(context: functions.https.CallableContext): Promise<Adm
     if (lower.endsWith('@mountsinai.org') || lower.endsWith('@mssm.edu')) {
       return { allowed: true, uid, email };
     }
-    if (lower === 'aditya.dixit@mssm.edu' || lower === 'adixit@nyu.edu') {
-      return { allowed: true, uid, email };
-    }
   }
 
   try {

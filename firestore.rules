@@ -25,8 +25,7 @@ service cloud.firestore {
       return isAuthenticated() &&
         request.auth.token.email != null &&
         request.auth.token.email_verified == true && (
-          request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
-          request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
+          request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$')
         );
     }
     
