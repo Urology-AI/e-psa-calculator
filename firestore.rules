@@ -17,9 +17,14 @@ service cloud.firestore {
     
     // Optimized with regex to handle both domains and case-insensitivity
     // Null-guard email: anonymous users have no email; avoid evaluation error on null.matches()
+    //
+    // email_verified is required: Email/Password sign-up is enabled, so without
+    // it anyone could create an unverified "x@mssm.edu" account with the public
+    // web API key and pass this check.
     function isSuperAdmin() {
       return isAuthenticated() &&
-        request.auth.token.email != null && (
+        request.auth.token.email != null &&
+        request.auth.token.email_verified == true && (
           request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
           request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
         );

@@ -339,7 +339,9 @@ async function checkAdmin(context: functions.https.CallableContext): Promise<Adm
   const uid = context.auth.uid;
   const email = (context.auth.token.email as string | undefined) ?? null;
 
-  if (email) {
+  // Only a verified email proves the caller owns the Sinai mailbox. Email/Password
+  // sign-up is enabled, so an unverified "x@mssm.edu" account is trivial to mint.
+  if (email && context.auth.token.email_verified === true) {
     const lower = email.toLowerCase();
     if (lower.endsWith('@mountsinai.org') || lower.endsWith('@mssm.edu')) {
       return { allowed: true, uid, email };
