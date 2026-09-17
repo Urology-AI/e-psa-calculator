@@ -60,6 +60,10 @@ export const inactiveAdminCtx = (env) =>
 export const superAdminCtx = (env) =>
   env.authenticatedContext(UIDS.superAdmin, { email: SUPER_ADMIN_EMAIL });
 
+/** Sinai-domain email with email_verified — also no client-side privileges. */
+export const verifiedSinaiCtx = (env) =>
+  env.authenticatedContext('verified-sinai-uid', { email: SUPER_ADMIN_EMAIL, email_verified: true });
+
 /** Not signed in at all. */
 export const publicCtx = (env) => env.unauthenticatedContext();
 

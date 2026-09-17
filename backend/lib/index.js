@@ -36,27 +36,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendAdminOTP = exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.updateAdminLastLogin = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.cleanupInactiveAdmins = exports.exportSessionsCSV = exports.exportUsersCSV = exports.getDecryptedPhone = exports.storeEncryptedPhone = exports.adminLogin = exports.getSectionLocks = exports.unlockSection = exports.lockSection = exports.getUsersWithConsent = exports.getSessionStatsForAdmin = exports.listSessionsForAdmin = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.getUserPhone = exports.checkCollections = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.adminLinkPublicSessionToSinai = exports.adminResyncPublicSession = exports.adminGetPublicSession = exports.adminListPublicConsentedSessions = exports.adminListClinicCodeAuditLog = exports.adminRevokeClinicCode = exports.adminGenerateClinicCodes = exports.adminToggleSinaiRedcapEnabled = exports.adminDeleteSinaiSession = exports.adminSubmitSinaiSession = exports.adminGetSinaiSession = exports.adminListSinaiSessions = exports.markCodeImported = exports.submitSinaiSession = exports.validateClinicCode = exports.calculatePsaRecommendation = exports.submitToRedcap = exports.syncToRedcap = void 0;
-exports.verifyAdminOTP = void 0;
+exports.submitRedcap = exports.deleteUserData = exports.exportUserData = exports.npiProxy = exports.optimizeDatabase = exports.cleanupOldAuditLogs = exports.getSectionLocks = exports.lockSection = exports.cleanupAbandonedSessions = exports.cleanupOldSessions = exports.getSession = exports.loginAnonymousBySessionId = exports.getUser = exports.getUserSessions = exports.deleteSession = exports.updateSession = exports.createSession = exports.upsertConsent = exports.submitSinaiSession = exports.validateClinicCode = exports.predictBiopsyRisk = exports.calculatePsaRecommendation = exports.submitToRedcap = exports.syncToRedcap = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
-const params_1 = require("firebase-functions/params");
 const https = __importStar(require("https"));
 const zod_1 = require("zod");
 const crypto_js_1 = __importDefault(require("crypto-js"));
-const nodemailer = __importStar(require("nodemailer"));
-const OTP_GMAIL_USER = (0, params_1.defineSecret)('OTP_GMAIL_USER');
-const OTP_GMAIL_PASS = (0, params_1.defineSecret)('OTP_GMAIL_PASS');
 // REDCap sync trigger (Firestore onWrite → REDCap API)
 // submitToRedcap: callable function for local-storage users to push directly
 var redcapSync_1 = require("./redcapSync");
 Object.defineProperty(exports, "syncToRedcap", { enumerable: true, get: function () { return redcapSync_1.syncToRedcap; } });
 Object.defineProperty(exports, "submitToRedcap", { enumerable: true, get: function () { return redcapSync_1.submitToRedcap; } });
 // Single source of truth for the pre-PSA and post-PSA/MRI recommendations,
-// shared by web, epsa-screening-tool (via @epsa/engine), and the iOS app
+// shared by web, epsa-screening-tool (via @urology-ai/epsa-engine), and the iOS app
 // (via this callable).
 var psaEngine_1 = require("./psaEngine");
 Object.defineProperty(exports, "calculatePsaRecommendation", { enumerable: true, get: function () { return psaEngine_1.calculatePsaRecommendation; } });
+// GG≥2 biopsy-risk model (ePSA v4), ported from Urology-AI/biopsy-prediction's
+// model/model.py so Part 3 doesn't depend on the separate Render-hosted
+// FastAPI service (whose free-tier cold starts caused "temporarily
+// unavailable" errors). Closed-form logistic regression — see biopsyPrediction.ts
+// for the full provenance and sync-with-Python-repo caveat.
+var biopsyPrediction_1 = require("./biopsyPrediction");
+Object.defineProperty(exports, "predictBiopsyRisk", { enumerable: true, get: function () { return biopsyPrediction_1.predictBiopsyRisk; } });
 // Sinai clinic cohort — IRB STUDY-14-00050.
 // Clinical responses are stored in sinaiSessions/{sessionId} (auto-deleted
 // after 90 days of inactivity via Firestore TTL) and optionally pushed to Sinai REDCap.
@@ -64,23 +66,6 @@ Object.defineProperty(exports, "calculatePsaRecommendation", { enumerable: true,
 var sinaiCohort_1 = require("./sinaiCohort");
 Object.defineProperty(exports, "validateClinicCode", { enumerable: true, get: function () { return sinaiCohort_1.validateClinicCode; } });
 Object.defineProperty(exports, "submitSinaiSession", { enumerable: true, get: function () { return sinaiCohort_1.submitSinaiSession; } });
-Object.defineProperty(exports, "markCodeImported", { enumerable: true, get: function () { return sinaiCohort_1.markCodeImported; } });
-// Admin-only callables for the dashboard (codes, sessions, flag, audit).
-var sinaiAdmin_1 = require("./sinaiAdmin");
-Object.defineProperty(exports, "adminListSinaiSessions", { enumerable: true, get: function () { return sinaiAdmin_1.adminListSinaiSessions; } });
-Object.defineProperty(exports, "adminGetSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminGetSinaiSession; } });
-Object.defineProperty(exports, "adminSubmitSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminSubmitSinaiSession; } });
-Object.defineProperty(exports, "adminDeleteSinaiSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminDeleteSinaiSession; } });
-Object.defineProperty(exports, "adminToggleSinaiRedcapEnabled", { enumerable: true, get: function () { return sinaiAdmin_1.adminToggleSinaiRedcapEnabled; } });
-Object.defineProperty(exports, "adminGenerateClinicCodes", { enumerable: true, get: function () { return sinaiAdmin_1.adminGenerateClinicCodes; } });
-Object.defineProperty(exports, "adminRevokeClinicCode", { enumerable: true, get: function () { return sinaiAdmin_1.adminRevokeClinicCode; } });
-Object.defineProperty(exports, "adminListClinicCodeAuditLog", { enumerable: true, get: function () { return sinaiAdmin_1.adminListClinicCodeAuditLog; } });
-// Public-cohort viewers (sessions/* + users/{uid}, gated on researchConsent)
-Object.defineProperty(exports, "adminListPublicConsentedSessions", { enumerable: true, get: function () { return sinaiAdmin_1.adminListPublicConsentedSessions; } });
-Object.defineProperty(exports, "adminGetPublicSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminGetPublicSession; } });
-Object.defineProperty(exports, "adminResyncPublicSession", { enumerable: true, get: function () { return sinaiAdmin_1.adminResyncPublicSession; } });
-// Admin-attested linking of a public session into the Sinai cohort
-Object.defineProperty(exports, "adminLinkPublicSessionToSinai", { enumerable: true, get: function () { return sinaiAdmin_1.adminLinkPublicSessionToSinai; } });
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -103,7 +88,7 @@ const PreDataSchema = zod_1.z.object({
     heightUnit: zod_1.z.enum(['ft', 'cm', 'imperial', 'metric']).optional().transform(val => val === 'imperial' ? 'ft' : val === 'metric' ? 'cm' : val),
     weightUnit: zod_1.z.enum(['lbs', 'kg']).optional(),
     weightKg: zod_1.z.union([zod_1.z.number().positive(), zod_1.z.string(), zod_1.z.null()]).optional(),
-    familyHistory: zod_1.z.union([zod_1.z.number().int().min(0).max(3), zod_1.z.null()]).transform(val => val === null ? 0 : val),
+    familyHistory: zod_1.z.union([zod_1.z.number().int().min(0).max(3), zod_1.z.literal('unknown'), zod_1.z.null()]).transform(val => val === null ? 0 : val),
     brcaStatus: zod_1.z.enum(['none', 'brca1', 'brca2', 'both', 'unknown']).optional().transform(val => val || 'unknown'),
     ipss: zod_1.z.array(zod_1.z.union([zod_1.z.number().int().min(0).max(5), zod_1.z.null()])).transform(arr => arr.map(val => val === null ? 0 : val)),
     shim: zod_1.z.array(zod_1.z.union([zod_1.z.number().int().min(1).max(5), zod_1.z.null()])).transform(arr => arr.map(val => val === null ? 1 : val)),
@@ -213,6 +198,7 @@ exports.upsertConsent = functions.https.onCall(async (data, context) => {
 // CLOUD FUNCTION: Create Session
 // ============================================
 exports.createSession = functions.https.onCall(async (data, context) => {
+    var _a, _b;
     // Rate limiting
     enforceRateLimit(context);
     if (!context.auth) {
@@ -241,6 +227,21 @@ exports.createSession = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('invalid-argument', 'Invalid result data', error);
         }
     }
+    // Consent (research use, contact) is upserted onto the user doc immediately
+    // before this call in the client's save-to-cloud flow — pull it in here so
+    // the session itself carries a snapshot of what the user had agreed to at
+    // the moment it was created, rather than only living on the user doc.
+    let researchConsent = null;
+    let consentToContact = null;
+    try {
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userData = userDoc.data();
+        researchConsent = (_a = userData === null || userData === void 0 ? void 0 : userData.researchConsent) !== null && _a !== void 0 ? _a : null;
+        consentToContact = (_b = userData === null || userData === void 0 ? void 0 : userData.consentToContact) !== null && _b !== void 0 ? _b : null;
+    }
+    catch (_error) {
+        // Non-fatal: session is still created, consent snapshot just stays null
+    }
     // Create session document with 90-day expiry (rolling — reset on each update)
     const sessionRef = db.collection('sessions').doc();
     const ninetyDaysFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
@@ -250,6 +251,8 @@ exports.createSession = functions.https.onCall(async (data, context) => {
         pathwayMode: data.pathwayMode || null,
         step1: stripUndefined(step1Data),
         result: data.result || null,
+        researchConsent,
+        consentToContact,
         expiresAt: admin.firestore.Timestamp.fromDate(ninetyDaysFromNow),
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -414,12 +417,10 @@ exports.getUser = functions.https.onCall(async (data, context) => {
     }
     const requestedId = data === null || data === void 0 ? void 0 : data.userId;
     const callerId = context.auth.uid;
-    // IDOR fix: non-admin users may only fetch their own data
+    // Callers may only fetch their own data. Admin reads go through the
+    // Entra-gated admin dashboard (service account), not client callables.
     if (requestedId && requestedId !== callerId) {
-        const isAdmin = await isAdminUser(callerId);
-        if (!isAdmin) {
-            throw new functions.https.HttpsError('permission-denied', 'You may only access your own data');
-        }
+        throw new functions.https.HttpsError('permission-denied', 'You may only access your own data');
     }
     const userId = requestedId || callerId;
     const userDoc = await db.collection('users').doc(userId).get();
@@ -511,7 +512,11 @@ exports.loginAnonymousBySessionId = functions.https.onCall(async (data, context)
                 updatedAt: nowTs,
                 migratedFromUid: matchedUserId
             }, { merge: true });
+            // Hand the key over: leaving it on the old doc too made the
+            // `.limit(1)` lookup above pick the stale copy on the next restore.
             migrateBatch.set(matchedDoc.ref, {
+                sessionId: admin.firestore.FieldValue.delete(),
+                currentSessionId: admin.firestore.FieldValue.delete(),
                 migratedToUid: currentUserId,
                 migratedAt: nowTs,
                 lastLoginAt: nowIso
@@ -574,148 +579,6 @@ exports.loginAnonymousBySessionId = functions.https.onCall(async (data, context)
             stack: error === null || error === void 0 ? void 0 : error.stack
         });
         throw new functions.https.HttpsError('internal', `Session restore failed: ${(error === null || error === void 0 ? void 0 : error.message) || 'unknown error'}`);
-    }
-});
-// ============================================
-// CLOUD FUNCTION: Check Collections (HIPAA Safe)
-// ============================================
-exports.checkCollections = functions.https.onCall(async (_data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    try {
-        console.log('Checking collection structure (HIPAA compliant)...');
-        // Get all collections in the database (this only returns collection names, no data)
-        const collections = await db.listCollections();
-        const result = {
-            timestamp: new Date().toISOString(),
-            totalCollections: collections.length,
-            collections: collections.map(c => ({
-                name: c.id,
-                path: c.path
-            })),
-            note: 'This is HIPAA compliant - only collection names and paths are shown, no user data is accessed'
-        };
-        console.log('Collection check complete:', result);
-        return result;
-    }
-    catch (error) {
-        console.error('Error checking collections:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to check collections');
-    }
-});
-// ============================================
-// CLOUD FUNCTION: Get User Phone Info (Admin Only)
-// ============================================
-exports.getUserPhone = functions.https.onCall(async (data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    const { userId } = data;
-    if (!userId) {
-        throw new functions.https.HttpsError('invalid-argument', 'userId required');
-    }
-    try {
-        console.log('Looking for phone data for user:', userId);
-        // First, check if phone data is stored directly in the users collection
-        const userDoc = await db.collection('users').doc(userId).get();
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            if (userData) {
-                console.log('User document fields:', Object.keys(userData));
-                // Check for phone fields in user document
-                const phoneFields = Object.keys(userData).filter(key => key.toLowerCase().includes('phone') ||
-                    key.toLowerCase().includes('mobile') ||
-                    key.toLowerCase().includes('contact'));
-                if (phoneFields.length > 0) {
-                    console.log('Found phone fields in user document:', phoneFields);
-                    // Return phone data from user document
-                    const phoneField = phoneFields[0]; // Take first phone field
-                    return {
-                        phoneNumber: userData[phoneField],
-                        phoneHash: userData.phoneHash || userData.hash || null,
-                        storedAt: userData.createdAt || userData.timestamp || null,
-                        encryptionMethod: 'Stored in user document',
-                        foundLocation: 'users collection',
-                        fieldName: phoneField
-                    };
-                }
-            }
-        }
-        // Try multiple possible collection names for phone data
-        const possibleCollections = ['securePhoneData', 'phoneData', 'encryptedPhones', 'userPhones', 'phoneNumbers'];
-        let phoneData = null;
-        let foundCollection = '';
-        for (const collectionName of possibleCollections) {
-            const doc = await db.collection(collectionName).doc(userId).get();
-            if (doc.exists) {
-                phoneData = doc.data();
-                foundCollection = collectionName;
-                console.log(`Found phone data in collection: ${collectionName}`);
-                break;
-            }
-        }
-        if (!phoneData) {
-            console.log('No phone data found in any collection for user:', userId);
-            console.log('Checked collections:', possibleCollections);
-            return null;
-        }
-        console.log('Phone data fields:', Object.keys(phoneData || {}));
-        console.log('Phone data sample:', phoneData);
-        if (!phoneData) {
-            console.log('Phone data is null/undefined');
-            return null;
-        }
-        // Check for different possible field names
-        const encryptedPhone = phoneData.encryptedPhone || phoneData.phoneNumber || phoneData.phone || phoneData.encryptedNumber || phoneData.number;
-        const encryptionKey = phoneData.encryptionKey || phoneData.key || phoneData.encryptionKey || phoneData.secretKey;
-        if (!encryptedPhone || !encryptionKey) {
-            console.log('Missing encryption fields - encryptedPhone:', !!encryptedPhone, 'encryptionKey:', !!encryptionKey);
-            console.log('Available fields:', Object.keys(phoneData));
-            // If we can't decrypt, at least return what we have
-            return {
-                phoneNumber: encryptedPhone || phoneData.phoneNumber || phoneData.phone || phoneData.number || null,
-                phoneHash: phoneData.phoneHash || phoneData.hash || phoneData.phoneNumberHash || null,
-                storedAt: phoneData.storedAt || phoneData.createdAt || phoneData.timestamp || null,
-                encryptionMethod: 'AES-256',
-                note: 'Encryption data not found - showing raw data if available',
-                foundCollection: foundCollection,
-                availableFields: Object.keys(phoneData)
-            };
-        }
-        // Decrypt the phone number
-        const CryptoJS = require('crypto-js');
-        const decryptedBytes = CryptoJS.AES.decrypt(encryptedPhone, encryptionKey);
-        const decryptedPhone = decryptedBytes.toString(CryptoJS.enc.Utf8);
-        console.log('Decrypted phone:', decryptedPhone);
-        // Return the decrypted phone number and metadata
-        return {
-            phoneNumber: decryptedPhone,
-            phoneHash: phoneData.phoneHash || phoneData.hash || phoneData.phoneNumberHash || null,
-            storedAt: phoneData.storedAt || phoneData.createdAt || phoneData.timestamp || null,
-            encryptionMethod: 'AES-256',
-            foundCollection: foundCollection
-        };
-    }
-    catch (error) {
-        console.error('Error getting user phone info:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to retrieve phone information');
     }
 });
 // ============================================
@@ -859,178 +722,6 @@ exports.cleanupAbandonedSessions = functions.pubsub.schedule('0 3 * * *') // 3 A
     return { deleted: deletedCount };
 });
 // ============================================
-// ADMIN AUTHENTICATION & MANAGEMENT
-// ============================================
-// Check if user is admin based on Firestore database
-async function isAdminUser(userId) {
-    try {
-        console.log('Checking admin document for userId:', userId);
-        const adminDoc = await db.collection('admins').doc(userId).get();
-        console.log('Admin document exists:', adminDoc.exists);
-        if (!adminDoc.exists) {
-            console.log('Admin document not found for userId:', userId);
-            return false;
-        }
-        const adminData = adminDoc.data();
-        console.log('Admin document data:', { userId, isActive: adminData === null || adminData === void 0 ? void 0 : adminData.isActive, data: adminData });
-        const isActive = (adminData === null || adminData === void 0 ? void 0 : adminData.isActive) === true;
-        console.log('Admin isActive result:', { userId, isActive });
-        return isActive;
-    }
-    catch (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-    }
-}
-// ============================================
-// CLOUD FUNCTION: List Sessions for Admin (HIPAA-safe: no PHI)
-// ============================================
-exports.listSessionsForAdmin = functions.https.onCall(async (data, context) => {
-    var _a;
-    enforceRateLimit(context);
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required.');
-    }
-    try {
-        const limitNum = Math.min((_a = data === null || data === void 0 ? void 0 : data.limit) !== null && _a !== void 0 ? _a : 100, 500);
-        const usersQuery = await db.collection('users')
-            .orderBy('lastLoginAt', 'desc')
-            .limit(limitNum)
-            .get();
-        const sessions = usersQuery.docs.map(doc => {
-            const d = doc.data();
-            const toMs = (v) => {
-                if (v == null)
-                    return null;
-                if (typeof v === 'object' && v !== null && typeof v.toMillis === 'function') {
-                    return v.toMillis();
-                }
-                if (typeof v === 'number')
-                    return v;
-                const t = new Date(v).getTime();
-                return Number.isNaN(t) ? null : t;
-            };
-            const created = toMs(d.createdAt);
-            const lastLogin = toMs(d.lastLoginAt);
-            return {
-                id: doc.id,
-                sessionId: d.sessionId || doc.id,
-                createdAt: created != null ? new Date(created).toISOString() : null,
-                lastLoginAt: lastLogin != null ? new Date(lastLogin).toISOString() : null,
-            };
-        });
-        await logAudit('DATA_ACCESS_SESSIONS_LIST', context.auth.uid, 'admin', 'system', {
-            recordCount: sessions.length,
-            timestamp: new Date().toISOString(),
-            note: 'HIPAA-safe: only session IDs and timestamps returned, no PHI',
-        });
-        return { success: true, sessions };
-    }
-    catch (error) {
-        functions.logger.error('listSessionsForAdmin failed', error);
-        throw new functions.https.HttpsError('internal', 'Failed to list sessions');
-    }
-});
-// ============================================
-// CLOUD FUNCTION: Get Session Stats for Admin (HIPAA-safe: aggregates only)
-// ============================================
-exports.getSessionStatsForAdmin = functions.https.onCall(async (_data, context) => {
-    enforceRateLimit(context);
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required.');
-    }
-    try {
-        const snapshot = await db.collection('users').orderBy('lastLoginAt', 'desc').limit(1000).get();
-        const now = Date.now();
-        const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-        let recentSessions = 0;
-        snapshot.docs.forEach(doc => {
-            const d = doc.data();
-            const raw = d.lastLoginAt;
-            let t = 0;
-            if (raw != null) {
-                if (typeof raw.toMillis === 'function') {
-                    t = raw.toMillis();
-                }
-                else {
-                    t = new Date(raw).getTime();
-                }
-            }
-            if (t >= weekAgo)
-                recentSessions++;
-        });
-        await logAudit('DATA_ACCESS_SESSION_STATS', context.auth.uid, 'admin', 'system', {
-            totalSessions: snapshot.size,
-            recentSessions,
-            timestamp: new Date().toISOString(),
-            note: 'HIPAA-safe: aggregate counts only, no PHI',
-        });
-        return {
-            success: true,
-            totalSessions: snapshot.size,
-            recentSessions,
-        };
-    }
-    catch (error) {
-        functions.logger.error('getSessionStatsForAdmin failed', error);
-        throw new functions.https.HttpsError('internal', 'Failed to get session stats');
-    }
-});
-// ============================================
-// CLOUD FUNCTION: Get Users with Consent (Admin Only)
-// ============================================
-exports.getUsersWithConsent = functions.https.onCall(async (data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    try {
-        const limit = (data === null || data === void 0 ? void 0 : data.limit) || 100;
-        // 3. Get users with consent (simplified query to avoid index requirement)
-        const usersQuery = await db.collection('users')
-            .where('consentToContact', '==', true)
-            .limit(limit)
-            .get();
-        const users = usersQuery.docs.map(doc => (Object.assign({ userId: doc.id }, doc.data())));
-        // Sort by createdAt on the client side instead of server side
-        users.sort((a, b) => {
-            var _a, _b;
-            const dateA = ((_a = a.createdAt) === null || _a === void 0 ? void 0 : _a.toMillis) ? a.createdAt.toMillis() : new Date(a.createdAt).getTime();
-            const dateB = ((_b = b.createdAt) === null || _b === void 0 ? void 0 : _b.toMillis) ? b.createdAt.toMillis() : new Date(b.createdAt).getTime();
-            return dateB - dateA; // descending order
-        });
-        // 4. Log access
-        await logAudit('DATA_ACCESS_USERS', context.auth.uid, 'admin', 'system', {
-            recordCount: users.length,
-            timestamp: new Date().toISOString()
-        });
-        return {
-            success: true,
-            users,
-            count: users.length
-        };
-    }
-    catch (error) {
-        console.error('Error getting users with consent:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to retrieve users data');
-    }
-});
-// ============================================
 // SECTION LOCK FUNCTIONS (Clinical Data Integrity)
 // ============================================
 // Lock a section to prevent further edits
@@ -1042,12 +733,9 @@ exports.lockSection = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { userId, section, locked, reason } = data;
-    // 2. Users can only lock their own sections, admins can lock any
+    // 2. Users can only lock their own sections
     if (context.auth.uid !== userId) {
-        const isAdmin = await isAdminUser(context.auth.uid);
-        if (!isAdmin) {
-            throw new functions.https.HttpsError('permission-denied', 'Can only lock own sections or admin access required');
-        }
+        throw new functions.https.HttpsError('permission-denied', 'Can only lock own sections');
     }
     try {
         const lockRef = db.collection('users').doc(userId).collection('sectionLocks').doc(section);
@@ -1073,47 +761,6 @@ exports.lockSection = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Failed to lock section');
     }
 });
-// Unlock a section (admin only)
-exports.unlockSection = functions.https.onCall(async (data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required to unlock sections');
-    }
-    const { userId, section, adminReason } = data;
-    try {
-        const lockRef = db.collection('users').doc(userId).collection('sectionLocks').doc(section);
-        await lockRef.update({
-            locked: false,
-            unlockedAt: admin.firestore.FieldValue.serverTimestamp(),
-            unlockedBy: context.auth.uid,
-            adminReason,
-            previousLock: admin.firestore.FieldValue.delete()
-        });
-        // Log the unlock action
-        await logAudit('SECTION_UNLOCK', context.auth.uid, 'admin', userId, {
-            section,
-            adminReason,
-            timestamp: new Date().toISOString()
-        });
-        return {
-            success: true,
-            section,
-            locked: false,
-            message: `Section ${section} unlocked by admin`
-        };
-    }
-    catch (error) {
-        console.error('Error unlocking section:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to unlock section');
-    }
-});
 // Get lock status for user sections
 exports.getSectionLocks = functions.https.onCall(async (data, context) => {
     // Rate limiting
@@ -1123,12 +770,9 @@ exports.getSectionLocks = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
     const { userId } = data;
-    // 2. Users can only check their own locks, admins can check any
+    // 2. Users can only check their own locks
     if (context.auth.uid !== userId) {
-        const isAdmin = await isAdminUser(context.auth.uid);
-        if (!isAdmin) {
-            throw new functions.https.HttpsError('permission-denied', 'Can only check own locks or admin access required');
-        }
+        throw new functions.https.HttpsError('permission-denied', 'Can only check own locks');
     }
     try {
         const locksSnapshot = await db.collection('users').doc(userId).collection('sectionLocks').get();
@@ -1148,339 +792,8 @@ exports.getSectionLocks = functions.https.onCall(async (data, context) => {
     }
 });
 // ============================================
-// CLOUD FUNCTION: Admin Login Verification
-// ============================================
-exports.adminLogin = functions.https.onCall(async (data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        console.error('Admin login failed: No authentication context');
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    const { email } = data;
-    const userEmail = context.auth.token.email;
-    const userId = context.auth.uid;
-    console.log('Admin login attempt:', { userId, userEmail, requestedEmail: email });
-    // 2. Verify email matches authenticated user
-    if (!userEmail || userEmail.toLowerCase() !== email.toLowerCase()) {
-        console.error('Admin login failed: Email mismatch', { userEmail, requestedEmail: email });
-        throw new functions.https.HttpsError('permission-denied', 'Email does not match authenticated user');
-    }
-    // 3. Check if user is admin in Firestore database
-    console.log('Checking admin status for user:', userId);
-    const isAdmin = await isAdminUser(userId);
-    console.log('Admin status result:', { userId, isAdmin });
-    if (!isAdmin) {
-        console.error('Admin login failed: User not in admins collection or not active', { userId });
-        throw new functions.https.HttpsError('permission-denied', 'Not authorized as admin. Admin access must be granted in Firestore database.');
-    }
-    // 4. Update last login and log admin access
-    await Promise.all([
-        db.collection('admins').doc(userId).update({
-            lastLogin: admin.firestore.FieldValue.serverTimestamp()
-        }),
-        logAudit('ADMIN_LOGIN', context.auth.uid, 'admin', 'system', {
-            email: userEmail,
-            timestamp: new Date().toISOString()
-        })
-    ]);
-    console.log('Admin login successful:', { userId, userEmail });
-    return {
-        success: true,
-        email: userEmail,
-        isAdmin: true,
-        message: 'Admin access granted'
-    };
-});
-// ============================================
-// CLOUD FUNCTION: Store Encrypted Phone Number
-// ============================================
-exports.storeEncryptedPhone = functions.https.onCall(async (data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    const { userId, encryptedPhone, encryptionKey } = data;
-    // 3. Validate input
-    if (!userId || !encryptedPhone || !encryptionKey) {
-        throw new functions.https.HttpsError('invalid-argument', 'Missing required fields');
-    }
-    // 4. Store in secure collection (separate from main user data)
-    const securePhoneRef = db.collection('securePhoneData').doc(userId);
-    await securePhoneRef.set({
-        encryptedPhone,
-        encryptionKey: crypto_js_1.default.SHA256(encryptionKey).toString(), // Hash the key for security
-        storedBy: context.auth.uid,
-        storedAt: admin.firestore.FieldValue.serverTimestamp(),
-        accessLog: admin.firestore.FieldValue.arrayUnion({
-            accessedBy: context.auth.uid,
-            timestamp: new Date().toISOString(),
-            action: 'store_encrypted_phone'
-        })
-    }, { merge: true });
-    // 5. Log this sensitive operation
-    await logAudit('PHONE_ENCRYPT_STORE', context.auth.uid, 'user', userId, {
-        action: 'store_encrypted_phone',
-        hasEncryptedPhone: true
-    });
-    return {
-        success: true,
-        message: 'Encrypted phone number stored securely'
-    };
-});
-// ============================================
-// CLOUD FUNCTION: Get Decrypted Phone Number
-// ============================================
-exports.getDecryptedPhone = functions.https.onCall(async (data, context) => {
-    // Rate limiting (stricter for phone access)
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    const { userId, decryptionKey } = data;
-    // 3. Get encrypted phone data
-    const securePhoneDoc = await db.collection('securePhoneData').doc(userId).get();
-    if (!securePhoneDoc.exists) {
-        throw new functions.https.HttpsError('not-found', 'Encrypted phone data not found');
-    }
-    const phoneData = securePhoneDoc.data();
-    if (!phoneData) {
-        throw new functions.https.HttpsError('not-found', 'Phone data is empty');
-    }
-    // 4. Verify decryption key
-    const keyHash = crypto_js_1.default.SHA256(decryptionKey).toString();
-    if (phoneData.encryptionKey !== keyHash) {
-        throw new functions.https.HttpsError('permission-denied', 'Invalid decryption key');
-    }
-    // 5. Log this sensitive access
-    await logAudit('PHONE_DECRYPT_ACCESS', context.auth.uid, 'user', userId, {
-        action: 'decrypt_phone_access',
-        reason: 'admin_lookup'
-    });
-    // 6. Return encrypted data (decryption happens client-side)
-    return {
-        userId,
-        encryptedPhone: phoneData.encryptedPhone,
-        storedAt: phoneData.storedAt,
-        warning: 'Handle this data with extreme care. All access is logged.'
-    };
-});
-// ============================================
-// CLOUD FUNCTION: Export Users Data as CSV (Admin Only)
-// ============================================
-exports.exportUsersCSV = functions.https.onCall(async (_data, context) => {
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    try {
-        // 3. Get all users with consent
-        const usersQuery = await db.collection('users')
-            .where('consentToContact', '==', true)
-            .limit(1000)
-            .get();
-        // 4. Generate CSV headers
-        const headers = [
-            'User ID',
-            'Email',
-            'Consent to Contact',
-            'Consent Timestamp',
-            'Research Consent',
-            'Research Timestamp',
-            'Created At',
-            'Updated At',
-            'Phone Hash'
-        ];
-        // 5. Generate CSV rows
-        const rows = usersQuery.docs.map(doc => {
-            const data = doc.data();
-            return [
-                doc.id,
-                data.email || 'N/A',
-                data.consentToContact ? 'Yes' : 'No',
-                data.consentTimestamp || 'N/A',
-                data.researchConsent ? 'Yes' : 'No',
-                data.researchTimestamp || 'N/A',
-                data.createdAt || 'N/A',
-                data.updatedAt || 'N/A',
-                data.phoneHash || 'N/A'
-            ].map(field => `"${String(field).replace(/"/g, '""')}"`); // Escape quotes
-        });
-        // 6. Combine headers and rows
-        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-        // 7. Log export action
-        await logAudit('DATA_EXPORT_USERS_CSV', context.auth.uid, 'admin', 'system', {
-            exportType: 'users_csv',
-            recordCount: usersQuery.docs.length,
-            timestamp: new Date().toISOString()
-        });
-        return {
-            success: true,
-            csvContent,
-            filename: `users_export_${new Date().toISOString().split('T')[0]}.csv`,
-            recordCount: usersQuery.docs.length
-        };
-    }
-    catch (error) {
-        console.error('Error exporting users CSV:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to export users data');
-    }
-});
-// ============================================
-// CLOUD FUNCTION: Export Sessions Data as CSV (Admin Only)
-// ============================================
-exports.exportSessionsCSV = functions.https.onCall(async (data, context) => {
-    var _a, _b;
-    // Rate limiting
-    enforceRateLimit(context);
-    // 1. Authentication check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    // 2. Admin authorization check (Firestore database)
-    const isAdmin = await isAdminUser(context.auth.uid);
-    if (!isAdmin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin access required. Admin privileges must be granted in Firestore database.');
-    }
-    try {
-        // 3. Build query
-        let sessionsQuery = db.collection('sessions').limit(1000);
-        if (((_a = data === null || data === void 0 ? void 0 : data.dateRange) === null || _a === void 0 ? void 0 : _a.start) && ((_b = data === null || data === void 0 ? void 0 : data.dateRange) === null || _b === void 0 ? void 0 : _b.end)) {
-            const startDate = new Date(data.dateRange.start);
-            const endDate = new Date(data.dateRange.end);
-            sessionsQuery = sessionsQuery
-                .where('createdAt', '>=', startDate)
-                .where('createdAt', '<=', endDate);
-        }
-        const sessionsSnapshot = await sessionsQuery.get();
-        // 4. Generate CSV headers
-        const headers = [
-            'Session ID',
-            'User ID',
-            'Status',
-            'Created At',
-            'Updated At',
-            'Step1 - Age',
-            'Step1 - Race',
-            'Step1 - Ethnicity',
-            'Step1 - BMI',
-            'Step1 - Family History',
-            'Step1 - IPSS Total',
-            'Step1 - SHIM Total',
-            'Step2 - PSA',
-            'Step2 - Know PSA',
-            'Step2 - PIRADS',
-            'Step2 - Know PIRADS',
-            'Result - Risk Category',
-            'Result - Risk Score'
-        ];
-        // 5. Generate CSV rows
-        const rows = sessionsSnapshot.docs.map(doc => {
-            const session = doc.data();
-            const step1 = session.step1 || {};
-            const step2 = session.step2 || {};
-            const result = session.result || {};
-            const ipssTotal = Array.isArray(step1.ipss) ? step1.ipss.reduce((a, b) => a + b, 0) : 0;
-            const shimTotal = Array.isArray(step1.shim) ? step1.shim.reduce((a, b) => a + b, 0) : 0;
-            return [
-                doc.id,
-                session.userId || 'N/A',
-                session.status || 'N/A',
-                session.createdAt || 'N/A',
-                session.updatedAt || 'N/A',
-                step1.age || 'N/A',
-                step1.race || 'N/A',
-                step1.ethnicity || 'N/A',
-                step1.bmi || 'N/A',
-                step1.familyHistory || 'N/A',
-                ipssTotal,
-                shimTotal,
-                step2.psa || 'N/A',
-                step2.knowPsa ? 'Yes' : 'No',
-                step2.pirads || 'N/A',
-                step2.knowPirads ? 'Yes' : 'No',
-                result.risk || 'N/A',
-                result.score || 'N/A'
-            ].map(field => `"${String(field).replace(/"/g, '""')}"`); // Escape quotes
-        });
-        // 6. Combine headers and rows
-        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-        // 7. Log export action
-        await logAudit('DATA_EXPORT_SESSIONS_CSV', context.auth.uid, 'admin', 'system', {
-            exportType: 'sessions_csv',
-            recordCount: sessionsSnapshot.docs.length,
-            dateRange: (data === null || data === void 0 ? void 0 : data.dateRange) || 'all',
-            timestamp: new Date().toISOString()
-        });
-        return {
-            success: true,
-            csvContent,
-            filename: `sessions_export_${new Date().toISOString().split('T')[0]}.csv`,
-            recordCount: sessionsSnapshot.docs.length
-        };
-    }
-    catch (error) {
-        console.error('Error exporting sessions CSV:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to export sessions data');
-    }
-});
-// ============================================
 // COST OPTIMIZATION & CLEANUP FUNCTIONS
 // ============================================
-// Clean up inactive admin users (remove admin access for inactive accounts)
-exports.cleanupInactiveAdmins = functions.pubsub.schedule('0 4 * * 0') // 4 AM every Sunday
-    .timeZone('America/New_York')
-    .onRun(async (_context) => {
-    const INACTIVE_DAYS = 90; // Remove admin access after 90 days of inactivity
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - INACTIVE_DAYS);
-    try {
-        // Get all admin users
-        const adminsSnapshot = await db.collection('admins').get();
-        let deactivatedCount = 0;
-        for (const adminDoc of adminsSnapshot.docs) {
-            const adminData = adminDoc.data();
-            const lastLogin = adminData.lastLogin ? adminData.lastLogin.toDate() : adminData.createdAt.toDate();
-            // Check if admin is inactive
-            if (lastLogin < cutoffDate && adminData.isActive) {
-                await adminDoc.ref.update({
-                    isActive: false,
-                    deactivatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    deactivationReason: 'automatic_cleanup_inactive'
-                });
-                deactivatedCount++;
-                console.log(`Deactivated inactive admin: ${adminDoc.id}`);
-            }
-        }
-        console.log(`Cleanup completed: Deactivated ${deactivatedCount} inactive admins`);
-        return { deactivatedCount };
-    }
-    catch (error) {
-        console.error('Error cleaning up inactive admins:', error);
-        throw error;
-    }
-});
 // Clean up old audit logs (keep only 1 year for compliance)
 exports.cleanupOldAuditLogs = functions.pubsub.schedule('0 5 * * 0') // 5 AM every Sunday
     .timeZone('America/New_York')
@@ -1572,27 +885,6 @@ exports.npiProxy = functions.https.onRequest((req, res) => {
     upstream.on('error', () => {
         res.status(502).json({ error: 'NPI upstream connection error' });
     });
-});
-// Update admin last login timestamp
-exports.updateAdminLastLogin = functions.https.onCall(async (_data, context) => {
-    var _a;
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    try {
-        const adminRef = db.collection('admins').doc(context.auth.uid);
-        const adminDoc = await adminRef.get();
-        if (adminDoc.exists && ((_a = adminDoc.data()) === null || _a === void 0 ? void 0 : _a.isActive)) {
-            await adminRef.update({
-                lastLogin: admin.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        return { success: true };
-    }
-    catch (error) {
-        console.error('Error updating admin last login:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to update last login');
-    }
 });
 // ============================================
 // HTTP FUNCTION: User Data Export (GDPR/CCPA compliance)
@@ -1720,93 +1012,5 @@ exports.submitRedcap = functions.https.onCall(async (data, context) => {
     }
     await logAudit('REDCAP_SUBMIT', context.auth.uid, 'research', String((_a = record.record_id) !== null && _a !== void 0 ? _a : 'unknown'));
     return { success: true };
-});
-// ── Admin OTP Authentication ──────────────────────────────────────────────────
-// Replaces magic-link login. Admins enter email → receive a 6-digit code →
-// enter the code → get a Firebase custom token to sign in with.
-const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const MAX_OTP_ATTEMPTS = 5;
-exports.sendAdminOTP = functions.runWith({ secrets: ['OTP_GMAIL_USER', 'OTP_GMAIL_PASS'] }).https.onCall(async (data) => {
-    const email = (data.email || '').toLowerCase().trim();
-    if (!email)
-        throw new functions.https.HttpsError('invalid-argument', 'Email required');
-    // Only pre-registered admins can receive an OTP
-    const db = admin.firestore();
-    const adminsSnap = await db.collection('admins').where('email', '==', email).limit(1).get();
-    if (adminsSnap.empty) {
-        // Return success anyway to avoid email enumeration
-        return { success: true };
-    }
-    // Generate 6-digit code
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const hash = crypto_js_1.default.SHA256(code).toString();
-    const expiresAt = Date.now() + OTP_TTL_MS;
-    await db.collection('admin_otps').doc(email).set({
-        hash,
-        expiresAt,
-        attempts: 0,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    const gmailUser = OTP_GMAIL_USER.value();
-    const gmailPass = OTP_GMAIL_PASS.value();
-    if (!gmailUser || !gmailPass)
-        throw new functions.https.HttpsError('internal', 'OTP email not configured');
-    const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
-    await transport.sendMail({
-        from: `"ePSA Admin" <${gmailUser}>`,
-        to: email,
-        subject: 'Your ePSA Admin Login Code',
-        text: `Your one-time login code is: ${code}\n\nThis code expires in 10 minutes. Do not share it.`,
-        html: `
-      <p>Your ePSA Admin one-time login code is:</p>
-      <h2 style="letter-spacing:4px;font-family:monospace">${code}</h2>
-      <p>This code expires in <strong>10 minutes</strong>. Do not share it.</p>
-    `,
-    });
-    return { success: true };
-});
-exports.verifyAdminOTP = functions.https.onCall(async (data) => {
-    const email = (data.email || '').toLowerCase().trim();
-    const code = (data.code || '').trim();
-    if (!email || !code)
-        throw new functions.https.HttpsError('invalid-argument', 'Email and code required');
-    const db = admin.firestore();
-    const otpRef = db.collection('admin_otps').doc(email);
-    const otpDoc = await otpRef.get();
-    if (!otpDoc.exists) {
-        throw new functions.https.HttpsError('not-found', 'No OTP found. Please request a new code.');
-    }
-    const { hash, expiresAt, attempts } = otpDoc.data();
-    if (Date.now() > expiresAt) {
-        await otpRef.delete();
-        throw new functions.https.HttpsError('deadline-exceeded', 'Code has expired. Please request a new one.');
-    }
-    if (attempts >= MAX_OTP_ATTEMPTS) {
-        await otpRef.delete();
-        throw new functions.https.HttpsError('resource-exhausted', 'Too many attempts. Please request a new code.');
-    }
-    const inputHash = crypto_js_1.default.SHA256(code).toString();
-    if (inputHash !== hash) {
-        await otpRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
-        throw new functions.https.HttpsError('unauthenticated', 'Invalid code.');
-    }
-    // Code correct — clean up and issue a custom token
-    await otpRef.delete();
-    // Look up the admin's Firebase Auth UID (or create one)
-    let uid;
-    try {
-        const userRecord = await admin.auth().getUserByEmail(email);
-        uid = userRecord.uid;
-    }
-    catch (_a) {
-        // Create a passwordless Firebase Auth user for this admin
-        const newUser = await admin.auth().createUser({ email, emailVerified: true });
-        uid = newUser.uid;
-    }
-    const customToken = await admin.auth().createCustomToken(uid, { isAdmin: true });
-    await admin.firestore().collection('admins').doc(uid).update({
-        lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-    }).catch(() => { }); // best-effort
-    return { success: true, customToken };
 });
 //# sourceMappingURL=index.js.map
