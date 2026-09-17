@@ -5,7 +5,11 @@
  * as featureFlags.js and calculatorConfig.
  */
 
-export const VOICE_SERVERS_CACHE_KEY = 'epsa_voice_servers';
+// Bumped to _v2 when the cloud voice server moved to voice-tts and began
+// requiring a Firebase token: a returning user's cached list still held the
+// old unauthenticated URL, so narration would fail until the Firestore refresh
+// landed. The new key forces the current DEFAULT_VOICE_SERVERS on first load.
+export const VOICE_SERVERS_CACHE_KEY = 'epsa_voice_servers_v2';
 export const VOICE_SERVERS_DOC_PATH = { collection: 'appConfig', doc: 'voiceServers' };
 
 // Always available even if Firestore hasn't published anything yet, or the
