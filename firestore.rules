@@ -2,251 +2,74 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ============================================
-    // HELPER FUNCTIONS
+    // ACCESS MODEL
+    //
+    // Clients are the patient-facing web and iOS apps, signed in anonymously
+    // (or by session key). A client may only touch documents it owns.
+    //
+    // There is NO client-side admin tier. Staff and study-team access goes
+    // exclusively through the Entra-gated epsa-admin-dashboard, whose Pages
+    // Functions use a service account (Admin SDK bypasses these rules), and
+    // through Cloud Functions. The former isAdmin()/isSuperAdmin() paths were
+    // removed: isSuperAdmin() trusted any @mssm.edu token email, and Email/
+    // Password sign-up made that trivially forgeable.
     // ============================================
-    
+
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    function isAdmin() {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isActive == true;
-    }
-    
-    // Optimized with regex to handle both domains and case-insensitivity
-    // Null-guard email: anonymous users have no email; avoid evaluation error on null.matches()
-    function isSuperAdmin() {
-      return isAuthenticated() &&
-        request.auth.token.email != null && (
-          request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$') ||
-          request.auth.token.email in ['aditya.dixit@mssm.edu', 'adixit@nyu.edu']
-        );
-    }
-    
-    function isAuthorizedAdmin() {
-      return isAdmin() || isSuperAdmin();
-    }
-    
-    // FIXED: Added null check to prevent rule evaluation errors
-    function isValidString(value, maxLength) {
-      return value != null && value is string && value.size() <= maxLength;
-    }
-    
-    // ============================================
-    // ANALYTICS COLLECTIONS
-    // ============================================
-    match /analytics/{document}/{subDocument} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-    }
-    
-    // Specific analytics subcollections
-    match /analytics/calculator_usage/events/{eventId} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-    }
-    
-    match /analytics/outcomes/records/{recordId} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-    }
-    
-    // ============================================
-    // LEGACY ADMINS COLLECTION
-    // ============================================
-    match /admins/{userId} {
-      allow read, write, create, update, delete: if isAuthenticated() && isSuperAdmin();
-      allow get: if isAuthenticated() && (request.auth.uid == userId || isAuthorizedAdmin());
-      allow list: if isAuthenticated() && isAuthorizedAdmin();
-    }
-    
-    // ============================================
-    // CONNECTION TESTS
-    // ============================================
-    match /_connection_test/{document} {
-      allow read, write: if isAuthenticated() && isAuthorizedAdmin();
-    }
-    
-    // ============================================
-    // SECTION LOCKS COLLECTION
-    // ============================================
-    match /users/{userId}/sectionLocks/{lockId} {
-      allow read, write, create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isSuperAdmin());
-    }
-    
-    // ============================================
-    // USERS COLLECTION
-    //
-    // NOTE: clients DO write here — App.jsx self-writes consent flags and
-    // currentSessionId against the caller's own uid. An earlier version of
-    // this comment claimed "Backend Only", which did not match the rules
-    // below and made review harder. Self-writes are scoped to
-    // request.auth.uid == userId; there is no client delete.
-    // ============================================
-    match /users/{userId} {
-      allow get: if isAuthenticated() && 
-        (request.auth.uid == userId || isAdmin() || isSuperAdmin());
-      allow list: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-      allow create, update: if isAuthenticated() &&
-        (request.auth.uid == userId || isAdmin() || isSuperAdmin());
-    }
-    
-    // ============================================
-    // SESSIONS COLLECTION
-    // ============================================
-    match /sessions/{sessionId} {
-      allow get, list: if isAuthenticated() &&
-        (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
-      allow create: if isAuthenticated() &&
-        (request.resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
-      allow update, delete: if isAuthenticated() &&
-        (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
-    }
-    
-    // ============================================
-    // SECURE PHONE DATA COLLECTION
-    // ============================================
-    // `write` implies create + update + delete, so the previous
-    // `allow read, write` here granted deletes to any admin — the
-    // `allow delete: if false` underneath it was a no-op, because
-    // overlapping allows OR together and can only widen access, never
-    // narrow it. Spelled out per-operation so the deny actually holds.
-    match /securePhoneData/{userId} {
-      allow read, create, update: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-      allow delete: if false;
-    }
-    
-    // ============================================
-    // AUDIT LOGS
-    // ============================================
-    match /auditLogs/{logId} {
-      allow read: if isAuthenticated() && (isAdmin() || isSuperAdmin());
-      allow create, update, delete: if false;
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
     }
 
     // ============================================
-    // APP CONFIG / FEATURE FLAGS
-    //
-    // Single source of truth for this path. There were previously TWO separate
-    // `match /appConfig/{docId}` blocks in this file (one for 'featureFlags',
-    // one for 'sinai'). Firestore ORs overlapping matches, so the looser of the
-    // two write conditions silently won: appConfig/sinai was writable by any
-    // isAuthorizedAdmin() even though its own block said isSuperAdmin(). They
-    // are merged here so each document's intended condition actually applies.
-    //
-    // Documents:
-    //   appConfig/featureFlags  → published by the epsa-admin-dashboard.
-    //                             Public read; admin write.
-    //   appConfig/sinai         → { redcapEnabled, updatedAt, updatedBy }.
-    //                             Public read so unauthenticated patients can
-    //                             pick the live-REDCap vs offline-CSV flow.
-    //                             Super-admin write only.
-    //   appConfig/voiceServers  → { servers: [{ name, url }] } — the Dr.
-    //                             Tewari voice server options the ePSA app
-    //                             offers in its narration settings.
-    //                             Public read; admin write.
-    //
-    // The admin dashboard writes these through a Pages Function using a service
-    // account (Admin SDK bypasses rules); these conditions govern only direct
-    // client writes.
-    //
-    // These docs carry flags/URLs, never tokens or secrets — they are world-readable.
+    // USERS — consent flags and currentSessionId, self-written by App.jsx.
+    // No list, no delete.
+    // ============================================
+    match /users/{userId} {
+      allow get, create, update: if isOwner(userId);
+    }
+
+    match /users/{userId}/sectionLocks/{lockId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ============================================
+    // SESSIONS — a visitor's own assessments.
+    // ============================================
+    match /sessions/{sessionId} {
+      allow get, list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ============================================
+    // CLINICAL MODE SESSIONS — scoped to the device's anonymous UID.
+    // ============================================
+    match /clinicalSessions/{uid}/records/{recordId} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
+    // ============================================
+    // APP CONFIG — world-readable flags and URLs, never secrets.
+    //   appConfig/featureFlags  → published by the admin dashboard
+    //   appConfig/sinai         → { redcapEnabled } for the patient flow
+    //   appConfig/voiceServers  → narration voice server options
+    // Written only by the admin dashboard's service account.
     // ============================================
     match /appConfig/{docId} {
       allow get: if docId in ['featureFlags', 'sinai', 'voiceServers'];
-      allow list: if isAuthenticated() && isAuthorizedAdmin();
-
-      allow create, update, delete: if isAuthenticated() && (
-        (docId == 'featureFlags' && isAuthorizedAdmin()) ||
-        (docId == 'voiceServers' && isAuthorizedAdmin()) ||
-        (docId == 'sinai' && isSuperAdmin())
-      );
     }
 
     // ============================================
-    // SINAI CLINIC CODES (Mount Sinai cohort — IRB STUDY-14-00050)
-    //
-    // Minted by super-admins (or the generateCodes script via Admin SDK,
-    // which bypasses these rules). The submitSinaiCohort Cloud Function
-    // reads and updates these via the Admin SDK; no client writes directly.
-    //
-    // Admins can read the audit metadata (used / usedAt / sessionId /
-    // redcapRecordId). Documents contain NO clinical data — only the code
-    // lifecycle audit row.
+    // Server-only collections — Cloud Functions and the admin dashboard
+    // (Admin SDK) only. Listed explicitly so their intent is documented;
+    // the default deny below would refuse them anyway.
+    //   analytics, admins, admin_otps, securePhoneData, auditLogs,
+    //   clinicCodes, clinicCodeAuditLog, adminAccessLog, sinaiSessions
     // ============================================
-    match /clinicCodes/{code} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow create, update, delete: if isAuthenticated() && isSuperAdmin();
-    }
-
-    // Clinic code audit log — written server-side via Admin SDK only,
-    // read-only for admins. Contains code lifecycle events; NO PHI.
-    match /clinicCodeAuditLog/{entryId} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow create, update, delete: if false;
-    }
-
-    // Admin access log — every time an admin views Sinai clinical data or
-    // performs a privileged action, an entry is written server-side. NO PHI.
-    // Read-only for admins; written exclusively by Cloud Functions.
-    match /adminAccessLog/{entryId} {
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow create, update, delete: if false;
-    }
-
-    // ============================================
-    // SINAI SESSIONS (clinical data for Sinai cohort — IRB STUDY-14-00050)
-    //
-    // Holds the patient's ePSA responses identified ONLY by clinic code (no
-    // name, MRN, or other PII). Auto-deleted after 30 days via Firestore TTL
-    // on the expiresAt field.
-    //
-    // Written exclusively by Cloud Functions (Admin SDK bypasses rules).
-    // Read-only for admins; clients never read or write directly.
-    // ============================================
-    match /sinaiSessions/{sessionId} {
-      allow get, list: if isAuthenticated() && isAuthorizedAdmin();
-      allow create, update, delete: if false;
-    }
-
-    // ============================================
-    // CLINICAL MODE SESSIONS (device-local, anonymous auth)
-    //
-    // Stores saved ePSA results from the kiosk/clinical mode flow.
-    // Each sub-collection is scoped to the anonymous Firebase UID
-    // of the device (one UID per browser profile; no PII stored).
-    // Admins can read all records for ops/support.
-    // ============================================
-    match /clinicalSessions/{uid}/records/{recordId} {
-      allow read, create, update, delete: if isAuthenticated() && request.auth.uid == uid;
-      allow read, list: if isAuthenticated() && isAuthorizedAdmin();
-    }
-
-    // collectionGroup rule required for admin dashboard cross-device query.
-    // Matches ANY 'records' subcollection — scoped by parent path check in
-    // application code. Admins only; devices cannot cross-read other UIDs.
-    match /{path=**}/records/{recordId} {
-      allow read: if isAuthenticated() && isAuthorizedAdmin();
-    }
-
-    // (appConfig rules live in the APP CONFIG / FEATURE FLAGS block above —
-    // deliberately a single match block for this path. Do not re-add a second
-    // one; overlapping matches OR together and quietly loosen access.)
-
-    // ============================================
-    // ADMIN OTP CODES (written/deleted by Cloud Functions only)
-    // No client can read or write these — all access is via Admin SDK.
-    // ============================================
-    match /admin_otps/{email} {
-      allow read, write: if false;
-    }
-
-    // ============================================
-    // DEFAULT: DENY ALL
-    // ============================================
-    match /{document=**} {
+    match /{collection}/{document=**} {
       allow read, write: if false;
     }
   }
