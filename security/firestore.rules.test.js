@@ -12,6 +12,7 @@ import {
   adminCtx,
   inactiveAdminCtx,
   superAdminCtx,
+  unverifiedSinaiCtx,
   publicCtx,
 } from './helpers.js';
 
@@ -169,6 +170,13 @@ describe('admin privilege tiers', () => {
     await assertSucceeds(
       setDoc(doc(superAdminCtx(env).firestore(), 'admins', 'new-uid'), { isActive: true }),
     );
+  });
+
+  test('an unverified Sinai-domain email is not a super-admin', async () => {
+    const db = unverifiedSinaiCtx(env).firestore();
+    await assertFails(setDoc(doc(db, 'admins', 'new-uid'), { isActive: true }));
+    await assertFails(getDocs(collection(db, 'sessions')));
+    await assertFails(getDocs(collection(db, 'sinaiSessions')));
   });
 });
 

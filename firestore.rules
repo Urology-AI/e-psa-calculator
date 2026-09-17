@@ -24,7 +24,7 @@ service cloud.firestore {
     function isSuperAdmin() {
       return isAuthenticated() &&
         request.auth.token.email != null &&
-        request.auth.token.email_verified == true && (
+        request.auth.token.get('email_verified', false) == true && (
           request.auth.token.email.matches('(?i)^.*@(mountsinai\\.org|mssm\\.edu)$')
         );
     }

@@ -56,9 +56,13 @@ export const adminCtx = (env) =>
 export const inactiveAdminCtx = (env) =>
   env.authenticatedContext(UIDS.inactiveAdmin, { email: 'former@example.com' });
 
-/** Sinai-domain email — isSuperAdmin() passes on the email claim alone. */
+/** Verified Sinai-domain email — isSuperAdmin() needs both the domain and email_verified. */
 export const superAdminCtx = (env) =>
-  env.authenticatedContext(UIDS.superAdmin, { email: SUPER_ADMIN_EMAIL });
+  env.authenticatedContext(UIDS.superAdmin, { email: SUPER_ADMIN_EMAIL, email_verified: true });
+
+/** Same Sinai address but unverified — what a self-service sign-up would mint. */
+export const unverifiedSinaiCtx = (env) =>
+  env.authenticatedContext('unverified-sinai', { email: SUPER_ADMIN_EMAIL, email_verified: false });
 
 /** Not signed in at all. */
 export const publicCtx = (env) => env.unauthenticatedContext();
