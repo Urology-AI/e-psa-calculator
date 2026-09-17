@@ -429,7 +429,13 @@ interface SubmitPayload {
 }
 
 export const submitToRedcap = functions.https.onCall(
-  async (data: SubmitPayload) => {
+  async (data: SubmitPayload, context) => {
+    // Every caller of the app is signed in (anonymously at minimum); refuse
+    // unauthenticated calls so the study database isn't writable by any script.
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Sign-in required.');
+    }
+
     // ── Validate research consent ─────────────────────────────────────────
     if (data.researchConsent !== true) {
       throw new functions.https.HttpsError(
