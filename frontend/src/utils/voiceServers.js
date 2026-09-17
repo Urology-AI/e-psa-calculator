@@ -17,6 +17,23 @@ export const DEFAULT_VOICE_SERVERS = [
   { name: 'Local (dev)', url: 'http://localhost:8000' },
 ];
 
+// The cloud voice server only synthesizes for signed-in app users, so every
+// request carries the caller's Firebase ID token (anonymous sign-in is enough).
+export const voiceAuthHeaders = async () => {
+  try {
+    const { auth } = await import('../config/firebase');
+    if (!auth) return {};
+    if (!auth.currentUser) {
+      const { signInAnonymously } = await import('firebase/auth');
+      await signInAnonymously(auth);
+    }
+    return { Authorization: `Bearer ${await auth.currentUser.getIdToken()}` };
+  } catch (error) {
+    console.error('Could not get a sign-in token for the voice server:', error);
+    return {};
+  }
+};
+
 export const getVoiceServers = () => {
   try {
     const stored = localStorage.getItem(VOICE_SERVERS_CACHE_KEY);
