@@ -2371,3 +2371,17 @@
 .theme-dark .p2r-menu-item:hover {
   background: rgba(255,255,255,0.06);
 }
+
+/* Biopsy-model result, worded identically to e-Biopsy */
+.p3-ebiopsy {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-200, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-background-secondary, #f9fafb);
+  font-size: var(--font-size-small, 0.875rem);
+  color: var(--ink-800);
+  line-height: 1.5;
+}
+.p3-ebiopsy-headline { font-weight: 600; color: var(--ink-900); margin-bottom: 2px; }
+.p3-ebiopsy-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-weight: 500; }
