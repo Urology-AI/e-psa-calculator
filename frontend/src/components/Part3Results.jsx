@@ -26,6 +26,19 @@ import {
   ClipboardListIcon, LetterTextIcon, HelpCircleIcon, FileSearchIcon,
 } from 'lucide-react';
 
+// e-Biopsy (Urology-AI/biopsy-prediction) is the standalone biopsy-decision
+// tool. Both it and this page score with the engine's predictBiopsyRisk, so
+// these headlines must stay word-for-word identical to e-Biopsy's TIER_TEXT
+// for the same tier — a patient using both should read the same result.
+const E_BIOPSY_URL = 'https://urology-ai.github.io/biopsy-prediction/';
+const E_BIOPSY_HEADLINES = {
+  biopsy_not_indicated: 'Your estimated risk is low',
+  monitoring_advised: 'Your estimated risk is below average',
+  biopsy_discussion_advised: 'A biopsy is worth discussing',
+  biopsy_recommended: 'A biopsy is recommended',
+};
+
+
 /* ─── Count-up hook for PSA value animation ─── */
 const useCountUpFloat = (target, decimals = 1, duration = 950, delayMs = 800) => {
   const [value, setValue] = useState(0);
@@ -692,6 +705,17 @@ const Part3Results = ({
             <div style={{ marginTop: '12px', fontSize: 'var(--font-size-body)', color: 'var(--ink-800)', lineHeight: 1.5 }}>
               <strong style={{ fontWeight: 'var(--font-weight-medium)' }}>Recommendation:</strong> {tierRecommendation}
             </div>
+            {apiPrediction?.tier && (
+              <div className="p3-ebiopsy" role="note">
+                <div className="p3-ebiopsy-headline">{E_BIOPSY_HEADLINES[apiPrediction.tier.key]}</div>
+                <div>
+                  About <strong>{Math.round(apiPrediction.percent)} in 100</strong> men with results like yours have a prostate cancer that needs treatment (Grade Group 2 or higher).
+                </div>
+                <a href={E_BIOPSY_URL} target="_blank" rel="noopener noreferrer" className="p3-ebiopsy-link">
+                  Continue the biopsy discussion in e-Biopsy <ExternalLinkIcon size={12} aria-hidden="true" />
+                </a>
+              </div>
+            )}
             {apiPrediction && !apiPrediction.reliable && (
               <div style={{ marginTop: '8px', fontSize: 'var(--font-size-caption)', color: 'var(--warning-600)', background: '#fffbeb', border: '0.5px solid #fcd34d', borderRadius: '6px', padding: '5px 8px' }}>
                 Inputs fall outside the model's well-supported range — treat this estimate with extra caution. See Why? → Model Details.

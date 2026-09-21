@@ -62,7 +62,6 @@ const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
 import QuickEntry from './components/QuickEntry.jsx';
-import BiopsyPrediction from './components/BiopsyPrediction.jsx';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -167,7 +166,6 @@ function App() {
 
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
-  const [showBiopsyTool, setShowBiopsyTool] = useState(false);
 
   // Safety net: guarantee every step/stage/pathway transition lands the user
   // at the top of the page, even if a specific navigation handler forgets its
@@ -2164,14 +2162,16 @@ function App() {
                   <ZapIcon size={14} />
                   <span>Clinician View</span>
                 </button>
-                <button
-                  type="button"
+                <a
                   className="ws-btn-pill ws-btn-pill--quiet"
-                  onClick={() => setShowBiopsyTool(true)}
+                  href="https://urology-ai.github.io/biopsy-prediction/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <MicroscopeIcon size={14} />
                   <span>{t('biopsyTool.open')}</span>
-                </button>
+                  <ExternalLinkIcon size={12} aria-hidden="true" />
+                </a>
               </div>
             </div>
 
@@ -2609,9 +2609,7 @@ function App() {
           </div>
         )}
 
-        {showBiopsyTool ? (
-          <BiopsyPrediction onClose={() => setShowBiopsyTool(false)} />
-        ) : showQuickEntry ? (
+        {showQuickEntry ? (
           <QuickEntry
             calculatorConfig={calculatorConfig}
             onClose={() => setShowQuickEntry(false)}
