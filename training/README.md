@@ -149,3 +149,17 @@ Takeaways: discrimination holds up outside Mount Sinai (registry AUC was 0.74), 
 ### Recalibration candidate (not deployed)
 
 `recalibrate_biopsy_picai.py` fits `p' = sigmoid(a + b·logit(p_v4))` on the 1,439 PI-CAI cases that take the full v4 path and reports cross-validated metrics and tier migration. Fitted: **a = −0.265, b = 1.63** (v4 is *compressed*, not over-extreme: it overstates low risk and slightly understates high risk). Cross-validated Brier improves 0.140 → 0.132 with unchanged AUC (0.865). **Do not drop it in unchanged:** applying the existing 0.15 / 0.25 / 0.45 cutoffs to recalibrated risk drops sensitivity from 94.4% to 84.8%. The deployed cutoffs map to recalibrated risks of 0.044 / 0.114 / 0.356, so any adoption must move the cutoffs with it and be re-checked on local data first.
+
+### Three-way comparison and model-version check
+
+`compare_biopsy_models_picai.py` compares v4 (deployed), **MSP-RC reconstructed from its published odds ratios** (Parekh et al. 2022, Table 2; family history / DRE / biopsy history / race and the intercept are unavailable in PI-CAI, so it ranks men but is not a full test of the published tool), and a PI-CAI refit (v4 inputs + age, repeated 5-fold CV, so it is not graded on its own rows). It reports AUC with bootstrap CIs, biopsies avoided at 95% and 90% sensitivity, paired AUC differences, and three questions from the case ISUP grade: significant vs everything else, any cancer vs none, significant vs low-grade only.
+
+| Question (AUC) | v4 | MSP-RC (rebuilt) | Refit (CV) |
+|---|---|---|---|
+| Significant (GG≥2) vs everything else | 0.866 | 0.848 | 0.879 |
+| Any cancer vs no cancer | 0.858 | 0.871 | 0.894 |
+| Significant vs low-grade only | 0.695 | 0.690 | 0.699 |
+
+**What changed from v3 to v4** (see `biopsy-prediction/model/model.py`): v3 was logPSA + PSAD + PI-RADS (N=120, OOF AUC 0.703). v4 uses logPSA + logVolume + PI-RADS (N=126, OOF AUC 0.739) and drops the PSAD term, because PSAD = PSA/volume, so fitting logPSA, PSAD and logVolume together made the coefficients share variance and flip sign. On PI-CAI (n=1,439), by engine path: v2 (PSA + PI-RADS) AUC 0.843, v3 0.847, v4 0.866; at the 0.25 threshold specificity is 27.7% / 38.9% / 63.5% at similar sensitivity (about 95%).
+
+Tests: `python -m pytest training/` (engine-dependent tests skip if `frontend/node_modules` is missing).
