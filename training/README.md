@@ -129,6 +129,7 @@ These files are listed in `.gitignore` and are not committed. Create them by red
 ```bash
 curl -L -o marksheet.csv https://raw.githubusercontent.com/DIAGNijmegen/picai_labels/main/clinical_information/marksheet.csv
 python training/validate_biopsy_picai.py --csv marksheet.csv   # needs frontend deps installed (node_modules/@epsa/engine)
+python -m pytest training/test_validate_biopsy_picai.py          # 17 tests; engine ones skip if frontend deps are missing
 ```
 
 **Data licence:** PI-CAI is CC BY-NC 4.0 (non-commercial, attribution required; cite the PI-CAI Lancet Oncology 2024 paper). Use it for validation only; do not commit the CSV. Check the licence before training anything deployed on it.
