@@ -119,3 +119,28 @@ These files are listed in `.gitignore` and are not committed. Create them by red
    - **Part 2**: Update `part2.intercept`, `part2.variables`, and `part2.encodings` if the script output differs; keep or adjust `part2.thresholds` as needed.
 3. Optionally append or overwrite the result files in the repo root for traceability.
 4. Rebuild and test the frontend to confirm scores and recommendations match expectations.
+
+---
+
+## Biopsy model (v4) – external validation on PI-CAI
+
+`validate_biopsy_picai.py` scores the **deployed** biopsy-risk model (`predictBiopsyRisk` from `@epsa/engine`, called via Node so no coefficients are hand-copied) on the public PI-CAI clinical table and reports AUC with bootstrap CIs, per-site AUC, sensitivity/specificity at the deployed 0.25 threshold, and calibration by risk quintile. Outcome is `case_csPCa` (ISUP ≥ 2), matching v4's GG≥2 label. PI-RADS per case is the highest per-lesion score.
+
+```bash
+curl -L -o marksheet.csv https://raw.githubusercontent.com/DIAGNijmegen/picai_labels/main/clinical_information/marksheet.csv
+python training/validate_biopsy_picai.py --csv marksheet.csv   # needs frontend deps installed (node_modules/@epsa/engine)
+```
+
+**Data licence:** PI-CAI is CC BY-NC 4.0 (non-commercial, attribution required; cite the PI-CAI Lancet Oncology 2024 paper). Use it for validation only; do not commit the CSV. Check the licence before training anything deployed on it.
+
+### Results (1,460 of 1,500 cases with PSA + PI-RADS; 28.5% csPCa)
+
+| Measure | Value |
+|--------|--------|
+| v4 AUC | 0.865 (95% CI 0.845–0.884) |
+| PI-RADS alone / PSA density alone / PSA alone | 0.859 / 0.723 / 0.627 |
+| Per-site AUC (PCNN / RUMC / ZGT) | 0.776 / 0.885 / 0.903 |
+| At threshold 0.25 | sensitivity 94.5%, specificity 62.9%, NPV 96.6%, 46.6% biopsies avoided |
+| Mean predicted vs observed risk | 36% vs 28.5% |
+
+Takeaways: discrimination holds up outside Mount Sinai (registry AUC was 0.74), and the 0.25 threshold is safe, but v4 **overestimates low-end risk** (lowest two quintiles predicted 14% / 19%, observed 2% / 4%) and adds only ~0.006 AUC over PI-RADS alone. In 5-fold CV on PI-CAI, recalibrating v4's intercept/slope fixes most of the low-end miscalibration (Brier 0.140 → 0.132); a full refit reaches AUC ≈ 0.875–0.879 (Brier ≈ 0.126). A PI-CAI-fitted model may not transfer to Mount Sinai, so validate on the local registry before adopting any change.
