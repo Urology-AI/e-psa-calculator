@@ -39,20 +39,20 @@ describe('screening guidance dataset', () => {
   });
 
   it('resolves the regions the user asked to be covered', () => {
-    expect(getRegionForCountry('IN').id).toBe('south_asia');
+    expect(getRegionForCountry('IN').id).toBe('in');
     expect(getRegionForCountry('NG').id).toBe('ssa');
     expect(getRegionForCountry('ZA').id).toBe('ssa');
     expect(getRegionForCountry('SA').id).toBe('mena');
     expect(getRegionForCountry('AE').id).toBe('mena');
     expect(getRegionForCountry('EG').id).toBe('mena');
-    expect(getRegionForCountry('RU').id).toBe('russia_cis');
+    expect(getRegionForCountry('RU').id).toBe('ru');
     expect(getRegionForCountry('US').id).toBe('us');
     expect(getRegionForCountry('GB').id).toBe('uk');
-    expect(getRegionForCountry('AU').id).toBe('anz');
+    expect(getRegionForCountry('AU').id).toBe('au');
   });
 
   it('is case and whitespace tolerant on the country code', () => {
-    expect(getRegionForCountry('in').id).toBe('south_asia');
+    expect(getRegionForCountry('in').id).toBe('in');
     expect(getRegionForCountry(' ng ').id).toBe('ssa');
   });
 
