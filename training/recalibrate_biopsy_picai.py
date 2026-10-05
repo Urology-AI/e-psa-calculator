@@ -9,7 +9,7 @@ Only the 1,439 PI-CAI cases that take the full v4 path (PSA + volume + PI-RADS)
 are used. Reports cross-validated Brier/AUC/calibration, bootstrap CIs on a and
 b, and how the engine's four output tiers (cutoffs 0.15 / 0.25 / 0.45) migrate.
 
-PI-CAI is CC BY-NC 4.0 and a Dutch/Norwegian cohort: treat the fitted a, b as a
+PI-CAI is CC BY-NC 4.0 and a Dutch cohort (three Netherlands centers): treat the fitted a, b as a
 candidate to re-check on local (Mount Sinai) data, not as a deployable change.
 
   python training/recalibrate_biopsy_picai.py --csv marksheet.csv
