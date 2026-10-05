@@ -16,7 +16,7 @@
     "test": "tsc -p tsconfig.test.json && node --test lib-test/*.test.js"
   },
   "dependencies": {
-    "@urology-ai/epsa-engine": "^0.2.0",
+    "@urology-ai/epsa-engine": "^0.2.5",
     "@types/cors": "^2.8.19",
     "@types/nodemailer": "^8.0.0",
     "cors": "^2.8.6",
