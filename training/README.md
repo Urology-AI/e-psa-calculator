@@ -145,3 +145,7 @@ python -m pytest training/test_validate_biopsy_picai.py          # 17 tests; eng
 | Mean predicted vs observed risk | 36% vs 28.5% |
 
 Takeaways: discrimination holds up outside Mount Sinai (registry AUC was 0.74), and the 0.25 threshold is safe, but v4 **overestimates low-end risk** (lowest two quintiles predicted 14% / 19%, observed 2% / 4%) and adds only ~0.006 AUC over PI-RADS alone. In 5-fold CV on PI-CAI, recalibrating v4's intercept/slope fixes most of the low-end miscalibration (Brier 0.140 → 0.132); a full refit reaches AUC ≈ 0.875–0.879 (Brier ≈ 0.126). A PI-CAI-fitted model may not transfer to Mount Sinai, so validate on the local registry before adopting any change.
+
+### Recalibration candidate (not deployed)
+
+`recalibrate_biopsy_picai.py` fits `p' = sigmoid(a + b·logit(p_v4))` on the 1,439 PI-CAI cases that take the full v4 path and reports cross-validated metrics and tier migration. Fitted: **a = −0.265, b = 1.63** (v4 is *compressed*, not over-extreme: it overstates low risk and slightly understates high risk). Cross-validated Brier improves 0.140 → 0.132 with unchanged AUC (0.865). **Do not drop it in unchanged:** applying the existing 0.15 / 0.25 / 0.45 cutoffs to recalibrated risk drops sensitivity from 94.4% to 84.8%. The deployed cutoffs map to recalibrated risks of 0.044 / 0.114 / 0.356, so any adoption must move the cutoffs with it and be re-checked on local data first.
