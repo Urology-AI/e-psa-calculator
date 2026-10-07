@@ -7,8 +7,8 @@
  *
  * Contrast is computed from the colours in the source (jsdom has no layout, so a
  * rendered-pixel check such as axe's colour-contrast rule is not available here).
- * Known failures are pinned in KNOWN_CONTRAST_FAILURES: the test fails if a NEW
- * pair fails, and also if a listed pair is fixed (so the list gets cleaned up).
+ * The test fails if any pair drops below 4.5:1. The Sinai build has a single
+ * (light) theme, so there is no dark-mode palette to check.
  */
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -46,19 +46,12 @@ const PAIRS = [
   ...tierLadder.map((t) => [`tier caption "${t.short}" on card`, t.color, WHITE]),
 ];
 
-// Pairs that fail AA today (17px bold caption; large-text threshold would need 18.66px bold).
-// Reported, not restyled: choosing a replacement colour is a design decision.
-const KNOWN_CONTRAST_FAILURES = new Set([
-  'tier caption "Optional" on card',
-  'tier caption "Advised" on card',
-]);
-
 describe('Sinai result: contrast (WCAG AA 4.5:1)', () => {
   it('parsed the tier ladder', () => expect(tierLadder).toHaveLength(4));
 
-  it('only the pinned pairs fail', () => {
+  it('every pair meets 4.5:1, including the Optional and Advised tier captions', () => {
     const failing = PAIRS.filter(([, fg, bg]) => contrast(fg, bg) < 4.5).map(([n]) => n);
-    expect(new Set(failing)).toEqual(KNOWN_CONTRAST_FAILURES);
+    expect(failing).toEqual([]);
   });
 });
 

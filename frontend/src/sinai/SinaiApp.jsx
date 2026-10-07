@@ -499,8 +499,8 @@ function Result({ result, onRestart }) {
  */
 const TIER_LADDER = [
   { key: 'screening_not_indicated', short: 'Not indicated', color: '#4a7c59' },
-  { key: 'discussion_optional', short: 'Optional', color: '#c08a1e' },
-  { key: 'discussion_advised_extended_risk', short: 'Advised', color: '#d1651f' },
+  { key: 'discussion_optional', short: 'Optional', color: '#8a6100' },
+  { key: 'discussion_advised_extended_risk', short: 'Advised', color: '#b04e0f' },
   { key: 'screening_recommended', short: 'Recommended', color: '#d31f7a' },
 ];
 
