@@ -929,7 +929,9 @@
       "high": "High priority for PSA testing means your estimated likelihood is in the higher range relative to the model's reference data. High priority does not mean cancer is present — it is a prompt to review screening options with a clinician. This priority reflects ePSA's own research data on prostate cancer risk factors, not a guideline-based screening rule — it's a starting point worth discussing further with your doctor, especially if you have additional risk factors not captured here.",
       "highGuidelineDriven": "High priority for PSA testing means your estimated likelihood is in the higher range relative to the model's reference data. High priority does not mean cancer is present — it is a prompt to review screening options with a clinician. This priority is supported by guideline-recognized risk factors (such as age, ancestry, family history, or a known genetic mutation) under AUA/SUO and NCCN screening guidance, in addition to ePSA's broader research-based scoring — it's a starting point worth discussing further with your doctor."
     },
-    "empiricalProbabilityText": "In our validation study (N={{n}}), {{events}} in {{n}} patients at this risk tier had clinically significant prostate cancer ({{rate}}%; 95% CI {{ciLo}}%–{{ciHi}}%).",
+    "empiricalProbabilityText": "From a small referral cohort of {{cohortN}} patients, not a general screening population: {{events}} of {{n}} patients at this tier had clinically significant prostate cancer ({{rate}}%; 95% CI {{ciLo}}%–{{ciHi}}%).",
+    "empiricalProbabilityTextNoCi": "From a small referral cohort of {{cohortN}} patients, not a general screening population: {{events}} of {{n}} patients at this tier had clinically significant prostate cancer ({{rate}}%).",
+    "empiricalInsufficientText": "From a small referral cohort of {{cohortN}} patients, not a general screening population: too few patients at this tier to estimate.",
     "educationalEstimateNote": "This is an educational estimate — it does not diagnose cancer. Use it as a starting point for a conversation with your doctor.",
     "sessionKeyLabel": "Session key",
     "savedToCloud": "Saved to cloud",
@@ -1375,7 +1377,7 @@
       "body": "For details on the risk assessment stage (PSA, PI-RADS, Stage 2), see the application after completing Stage 1. For questions about the model, contact the Department of Urology, Mount Sinai Health System."
     },
     "validationStudyModal": {
-      "heroTitle": "Validation (N={{n}})",
+      "heroTitle": "In-sample evaluation (N={{n}})",
       "csPcaCount": "csPCa+ n={{positive}}",
       "heroSubtitle": "AUC for Bayesian recalibrated ePSA vs PSA is statistically equivalent in this sample (Youden-optimal cutoffs).",
       "cardAucBayesLabel": "AUC (Bayesian ePSA)",
