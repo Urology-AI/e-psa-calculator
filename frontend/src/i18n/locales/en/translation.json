@@ -69,6 +69,10 @@
     "email": "Email"
   },
   "welcome": {
+    "iosBetaBadge": "Beta",
+    "iosBetaTitle": "ePSA for iPhone is now in beta",
+    "iosBetaBody": "Try the new iPhone app: same risk assessment, plus a urologist map, saved results and PSA reminders.",
+    "iosBetaCta": "Join on TestFlight",
     "heroBadge": "Educational Clinical Support Tool",
     "heroTitle": "Know your baseline PSA risk before your next urology visit",
     "heroDescription": "Get a personalized picture of your prostate cancer risk so you can have a more informed PSA conversation with your clinician: not a verdict, a starting point.",
