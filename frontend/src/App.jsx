@@ -74,6 +74,7 @@ import { computeSessionResults } from './services/psaEngineService';
 import { getFeatureFlags, refreshFeatureFlags } from './utils/featureFlags';
 import { trackCalculatorUsage, trackOutcome, ANALYTICS_EVENTS } from './services/analyticsService';
 import { fetchBiopsyPrediction } from './utils/biopsyApi';
+import { buildProvenance } from './utils/provenance';
 
 const CONSENT_CACHE_KEY = 'epsa_consent_acknowledged_v1';
 // Increment this string whenever the consent text changes to force re-consent for returning users.
@@ -880,7 +881,7 @@ function App() {
     }
   };
 
-  const saveSession = async (uid, step1Data) => {
+  const saveSession = async (uid, step1Data, provenance = null) => {
     if (!db) return null;
     setCloudSyncStatus('saving');
     const sessionRef = doc(collection(db, 'sessions'));
@@ -889,6 +890,7 @@ function App() {
       userId: uid,
       status: 'STEP1_COMPLETE',
       step1: step1Data,
+      ...(provenance || {}),
       expiresAt,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -939,7 +941,7 @@ function App() {
     }
   };
 
-  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score, engineVersion, modelVersion) => {
+  const updateSessionStep2 = async (sessionDocId, step2Data, riskCat, score, engineVersion, modelVersion, provenance = null) => {
     if (!db) return;
     setCloudSyncStatus('saving');
     try {
@@ -948,7 +950,8 @@ function App() {
         step2: step2Data,
         finalCategory: riskCat,
         finalScore: score,
-        engineVersion: engineVersion || '1.0.0',
+        ...(provenance || {}),
+        engineVersion: engineVersion || provenance?.engineVersion || null,
         ...(modelVersion ? { modelVersion } : {}),
         expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
         updatedAt: serverTimestamp(),
@@ -1354,13 +1357,13 @@ function App() {
         }
       }
 
-      const newSessionId = await saveSession(firebaseUser.uid, preData);
+      const newSessionId = await saveSession(firebaseUser.uid, preData, preResult ? buildProvenance({ part1: preResult }) : null);
       if (newSessionId) {
         setSessionId(newSessionId);
         safeLS.set(`sessionId_${firebaseUser.uid}`, newSessionId);
       }
       if (postData && postResult && newSessionId) {
-        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0, postResult.engineVersion, postResult.modelVersion);
+        await updateSessionStep2(newSessionId, postData, postResult.riskCat || postResult.riskClass || 'unknown', postResult.totalPoints ?? 0, postResult.engineVersion, postResult.modelVersion, buildProvenance({ part1: preResult, part2: postResult }));
       }
       setStorageMode('cloud');
       setCloudConsentGiven(true);
@@ -1855,7 +1858,7 @@ function App() {
         try {
           if (!sessionId) {
             // No partial session yet — create a fresh STEP1_COMPLETE session
-            const newSessionId = await saveSession(user.uid, preData);
+            const newSessionId = await saveSession(user.uid, preData, buildProvenance({ part1: result }));
             setSessionId(newSessionId);
             safeLS.set(`sessionId_${user.uid}`, newSessionId);
           } else {
@@ -1864,6 +1867,7 @@ function App() {
             await updateDoc(doc(db, 'sessions', sessionId), {
               status: 'STEP1_COMPLETE',
               step1: preData,
+              ...buildProvenance({ part1: result }),
               step1Partial: deleteField(),
               part1Step: deleteField(),
               expiresAt: Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)),
@@ -1901,7 +1905,7 @@ function App() {
   const persistStep2IfOptedIn = async (result) => {
     if (!result || !cloudConsentGivenRef.current || !sessionIdRef.current || storageMode !== 'cloud' || !user) return;
     try {
-      await updateSessionStep2(sessionIdRef.current, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
+      await updateSessionStep2(sessionIdRef.current, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion, buildProvenance({ part1: preResult, part2: result }));
     } catch (error) {
       console.error('Error saving PSA result to Firestore:', error);
     }
@@ -2013,7 +2017,7 @@ function App() {
       // Save Part 2 session to Firestore (cloud mode only)
       if (cloudConsentGivenRef.current && storageMode === 'cloud' && user && sessionId) {
         try {
-          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion);
+          await updateSessionStep2(sessionId, postData, result.riskCat || result.riskClass || 'unknown', result.totalPoints ?? 0, result.engineVersion, result.modelVersion, buildProvenance({ part1: preResult, part2: result }));
         } catch (error) {
           console.error('Error saving step 2 to Firestore:', error);
         }

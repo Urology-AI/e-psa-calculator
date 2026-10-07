@@ -76,6 +76,14 @@ export function normaliseSession(raw) {
     // Promoted to top-level for SaMD audit-trail reproducibility
     engineVersion: raw.engineVersion ?? postResult?.engineVersion ?? engineResult?.engineVersion ?? null,
     modelVersion:  raw.modelVersion  ?? postResult?.modelVersion  ?? engineResult?.modelVersion  ?? null,
+    // Never stamped with *today's* guideline edition: an imported or older session
+    // keeps whatever it was saved with, or null when it was never recorded.
+    guidelineVersion: raw.guidelineVersion ?? postResult?.guidelineVersion ?? engineResult?.guidelineVersion ?? null,
+    modelVersions: raw.modelVersions ?? {
+      ...(engineResult?.modelVersion ? { part1: engineResult.modelVersion } : {}),
+      ...(postResult?.modelVersion ? { part2: postResult.modelVersion } : {}),
+      ...(postResult?.apiPrediction?.model_version ? { part3: postResult.apiPrediction.model_version } : {}),
+    },
     biopsyOutcome: raw.biopsyOutcome ?? null,
     // Patient consent to cloud storage: true | false | null (legacy, pre-consent).
     consented: raw.consented ?? null,
