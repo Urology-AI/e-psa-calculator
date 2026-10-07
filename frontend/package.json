@@ -16,7 +16,7 @@
     "build:sinai": "vite build --config vite.config.sinai.js"
   },
   "dependencies": {
-    "@epsa/engine": "npm:@urology-ai/epsa-engine@^0.2.0",
+    "@epsa/engine": "npm:@urology-ai/epsa-engine@0.2.5",
     "@urology-ai/epsa-ui": "^0.1.0",
     "@libsql/client": "^0.17.3",
     "@radix-ui/react-progress": "^1.1.12",

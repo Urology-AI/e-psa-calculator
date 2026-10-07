@@ -64,9 +64,8 @@ jobs:
         cache: npm
         cache-dependency-path: backend/package-lock.json
 
-    # @urology-ai/epsa-engine is a private GitHub Packages registry dependency
-    # (not the git+ssh dependency the frontend job below still uses). This
-    # .npmrc has to travel into backend/lib/ (done by `npm run build`'s copy
+    # @urology-ai/epsa-engine is a private GitHub Packages registry dependency.
+    # This .npmrc has to travel into backend/lib/ (done by `npm run build`'s copy
     # step) because Firebase's Cloud Functions deploy re-runs npm install on
     # Google's own remote build infrastructure using only what got uploaded —
     # local git/SSH auth from this runner never reaches that step, but a
@@ -79,15 +78,12 @@ jobs:
       env:
         EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
 
-    # npm install, not npm ci: package-lock.json doesn't yet have an entry for
-    # @urology-ai/epsa-engine (no environment with registry read access was
-    # available to regenerate it when the dependency was switched from the
-    # git+ssh URL). Lock-file reproducibility doesn't protect anything here
-    # anyway — Google's Cloud Functions build reinstalls everything from
-    # scratch on its own infrastructure regardless of what this step produces.
+    # npm ci: the lockfile pins the exact engine version (see
+    # engine-version.json and the "Engine version" workflow), so tests here run
+    # against the same engine build the lockfile records.
     - name: Install dependencies
       if: steps.changed.outputs.backend_changed == 'true'
-      run: npm install
+      run: npm ci
       working-directory: backend
 
     # Phase 1 success criterion: backend output must stay identical to a
@@ -162,12 +158,9 @@ jobs:
       env:
         EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
 
-    # npm install, not npm ci: package-lock.json doesn't yet have an entry
-    # reflecting the npm: alias switch (no environment with registry read
-    # access was available locally to regenerate it) — same situation as
-    # backend's install step above.
+    # npm ci: the lockfile pins the exact engine version (engine-version.json).
     - name: Install dependencies
-      run: npm install
+      run: npm ci
       working-directory: frontend
 
     - name: Remove local .npmrc

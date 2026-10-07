@@ -1,0 +1,27 @@
+name: Engine version
+
+# Fails when the scoring engine resolves to different versions in the
+# frontend, the backend, and engine-version.json. The check only reads
+# package.json / package-lock.json, so it needs no registry access or secrets.
+# To upgrade: edit engine-version.json, run `node scripts/engine-version.mjs --sync`,
+# then refresh both lockfiles with `npm install`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  engine-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check engine version consistency
+        run: node scripts/engine-version.mjs --check
