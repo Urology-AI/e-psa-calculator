@@ -1332,14 +1332,14 @@
     "closeAriaLabel": "Close",
     "closeButton": "Close Documentation",
     "validationStudyButton": "Validation Study",
-    "validationStudyTitle": "Validation Study (AUC 0.707)",
+    "validationStudyTitle": "How We Checked ePSA (Validation)",
     "overview": {
       "title": "Overview",
       "bodyStart": "Stage 1 (Screening Priority) uses a short questionnaire to produce an educational ePSA score (0-100%) and risk tier. This helps inform a conversation with a clinician about prostate cancer screening (e.g. PSA testing). It is",
       "notDiagnosisStrong": "not a diagnosis",
       "bodyEnd": "and does not replace clinical judgment.",
-      "warningStrong": "Non-validated educational tool.",
-      "warningBody": "Screening decisions should be made with a qualified healthcare provider. Risk tiers are based on population-level data and guideline thresholds from AUA, NCCN, and EAU, and may recommend earlier evaluation than current thresholds for high-risk demographic profiles. This divergence is intentional and should be interpreted in the context of shared decision-making."
+      "warningStrong": "Educational tool, not yet validated for real-world outcomes.",
+      "warningBody": "ePSA has been checked against screening guidelines on public datasets, but it has not been shown to find more cancers or prevent harm in men followed over time. Screening decisions should be made with a qualified healthcare provider. For some higher-risk profiles ePSA may suggest PSA testing or an MRI earlier than the published guideline cutoffs. Each result is a starting point for a conversation with your doctor."
     },
     "inputs": {
       "title": "Questionnaire Inputs",
@@ -1359,18 +1359,25 @@
     },
     "scoring": {
       "title": "How the Score Is Calculated",
-      "body": "The ePSA model uses a point-based (binned) approach. Your answers are converted into risk factors (e.g. age 50-59, 60-69, 70+; BMI 25-29.9 or >=30; IPSS severity; exercise; Black race; family history). These are combined into a single score, normalized to a 0-100% scale. A +/-5% range is shown to avoid over-interpreting small differences.",
-      "formula": "Model type: {{modelType}}. Your combined risk factors are grouped into three tiers — LOWER, MODERATE, and HIGHER — reflecting your relative risk, not an exact numeric score."
+      "body": "ePSA adds up points. Each answer that is linked to higher prostate cancer risk (for example older age, Black ancestry, family history, an inherited gene change, urinary symptoms, or lower exercise) adds points, and the total is turned into a 0-100% score. A +/-5% range is shown so small differences are not over-read.",
+      "formula": "Model type: {{modelType}}. The score is grouped into three tiers (LOWER, MODERATE, HIGHER) that show your relative risk, not an exact chance of having cancer.",
+      "originTitle": "Where the points come from",
+      "originBody": "The starting point values came from a statistical model (Bayesian logistic regression) fitted in March 2026 on 94 men referred to Mount Sinai, 23 of whom had a clinically significant cancer. The model used published research on each risk factor as its starting assumptions. The team then adjusted some points by hand after that (for example how urinary symptoms count, the age 50-59 value, the Black-ancestry age rule, chemical exposure, hereditary family history and Ashkenazi ancestry). The points are therefore partly data-driven and partly expert-set.",
+      "originCaveat": "The 22.5% PSA-testing cutoff and the tier percentages were set on the same 94 men, so they look better than they would on new men. Fewer than 20 men fall in some tiers, so those percentages are rough."
     },
     "riskTiers": {
       "title": "Risk Tiers & PSA Recommendation",
-      "body": "Your result is placed into one of three tiers (LOWER, MODERATE, HIGHER). In addition, the model may indicate whether PSA testing is \"Recommended\" or \"Not Recommended\" based on your combined risk profile. This is for educational use only and should be reviewed with your doctor."
+      "body": "Your result is placed into one of three tiers (LOWER, MODERATE, HIGHER). The PSA recommendation mostly follows age and the published guidelines (AUA/SUO 2026, NCCN, EAU); your risk score adds to it. If you add a PSA or MRI result, a second and third step (Stage 2 and 3) use the same points plus PSA, PSA density and PI-RADS to suggest MRI or biopsy. Each of these steps is described in its own documentation. All of this is for educational use and should be reviewed with your doctor."
     },
     "limitations": {
       "title": "Limitations",
       "item1": "Not diagnostic; does not detect or rule out cancer.",
       "item2": "Based on population-level associations; individual risk may vary.",
-      "item3": "Does not replace DRE, PSA, MRI, or biopsy when indicated by a clinician."
+      "item3": "Does not replace DRE, PSA, MRI, or biopsy when indicated by a clinician.",
+      "item4": "The Stage 1 questionnaire has not been compared directly with PSA testing in a large group of men.",
+      "item5": "Not tested for outcomes (cancers found early, deaths or metastases avoided).",
+      "item6": "We have not checked that it works equally well for every group (for example by race or country).",
+      "item7": "The points were built on a small referral group at one hospital, so they may not fit men in the general population."
     },
     "references": {
       "title": "References",
@@ -1379,7 +1386,7 @@
     "validationStudyModal": {
       "heroTitle": "In-sample evaluation (N={{n}})",
       "csPcaCount": "csPCa+ n={{positive}}",
-      "heroSubtitle": "AUC for Bayesian recalibrated ePSA vs PSA is statistically equivalent in this sample (Youden-optimal cutoffs).",
+      "heroSubtitle": "In the original 94-man hospital group, ePSA and PSA discriminated about equally well. The difference was small and the uncertainty is large.",
       "cardAucBayesLabel": "AUC (Bayesian ePSA)",
       "cardAucPsaLabel": "AUC (PSA)",
       "cardAucDiffLabel": "AUC difference (Bayesian − PSA)",
@@ -1396,10 +1403,29 @@
       "fpLabel": "FP",
       "tnLabel": "TN",
       "bottomLineTitle": "Bottom line",
-      "bottomLineBodyStart": "With this dataset size, Bayesian ePSA performs as well as PSA. The main practical advantage is the",
-      "higherNpv": "higher NPV",
-      "bottomLineBodyEnd": "at Youden-optimal cutoffs.",
-      "interpretationNote": "Interpretation note: this is an in-sample evaluation on N={{n}} with csPCa+ n={{positive}}. A larger dataset is needed to demonstrate separation beyond statistical equivalence."
+      "bottomLineBodyStart": "With only 94 men we cannot show that ePSA is better or worse than PSA. ePSA caught more of the cancers at its best cutoff (sensitivity 82.6% vs 73.9%), but this was measured on the same men the model was built on, so the real difference is unknown. The NPV difference (88% vs 84%) is",
+      "higherNpv": "not reliable",
+      "bottomLineBodyEnd": "with this few men.",
+      "interpretationNote": "Interpretation note: this is an in-sample evaluation on N={{n}} with csPCa+ n={{positive}}. The confidence interval is wide, so this test cannot tell us whether ePSA is better, the same or worse than PSA.",
+      "stepsTitle": "The steps we took",
+      "stepsIntro": "We checked ePSA in stages, mostly against public data from other hospitals and surveys. These steps ask whether ePSA follows the guidelines and finds cancer as well as PSA alone. They do not show that ePSA saves lives.",
+      "step1Title": "1. Small hospital group (N={{n}})",
+      "step1Body": "The first test used the same 94 Mount Sinai men the model was built on. ePSA and PSA looked similar, but the group is too small and too closely tied to the model to draw firm conclusions.",
+      "step2Title": "2. Who should get a PSA test? (US national survey, NHANES)",
+      "step2Body": "In {{n}} US men under 70, ePSA recommended a PSA test for {{sens}} of the men who had a PSA of 4.0 or higher, the same as the NCCN and AUA/SUO guidelines. Like the guidelines, it recommended testing for most men who did not need it: only {{spec}} of men without a high PSA were told they could skip it. NHANES has no biopsy results, so a high PSA is used as a stand-in for \"should have been tested\".",
+      "step3Title": "3. Who should get an MRI? (PI-CAI, {{n}} men)",
+      "step3Body": "ePSA Stage 2 recommended MRI for {{sens}} of men whose biopsy later showed a significant cancer (grade group 2 or higher). NCCN and EAU rules found {{nccn}}, and PSA above 4.0 found {{psa4}}. ePSA spared slightly more men an MRI than NCCN or EAU, and slightly fewer than PSA above 4.0. These men were already referred for MRI, so the numbers may differ in an unselected population.",
+      "step4Title": "4. Who should get a biopsy? (e-Biopsy, two public MRI cohorts)",
+      "step4Body": "e-Biopsy (our separate probability model, not the ePSA guideline rules) separated significant cancers from other results well in PI-CAI (AUC {{aucPicai}}) and moderately in a second set of {{nTcia}} men (AUC {{aucTcia}}). On its own, PI-RADS scored {{radsPicai}} and {{radsTcia}}, and PSA alone {{psaPicai}} and {{psaTcia}}. At the 25% cutoff it found {{sensPicai}} of significant cancers in PI-CAI but only {{sensTcia}} in the second set, where guideline rules found more cancers but spared fewer biopsies.",
+      "step5Title": "5. Extra checks",
+      "step5Body": "We repeated the analyses with different definitions of significant cancer, with all ages, with PI-RADS 3 or higher only, with missing values treated as the worst case, and by hospital and age group. We also compared the biopsy model with a net-benefit (decision-curve) analysis.",
+      "limitsTitle": "What these steps cannot tell us",
+      "limit1": "Most of the cohorts are men who were already sent for MRI or biopsy, which can make results look different from the general population.",
+      "limit2": "Public data has few or no inputs such as family history, so only part of ePSA could be tested in each cohort.",
+      "limit3": "We have not tested ePSA on men followed over time, so we cannot say it finds cancer earlier or prevents metastases.",
+      "limit4": "A study using placebo-arm biopsy data from a large prevention trial is planned to test ePSA against PSA more fairly.",
+      "verifiedLine": "Figures in steps 2-4 were re-run on {{date}} with ePSA engine version {{version}} ({{guideline}} guideline rules, model fingerprint {{hash}}). Step 1 comes from the original hospital-cohort report.",
+      "sourcesNote": "Public datasets used: NHANES (US CDC), PI-CAI, and a public MRI-biopsy collection (TCIA). Analysis code and results are kept with the ePSA engine. Prepared by the Tewari Lab; not yet independently reviewed."
     }
   },
   "profileManager": {
