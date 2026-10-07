@@ -926,9 +926,12 @@
     "tierDescriptionV2": {
       "low": "Prioridad baja para la prueba de PSA significa que su probabilidad estimada está en el rango inferior en relación con los datos de referencia del modelo. Bajo no significa sin riesgo, y no reemplaza la orientación del médico.",
       "intermediate": "Prioridad intermedia para la prueba de PSA significa que su probabilidad estimada está en el rango medio de los datos de referencia del modelo. Revisar los factores de riesgo personales y los antecedentes de PSA con un médico puede agregar un contexto importante.",
-      "high": "Prioridad alta para la prueba de PSA significa que su probabilidad estimada está en el rango superior en relación con los datos de referencia del modelo. Alta prioridad no significa que haya cáncer — es un indicador para revisar las opciones de cribado con un médico."
+      "high": "Prioridad alta para la prueba de PSA significa que su probabilidad estimada está en el rango superior en relación con los datos de referencia del modelo. Alta prioridad no significa que haya cáncer — es un indicador para revisar las opciones de cribado con un médico.",
+      "highGuidelineDriven": "La prioridad alta para la prueba de PSA significa que su probabilidad estimada se encuentra en el rango más alto en relación con los datos de referencia del modelo. Prioridad alta no significa que haya cáncer: es una indicación para revisar las opciones de detección con un profesional clínico. Esta prioridad está respaldada por factores de riesgo reconocidos por las guías (como la edad, la ascendencia, los antecedentes familiares o una mutación genética conocida) según las recomendaciones de detección de AUA/SUO y NCCN, además de la puntuación más amplia basada en investigación de ePSA; es un punto de partida que vale la pena hablar con su médico."
     },
     "empiricalProbabilityText": "En nuestro estudio de validación (N={{n}}), {{events}} de {{n}} pacientes en este nivel de riesgo tenían cáncer de próstata clínicamente significativo ({{rate}}%; IC 95 % {{ciLo}}%–{{ciHi}}%).",
+    "empiricalProbabilityTextNoCi": "De una pequeña cohorte de derivación de {{cohortN}} pacientes, no de una población general de cribado: {{events}} de {{n}} pacientes de este nivel tenían cáncer de próstata clínicamente significativo ({{rate}} %).",
+    "empiricalInsufficientText": "De una pequeña cohorte de derivación de {{cohortN}} pacientes, no de una población general de cribado: hay muy pocos pacientes en este nivel para hacer una estimación.",
     "educationalEstimateNote": "Esta es una estimación educativa — no diagnostica cáncer. Úsela como punto de partida para una conversación con su médico.",
     "sessionKeyLabel": "Clave de sesión",
     "savedToCloud": "Guardado en la nube",
@@ -1276,6 +1279,16 @@
     "fixToCalculate": "Corrija estos para calcular:",
     "headsUp": "Aviso:",
     "calculate": "Calcular resultado",
+    "calculateFull": "Calcular el modelo completo (Pre-PSA + PSA + MRI)",
+    "calculating": "Calculando…",
+    "psaAndMriTitle": "PSA y MRI",
+    "includeMri": "¿Incluir MRI / PI-RADS?",
+    "editAndCompare": "Editar respuestas y comparar",
+    "previousScore": "Puntuación anterior",
+    "currentScore": "Puntuación actual",
+    "part1Title": "Pre-PSA — Riesgo basal",
+    "part2Title": "PSA — Riesgo ajustado por PSA",
+    "part3Title": "MRI — Riesgo de biopsia",
     "errors": {
       "ipssRange": "El total de IPSS debe estar entre 0 y 35",
       "shimRange": "El total de SHIM debe estar entre 0 y 25",
@@ -1319,14 +1332,14 @@
     "closeAriaLabel": "Cerca",
     "closeButton": "Cerrar Documentación",
     "validationStudyButton": "Estudio de Validación",
-    "validationStudyTitle": "Estudio de Validación (AUC 0,707)",
+    "validationStudyTitle": "Cómo comprobamos ePSA (validación)",
     "overview": {
       "title": "Descripción general",
       "bodyStart": "La etapa 1 (Prioridad de detección) utiliza un cuestionario breve para producir una puntuación ePSA educativa (0-100%) y un nivel de riesgo. Esto ayuda a informar una conversación con un médico sobre la detección del cáncer de próstata (por ejemplo, la prueba de PSA). Es",
       "notDiagnosisStrong": "no es un diagnostico",
       "bodyEnd": "y no reemplaza el juicio clínico.",
-      "warningStrong": "Herramienta educativa no validada.",
-      "warningBody": "Las decisiones de detección deben tomarse con un proveedor de atención médica calificado. Los niveles de riesgo se basan en datos a nivel de población y umbrales de referencia de AUA, NCCN y EAU, y pueden recomendar una evaluación más temprana que los umbrales actuales para perfiles demográficos de alto riesgo. Esta divergencia es intencional y debe interpretarse en el contexto de la toma de decisiones compartida."
+      "warningStrong": "Herramienta educativa, aún no validada para resultados en la vida real.",
+      "warningBody": "ePSA se ha comparado con las guías de detección en conjuntos de datos públicos, pero no se ha demostrado que detecte más cánceres ni que evite daños en hombres seguidos a lo largo del tiempo. Las decisiones de detección deben tomarse con un profesional de la salud calificado. Para algunos perfiles de mayor riesgo, ePSA puede sugerir una prueba de PSA o una MRI antes que los umbrales publicados en las guías. Cada resultado es un punto de partida para conversar con su médico."
     },
     "inputs": {
       "title": "Entradas del cuestionario",
@@ -1346,18 +1359,25 @@
     },
     "scoring": {
       "title": "Cómo se calcula la puntuación",
-      "body": "El modelo ePSA utiliza un enfoque basado en puntos (binned). Sus respuestas se convierten en factores de riesgo (por ejemplo, edad 50-59, 60-69, 70+; IMC 25-29,9 o >=30; gravedad del IPSS; ejercicio; raza negra; antecedentes familiares). Estos se combinan en una única puntuación, normalizada en una escala de 0 a 100%. Se muestra un rango de +/-5% para evitar sobreinterpretar pequeñas diferencias.",
-      "formula": "Tipo de modelo: {{modelType}}. Sus factores de riesgo combinados se agrupan en tres niveles — INFERIOR, MODERADO y SUPERIOR — que reflejan su riesgo relativo, no una puntuación numérica exacta."
+      "body": "ePSA suma puntos. Cada respuesta asociada con un mayor riesgo de cáncer de próstata (por ejemplo, mayor edad, ascendencia negra, antecedentes familiares, un cambio genético hereditario, síntomas urinarios o menos ejercicio) suma puntos, y el total se convierte en una puntuación de 0 a 100 %. Se muestra un intervalo de ±5 % para no interpretar en exceso las diferencias pequeñas.",
+      "formula": "Tipo de modelo: {{modelType}}. La puntuación se agrupa en tres niveles (INFERIOR, MODERADO, SUPERIOR) que muestran su riesgo relativo, no una probabilidad exacta de tener cáncer.",
+      "originTitle": "De dónde provienen los puntos",
+      "originBody": "Los valores iniciales de los puntos provienen de un modelo estadístico (regresión logística bayesiana) ajustado en marzo de 2026 con 94 hombres derivados a Mount Sinai, 23 de los cuales tenían un cáncer clínicamente significativo. El modelo usó la investigación publicada sobre cada factor de riesgo como supuestos de partida. Después, el equipo ajustó algunos puntos a mano (por ejemplo, cómo cuentan los síntomas urinarios, el valor para la edad de 50 a 59 años, la regla de edad para la ascendencia negra, la exposición a sustancias químicas, los antecedentes familiares hereditarios y la ascendencia asquenazí). Por tanto, los puntos se basan en parte en datos y en parte en el criterio de expertos.",
+      "originCaveat": "El umbral de 22,5 % para la prueba de PSA y los porcentajes de los niveles se fijaron con esos mismos 94 hombres, por lo que parecen mejores de lo que serían en hombres nuevos. En algunos niveles hay menos de 20 hombres, por lo que esos porcentajes son aproximados."
     },
     "riskTiers": {
       "title": "Niveles de riesgo y recomendación de PSA",
-      "body": "Su resultado se coloca en uno de tres niveles (INFERIOR, MODERADO, SUPERIOR). Además, el modelo puede indicar si la prueba de PSA es \"recomendada\" o \"no recomendada\" según su perfil de riesgo combinado. Esto es sólo para uso educativo y debe revisarlo con su médico."
+      "body": "Su resultado se ubica en uno de tres niveles (INFERIOR, MODERADO, SUPERIOR). La recomendación de PSA sigue principalmente la edad y las guías publicadas (AUA/SUO 2026, NCCN, EAU); su puntuación de riesgo se suma a ella. Si agrega un resultado de PSA o MRI, un segundo y un tercer paso (Etapas 2 y 3) usan los mismos puntos más PSA, densidad de PSA y PI-RADS para sugerir MRI o biopsia. Cada uno de estos pasos se describe en su propia documentación. Todo esto es de uso educativo y debe revisarse con su médico."
     },
     "limitations": {
       "title": "Limitaciones",
       "item1": "No diagnóstico; no detecta ni descarta el cáncer.",
       "item2": "Basado en asociaciones a nivel de población; El riesgo individual puede variar.",
-      "item3": "No reemplaza DRE, PSA, MRI o biopsia cuando lo indique un médico."
+      "item3": "No reemplaza DRE, PSA, MRI o biopsia cuando lo indique un médico.",
+      "item4": "El cuestionario de la Etapa 1 no se ha comparado directamente con la prueba de PSA en un grupo grande de hombres.",
+      "item5": "No se ha probado en cuanto a resultados (cánceres detectados a tiempo, muertes o metástasis evitadas).",
+      "item6": "No hemos comprobado que funcione igual de bien para todos los grupos (por ejemplo, por raza o país).",
+      "item7": "Los puntos se construyeron con un grupo pequeño de derivación de un solo hospital, por lo que pueden no ajustarse a los hombres de la población general."
     },
     "references": {
       "title": "Referencias",
@@ -1366,7 +1386,7 @@
     "validationStudyModal": {
       "heroTitle": "Validación (N={{n}})",
       "csPcaCount": "csPCa+ n={{positive}}",
-      "heroSubtitle": "El AUC para la ePSA recalibrada bayesianamente frente a la PSA es estadísticamente equivalente en esta muestra (cortes óptimos de Youden).",
+      "heroSubtitle": "En el grupo hospitalario original de 94 hombres, ePSA y la PSA discriminaron aproximadamente igual de bien. La diferencia fue pequeña y la incertidumbre es grande.",
       "cardAucBayesLabel": "AUC (ePSA bayesiana)",
       "cardAucPsaLabel": "AUC (PSA)",
       "cardAucDiffLabel": "Diferencia de AUC (bayesiano − PSA)",
@@ -1383,10 +1403,29 @@
       "fpLabel": "FP",
       "tnLabel": "TN",
       "bottomLineTitle": "Conclusión",
-      "bottomLineBodyStart": "Con este tamaño de muestra, la ePSA bayesiana rinde igual que la PSA. La principal ventaja práctica es la",
-      "higherNpv": "mayor VPN",
-      "bottomLineBodyEnd": " en los cortes óptimos de Youden.",
-      "interpretationNote": "Nota de interpretación: esta es una evaluación dentro de la muestra con N={{n}} y csPCa+ n={{positive}}. Se necesita un conjunto de datos mayor para demostrar una separación más allá de la equivalencia estadística."
+      "bottomLineBodyStart": "Con solo 94 hombres no podemos demostrar que ePSA sea mejor o peor que la PSA. ePSA detectó más cánceres con su mejor umbral (sensibilidad del 82,6 % frente al 73,9 %), pero esto se midió en los mismos hombres con los que se construyó el modelo, por lo que se desconoce la diferencia real. La diferencia de NPV (88 % frente a 84 %) es",
+      "higherNpv": "poco fiable",
+      "bottomLineBodyEnd": "con tan pocos hombres.",
+      "interpretationNote": "Nota de interpretación: esta es una evaluación en la misma muestra con N={{n}} y csPCa+ n={{positive}}. El intervalo de confianza es amplio, por lo que esta prueba no puede decirnos si ePSA es mejor, igual o peor que la PSA.",
+      "stepsTitle": "Los pasos que seguimos",
+      "stepsIntro": "Comprobamos ePSA por etapas, sobre todo con datos públicos de otros hospitales y encuestas. Estos pasos plantean si ePSA sigue las guías y detecta el cáncer tan bien como la PSA sola. No demuestran que ePSA salve vidas.",
+      "step1Title": "1. Grupo pequeño de un hospital (N={{n}})",
+      "step1Body": "La primera prueba usó a los mismos 94 hombres de Mount Sinai con los que se creó el modelo. ePSA y la PSA se comportaron de forma similar, pero el grupo es demasiado pequeño y está demasiado ligado al modelo como para extraer conclusiones firmes.",
+      "step2Title": "2. ¿Quién debería hacerse una prueba de PSA? (encuesta nacional de EE. UU., NHANES)",
+      "step2Body": "En {{n}} hombres estadounidenses menores de 70 años, ePSA recomendó una prueba de PSA a {{sens}} de los hombres con una PSA de 4,0 o más, igual que las guías de NCCN y AUA/SUO. Al igual que las guías, recomendó la prueba a la mayoría de los hombres que no la necesitaban: solo a {{spec}} de los hombres sin una PSA alta se les dijo que podían omitirla. NHANES no tiene resultados de biopsia, por lo que una PSA alta se usa como sustituto de \"debería haberse hecho la prueba\".",
+      "step3Title": "3. ¿Quién debería hacerse una MRI? (PI-CAI, {{n}} hombres)",
+      "step3Body": "La Etapa 2 de ePSA recomendó MRI a {{sens}} de los hombres cuya biopsia mostró después un cáncer significativo (grupo de grado 2 o superior). Las reglas de NCCN y EAU detectaron {{nccn}}, y una PSA superior a 4,0 detectó {{psa4}}. ePSA evitó la MRI a algo más hombres que NCCN o EAU, y a algo menos que una PSA superior a 4,0. Estos hombres ya habían sido derivados para una MRI, por lo que las cifras pueden diferir en una población no seleccionada.",
+      "step4Title": "4. ¿Quién debería hacerse una biopsia? (e-Biopsy, dos cohortes públicas de MRI)",
+      "step4Body": "e-Biopsy (nuestro modelo de probabilidad independiente, no las reglas de guía de ePSA) distinguió bien los cánceres significativos de otros resultados en PI-CAI (AUC {{aucPicai}}) y de forma moderada en un segundo conjunto de {{nTcia}} hombres (AUC {{aucTcia}}). Por sí solo, PI-RADS obtuvo {{radsPicai}} y {{radsTcia}}, y la PSA sola {{psaPicai}} y {{psaTcia}}. Con el umbral del 25 %, detectó {{sensPicai}} de los cánceres significativos en PI-CAI, pero solo {{sensTcia}} en el segundo conjunto, donde las reglas de las guías detectaron más cánceres pero evitaron menos biopsias.",
+      "step5Title": "5. Comprobaciones adicionales",
+      "step5Body": "Repetimos los análisis con distintas definiciones de cáncer significativo, con todas las edades, solo con PI-RADS 3 o superior, tratando los valores faltantes como el peor caso, y por hospital y grupo de edad. También comparamos el modelo de biopsia con un análisis de beneficio neto (curva de decisión).",
+      "limitsTitle": "Lo que estos pasos no pueden decirnos",
+      "limit1": "La mayoría de las cohortes son hombres que ya habían sido enviados a MRI o biopsia, lo que puede hacer que los resultados se vean distintos a los de la población general.",
+      "limit2": "Los datos públicos tienen pocos o ningún dato como los antecedentes familiares, por lo que solo se pudo probar una parte de ePSA en cada cohorte.",
+      "limit3": "No hemos probado ePSA en hombres seguidos a lo largo del tiempo, por lo que no podemos decir que detecte el cáncer antes ni que evite metástasis.",
+      "limit4": "Está previsto un estudio con datos de biopsia del grupo placebo de un gran ensayo de prevención para comparar ePSA con la PSA de forma más justa.",
+      "verifiedLine": "Las cifras de los pasos 2 a 4 se volvieron a calcular el {{date}} con la versión {{version}} del motor de ePSA (reglas de guía {{guideline}}, huella del modelo {{hash}}). El paso 1 proviene del informe original de la cohorte hospitalaria.",
+      "sourcesNote": "Conjuntos de datos públicos utilizados: NHANES (CDC de EE. UU.), PI-CAI y una colección pública de MRI-biopsia (TCIA). El código de análisis y los resultados se conservan junto con el motor de ePSA. Elaborado por el Tewari Lab; aún sin revisión independiente."
     }
   },
   "profileManager": {
@@ -1432,5 +1471,8 @@
       "range": "Rango",
       "points": "Agujas"
     }
+  },
+  "biopsyTool": {
+    "open": "e-Biopsy"
   }
 }
