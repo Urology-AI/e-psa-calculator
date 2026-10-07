@@ -1035,3 +1035,55 @@
 .theme-dark .ws-hero-qr {
   border-color: rgba(255, 255, 255, 0.14);
 }
+
+/* ─── iOS beta (TestFlight) highlight ─── */
+.ws-ios-beta {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.1rem;
+  margin-bottom: 0.875rem;
+  background: linear-gradient(135deg, var(--brand-50, #e8f3fb), var(--surface, #fff));
+  border: 1px solid var(--brand-500, #0288d1);
+  border-left-width: 4px;
+  border-radius: 10px;
+}
+.ws-ios-beta__badge {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--brand-700, #0b5f94);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ws-ios-beta__text {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.875rem;
+  color: var(--ink-800, #1f2933);
+  line-height: 1.4;
+}
+.ws-ios-beta__cta {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  background: var(--brand-700, #0b5f94);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.ws-ios-beta__cta:hover { filter: brightness(1.1); }
+.ws-ios-beta__cta:focus-visible { outline: 3px solid var(--brand-500, #0288d1); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .ws-ios-beta { flex-direction: column; align-items: flex-start; }
+  .ws-ios-beta__cta { align-self: stretch; justify-content: center; }
+}

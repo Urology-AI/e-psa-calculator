@@ -481,6 +481,23 @@ const WelcomeScreen = ({ onBegin, onBeginLocal, onBeginCloud, onViewOverview, cl
         </aside>
       </section>
 
+      {/* ── iOS beta (TestFlight) ── */}
+      <section className="ws-ios-beta" aria-label={t('welcome.iosBetaTitle')}>
+        <span className="ws-ios-beta__badge">{t('welcome.iosBetaBadge')}</span>
+        <div className="ws-ios-beta__text">
+          <strong>{t('welcome.iosBetaTitle')}</strong>
+          <span>{t('welcome.iosBetaBody')}</span>
+        </div>
+        <a
+          className="ws-ios-beta__cta"
+          href="https://testflight.apple.com/join/K6QEzcfA"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t('welcome.iosBetaCta')} <ExternalLinkIcon size={13} aria-hidden="true" />
+        </a>
+      </section>
+
       {/* ── Welcome + How it works ── */}
       <section className="ws-flow-card">
         <div className="ws-flow-half" aria-label="Welcome to ePSA">
