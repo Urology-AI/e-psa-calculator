@@ -167,6 +167,12 @@ jobs:
       if: always()
       run: rm -f frontend/.npmrc
 
+    # Includes the Sinai guards: source scan, built-bundle scan, a jsdom run that
+    # spies on every storage/network API, and the result-screen a11y checks.
+    - name: Run frontend tests
+      run: npm test
+      working-directory: frontend
+
     - name: Build
       run: npm run build
       working-directory: frontend
