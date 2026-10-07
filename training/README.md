@@ -119,3 +119,47 @@ These files are listed in `.gitignore` and are not committed. Create them by red
    - **Part 2**: Update `part2.intercept`, `part2.variables`, and `part2.encodings` if the script output differs; keep or adjust `part2.thresholds` as needed.
 3. Optionally append or overwrite the result files in the repo root for traceability.
 4. Rebuild and test the frontend to confirm scores and recommendations match expectations.
+
+---
+
+## Biopsy model (v4) – external validation on PI-CAI
+
+`validate_biopsy_picai.py` scores the **deployed** biopsy-risk model (`predictBiopsyRisk` from `@epsa/engine`, called via Node so no coefficients are hand-copied) on the public PI-CAI clinical table and reports AUC with bootstrap CIs, per-site AUC, sensitivity/specificity at the deployed 0.25 threshold, and calibration by risk quintile. Outcome is `case_csPCa` (ISUP ≥ 2), matching v4's GG≥2 label. PI-RADS per case is the highest per-lesion score.
+
+```bash
+curl -L -o marksheet.csv https://raw.githubusercontent.com/DIAGNijmegen/picai_labels/main/clinical_information/marksheet.csv
+python training/validate_biopsy_picai.py --csv marksheet.csv   # needs frontend deps installed (node_modules/@epsa/engine)
+python -m pytest training/test_validate_biopsy_picai.py          # 17 tests; engine ones skip if frontend deps are missing
+```
+
+**Data licence:** PI-CAI is CC BY-NC 4.0 (non-commercial, attribution required; cite the PI-CAI Lancet Oncology 2024 paper). Use it for validation only; do not commit the CSV. Check the licence before training anything deployed on it.
+
+### Results (1,460 of 1,500 cases with PSA + PI-RADS; 28.5% csPCa)
+
+| Measure | Value |
+|--------|--------|
+| v4 AUC | 0.865 (95% CI 0.845–0.884) |
+| PI-RADS alone / PSA density alone / PSA alone | 0.859 / 0.723 / 0.627 |
+| Per-site AUC (PCNN / RUMC / ZGT) | 0.776 / 0.885 / 0.903 |
+| At threshold 0.25 | sensitivity 94.5%, specificity 62.9%, NPV 96.6%, 46.6% biopsies avoided |
+| Mean predicted vs observed risk | 36% vs 28.5% |
+
+Takeaways: discrimination holds up outside Mount Sinai (registry AUC was 0.74), and the 0.25 threshold is safe, but v4 **overestimates low-end risk** (lowest two quintiles predicted 14% / 19%, observed 2% / 4%) and adds only ~0.006 AUC over PI-RADS alone. In 5-fold CV on PI-CAI, recalibrating v4's intercept/slope fixes most of the low-end miscalibration (Brier 0.140 → 0.132); a full refit reaches AUC ≈ 0.875–0.879 (Brier ≈ 0.126). A PI-CAI-fitted model may not transfer to Mount Sinai, so validate on the local registry before adopting any change.
+
+### Recalibration candidate (not deployed)
+
+`recalibrate_biopsy_picai.py` fits `p' = sigmoid(a + b·logit(p_v4))` on the 1,439 PI-CAI cases that take the full v4 path and reports cross-validated metrics and tier migration. Fitted: **a = −0.265, b = 1.63** (v4 is *compressed*, not over-extreme: it overstates low risk and slightly understates high risk). Cross-validated Brier improves 0.140 → 0.132 with unchanged AUC (0.865). **Do not drop it in unchanged:** applying the existing 0.15 / 0.25 / 0.45 cutoffs to recalibrated risk drops sensitivity from 94.4% to 84.8%. The deployed cutoffs map to recalibrated risks of 0.044 / 0.114 / 0.356, so any adoption must move the cutoffs with it and be re-checked on local data first.
+
+### Three-way comparison and model-version check
+
+`compare_biopsy_models_picai.py` compares v4 (deployed), **MSP-RC reconstructed from its published odds ratios** (Parekh et al. 2022, Table 2; family history / DRE / biopsy history / race and the intercept are unavailable in PI-CAI, so it ranks men but is not a full test of the published tool), and a PI-CAI refit (v4 inputs + age, repeated 5-fold CV, so it is not graded on its own rows). It reports AUC with bootstrap CIs, biopsies avoided at 95% and 90% sensitivity, paired AUC differences, and three questions from the case ISUP grade: significant vs everything else, any cancer vs none, significant vs low-grade only.
+
+| Question (AUC) | v4 | MSP-RC (rebuilt) | Refit (CV) |
+|---|---|---|---|
+| Significant (GG≥2) vs everything else | 0.866 | 0.848 | 0.879 |
+| Any cancer vs no cancer | 0.858 | 0.871 | 0.894 |
+| Significant vs low-grade only | 0.695 | 0.690 | 0.699 |
+
+**What changed from v3 to v4** (see `biopsy-prediction/model/model.py`): v3 was logPSA + PSAD + PI-RADS (N=120, OOF AUC 0.703). v4 uses logPSA + logVolume + PI-RADS (N=126, OOF AUC 0.739) and drops the PSAD term, because PSAD = PSA/volume, so fitting logPSA, PSAD and logVolume together made the coefficients share variance and flip sign. On PI-CAI (n=1,439), by engine path: v2 (PSA + PI-RADS) AUC 0.843, v3 0.847, v4 0.866; at the 0.25 threshold specificity is 27.7% / 38.9% / 63.5% at similar sensitivity (about 95%).
+
+Tests: `python -m pytest training/` (engine-dependent tests skip if `frontend/node_modules` is missing).
