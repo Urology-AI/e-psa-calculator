@@ -1405,7 +1405,7 @@
       "bottomLineTitle": "Bottom line",
       "bottomLineBodyStart": "With only 94 men we cannot show that ePSA is better or worse than PSA. ePSA caught more of the cancers at its best cutoff (sensitivity 82.6% vs 73.9%), but this was measured on the same men the model was built on, so the real difference is unknown. The NPV difference (88% vs 84%) is",
       "higherNpv": "not reliable",
-      "bottomLineBodyEnd": "at this sample size, and the sample is small.",
+      "bottomLineBodyEnd": "with this few men.",
       "interpretationNote": "Interpretation note: this is an in-sample evaluation on N={{n}} with csPCa+ n={{positive}}. The confidence interval is wide, so this test cannot tell us whether ePSA is better, the same or worse than PSA.",
       "stepsTitle": "The steps we took",
       "stepsIntro": "We checked ePSA in stages, mostly against public data from other hospitals and surveys. These steps ask whether ePSA follows the guidelines and finds cancer as well as PSA alone. They do not show that ePSA saves lives.",
