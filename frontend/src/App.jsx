@@ -372,10 +372,8 @@ function App() {
   // Hands the saved answers to the patient as a JSON file so a failed or
   // unwanted restore never means losing what they entered. Built from the
   // in-memory copy; nothing is uploaded.
-  const handleDownloadLocalSession = () => {
-    if (!pendingLocalRestore) return;
-    const { preData: pre, postData: post, savedAt } = pendingLocalRestore;
-    const blob = new Blob([JSON.stringify({ savedAt, preData: pre, postData: post }, null, 2)], { type: 'application/json' });
+  const downloadAnswers = (data) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -384,6 +382,11 @@ function App() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const handleDownloadLocalSession = () => {
+    if (!pendingLocalRestore) return;
+    const { preData: pre, postData: post, savedAt } = pendingLocalRestore;
+    downloadAnswers({ savedAt, preData: pre, postData: post });
   };
   const handleDiscardLocalRestore = () => {
     assessmentInProgressRef.current = false;
@@ -2659,6 +2662,10 @@ function App() {
             {calcError && (
               <div className="save-results-banner" role="alert">
                 <div className="save-results-banner__text">{calcError}</div>
+                <button type="button" className="save-results-banner__link"
+                  onClick={() => downloadAnswers({ savedAt: new Date().toISOString(), preData, postData })}>
+                  Download my answers
+                </button>
                 <button type="button" className="save-results-banner__link" onClick={() => setCalcError(null)}>
                   Dismiss
                 </button>
