@@ -383,6 +383,23 @@ function App() {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  // Read-only view of the entered answers, so a patient can check what was
+  // captured before retrying or starting over.
+  const [viewAnswersData, setViewAnswersData] = useState(null);
+  const answerRows = (data) => {
+    const rows = [];
+    const walk = (v, path) => {
+      if (v === null || v === undefined || v === '') return;
+      if (Array.isArray(v) ? v.length === 0 : false) return;
+      if (typeof v === 'object' && !Array.isArray(v)) {
+        Object.entries(v).forEach(([k, val]) => walk(val, path ? `${path} › ${k}` : k));
+        return;
+      }
+      rows.push([path.replace(/^preData › /, 'Part 1 › ').replace(/^postData › /, 'Part 2 › '), Array.isArray(v) ? v.join(', ') : typeof v === 'boolean' ? (v ? 'Yes' : 'No') : String(v)]);
+    };
+    walk(data, '');
+    return rows;
+  };
   const handleDownloadLocalSession = () => {
     if (!pendingLocalRestore) return;
     const { preData: pre, postData: post, savedAt } = pendingLocalRestore;
@@ -2463,6 +2480,32 @@ function App() {
   return (
     <React.Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--ink-500)' }}>Loading…</div>}>
     <div className="App">
+      {viewAnswersData && (
+        <div role="dialog" aria-modal="true" aria-labelledby="view-answers-title"
+          style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: 'var(--surface, #fff)', color: 'inherit', borderRadius: 12, padding: 24, maxWidth: 520, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <h2 id="view-answers-title" style={{ marginTop: 0, fontSize: '1.2rem' }}>Your answers</h2>
+            <div style={{ overflowY: 'auto', marginBottom: 16 }}>
+              {answerRows(viewAnswersData).length === 0 ? <p>No answers recorded yet.</p> : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                  <tbody>
+                    {answerRows(viewAnswersData).map(([k, v]) => (
+                      <tr key={k} style={{ borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+                        <th scope="row" style={{ textAlign: 'left', padding: '6px 8px 6px 0', fontWeight: 500, verticalAlign: 'top' }}>{k}</th>
+                        <td style={{ padding: '6px 0' }}>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button type="button" className="save-results-banner__btn" onClick={() => downloadAnswers({ savedAt: new Date().toISOString(), ...viewAnswersData })}>Download my answers</button>
+              <button type="button" className="save-results-banner__btn" onClick={() => setViewAnswersData(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
       {pendingLocalRestore && (
         <div role="dialog" aria-modal="true" aria-labelledby="resume-title"
           style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -2477,6 +2520,7 @@ function App() {
               {!restoreFailed && (
                 <button type="button" className="save-results-banner__btn" onClick={handleAcceptLocalRestore}>Continue my session</button>
               )}
+              <button type="button" className="save-results-banner__btn" onClick={() => pendingLocalRestore && setViewAnswersData({ preData: pendingLocalRestore.preData, postData: pendingLocalRestore.postData })}>View my answers</button>
               <button type="button" className="save-results-banner__btn" onClick={handleDownloadLocalSession}>Download my answers</button>
               <button type="button" className="save-results-banner__btn save-results-banner__btn--danger" onClick={handleDiscardLocalRestore}>Start a new one</button>
             </div>
@@ -2662,6 +2706,10 @@ function App() {
             {calcError && (
               <div className="save-results-banner" role="alert">
                 <div className="save-results-banner__text">{calcError}</div>
+                <button type="button" className="save-results-banner__link"
+                  onClick={() => setViewAnswersData({ preData, postData })}>
+                  View my answers
+                </button>
                 <button type="button" className="save-results-banner__link"
                   onClick={() => downloadAnswers({ savedAt: new Date().toISOString(), preData, postData })}>
                   Download my answers
