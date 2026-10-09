@@ -1,0 +1,14 @@
+.clinical-app { min-height: 100vh; background: var(--bg-page, #f7f7fb); color: var(--text-primary, #1a1a2e); }
+.theme-dark .clinical-app { background: #12122a; color: #eceaf7; }
+.clinical-app__header { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; padding: 0.75rem 1.25rem; background: var(--ms-navy, #212070); color: #fff; }
+.clinical-app__brand { display: flex; flex-direction: column; margin-right: auto; }
+.clinical-app__name { font-size: 1.25rem; font-weight: 700; }
+.clinical-app__tag { margin-left: 0.5rem; padding: 0.05rem 0.45rem; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px; background: var(--ms-cyan, #00aeef); color: #06142e; vertical-align: middle; }
+.clinical-app__sub { font-size: 0.72rem; opacity: 0.8; }
+.clinical-app__tabs { display: inline-flex; gap: 0.25rem; padding: 0.2rem; border-radius: 8px; background: rgba(255, 255, 255, 0.12); }
+.clinical-app__tab { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; font: inherit; font-size: 0.85rem; color: #fff; background: transparent; border: 0; border-radius: 6px; cursor: pointer; }
+.clinical-app__tab--active { background: #fff; color: var(--ms-navy, #212070); font-weight: 600; }
+.clinical-app__actions { display: flex; align-items: center; gap: 0.75rem; }
+.clinical-app__link { display: inline-flex; align-items: center; gap: 0.3rem; color: #fff; font-size: 0.82rem; text-decoration: underline; }
+.clinical-app__main { max-width: 1600px; margin: 0 auto; padding: 1.25rem; }
+.clinical-app__main [hidden] { display: none; }
