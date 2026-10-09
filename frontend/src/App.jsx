@@ -368,15 +368,34 @@ function App() {
   // A recent copy exists on this device — ask rather than restore silently,
   // since on a shared device it may belong to the previous person.
   const [pendingLocalRestore, setPendingLocalRestore] = useState(null);
+  const [restoreFailed, setRestoreFailed] = useState(false);
+  // Hands the saved answers to the patient as a JSON file so a failed or
+  // unwanted restore never means losing what they entered. Built from the
+  // in-memory copy; nothing is uploaded.
+  const handleDownloadLocalSession = () => {
+    if (!pendingLocalRestore) return;
+    const { preData: pre, postData: post, savedAt } = pendingLocalRestore;
+    const blob = new Blob([JSON.stringify({ savedAt, preData: pre, postData: post }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `epsa-answers-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const handleDiscardLocalRestore = () => {
     assessmentInProgressRef.current = false;
     safeLS.remove(LOCAL_SESSION_KEY);
     setPendingLocalRestore(null);
+    setRestoreFailed(false);
   };
   const handleAcceptLocalRestore = () => {
     const saved = pendingLocalRestore;
-    setPendingLocalRestore(null);
     if (!saved) return;
+    setPendingLocalRestore(null);
+    setRestoreFailed(false);
     (async () => {
       try {
         assessmentInProgressRef.current = true;
@@ -403,11 +422,11 @@ function App() {
         setCurrentStep(saved.currentStep ?? 1);
         setAuthStep('app');
       } catch (err) {
-        // A failed restore must not strand the user on a blank screen — fall
-        // back to the normal welcome flow and drop the unusable copy.
+        // A failed restore must not strand the user or silently destroy their
+        // answers — keep the copy and re-offer the prompt with a download.
         console.warn('Could not restore local session:', err);
-        assessmentInProgressRef.current = false;
-        safeLS.remove(LOCAL_SESSION_KEY);
+        setRestoreFailed(true);
+        setPendingLocalRestore(saved);
         setAuthStep('welcome');
       }
     })();
@@ -2447,11 +2466,15 @@ function App() {
           <div style={{ background: 'var(--surface, #fff)', color: 'inherit', borderRadius: 12, padding: 24, maxWidth: 420, width: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
             <h2 id="resume-title" style={{ marginTop: 0, fontSize: '1.2rem' }}>Continue your session?</h2>
             <p style={{ margin: '0 0 20px' }}>
-              An unfinished assessment from the last 15 minutes is on this device.
-              If it isn't yours, start a new one — the old answers are erased.
+              {restoreFailed
+                ? "We couldn't reopen your session. You can download your answers as a file before starting over."
+                : "An unfinished assessment from the last 15 minutes is on this device. If it isn't yours, start a new one — the old answers are erased."}
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button type="button" className="save-results-banner__btn" onClick={handleAcceptLocalRestore}>Continue my session</button>
+              {!restoreFailed && (
+                <button type="button" className="save-results-banner__btn" onClick={handleAcceptLocalRestore}>Continue my session</button>
+              )}
+              <button type="button" className="save-results-banner__btn" onClick={handleDownloadLocalSession}>Download my answers</button>
               <button type="button" className="save-results-banner__btn save-results-banner__btn--danger" onClick={handleDiscardLocalRestore}>Start a new one</button>
             </div>
           </div>
