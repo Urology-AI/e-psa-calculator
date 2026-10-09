@@ -61,7 +61,6 @@ const Part2BiomarkersForm = React.lazy(() => import('./components/Part2Biomarker
 const Part2Results = React.lazy(() => import('./components/Part2Results.jsx'));
 const Part3Form = React.lazy(() => import('./components/Part3Form.jsx'));
 const Part3Results = React.lazy(() => import('./components/Part3Results.jsx'));
-import QuickEntry from './components/QuickEntry.jsx';
 import ResultsLoading, { LOADING_SEEN_KEY_P1, LOADING_SEEN_KEY_P2, PART2_LOADING_STEPS } from './components/ResultsLoading.jsx';
 import PathwaySelector from './components/PathwaySelector.jsx';
 import FirebaseTestPanel from './components/FirebaseTestPanel.jsx';
@@ -166,7 +165,6 @@ function App() {
   const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | saving | saved | error
 
   const [showPathwayDropdown, setShowPathwayDropdown] = useState(false);
-  const [showQuickEntry, setShowQuickEntry] = useState(false);
 
   // Safety net: guarantee every step/stage/pathway transition lands the user
   // at the top of the page, even if a specific navigation handler forgets its
@@ -2196,15 +2194,14 @@ function App() {
               </button>
               <div className="welcome-clinical-tools">
                 <span className="welcome-clinical-tools__label">For clinicians &amp; researchers</span>
-                <button
-                  type="button"
+                <a
                   className="ws-btn-pill ws-btn-pill--quiet"
-                  onClick={() => setShowQuickEntry(true)}
-                  title="Shows all pathway stages on one page with full clinical detail — enter values directly instead of the step-by-step patient flow."
+                  href="/clinical"
+                  title="A separate clinical app: enter one patient or upload many, add PSA and MRI, see Parts 1–3 in one table and compare with actual biopsy results."
                 >
                   <ZapIcon size={14} />
-                  <span>Clinician View</span>
-                </button>
+                  <span>Clinical Mode</span>
+                </a>
                 <a
                   className="ws-btn-pill ws-btn-pill--quiet"
                   href="https://urology-ai.github.io/biopsy-prediction/"
@@ -2538,11 +2535,7 @@ function App() {
             </div>
           </div>
           <div className="header-actions">
-            {(showQuickEntry || authStep === 'app') && (
-              <DoctorModeToggle
-                onSelectPatient={showQuickEntry ? () => setShowQuickEntry(false) : undefined}
-              />
-            )}
+            {authStep === 'app' && <DoctorModeToggle />}
             <HeaderSettingsMenu />
             {authStep === 'app' && user?.uid && appSessionId && appSessionId !== 'Local' && (
               <button
@@ -2683,12 +2676,7 @@ function App() {
           </div>
         )}
 
-        {showQuickEntry ? (
-          <QuickEntry
-            calculatorConfig={calculatorConfig}
-            onClose={() => setShowQuickEntry(false)}
-          />
-        ) : authStep !== 'app' ? (
+        {authStep !== 'app' ? (
           renderAuthScreen()
         ) : (
           <>

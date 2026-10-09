@@ -30,7 +30,7 @@ const readInitialViewMode = () => {
   return 'patient';
 };
 
-const DoctorModeContext = createContext({
+export const DoctorModeContext = createContext({
   viewMode: 'patient',
   setViewMode: () => {},
   doctorMode: false,
