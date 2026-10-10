@@ -25,8 +25,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      # Same private GitHub Packages auth as firebase-deploy.yml.
+      - name: Write .npmrc for private registry
+        run: |
+          for d in frontend backend; do
+            echo "@urology-ai:registry=https://npm.pkg.github.com" > $d/.npmrc
+            echo "//npm.pkg.github.com/:_authToken=${EPSA_ENGINE_DEPLOY_KEY}" >> $d/.npmrc
+          done
+        env:
+          EPSA_ENGINE_DEPLOY_KEY: ${{ secrets.EPSA_ENGINE_DEPLOY_KEY }}
       - name: Install frontend
         working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Install backend
+        working-directory: backend
         run: npm ci --no-audit --no-fund
       - name: Install Playwright browser
         working-directory: frontend
@@ -39,6 +51,9 @@ jobs:
         env:
           CI: 'true'
         run: node e2e/run.mjs
+      - name: Remove .npmrc files
+        if: always()
+        run: rm -f frontend/.npmrc backend/.npmrc
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
