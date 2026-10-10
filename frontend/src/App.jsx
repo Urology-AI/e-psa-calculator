@@ -17,6 +17,8 @@ import { DoctorModeProvider } from './context/DoctorModeContext.jsx';
 import DoctorModeToggle from './components/DoctorModeToggle.jsx';
 import SaveToCloudConsentModal from './components/SaveToCloudConsentModal.jsx';
 import SaveResultsBanner from './components/SaveResultsBanner.jsx';
+import ErrorReportPanel from './components/ErrorReportPanel.jsx';
+import { recordError, setErrorContextProvider } from './utils/errorReport';
 import LegalHub from './components/legal/LegalHub.jsx';
 import LegalDocPage from './components/legal/LegalDocPage.jsx';
 import { webPrivacy, webTerms } from './components/legal/content/web.js';
@@ -484,19 +486,25 @@ function App() {
     if (!shouldEnsureSessionKey || cloudOfferShownRef.current) return () => {};
     cloudOfferShownRef.current = true;
     let cancelled = false;
+    let finished = false;
     const timer = setTimeout(async () => {
+      let minted = false;
       try {
         setSessionKeyPending(true);
         await ensureAnonymousSessionKey();
+        minted = true;
       } catch (err) {
         // Without a key there's nothing to hand back, but the results on screen
         // are unaffected — the save question simply doesn't apply.
         console.warn('Could not create a session key:', err);
-        if (!cancelled) setSessionKeyPending(false);
-        return;
+      } finally {
+        // Always cleared, even if the user navigated away mid-flight: the
+        // banner's save button is disabled while this is true, and the effect
+        // never re-runs once cloudOfferShownRef is set.
+        setSessionKeyPending(false);
       }
-      if (cancelled) return;
-      setSessionKeyPending(false);
+      finished = true;
+      if (!minted || cancelled) return;
       if (cloudConsentGivenRef.current && !sessionIdRef.current) {
         // Already consented but nothing saved yet — keep it saved silently
         // rather than re-asking. A restored session (sessionId set) is already
@@ -507,7 +515,14 @@ function App() {
       // of the results screen. A modal over a result the user just waited for
       // is an interruption, and the save is optional by design.
     }, 1200);
-    return () => { cancelled = true; clearTimeout(timer); };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      // Interrupted before the lookup ran (leaving the results screen, or the
+      // StrictMode dev remount): let the next visit try again instead of
+      // leaving the session key unminted for the rest of the run.
+      if (!finished) cloudOfferShownRef.current = false;
+    };
   }, [shouldEnsureSessionKey]);
 
   // Check auth state on mount (only when Firebase is configured)
@@ -1270,7 +1285,12 @@ function App() {
 
     // Reuse the key already on the user doc if this uid has one.
     try {
-      const existing = await getUser(firebaseUser.uid);
+      // Bounded: a blocked or offline Firestore otherwise leaves the save
+      // button on "Saving…" until the SDK's own (long) offline timeout.
+      const existing = await Promise.race([
+        getUser(firebaseUser.uid),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout reading session key')), 5000)),
+      ]);
       if (existing?.sessionId) {
         setAppSessionId(existing.sessionId);
         setUser(firebaseUser);
@@ -1843,12 +1863,21 @@ function App() {
   // Scoring is a network call. If it fails after retries, tell the patient
   // and keep their answers on screen instead of leaving a dead button.
   const [calcError, setCalcError] = useState(null);
+  const [showErrorReport, setShowErrorReport] = useState(false);
+  // Coarse position only — never answers or results — attached to every saved error.
+  const errorContextRef = useRef({});
+  errorContextRef.current = {
+    stage, step: currentStep, pathway: pathwayMode || null,
+    hasPart1Result: !!preResult, showPart2Interim: !!showPart2Interim,
+  };
+  useEffect(() => { setErrorContextProvider(() => errorContextRef.current); }, []);
   const withCalcErrorGuard = (fn) => async (...args) => {
     setCalcError(null);
     try {
       return await fn(...args);
     } catch (err) {
       console.error('Scoring failed:', err?.code || err);
+      recordError('scoring', err);
       setIsCalculatingPart3(false);
       const invalid = err?.code === 'functions/invalid-argument';
       setCalcError(invalid
@@ -2390,7 +2419,14 @@ function App() {
                 setCurrentStep(3);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              onBack={() => setShowPart2Interim(false)}
+              onBack={() => {
+                setShowPart2Interim(false);
+                // With biomarkers disabled the PSA form jumps straight to this
+                // interim screen, so step 2 (the biomarkers form) was never
+                // visited — Back must return to the PSA form, not to it.
+                if (!biomarkersEnabled) setCurrentStep(1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
           );
         }
@@ -2702,6 +2738,10 @@ function App() {
                   onClick={() => downloadAnswers({ savedAt: new Date().toISOString(), preData, postData })}>
                   Download my answers
                 </button>
+                <button type="button" className="save-results-banner__link"
+                  onClick={() => setShowErrorReport(true)}>
+                  Report this problem
+                </button>
                 <button type="button" className="save-results-banner__link" onClick={() => setCalcError(null)}>
                   Dismiss
                 </button>
@@ -2893,6 +2933,14 @@ function App() {
           onClose={() => setShowModelDocs(false)}
         />
       )}
+      {showErrorReport && (
+        <div
+          data-error-report-overlay="true"
+          style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(15,23,42,0.55)', overflowY: 'auto', padding: 16 }}
+        >
+          <ErrorReportPanel onClose={() => setShowErrorReport(false)} />
+        </div>
+      )}
       {showCredits && (
         <CreditsModal onClose={() => setShowCredits(false)} />
       )}
@@ -2931,6 +2979,9 @@ function App() {
             <ShieldCheckIcon size={13} aria-hidden="true" />
             <span>Legal</span>
           </a>
+          <button className="btn-footer-link" onClick={() => setShowErrorReport(true)}>
+            <span>Report a bug</span>
+          </button>
           <button className="btn-footer-link" onClick={() => setShowCredits(true)}>
             <UsersIcon size={13} aria-hidden="true" />
             <span>Credits</span>
