@@ -221,7 +221,7 @@ const Part3Form = ({ formData, setFormData, preResult, onNext, onBack, pathwayMo
               {preResult.score}<span className="v2-p1-summary-max">%</span>
             </div>
             <span className="v2-p1-summary-tier" style={{ background: 'var(--surface-subtle)', color: 'var(--ink-700)' }}>
-              {preResult.risk || preResult.epsaTierLabel}
+              {preResult.epsaTierLabel || preResult.risk}
             </span>
           </div>
         </div>

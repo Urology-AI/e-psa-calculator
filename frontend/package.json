@@ -13,7 +13,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "dev:sinai": "vite --config vite.config.sinai.js",
-    "build:sinai": "vite build --config vite.config.sinai.js"
+    "build:sinai": "vite build --config vite.config.sinai.js",
+    "e2e": "node e2e/run.mjs",
+    "e2e:watch": "node e2e/run.mjs --watch",
+    "e2e:emulators": "npx --yes firebase-tools@13 emulators:start --config ../firebase.e2e.json --project demo-epsa --only functions,auth,firestore"
   },
   "dependencies": {
     "@epsa/engine": "npm:@urology-ai/epsa-engine@0.2.5",
@@ -40,6 +43,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.2",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
