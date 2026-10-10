@@ -925,10 +925,13 @@
     "tierDescriptionV2": {
       "low": "PSA testi için düşük öncelik, tahmini olasılığınızın modelin referans verilerine göre daha düşük aralıkta olduğu anlamına gelir. Düşük öncelik, risk olmadığı anlamına gelmez ve klinisyen rehberliğinin yerini tutmaz.",
       "intermediate": "PSA testi için orta öncelik, tahmini olasılığınızın modelin referans verilerinin orta aralığında olduğu anlamına gelir. Kişisel risk faktörlerinin ve önceki PSA geçmişinin bir klinisyenle gözden geçirilmesi önemli bağlam sağlayabilir.",
-      "high": "PSA testi için yüksek öncelik, tahmini olasılığınızın modelin referans verilerine göre daha yüksek aralıkta olduğu anlamına gelir. Yüksek öncelik, kanserin mevcut olduğu anlamına gelmez — klinisyenle tarama seçeneklerini gözden geçirmek için bir işarettir."
+      "high": "PSA testi için yüksek öncelik, tahmini olasılığınızın modelin referans verilerine göre daha yüksek aralıkta olduğu anlamına gelir. Yüksek öncelik, kanserin mevcut olduğu anlamına gelmez — klinisyenle tarama seçeneklerini gözden geçirmek için bir işarettir.",
+      "highGuidelineDriven": "PSA testi için yüksek öncelik, tahmini olasılığınızın modelin referans verilerine göre yüksek aralıkta olduğu anlamına gelir. Yüksek öncelik kanser olduğu anlamına gelmez; tarama seçeneklerini bir hekimle gözden geçirmek için bir uyarıdır. Bu öncelik, ePSA'nın daha geniş araştırma temelli puanlamasına ek olarak, AUA/SUO ve NCCN tarama rehberlerine göre kılavuzlarca kabul edilen risk faktörleriyle (yaş, köken, aile öyküsü veya bilinen bir genetik mutasyon gibi) desteklenmektedir; doktorunuzla daha fazla konuşmaya değer bir başlangıç noktasıdır."
     },
     "noResults": "Sonuç mevcut değil.",
     "empiricalProbabilityText": "Doğrulama çalışmamızda (N={{n}}), bu risk düzeyindeki {{n}} hastanın {{events}} tanesinde klinik olarak anlamlı prostat kanseri saptandı (%{{rate}}; %95 GA %{{ciLo}}–%{{ciHi}}).",
+    "empiricalProbabilityTextNoCi": "Genel bir tarama popülasyonundan değil, {{cohortN}} hastadan oluşan küçük bir sevk kohortundan: bu düzeydeki {{n}} hastanın {{events}} tanesinde klinik olarak anlamlı prostat kanseri vardı (%{{rate}}).",
+    "empiricalInsufficientText": "Genel bir tarama popülasyonundan değil, {{cohortN}} hastadan oluşan küçük bir sevk kohortundan: bu düzeyde tahmin yapmak için çok az hasta var.",
     "educationalEstimateNote": "Bu eğitsel bir tahmindir — kanser tanısı koymaz. Doktorunuzla yapacağınız görüşme için bir başlangıç noktası olarak kullanın.",
     "sessionKeyLabel": "Oturum anahtarı",
     "savedToCloud": "Buluta kaydedildi",
@@ -1276,6 +1279,16 @@
     "fixToCalculate": "Hesaplamak için bunları düzeltin:",
     "headsUp": "Dikkat:",
     "calculate": "Sonucu hesapla",
+    "calculateFull": "Tam modeli hesapla (Pre-PSA + PSA + MRI)",
+    "calculating": "Hesaplanıyor…",
+    "psaAndMriTitle": "PSA ve MRI",
+    "includeMri": "MRI / PI-RADS dahil edilsin mi?",
+    "editAndCompare": "Yanıtları düzenle ve karşılaştır",
+    "previousScore": "Önceki puan",
+    "currentScore": "Güncel puan",
+    "part1Title": "Pre-PSA — Başlangıç riski",
+    "part2Title": "PSA — PSA'ya göre düzeltilmiş risk",
+    "part3Title": "MRI — Biyopsi riski",
     "errors": {
       "ipssRange": "IPSS toplamı 0 ile 35 arasında olmalıdır",
       "shimRange": "SHIM toplamı 0 ile 25 arasında olmalıdır",
@@ -1319,14 +1332,14 @@
     "closeAriaLabel": "Kapat",
     "closeButton": "Belgeleri Kapat",
     "validationStudyButton": "Doğrulama Çalışması",
-    "validationStudyTitle": "Doğrulama Çalışması (AUC 0.707)",
+    "validationStudyTitle": "ePSA'yı nasıl kontrol ettik (doğrulama)",
     "overview": {
       "title": "Genel Bakış",
       "bodyStart": "Aşama 1 (Tarama Önceliği), eğitsel bir ePSA skoru (%0-100) ve risk düzeyi üretmek için kısa bir anket kullanır. Bu, prostat kanseri taraması (ör. PSA testi) hakkında bir hekimle yapılacak görüşmeyi bilgilendirmeye yardımcı olur. Bu bir",
       "notDiagnosisStrong": "tanı değildir",
       "bodyEnd": "ve klinik yargının yerine geçmez.",
-      "warningStrong": "Doğrulanmamış eğitsel araç.",
-      "warningBody": "Tarama kararları nitelikli bir sağlık uzmanı ile birlikte verilmelidir. Risk düzeyleri, AUA, NCCN ve EAU'dan gelen popülasyon düzeyindeki verilere ve kılavuz eşiklerine dayanır ve yüksek riskli demografik profiller için mevcut eşiklerden daha erken değerlendirme önerebilir. Bu fark bilinçlidir ve ortak karar verme bağlamında yorumlanmalıdır."
+      "warningStrong": "Eğitim amaçlı bir araç; gerçek dünya sonuçları için henüz doğrulanmamıştır.",
+      "warningBody": "ePSA, kamuya açık veri kümelerinde tarama rehberleriyle karşılaştırılmıştır; ancak zaman içinde izlenen erkeklerde daha fazla kanser bulduğu veya zararı önlediği gösterilmemiştir. Tarama kararları nitelikli bir sağlık uzmanıyla birlikte verilmelidir. Bazı yüksek riskli profiller için ePSA, yayımlanmış rehber eşiklerinden daha erken bir PSA testi veya MRI önerebilir. Her sonuç, doktorunuzla yapacağınız bir görüşmenin başlangıç noktasıdır."
     },
     "inputs": {
       "title": "Anket Girdileri",
@@ -1346,18 +1359,25 @@
     },
     "scoring": {
       "title": "Skor Nasıl Hesaplanır",
-      "body": "ePSA modeli puana dayalı (gruplanmış) bir yaklaşım kullanır. Cevaplarınız risk faktörlerine dönüştürülür (ör. yaş 50-59, 60-69, 70+; BMI 25-29.9 veya >=30; IPSS şiddeti; egzersiz; Siyahi ırk; aile öyküsü). Bunlar tek bir skorda birleştirilir ve %0-100 ölçeğine normalleştirilir. Küçük farkların aşırı yorumlanmasını önlemek için +/-%5'lik bir aralık gösterilir.",
-      "formula": "Model türü: {{modelType}}. Birleşik risk faktörleriniz üç düzeye ayrılır — DAHA DÜŞÜK, ORTA ve DAHA YÜKSEK — kesin bir sayısal puan değil, göreceli riskinizi yansıtır."
+      "body": "ePSA puanları toplar. Daha yüksek prostat kanseri riskiyle bağlantılı her yanıt (örneğin ileri yaş, siyah köken, aile öyküsü, kalıtsal bir gen değişikliği, idrar yolu belirtileri veya daha az egzersiz) puan ekler ve toplam %0-100 arası bir puana dönüştürülür. Küçük farkların fazla yorumlanmaması için ±%5'lik bir aralık gösterilir.",
+      "formula": "Model türü: {{modelType}}. Puan, kanser olma ihtimalinizin kesin bir olasılığını değil, göreceli riskinizi gösteren üç düzeye (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK) ayrılır.",
+      "originTitle": "Puanlar nereden geliyor",
+      "originBody": "Başlangıç puan değerleri, Mount Sinai'a sevk edilen ve 23'ünde klinik olarak anlamlı kanser bulunan 94 erkek üzerinde Mart 2026'da uyarlanan bir istatistiksel modelden (Bayesçi lojistik regresyon) geldi. Model, her risk faktörü için yayımlanmış araştırmaları başlangıç varsayımları olarak kullandı. Ekip daha sonra bazı puanları elle ayarladı (örneğin idrar yolu belirtilerinin sayılma şekli, 50-59 yaş değeri, siyah kökene ilişkin yaş kuralı, kimyasal maruziyet, kalıtsal aile öyküsü ve Aşkenazi kökeni). Dolayısıyla puanlar kısmen veriye dayalı, kısmen uzman tarafından belirlenmiştir.",
+      "originCaveat": "PSA testi için %22,5 eşik değeri ve düzey yüzdeleri aynı 94 erkek üzerinde belirlendi; bu nedenle yeni erkeklerde olacağından daha iyi görünürler. Bazı düzeylerde 20'den az erkek bulunduğundan bu yüzdeler yaklaşıktır."
     },
     "riskTiers": {
       "title": "Risk Düzeyleri ve PSA Önerisi",
-      "body": "Sonucunuz üç düzeyden birine yerleştirilir (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK). Ayrıca model, birleşik risk profilinize dayanarak PSA testinin \"Önerilen\" veya \"Önerilmeyen\" olduğunu belirtebilir. Bu yalnızca eğitsel kullanım içindir ve doktorunuzla gözden geçirilmelidir."
+      "body": "Sonucunuz üç düzeyden birine (DAHA DÜŞÜK, ORTA, DAHA YÜKSEK) yerleştirilir. PSA önerisi çoğunlukla yaşı ve yayımlanmış rehberleri (AUA/SUO 2026, NCCN, EAU) izler; risk puanınız buna ek olur. Bir PSA veya MRI sonucu eklerseniz, ikinci ve üçüncü adım (2. ve 3. Aşama) aynı puanları PSA, PSA yoğunluğu ve PI-RADS ile birlikte kullanarak MRI veya biyopsi önerir. Bu adımların her biri kendi belgelerinde açıklanmıştır. Bunların tümü eğitim amaçlıdır ve doktorunuzla birlikte gözden geçirilmelidir."
     },
     "limitations": {
       "title": "Sınırlamalar",
       "item1": "Tanısal değildir; kanseri saptamaz veya ekarte etmez.",
       "item2": "Popülasyon düzeyindeki ilişkilere dayanır; bireysel risk değişebilir.",
-      "item3": "Bir hekim tarafından belirtildiğinde DRE, PSA, MRI veya biyopsinin yerine geçmez."
+      "item3": "Bir hekim tarafından belirtildiğinde DRE, PSA, MRI veya biyopsinin yerine geçmez.",
+      "item4": "1. Aşama anketi, büyük bir erkek grubunda PSA testiyle doğrudan karşılaştırılmamıştır.",
+      "item5": "Sonuçlar açısından test edilmedi (erken bulunan kanserler, önlenen ölümler veya metastazlar).",
+      "item6": "Her grup için (örneğin ırk veya ülkeye göre) aynı derecede iyi çalıştığını kontrol etmedik.",
+      "item7": "Puanlar tek bir hastanedeki küçük bir sevk grubu üzerinde oluşturuldu; bu nedenle genel popülasyondaki erkeklere uymayabilir."
     },
     "references": {
       "title": "Kaynaklar",
@@ -1366,7 +1386,7 @@
     "validationStudyModal": {
       "heroTitle": "Doğrulama (N={{n}})",
       "csPcaCount": "csPCa+ n={{positive}}",
-      "heroSubtitle": "Bu örneklemde Bayesçi yeniden kalibre edilmiş ePSA ile PSA için AUC istatistiksel olarak eşdeğerdir (Youden-optimal kesim noktaları).",
+      "heroSubtitle": "Özgün 94 erkeklik hastane grubunda ePSA ve PSA yaklaşık olarak eşit derecede ayırt edici oldu. Fark küçüktü ve belirsizlik büyüktür.",
       "cardAucBayesLabel": "AUC (Bayesçi ePSA)",
       "cardAucPsaLabel": "AUC (PSA)",
       "cardAucDiffLabel": "AUC farkı (Bayesçi − PSA)",
@@ -1383,10 +1403,29 @@
       "fpLabel": "FP",
       "tnLabel": "TN",
       "bottomLineTitle": "Sonuç",
-      "bottomLineBodyStart": "Bu veri kümesi boyutuyla Bayesçi ePSA, PSA kadar iyi performans gösterir. Ana pratik avantaj",
-      "higherNpv": "daha yüksek NPV",
-      "bottomLineBodyEnd": "Youden-optimal kesim noktalarındadır.",
-      "interpretationNote": "Yorumlama notu: bu, csPCa+ n={{positive}} olan N={{n}} üzerinde örneklem içi bir değerlendirmedir. İstatistiksel eşdeğerliğin ötesinde ayrımı göstermek için daha büyük bir veri kümesi gereklidir."
+      "bottomLineBodyStart": "Yalnızca 94 erkekle ePSA'nın PSA'dan daha iyi veya daha kötü olduğunu gösteremeyiz. ePSA en iyi eşiğinde daha fazla kanseri yakaladı (duyarlılık %82,6'ya karşı %73,9), ancak bu, modelin oluşturulduğu aynı erkeklerde ölçüldü; bu nedenle gerçek fark bilinmiyor. NPV farkı (%88'e karşı %84)",
+      "higherNpv": "güvenilir değildir",
+      "bottomLineBodyEnd": "çünkü erkek sayısı çok az.",
+      "interpretationNote": "Yorum notu: bu, N={{n}} ve csPCa+ n={{positive}} ile aynı örneklem üzerinde yapılan bir değerlendirmedir. Güven aralığı geniştir; bu nedenle bu test ePSA'nın PSA'dan daha iyi, aynı veya daha kötü olup olmadığını söyleyemez.",
+      "stepsTitle": "Attığımız adımlar",
+      "stepsIntro": "ePSA'yı aşamalar halinde, çoğunlukla diğer hastanelerin ve anketlerin kamuya açık verileriyle kontrol ettik. Bu adımlar, ePSA'nın rehberleri izleyip izlemediğini ve kanseri tek başına PSA kadar iyi bulup bulmadığını sorar. ePSA'nın hayat kurtardığını göstermez.",
+      "step1Title": "1. Küçük hastane grubu (N={{n}})",
+      "step1Body": "İlk test, modelin oluşturulduğu aynı 94 Mount Sinai erkeğini kullandı. ePSA ve PSA benzer göründü, ancak grup çok küçük ve modele çok yakından bağlı olduğundan kesin sonuçlar çıkarılamaz.",
+      "step2Title": "2. Kimler PSA testi yaptırmalı? (ABD ulusal anketi, NHANES)",
+      "step2Body": "70 yaşın altındaki {{n}} ABD'li erkekte ePSA, PSA'sı 4,0 veya üzeri olan erkeklerin {{sens}} oranına PSA testi önerdi; bu, NCCN ve AUA/SUO rehberleriyle aynıdır. Rehberler gibi, ihtiyacı olmayan erkeklerin çoğuna da testi önerdi: PSA'sı yüksek olmayan erkeklerin yalnızca {{spec}} oranına testi atlayabilecekleri söylendi. NHANES'te biyopsi sonucu yoktur; bu nedenle yüksek PSA, \"test yaptırması gerekirdi\" ifadesinin yerine kullanılır.",
+      "step3Title": "3. Kimler MRI çektirmeli? (PI-CAI, {{n}} erkek)",
+      "step3Body": "ePSA 2. Aşama, biyopsisi sonradan anlamlı bir kanser gösteren (derece grubu 2 veya üzeri) erkeklerin {{sens}} oranına MRI önerdi. NCCN ve EAU kuralları {{nccn}}, 4,0 üzerindeki PSA ise {{psa4}} oranında buldu. ePSA, NCCN veya EAU'ya göre biraz daha fazla erkeği MRI'dan kurtardı, 4,0 üzerindeki PSA'ya göre ise biraz daha az. Bu erkekler zaten MRI için sevk edilmişti; bu nedenle seçilmemiş bir popülasyonda sayılar farklı olabilir.",
+      "step4Title": "4. Kimler biyopsi yaptırmalı? (e-Biopsy, iki kamuya açık MRI kohortu)",
+      "step4Body": "e-Biopsy (ePSA rehber kuralları değil, ayrı olasılık modelimiz) anlamlı kanserleri diğer sonuçlardan PI-CAI'de iyi (AUC {{aucPicai}}), {{nTcia}} erkeklik ikinci bir kümede ise orta düzeyde (AUC {{aucTcia}}) ayırdı. PI-RADS tek başına {{radsPicai}} ve {{radsTcia}}, yalnızca PSA ise {{psaPicai}} ve {{psaTcia}} puan aldı. %25 eşiğinde PI-CAI'deki anlamlı kanserlerin {{sensPicai}} oranını buldu, ancak ikinci kümede yalnızca {{sensTcia}} oranını buldu; burada rehber kuralları daha fazla kanser buldu ancak daha az biyopsiyi önledi.",
+      "step5Title": "5. Ek kontroller",
+      "step5Body": "Analizleri anlamlı kanserin farklı tanımlarıyla, tüm yaşlarla, yalnızca PI-RADS 3 veya üzeriyle, eksik değerler en kötü durum olarak ele alınarak, ayrıca hastane ve yaş grubuna göre tekrarladık. Biyopsi modelini ayrıca bir net fayda (karar eğrisi) analiziyle karşılaştırdık.",
+      "limitsTitle": "Bu adımların bize söyleyemedikleri",
+      "limit1": "Kohortların çoğu zaten MRI veya biyopsiye gönderilmiş erkeklerdir; bu, sonuçların genel popülasyondan farklı görünmesine neden olabilir.",
+      "limit2": "Kamuya açık verilerde aile öyküsü gibi girdiler az veya hiç yoktur; bu nedenle her kohortta ePSA'nın yalnızca bir kısmı test edilebildi.",
+      "limit3": "ePSA'yı zaman içinde izlenen erkeklerde test etmedik; bu nedenle kanseri daha erken bulduğunu veya metastazları önlediğini söyleyemeyiz.",
+      "limit4": "ePSA'yı PSA ile daha adil biçimde karşılaştırmak için büyük bir önleme çalışmasının plasebo kolundaki biyopsi verilerini kullanan bir çalışma planlanmaktadır.",
+      "verifiedLine": "2-4. adımlardaki rakamlar, ePSA motorunun {{version}} sürümüyle ({{guideline}} rehber kuralları, model parmak izi {{hash}}) {{date}} tarihinde yeniden çalıştırıldı. 1. adım, özgün hastane kohortu raporundan gelmektedir.",
+      "sourcesNote": "Kullanılan kamuya açık veri kümeleri: NHANES (ABD CDC), PI-CAI ve kamuya açık bir MRI-biyopsi koleksiyonu (TCIA). Analiz kodu ve sonuçlar ePSA motoruyla birlikte saklanır. Tewari Lab tarafından hazırlanmıştır; henüz bağımsız olarak incelenmemiştir."
     }
   },
   "profileManager": {
@@ -1432,5 +1471,8 @@
       "range": "Aralık",
       "points": "Puanlar"
     }
+  },
+  "biopsyTool": {
+    "open": "e-Biopsy"
   }
 }

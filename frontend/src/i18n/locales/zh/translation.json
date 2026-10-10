@@ -813,6 +813,8 @@
   "part1Results": {
     "noResults": "暂无结果。",
     "empiricalProbabilityText": "在我们的验证研究中（N={{n}}），处于此风险层级的 {{n}} 位患者中有 {{events}} 位确诊有临床显著意义的前列腺癌（{{rate}}%；95% CI {{ciLo}}%–{{ciHi}}%）。",
+    "empiricalProbabilityTextNoCi": "数据来自{{cohortN}}名患者组成的小型转诊队列，而非一般筛查人群：该层级的{{n}}名患者中有{{events}}名患有具有临床意义的前列腺癌（{{rate}}%）。",
+    "empiricalInsufficientText": "数据来自{{cohortN}}名患者组成的小型转诊队列，而非一般筛查人群：该层级的患者人数过少，无法估计。",
     "educationalEstimateNote": "这是一个教育性的估算——它并不能诊断癌症。请把它作为与医生沟通的起点。",
     "sessionKeyLabel": "会话密钥",
     "savedToCloud": "已保存到云端",
@@ -989,7 +991,8 @@
     "tierDescriptionV2": {
       "low": "PSA检测低优先级意味着您的估计可能性相对于模型参考数据处于较低范围。低优先级并不意味着没有风险，也不能替代临床医生的指导。",
       "intermediate": "PSA检测中等优先级意味着您的估计可能性处于模型参考数据的中间范围。与临床医生一起审查个人风险因素和既往PSA历史可能会提供重要背景。",
-      "high": "PSA检测高优先级意味着您的估计可能性相对于模型参考数据处于较高范围。高优先级并不意味着癌症已存在——它是提示您与临床医生一起审查筛查选项的信号。"
+      "high": "PSA检测高优先级意味着您的估计可能性相对于模型参考数据处于较高范围。高优先级并不意味着癌症已存在——它是提示您与临床医生一起审查筛查选项的信号。",
+      "highGuidelineDriven": "PSA检测的高优先级意味着，相对于模型的参考数据，您的估计可能性处于较高范围。高优先级并不意味着存在癌症，而是提示您与临床医生一起审视筛查选择。根据AUA/SUO和NCCN的筛查指南，这一优先级得到指南认可的风险因素（如年龄、族裔、家族史或已知基因突变）的支持，同时也结合了ePSA更广泛的基于研究的评分；这是一个值得与您的医生进一步讨论的起点。"
     }
   },
   "part2Results": {
@@ -1276,6 +1279,16 @@
     "fixToCalculate": "请修正以下内容以计算：",
     "headsUp": "注意：",
     "calculate": "计算结果",
+    "calculateFull": "计算完整模型（Pre-PSA + PSA + MRI）",
+    "calculating": "计算中…",
+    "psaAndMriTitle": "PSA 和 MRI",
+    "includeMri": "是否包含 MRI / PI-RADS？",
+    "editAndCompare": "编辑答案并比较",
+    "previousScore": "之前的评分",
+    "currentScore": "当前评分",
+    "part1Title": "Pre-PSA — 基线风险",
+    "part2Title": "PSA — PSA调整后风险",
+    "part3Title": "MRI — 活检风险",
     "errors": {
       "ipssRange": "IPSS总分必须在0到35之间",
       "shimRange": "SHIM总分必须在0到25之间",
@@ -1319,14 +1332,14 @@
     "closeAriaLabel": "关闭",
     "closeButton": "关闭文档",
     "validationStudyButton": "验证研究",
-    "validationStudyTitle": "验证研究（AUC 0.707）",
+    "validationStudyTitle": "我们如何检验ePSA（验证）",
     "overview": {
       "title": "概述",
       "bodyStart": "第一阶段（筛查优先级）使用简短问卷生成教育性ePSA评分（0-100%）和风险等级。这有助于与临床医生就前列腺癌筛查（如PSA检测）进行对话。它",
       "notDiagnosisStrong": "不是诊断",
       "bodyEnd": "，不能替代临床判断。",
-      "warningStrong": "未经验证的教育工具。",
-      "warningBody": "筛查决定应与合格的医疗提供者共同做出。风险等级基于AUA、NCCN和EAU的人群数据和指南阈值，对于高风险人口档案可能建议比当前阈值更早的评估。这种差异是有意为之的，应在共同决策的背景下解读。"
+      "warningStrong": "教育工具，尚未针对真实世界结局进行验证。",
+      "warningBody": "ePSA已在公开数据集上与筛查指南进行了对照，但尚未证明它在长期随访的男性中能发现更多癌症或避免伤害。筛查决定应与合格的医疗专业人员共同做出。对于某些较高风险的人群，ePSA可能会比已发布的指南截断值更早建议PSA检测或MRI。每个结果都是与您的医生交谈的起点。"
     },
     "inputs": {
       "title": "问卷输入",
@@ -1346,18 +1359,25 @@
     },
     "scoring": {
       "title": "评分计算方式",
-      "body": "ePSA模型使用基于积分（分箱）的方法。您的答案被转换为风险因素（如年龄50-59岁、60-69岁、70岁以上；BMI 25-29.9或≥30；IPSS严重程度；运动；黑人种族；家族史）。这些被组合成单一评分，归一化为0-100%的刻度。显示±5%的范围以避免过度解读细微差异。",
-      "formula": "模型类型：{{modelType}}。您的综合风险因素被分为三个等级——较低、中等和较高——反映您的相对风险，而非确切的数值分数。"
+      "body": "ePSA会把分数相加。每个与前列腺癌风险较高相关的答案（例如年龄较大、黑人族裔、家族史、遗传基因改变、泌尿系统症状或运动较少）都会增加分数，总分被转换为0-100%的评分。系统会显示±5%的范围，以免对微小差异过度解读。",
+      "formula": "模型类型：{{modelType}}。评分被分为三个层级（较低、中等、较高），显示的是您的相对风险，而不是患癌的确切概率。",
+      "originTitle": "分数从何而来",
+      "originBody": "起始分值来自一个统计模型（贝叶斯逻辑回归），该模型于2026年3月基于转诊至Mount Sinai的94名男性拟合，其中23人患有具有临床意义的癌症。模型以已发表的各风险因素研究作为初始假设。此后，团队又手动调整了一些分值（例如泌尿系统症状的计分方式、50-59岁的分值、黑人族裔的年龄规则、化学物质暴露、遗传性家族史和阿什肯纳兹族裔）。因此，这些分值一部分由数据驱动，一部分由专家设定。",
+      "originCaveat": "PSA检测的22.5%截断值和各层级的百分比是基于同样这94名男性设定的，因此看起来比在新的男性中表现更好。某些层级的男性不足20人，因此这些百分比只是粗略估计。"
     },
     "riskTiers": {
       "title": "风险等级和PSA建议",
-      "body": "您的结果被置于三个等级之一（较低、中等、较高）。此外，模型可能会根据您的综合风险状况指示PSA检测是否\"建议\"或\"不建议\"。这仅供教育使用，应与您的医生一起审查。"
+      "body": "您的结果会被归入三个层级之一（较低、中等、较高）。PSA建议主要依据年龄和已发布的指南（AUA/SUO 2026、NCCN、EAU）；您的风险评分是在此基础上的补充。如果您添加PSA或MRI结果，第二步和第三步（第2阶段和第3阶段）会使用相同的分数，再加上PSA、PSA密度和PI-RADS，来建议MRI或活检。每一步都在各自的文档中进行了说明。以上所有内容仅供教育用途，应与您的医生一起审阅。"
     },
     "limitations": {
       "title": "局限性",
       "item1": "非诊断性；不能检测或排除癌症。",
       "item2": "基于人群级别的关联；个体风险可能有所不同。",
-      "item3": "在临床医生建议时，不能替代DRE、PSA、MRI或活检。"
+      "item3": "在临床医生建议时，不能替代DRE、PSA、MRI或活检。",
+      "item4": "第1阶段问卷尚未在大规模男性群体中与PSA检测直接比较。",
+      "item5": "尚未针对结局进行检验（早期发现的癌症、避免的死亡或转移）。",
+      "item6": "我们尚未验证它对每个群体（例如按种族或国家）是否同样有效。",
+      "item7": "这些分值是基于一家医院的小型转诊群体建立的，因此可能不适用于一般人群中的男性。"
     },
     "references": {
       "title": "参考资料",
@@ -1366,7 +1386,7 @@
     "validationStudyModal": {
       "heroTitle": "验证（N={{n}}）",
       "csPcaCount": "csPCa+ n={{positive}}",
-      "heroSubtitle": "贝叶斯重新校准的ePSA与PSA的AUC在此样本中统计上等效（Youden最优截断值）。",
+      "heroSubtitle": "在最初的94名男性医院群体中，ePSA和PSA的区分能力大致相当。差异很小，不确定性很大。",
       "cardAucBayesLabel": "AUC（贝叶斯ePSA）",
       "cardAucPsaLabel": "AUC（PSA）",
       "cardAucDiffLabel": "AUC差值（贝叶斯 − PSA）",
@@ -1382,11 +1402,30 @@
       "fnLabel": "FN",
       "fpLabel": "FP",
       "tnLabel": "TN",
-      "bottomLineTitle": "结论",
-      "bottomLineBodyStart": "在此数据集大小下，贝叶斯ePSA与PSA表现相当。主要实际优势是在Youden最优截断值下的",
-      "higherNpv": "更高NPV",
+      "bottomLineTitle": "总结",
+      "bottomLineBodyStart": "仅凭94名男性，我们无法证明ePSA优于或劣于PSA。在最佳截断值下，ePSA发现了更多癌症（敏感性82.6%对73.9%），但这是在构建模型所用的同样这些男性身上测得的，因此真实差异未知。NPV的差异（88%对84%）在男性人数如此之少的情况下",
+      "higherNpv": "并不可靠",
       "bottomLineBodyEnd": "。",
-      "interpretationNote": "解释说明：这是对N={{n}}（csPCa+ n={{positive}}）的样本内评估。需要更大的数据集来证明超越统计等效性的分离。"
+      "interpretationNote": "解读说明：这是在同一样本内的评估，N={{n}}，csPCa+ n={{positive}}。置信区间很宽，因此该检验无法告诉我们ePSA相比PSA是更好、相同还是更差。",
+      "stepsTitle": "我们采取的步骤",
+      "stepsIntro": "我们分阶段检验了ePSA，主要使用来自其他医院和调查的公开数据。这些步骤考察的是ePSA是否遵循指南，以及发现癌症的能力是否与单独使用PSA相当。它们并不能证明ePSA能够挽救生命。",
+      "step1Title": "1. 小型医院群体（N={{n}}）",
+      "step1Body": "第一次检验使用的是构建模型时所用的同样94名Mount Sinai男性。ePSA和PSA看起来相近，但该群体过小，且与模型联系过于紧密，无法得出确切结论。",
+      "step2Title": "2. 谁应该做PSA检测？（美国全国调查，NHANES）",
+      "step2Body": "在{{n}}名70岁以下的美国男性中，ePSA向PSA为4.0或更高的男性中的{{sens}}推荐了PSA检测，与NCCN和AUA/SUO指南相同。与指南一样，它也向大多数不需要检测的男性推荐了检测：PSA不高的男性中，只有{{spec}}被告知可以不做。NHANES没有活检结果，因此用高PSA来代替“本应接受检测”。",
+      "step3Title": "3. 谁应该做MRI？（PI-CAI，{{n}}名男性）",
+      "step3Body": "ePSA第2阶段向后来活检显示有显著癌症（分级组2或更高）的男性中的{{sens}}推荐了MRI。NCCN和EAU规则发现了{{nccn}}，PSA高于4.0发现了{{psa4}}。与NCCN或EAU相比，ePSA使略多的男性免于MRI，而与PSA高于4.0相比则略少。这些男性本已被转诊做MRI，因此在未经选择的人群中，数字可能有所不同。",
+      "step4Title": "4. 谁应该做活检？（e-Biopsy，两个公开MRI队列）",
+      "step4Body": "e-Biopsy（我们单独的概率模型，而不是ePSA的指南规则）在PI-CAI中能很好地区分显著癌症与其他结果（AUC {{aucPicai}}），在另一组{{nTcia}}名男性中表现中等（AUC {{aucTcia}}）。单独使用PI-RADS得分为{{radsPicai}}和{{radsTcia}}，单独使用PSA为{{psaPicai}}和{{psaTcia}}。在25%截断值下，它在PI-CAI中发现了{{sensPicai}}的显著癌症，但在第二组中仅发现{{sensTcia}}；在该组中，指南规则发现的癌症更多，但避免的活检更少。",
+      "step5Title": "5. 额外检查",
+      "step5Body": "我们用不同的显著癌症定义、所有年龄、仅PI-RADS 3或更高、将缺失值按最坏情况处理，以及按医院和年龄组重复了分析。我们还将活检模型与净获益（决策曲线）分析进行了比较。",
+      "limitsTitle": "这些步骤无法告诉我们的内容",
+      "limit1": "大多数队列是已经被送去做MRI或活检的男性，这可能使结果与一般人群看起来不同。",
+      "limit2": "公开数据中几乎没有或完全没有家族史等输入信息，因此每个队列中只能检验ePSA的一部分。",
+      "limit3": "我们尚未在长期随访的男性中检验ePSA，因此无法说它能更早发现癌症或预防转移。",
+      "limit4": "计划开展一项研究，使用大型预防试验安慰剂组的活检数据，以更公平地比较ePSA与PSA。",
+      "verifiedLine": "第2-4步中的数字已于{{date}}使用ePSA引擎版本{{version}}（{{guideline}}指南规则，模型指纹{{hash}}）重新运行。第1步来自最初的医院队列报告。",
+      "sourcesNote": "使用的公开数据集：NHANES（美国CDC）、PI-CAI以及一个公开的MRI-活检数据集（TCIA）。分析代码和结果与ePSA引擎一同保存。由Tewari Lab编写；尚未经过独立审查。"
     }
   },
   "profileManager": {
@@ -1432,5 +1471,8 @@
       "range": "范围",
       "points": "积分"
     }
+  },
+  "biopsyTool": {
+    "open": "e-Biopsy"
   }
 }
